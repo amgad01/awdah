@@ -1,0 +1,6 @@
+#!/bin/sh
+
+npx eslint . --ext .ts,.tsx --max-warnings=0
+npx prettier --check .
+npx tsc --noEmit
+npx vitest run --changed
