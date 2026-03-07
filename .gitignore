@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+cdk.out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.local
+
+# Private docs (local only)
+private-docs/
+
+# Docker local state
+docker/data/
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Zone.Identifier files (WSL)
+*:Zone.Identifier
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
