@@ -5,5 +5,5 @@
 ENDPOINT="http://localhost:4566"
 REGION="eu-west-1"
 
-# TODO: Create wafa-backups-dev bucket
+# TODO: Create Awdah-backups-dev bucket
 # TODO: Enable versioning on the bucket
