@@ -13,10 +13,10 @@ export class AlarmStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AlarmStackProps) {
     super(scope, id, props);
 
-    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     const alertTopic = new sns.Topic(this, 'SystemAlerts', {
-      topicName: `Awdah-SystemAlerts-${props.environment}${resourceSuffix}`,
+      topicName: `${resourcePrefix}Awdah-SystemAlerts-${props.environment}`,
     });
 
     // Example: Alert on 4xx/5xx in the future, for v1 we'll just have a topic.

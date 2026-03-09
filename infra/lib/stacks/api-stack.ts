@@ -20,10 +20,10 @@ export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     const api = new apigatewayv2.HttpApi(this, 'AwdahApi', {
-      apiName: `Awdah-API-${props.environment}${resourceSuffix}`,
+      apiName: `${resourcePrefix}Awdah-API-${props.environment}`,
       corsPreflight: {
         allowHeaders: ['Content-Type', 'Authorization'],
         allowMethods: [apigatewayv2.CorsHttpMethod.ANY],

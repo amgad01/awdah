@@ -29,4 +29,4 @@ Stores user-specific preferences (e.g., calculation methods, language).
 - **Sort Key (`SK`)**: `sk` (String) - Fixed value for simple settings (e.g., `SETTINGS`).
 
 ## Resource Isolation
-To support parallel development on multiple feature branches, table names are suffixed with the environment and/or ticket number (e.g., `-dev-123`) when deployed from a feature branch.
+To support parallel development on multiple feature branches, table names are prefixed with the ticket number (e.g., `123-Awdah-...`) when deployed from a feature branch. This ensures isolation and avoids conflicts with existing resources.

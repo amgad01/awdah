@@ -10,7 +10,7 @@ import { BackupStack } from '../lib/stacks/backup-stack';
 const app = new cdk.App();
 const environment = app.node.tryGetContext('env') || 'dev';
 const ticket = app.node.tryGetContext('ticket');
-const envWithTicket = ticket ? `${environment}-${ticket}` : environment;
+const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
 cdk.Tags.of(app).add('project', 'Awdah');
 cdk.Tags.of(app).add('env', environment);

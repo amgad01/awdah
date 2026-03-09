@@ -13,11 +13,11 @@ export class BackupStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: BackupStackProps) {
     super(scope, id, props);
 
-    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     // Manual export bucket for DynamoDB JSON backups
     new s3.Bucket(this, 'BackupBucket', {
-      bucketName: `awdah-backups-${props.environment}${resourceSuffix}-${this.account}`,
+      bucketName: `${resourcePrefix}awdah-backups-${props.environment}-${this.account}`,
       removalPolicy:
         props.environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: props.environment !== 'prod',

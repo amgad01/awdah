@@ -14,10 +14,10 @@ export class AuthStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
 
-    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: `Awdah-UserPool-${props.environment}${resourceSuffix}`,
+      userPoolName: `${resourcePrefix}Awdah-UserPool-${props.environment}`,
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },

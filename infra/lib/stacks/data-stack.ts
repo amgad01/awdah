@@ -19,11 +19,11 @@ export class DataStack extends cdk.Stack {
     const removalPolicy =
       props.environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY;
 
-    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     // 1. Prayer Logs Table
     this.prayerLogsTable = new dynamodb.Table(this, 'PrayerLogsTable', {
-      tableName: `Awdah-PrayerLogs-${props.environment}${resourceSuffix}`,
+      tableName: `${resourcePrefix}Awdah-PrayerLogs-${props.environment}`,
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -39,7 +39,7 @@ export class DataStack extends cdk.Stack {
 
     // 2. Fast Logs Table
     this.fastLogsTable = new dynamodb.Table(this, 'FastLogsTable', {
-      tableName: `Awdah-FastLogs-${props.environment}${resourceSuffix}`,
+      tableName: `${resourcePrefix}Awdah-FastLogs-${props.environment}`,
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -55,7 +55,7 @@ export class DataStack extends cdk.Stack {
 
     // 3. Practicing Periods Table
     this.practicingPeriodsTable = new dynamodb.Table(this, 'PracticingPeriodsTable', {
-      tableName: `Awdah-PracticingPeriods-${props.environment}${resourceSuffix}`,
+      tableName: `${resourcePrefix}Awdah-PracticingPeriods-${props.environment}`,
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'periodId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -65,7 +65,7 @@ export class DataStack extends cdk.Stack {
 
     // 4. User Settings Table
     this.userSettingsTable = new dynamodb.Table(this, 'UserSettingsTable', {
-      tableName: `Awdah-UserSettings-${props.environment}${resourceSuffix}`,
+      tableName: `${resourcePrefix}Awdah-UserSettings-${props.environment}`,
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
