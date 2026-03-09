@@ -1,0 +1,31 @@
+{
+  "name": "@awdah/backend",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "ts-node src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.726.1",
+    "@aws-sdk/client-secrets-manager": "3.726.1",
+    "@aws-sdk/lib-dynamodb": "3.726.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@umalqura/core": "^0.0.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "pino": "9.6.0",
+    "ulid": "2.3.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.147",
+    "ts-node": "10.9.2",
+    "typescript": "5.7.3",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "3.0.4"
+  }
+}

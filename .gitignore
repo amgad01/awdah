@@ -39,3 +39,13 @@ coverage/
 # Logs
 *.log
 npm-debug.log*
+
+# Build / debug artifacts
+*.txt
+!README*.txt
+
+# AI agent config
+.agent/
+
+# TypeScript build info
+*.tsbuildinfo
