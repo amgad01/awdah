@@ -1,10 +1,19 @@
 # Awdah عودة
 
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Awdah Logo" width="200"/>
+</p>
+
 **An Islamic ibadah tracker for making up missed Salah and Fasts.**
 
 **تطبيق لتتبع العبادات الفائتة من صلاة وصيام.**
 
+<p align="center">
+  <img src="docs/assets/app_theme.png" alt="Awdah App Theme" width="600"/>
+</p>
+
 ---
+
 Awdah is a full-stack serverless web application that helps Muslims return to their missed obligatory prayers (Salah) and fasts. Built on AWS - Lambda, DynamoDB, Cognito, and CDK - with a React TypeScript frontend, Clean Architecture, Domain-Driven Design, and full Arabic RTL support. Designed to be private, compassionate, and nearly free to run.
 
 عودة تطبيق ويب يساعدك على قضاء ما فاتك من صلوات وصيام، بهدوء ومن غير حُكم. تتبّع ما عليك، وابدأ عودتك خطوةً بخطوة.
@@ -16,15 +25,15 @@ Awdah is a full-stack serverless web application that helps Muslims return to th
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React, TypeScript, Vite |
-| Backend | Node.js, TypeScript, AWS Lambda |
-| Infrastructure | AWS CDK (TypeScript) |
-| Database | DynamoDB (PAY_PER_REQUEST) |
-| Auth | AWS Cognito |
-| CI/CD | GitHub Actions |
-| Local dev | Docker Compose, LocalStack |
+| Layer          | Technology                      |
+| -------------- | ------------------------------- |
+| Frontend       | React, TypeScript, Vite         |
+| Backend        | Node.js, TypeScript, AWS Lambda |
+| Infrastructure | AWS CDK (TypeScript)            |
+| Database       | DynamoDB (PAY_PER_REQUEST)      |
+| Auth           | AWS Cognito                     |
+| CI/CD          | GitHub Actions                  |
+| Local dev      | Docker Compose, LocalStack      |
 
 ## Prerequisites
 
@@ -35,24 +44,10 @@ Awdah is a full-stack serverless web application that helps Muslims return to th
 
 No AWS account or real credentials needed for local development.
 
-## Local Development
-
-```bash
-# Use the correct Node version
-nvm use
-
-# Start LocalStack
-docker compose -f docker/docker-compose.yml up -d
-
-# Install dependencies
-npm install
-
-# Run backend Lambda handlers locally
-npm run dev:backend
-
-# Run frontend dev server
-npm run dev:frontend
-```
+### Local Development (Docker Compose)
+1. Ensure Docker is running.
+2. Run `docker compose up --build`.
+3. Frontend: `http://localhost:8080`, Backend: `http://localhost:3000`.
 
 The frontend proxies API calls to the local Lambda runner. LocalStack simulates DynamoDB, S3, SQS, SNS, EventBridge, and Secrets Manager.
 
@@ -92,11 +87,11 @@ awdah/
 
 ## CI/CD
 
-| Workflow | Trigger | Purpose |
-|---|---|---|
-| `ci.yml` | Every PR | ESLint, Prettier, tsc, Vitest, npm audit |
-| `e2e.yml` | Merge to main | Deploy to staging, run Playwright |
-| `deploy.yml` | Manual | CDK deploy to staging or prod |
+| Workflow     | Trigger       | Purpose                                  |
+| ------------ | ------------- | ---------------------------------------- |
+| `ci.yml`     | Every PR      | ESLint, Prettier, tsc, Vitest, npm audit |
+| `e2e.yml`    | Merge to main | Deploy to staging, run Playwright        |
+| `deploy.yml` | Manual        | CDK deploy to staging or prod            |
 
 ## Contributing
 
