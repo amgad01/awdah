@@ -12,7 +12,7 @@ const environment = app.node.tryGetContext('env') || 'dev';
 
 cdk.Tags.of(app).add('project', 'Awdah');
 cdk.Tags.of(app).add('env', environment);
-cdk.Tags.of(app).add('owner', 'amgad');
+cdk.Tags.of(app).add('owner', 'Amgad Mahmoud');
 
 const dataStack = new DataStack(app, `Awdah-data-stack-${environment}`, { environment });
 const authStack = new AuthStack(app, `Awdah-auth-stack-${environment}`, { environment });

@@ -102,4 +102,5 @@ awdah/
 
 ## License
 
-All rights reserved.
+Proprietary. Copyright (c) 2026 Amgad Mahmoud. All rights reserved. 
+See [LICENSE](LICENSE) for full terms (Non-commercial use only, collaboration and permissions).

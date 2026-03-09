@@ -1,6 +1,8 @@
 {
   "name": "awdah",
   "private": true,
+  "author": "Amgad Mahmoud",
+  "license": "SEE LICENSE IN LICENSE",
   "workspaces": [
     "apps/frontend",
     "apps/backend",
