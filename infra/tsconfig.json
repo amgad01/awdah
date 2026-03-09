@@ -1,17 +1,12 @@
 {
-    "extends": "../tsconfig.base.json",
-    "compilerOptions": {
-        "target": "ES2022",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "outDir": "dist",
-        "rootDir": ".",
-        "lib": [
-            "ES2022"
-        ]
-    },
-    "include": [
-        "bin/**/*.ts",
-        "lib/**/*.ts"
-    ]
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "rootDir": ".",
+    "lib": ["ES2022"]
+  },
+  "include": ["bin/**/*.ts", "lib/**/*.ts"]
 }
