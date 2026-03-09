@@ -95,7 +95,9 @@ awdah/
 
 ## Contributing
 
-1. Create a branch from `main` using the naming convention: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`, `test/`, `infra/`
+1. Create a branch from `main` using the naming convention: `type/ticket-description`
+   - Types: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`, `test/`, `infra/`
+   - Example: `feat/123-new-thing`
 2. Make changes and ensure pre-commit hooks pass
 3. Open a PR, CI must be green before merge
 4. Never commit directly to `main`

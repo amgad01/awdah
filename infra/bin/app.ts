@@ -9,26 +9,38 @@ import { BackupStack } from '../lib/stacks/backup-stack';
 
 const app = new cdk.App();
 const environment = app.node.tryGetContext('env') || 'dev';
+const ticket = app.node.tryGetContext('ticket');
+const envWithTicket = ticket ? `${environment}-${ticket}` : environment;
 
 cdk.Tags.of(app).add('project', 'Awdah');
 cdk.Tags.of(app).add('env', environment);
+if (ticket) cdk.Tags.of(app).add('ticket', ticket);
 cdk.Tags.of(app).add('owner', 'Amgad Mahmoud');
 
-const dataStack = new DataStack(app, `Awdah-data-stack-${environment}`, { environment });
-const authStack = new AuthStack(app, `Awdah-auth-stack-${environment}`, { environment });
+const dataStack = new DataStack(app, `Awdah-data-stack-${envWithTicket}`, {
+    environment,
+    ticket,
+});
+const authStack = new AuthStack(app, `Awdah-auth-stack-${envWithTicket}`, {
+    environment,
+    ticket,
+});
 
-new ApiStack(app, `Awdah-api-stack-${environment}`, {
+new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
     environment,
     dataStack,
     authStack,
+    ticket,
 });
 
-const backupStack = new BackupStack(app, `Awdah-backup-stack-${environment}`, {
+const backupStack = new BackupStack(app, `Awdah-backup-stack-${envWithTicket}`, {
     environment,
     dataStack,
+    ticket,
 });
 
-new AlarmStack(app, `Awdah-alarm-stack-${environment}`, {
+new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
     environment,
     backupStack,
+    ticket,
 });

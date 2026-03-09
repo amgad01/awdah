@@ -4,6 +4,7 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 export interface AuthStackProps extends cdk.StackProps {
   environment: string;
+  ticket?: string;
 }
 
 export class AuthStack extends cdk.Stack {
@@ -13,8 +14,10 @@ export class AuthStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
 
+    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+
     this.userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: `Awdah-UserPool-${props.environment}`,
+      userPoolName: `Awdah-UserPool-${props.environment}${resourceSuffix}`,
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },

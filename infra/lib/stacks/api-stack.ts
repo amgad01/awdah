@@ -13,14 +13,17 @@ export interface ApiStackProps extends cdk.StackProps {
   environment: string;
   dataStack: DataStack;
   authStack: AuthStack;
+  ticket?: string;
 }
 
 export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
+    const resourceSuffix = props.ticket ? `-${props.ticket}` : '';
+
     const api = new apigatewayv2.HttpApi(this, 'AwdahApi', {
-      apiName: `Awdah-API-${props.environment}`,
+      apiName: `Awdah-API-${props.environment}${resourceSuffix}`,
       corsPreflight: {
         allowHeaders: ['Content-Type', 'Authorization'],
         allowMethods: [apigatewayv2.CorsHttpMethod.ANY],
