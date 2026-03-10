@@ -10,9 +10,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.726.1",
-    "@aws-sdk/client-secrets-manager": "3.726.1",
-    "@aws-sdk/lib-dynamodb": "3.726.1",
+    "@aws-sdk/client-dynamodb": "3.1005.0",
+    "@aws-sdk/client-secrets-manager": "3.1005.0",
+    "@aws-sdk/lib-dynamodb": "3.1005.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@umalqura/core": "^0.0.7",
@@ -26,6 +26,6 @@
     "ts-node": "10.9.2",
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "3.0.4"
+    "vitest": "3.2.4"
   }
 }

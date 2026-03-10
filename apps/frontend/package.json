@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@awdah/shared": "^0.0.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.1004.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1005.0",
     "@tanstack/react-query": "^5.90.21",
     "clsx": "^2.1.1",
     "framer-motion": "^12.35.1",
