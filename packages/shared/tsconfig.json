@@ -4,9 +4,11 @@
         "outDir": "dist",
         "rootDir": "src",
         "composite": true,
-        "declaration": true
+        "declaration": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true
     },
     "include": [
-        "src/**/*.ts"
+        "src/**/*"
     ]
 }

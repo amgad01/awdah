@@ -1,11 +1,11 @@
 import { ValidationError } from '../../errors';
 import {
-  HI_MONTH_NAMES_EN,
-  HI_MONTH_NAMES_AR,
   RAMADAN_MONTH_NUMBER,
   HIJRI_MONTHS_IN_YEAR,
 } from '../../constants';
+import { getHijriMonthName, type SupportedLocale } from '../../i18n';
 import { type HijriDateObject } from '../../types';
+
 
 export class HijriDate {
   readonly year: number;
@@ -63,9 +63,8 @@ export class HijriDate {
     return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day.toString().padStart(2, '0')}`;
   }
 
-  format(locale: 'en' | 'ar' = 'en'): string {
-    const names = locale === 'ar' ? HI_MONTH_NAMES_AR : HI_MONTH_NAMES_EN;
-    const monthName = names[this.month - 1];
+  format(locale: SupportedLocale = 'en'): string {
+    const monthName = getHijriMonthName(this.month, locale);
     if (locale === 'ar') {
       return `${this.day} ${monthName} ${this.year}`;
     }

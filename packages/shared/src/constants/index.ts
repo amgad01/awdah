@@ -12,32 +12,4 @@ export const HIJRI_MONTHS_IN_YEAR = 12;
 
 export const RAMADAN_MONTH_NUMBER = 9;
 
-export const HI_MONTH_NAMES_EN = [
-  'Muharram',
-  'Safar',
-  'Rabi al-Awwal',
-  'Rabi al-Thani',
-  'Jumada al-Ula',
-  'Jumada al-Akhira',
-  'Rajab',
-  "Sha'ban",
-  'Ramadan',
-  'Shawwal',
-  "Dhu al-Qi'dah",
-  'Dhu al-Hijjah',
-] as const;
-
-export const HI_MONTH_NAMES_AR = [
-  'محرم',
-  'صفر',
-  'ربيع الأول',
-  'ربيع الثاني',
-  'جمادى الأولى',
-  'جمادى الآخرة',
-  'رجب',
-  'شعبان',
-  'رمضان',
-  'شوال',
-  'ذو القعدة',
-  'ذو الحجة',
-] as const;
+export const GENDERS = ['male', 'female'] as const;
