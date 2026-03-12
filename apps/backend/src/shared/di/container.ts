@@ -1,4 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBPrayerLogRepository } from '../infrastructure/persistence/dynamodb-prayer-log.repository';
 import { DynamoDBFastLogRepository } from '../infrastructure/persistence/dynamodb-fast-log.repository';
 import { DynamoDBPracticingPeriodRepository } from '../infrastructure/persistence/dynamodb-practicing-period.repository';
@@ -16,7 +17,10 @@ import { SawmDebtCalculator } from '../../contexts/sawm/domain/services/sawm-deb
 import { AddPracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/add-practicing-period.use-case';
 
 // Shared Clients
-const dbClient = new DynamoDBClient({});
+const rawClient = new DynamoDBClient({});
+const dbClient = DynamoDBDocumentClient.from(rawClient, {
+  marshallOptions: { removeUndefinedValues: true },
+});
 
 // Services
 const calendarService = new UmAlQuraCalendarService();

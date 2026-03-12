@@ -1,9 +1,9 @@
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, Gender } from '@awdah/shared';
 
 export interface UserSettings {
   userId: string;
   bulughDate: HijriDate;
-  gender: 'male' | 'female';
+  gender: Gender;
 }
 
 export interface IUserRepository {

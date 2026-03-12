@@ -1,4 +1,3 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
@@ -11,8 +10,8 @@ import { BaseDynamoDBRepository } from './base-dynamodb.repository';
 export class DynamoDBPrayerLogRepository
     extends BaseDynamoDBRepository<PrayerLog>
     implements IPrayerLogRepository {
-    constructor(client: DynamoDBClient) {
-        super(DynamoDBDocumentClient.from(client), settings.tables.prayerLogs);
+    constructor(docClient: DynamoDBDocumentClient) {
+        super(docClient, settings.tables.prayerLogs);
     }
 
     async save(log: PrayerLog): Promise<void> {

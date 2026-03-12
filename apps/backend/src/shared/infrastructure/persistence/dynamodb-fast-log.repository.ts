@@ -1,4 +1,3 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
@@ -10,8 +9,8 @@ import { BaseDynamoDBRepository } from './base-dynamodb.repository';
 export class DynamoDBFastLogRepository
     extends BaseDynamoDBRepository<FastLog>
     implements IFastLogRepository {
-    constructor(client: DynamoDBClient) {
-        super(DynamoDBDocumentClient.from(client), settings.tables.fastLogs);
+    constructor(docClient: DynamoDBDocumentClient) {
+        super(docClient, settings.tables.fastLogs);
     }
 
     async save(log: FastLog): Promise<void> {

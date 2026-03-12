@@ -1,4 +1,3 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -12,12 +11,9 @@ import { settings } from '../../config/settings';
 import { PracticingPeriodType } from '@awdah/shared';
 
 export class DynamoDBPracticingPeriodRepository implements IPracticingPeriodRepository {
-  private readonly docClient: DynamoDBDocumentClient;
   private readonly tableName = settings.tables.practicingPeriods;
 
-  constructor(client: DynamoDBClient) {
-    this.docClient = DynamoDBDocumentClient.from(client);
-  }
+  constructor(private readonly docClient: DynamoDBDocumentClient) { }
 
   async save(period: PracticingPeriod): Promise<void> {
     const command = new PutCommand({

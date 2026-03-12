@@ -1,4 +1,3 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import {
   IUserRepository,
@@ -8,12 +7,9 @@ import { HijriDate } from '@awdah/shared';
 import { settings } from '../../config/settings';
 
 export class DynamoDBUserRepository implements IUserRepository {
-  private readonly docClient: DynamoDBDocumentClient;
   private readonly tableName = settings.tables.userSettings;
 
-  constructor(client: DynamoDBClient) {
-    this.docClient = DynamoDBDocumentClient.from(client);
-  }
+  constructor(private readonly docClient: DynamoDBDocumentClient) { }
 
   async findById(userId: string): Promise<UserSettings | null> {
     const command = new GetCommand({
