@@ -13,7 +13,7 @@ import { PracticingPeriodType } from '@awdah/shared';
 export class DynamoDBPracticingPeriodRepository implements IPracticingPeriodRepository {
   private readonly tableName = settings.tables.practicingPeriods;
 
-  constructor(private readonly docClient: DynamoDBDocumentClient) { }
+  constructor(private readonly docClient: DynamoDBDocumentClient) {}
 
   async save(period: PracticingPeriod): Promise<void> {
     const command = new PutCommand({

@@ -7,7 +7,9 @@
     "typecheck": "tsc --noEmit",
     "dev": "ts-node src/index.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:api": "vitest run src/__tests__/api.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.1005.0",
@@ -24,6 +26,9 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.147",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "supertest": "^7.2.2",
     "ts-node": "10.9.2",
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "^6.1.1",

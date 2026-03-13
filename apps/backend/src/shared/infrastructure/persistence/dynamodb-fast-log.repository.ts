@@ -7,55 +7,56 @@ import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository } from './base-dynamodb.repository';
 
 export class DynamoDBFastLogRepository
-    extends BaseDynamoDBRepository<FastLog>
-    implements IFastLogRepository {
-    constructor(docClient: DynamoDBDocumentClient) {
-        super(docClient, settings.tables.fastLogs);
-    }
+  extends BaseDynamoDBRepository<FastLog>
+  implements IFastLogRepository
+{
+  constructor(docClient: DynamoDBDocumentClient) {
+    super(docClient, settings.tables.fastLogs);
+  }
 
-    async save(log: FastLog): Promise<void> {
-        const command = new PutCommand({
-            TableName: this.tableName,
-            Item: {
-                userId: log.userId,
-                sk: log.date.toString(),
-                type: log.type.getValue(),
-                loggedAt: log.loggedAt.toISOString(),
-                typeDate: `${log.type.getValue()}#${log.date.toString()}`,
-            },
-        });
+  async save(log: FastLog): Promise<void> {
+    const command = new PutCommand({
+      TableName: this.tableName,
+      Item: {
+        userId: log.userId,
+        sk: log.date.toString(),
+        type: log.type.getValue(),
+        loggedAt: log.loggedAt.toISOString(),
+        typeDate: `${log.type.getValue()}#${log.date.toString()}`,
+      },
+    });
 
-        await this.docClient.send(command);
-    }
+    await this.docClient.send(command);
+  }
 
-    async findByUserAndDateRange(
-        userId: string,
-        start: HijriDate,
-        end: HijriDate,
-    ): Promise<FastLog[]> {
-        const items = await this.queryByPartitionKey(userId, {
-            skBetween: {
-                start: start.toString(),
-                end: end.toString(),
-            },
-        });
-        return items.map((item) => this.mapToDomain(item));
-    }
+  async findByUserAndDateRange(
+    userId: string,
+    start: HijriDate,
+    end: HijriDate,
+  ): Promise<FastLog[]> {
+    const items = await this.queryByPartitionKey(userId, {
+      skBetween: {
+        start: start.toString(),
+        end: end.toString(),
+      },
+    });
+    return items.map((item) => this.mapToDomain(item));
+  }
 
-    async countQadaaCompleted(userId: string): Promise<number> {
-        return this.countByGSI(userId, 'GSI1', 'qadaa#');
-    }
+  async countQadaaCompleted(userId: string): Promise<number> {
+    return this.countByGSI(userId, 'GSI1', 'qadaa#');
+  }
 
-    protected mapToDomain(item: Record<string, unknown>): FastLog {
-        const sk = (item.sk as string) || '';
-        if (!sk) {
-            throw new Error('Malformed fast log: missing SK');
-        }
-        return new FastLog({
-            userId: (item.userId as string) || 'unknown',
-            date: HijriDate.fromString(sk),
-            type: new LogType((item.type as string) || 'unknown'),
-            loggedAt: new Date((item.loggedAt as string) || new Date().toISOString()),
-        });
+  protected mapToDomain(item: Record<string, unknown>): FastLog {
+    const sk = (item.sk as string) || '';
+    if (!sk) {
+      throw new Error('Malformed fast log: missing SK');
     }
+    return new FastLog({
+      userId: (item.userId as string) || 'unknown',
+      date: HijriDate.fromString(sk),
+      type: new LogType((item.type as string) || 'unknown'),
+      loggedAt: new Date((item.loggedAt as string) || new Date().toISOString()),
+    });
+  }
 }

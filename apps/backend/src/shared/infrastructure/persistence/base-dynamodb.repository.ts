@@ -4,7 +4,7 @@ export abstract class BaseDynamoDBRepository<T> {
   protected constructor(
     protected readonly docClient: DynamoDBDocumentClient,
     protected readonly tableName: string,
-  ) { }
+  ) {}
 
   protected async queryByPartitionKey(
     userId: string,
