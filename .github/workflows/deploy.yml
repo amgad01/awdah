@@ -16,14 +16,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-${{ github.event.inputs.environment }}
+  group: deploy-${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: CDK Deploy to ${{ github.event.inputs.environment }}
+    name: CDK Deploy to ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+    env:
+      TARGET_ENV: ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,20 +39,34 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: CDK diff
+      - name: Build infra
         run: |
           cd infra
-          npx cdk diff --all --context env=${{ github.event.inputs.environment }}
+          npm run build
+
+      - name: CDK synth
+        run: |
+          cd infra
+          npx cdk synth --all --context env=${{ env.TARGET_ENV }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: CDK diff
+        run: |
+          cd infra
+          npx cdk diff --all --context env=${{ env.TARGET_ENV }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: CDK deploy
         run: |
           cd infra
-          npx cdk deploy --all --context env=${{ github.event.inputs.environment }} --require-approval never
+          npx cdk deploy --all --context env=${{ env.TARGET_ENV }} --require-approval never
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}

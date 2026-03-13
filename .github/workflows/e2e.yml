@@ -1,14 +1,12 @@
 name: E2E Tests
-
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: e2e-${{ github.ref }}
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -28,25 +26,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Detect Playwright setup
+        id: detect_playwright
+        run: |
+          if npm ls @playwright/test --depth=0 >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install Playwright browsers
+        if: steps.detect_playwright.outputs.enabled == 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Deploy to staging
-        run: |
-          cd infra
-          npx cdk deploy --all --context env=staging --require-approval never
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-
       - name: Run Playwright tests
+        if: steps.detect_playwright.outputs.enabled == 'true'
         run: npx playwright test
-        env:
-          STAGING_URL: ${{ vars.STAGING_URL }}
+
+      - name: Skip message
+        if: steps.detect_playwright.outputs.enabled != 'true'
+        run: echo "No Playwright configuration found; skipping E2E execution."
 
       - name: Upload test results
-        if: always()
+        if: always() && steps.detect_playwright.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}

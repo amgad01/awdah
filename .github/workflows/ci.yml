@@ -1,19 +1,22 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    name: Lint, Typecheck, Test
+    name: Lint, Typecheck, Build, Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +36,29 @@ jobs:
       - name: Prettier
         run: npm run format:check
 
-      - name: TypeScript
+      - name: TypeScript (root)
         run: npm run typecheck
 
-      - name: Vitest
-        run: npm test
+      - name: TypeScript (backend)
+        run: npm run typecheck --workspace=apps/backend
+
+      - name: TypeScript (shared)
+        run: npm run typecheck --workspace=packages/shared
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
+
+      - name: Build backend
+        run: npm run build --workspace=apps/backend
+
+      - name: Build infra
+        run: npm run build --workspace=infra
+
+      - name: Test (backend)
+        run: npm run test --workspace=apps/backend
+
+      - name: Test (shared)
+        run: npm run test --workspace=packages/shared --if-present
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra
