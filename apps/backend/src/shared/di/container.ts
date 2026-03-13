@@ -15,6 +15,8 @@ import { GetSawmDebtUseCase } from '../../contexts/sawm/application/use-cases/ge
 import { SawmDebtCalculator } from '../../contexts/sawm/domain/services/sawm-debt-calculator.service';
 
 import { AddPracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/add-practicing-period.use-case';
+import { GetUserSettingsUseCase } from '../../contexts/user/application/use-cases/get-user-settings.use-case';
+import { UpdateUserSettingsUseCase } from '../../contexts/user/application/use-cases/update-user-settings.use-case';
 
 // Shared Clients
 const rawClient = new DynamoDBClient({});
@@ -53,3 +55,16 @@ export const getSawmDebtUseCase = new GetSawmDebtUseCase(
 );
 
 export const addPracticingPeriodUseCase = new AddPracticingPeriodUseCase(periodRepo);
+
+export const getUserSettingsUseCase = new GetUserSettingsUseCase(userRepo);
+export const updateUserSettingsUseCase = new UpdateUserSettingsUseCase(userRepo);
+
+export const container = {
+  getLogPrayerUseCase: () => logPrayerUseCase,
+  getGetSalahDebtUseCase: () => getSalahDebtUseCase,
+  getLogFastUseCase: () => logFastUseCase,
+  getGetSawmDebtUseCase: () => getSawmDebtUseCase,
+  getAddPracticingPeriodUseCase: () => addPracticingPeriodUseCase,
+  getGetUserSettingsUseCase: () => getUserSettingsUseCase,
+  getUpdateUserSettingsUseCase: () => updateUserSettingsUseCase,
+};

@@ -9,7 +9,7 @@ import { settings } from '../../config/settings';
 export class DynamoDBUserRepository implements IUserRepository {
   private readonly tableName = settings.tables.userSettings;
 
-  constructor(private readonly docClient: DynamoDBDocumentClient) { }
+  constructor(private readonly docClient: DynamoDBDocumentClient) {}
 
   async findById(userId: string): Promise<UserSettings | null> {
     const command = new GetCommand({
