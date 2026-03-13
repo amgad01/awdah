@@ -4,8 +4,8 @@ import {
   QueryCommand,
   DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { IPracticingPeriodRepository } from '../../../contexts/salah/domain/repositories/practicing-period.repository';
-import { PracticingPeriod } from '../../../contexts/salah/domain/entities/practicing-period.entity';
+import { IPracticingPeriodRepository } from '../../../contexts/shared/domain/repositories/practicing-period.repository';
+import { PracticingPeriod } from '../../../contexts/shared/domain/entities/practicing-period.entity';
 import { HijriDate } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { PracticingPeriodType } from '@awdah/shared';

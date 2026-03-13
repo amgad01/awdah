@@ -3,7 +3,7 @@ import {
   AddPracticingPeriodUseCase,
   AddPracticingPeriodCommand,
 } from '../add-practicing-period.use-case';
-import { PracticingPeriod } from '../../../domain/entities/practicing-period.entity';
+import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
 import { HijriDate } from '@awdah/shared';
 
 describe('AddPracticingPeriodUseCase', () => {

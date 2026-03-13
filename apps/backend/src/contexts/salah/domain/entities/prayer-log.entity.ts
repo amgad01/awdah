@@ -1,6 +1,6 @@
 import { HijriDate } from '@awdah/shared';
 import { PrayerName } from '../value-objects/prayer-name';
-import { LogType } from '../value-objects/log-type';
+import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface PrayerLogProps {
   userId: string;

@@ -1,5 +1,5 @@
 import { HijriDate } from '@awdah/shared';
-import { LogType } from '../../../salah/domain/value-objects/log-type';
+import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface FastLogProps {
   userId: string;

@@ -1,7 +1,7 @@
 import { HijriDate } from '@awdah/shared';
-import { PracticingPeriod } from '../entities/practicing-period.entity';
+import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
 import { PRAYERS_PER_DAY } from '@awdah/shared';
-import { IHijriCalendarService } from './hijri-calendar.service';
+import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 
 export interface SalahDebtResult {
   totalDaysMissed: number;

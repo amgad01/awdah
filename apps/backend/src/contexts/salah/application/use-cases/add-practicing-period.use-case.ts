@@ -1,5 +1,5 @@
-import { IPracticingPeriodRepository } from '../../domain/repositories/practicing-period.repository';
-import { PracticingPeriod } from '../../domain/entities/practicing-period.entity';
+import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
+import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
 import { HijriDate, PracticingPeriodType, ValidationError } from '@awdah/shared';
 import { ulid } from 'ulid';
 

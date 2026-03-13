@@ -1,7 +1,7 @@
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../domain/entities/prayer-log.entity';
 import { PrayerName } from '../../domain/value-objects/prayer-name';
-import { LogType } from '../../domain/value-objects/log-type';
+import { LogType } from '../../../shared/domain/value-objects/log-type';
 import { HijriDate } from '@awdah/shared';
 
 export interface LogPrayerCommand {

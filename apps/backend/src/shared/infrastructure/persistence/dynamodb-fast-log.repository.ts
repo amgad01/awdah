@@ -1,8 +1,8 @@
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
-import { HijriDate } from '@awdah/shared';
-import { LogType } from '../../../contexts/salah/domain/value-objects/log-type';
+import { HijriDate, InternalError } from '@awdah/shared';
+import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository } from './base-dynamodb.repository';
 
@@ -50,7 +50,7 @@ export class DynamoDBFastLogRepository
   protected mapToDomain(item: Record<string, unknown>): FastLog {
     const sk = (item.sk as string) || '';
     if (!sk) {
-      throw new Error('Malformed fast log: missing SK');
+      throw new InternalError('Malformed fast log: missing SK');
     }
     return new FastLog({
       userId: (item.userId as string) || 'unknown',

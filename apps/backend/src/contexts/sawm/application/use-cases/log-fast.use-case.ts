@@ -1,6 +1,6 @@
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 import { FastLog } from '../../domain/entities/fast-log.entity';
-import { LogType } from '../../../salah/domain/value-objects/log-type';
+import { LogType } from '../../../shared/domain/value-objects/log-type';
 import { HijriDate } from '@awdah/shared';
 
 export interface LogFastCommand {

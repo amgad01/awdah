@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SawmDebtCalculator } from '../sawm-debt-calculator.service';
 import { HijriDate } from '@awdah/shared';
-import { PracticingPeriod } from '../../../../salah/domain/entities/practicing-period.entity';
-import { IHijriCalendarService } from '../../../../salah/domain/services/hijri-calendar.service';
+import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
+import { IHijriCalendarService } from '../../../../shared/domain/services/hijri-calendar.service';
 
 describe('SawmDebtCalculator', () => {
   const mockCalendar: IHijriCalendarService = {

@@ -1,12 +1,12 @@
 import { NotFoundError } from '@awdah/shared';
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
-import { IPracticingPeriodRepository } from '../../domain/repositories/practicing-period.repository';
+import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import {
   SalahDebtCalculator,
   SalahDebtResult,
 } from '../../domain/services/debt-calculator.service';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
-import { IHijriCalendarService } from '../../domain/services/hijri-calendar.service';
+import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 
 export class GetSalahDebtUseCase {
   constructor(

@@ -1,6 +1,6 @@
 import { HijriDate } from '@awdah/shared';
-import { PracticingPeriod } from '../../../salah/domain/entities/practicing-period.entity';
-import { IHijriCalendarService } from '../../../salah/domain/services/hijri-calendar.service';
+import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
+import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 
 export interface SawmDebtResult {
   totalFastingDaysMissed: number;

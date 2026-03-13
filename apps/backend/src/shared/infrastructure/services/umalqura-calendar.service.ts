@@ -1,5 +1,5 @@
 import uq from '@umalqura/core';
-import { IHijriCalendarService } from '../../../contexts/salah/domain/services/hijri-calendar.service';
+import { IHijriCalendarService } from '../../../contexts/shared/domain/services/hijri-calendar.service';
 import { HijriDate } from '@awdah/shared';
 
 export class UmAlQuraCalendarService implements IHijriCalendarService {

@@ -1,9 +1,9 @@
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, InternalError } from '@awdah/shared';
 import { PrayerName } from '../../../contexts/salah/domain/value-objects/prayer-name';
-import { LogType } from '../../../contexts/salah/domain/value-objects/log-type';
+import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository } from './base-dynamodb.repository';
 
@@ -58,7 +58,7 @@ export class DynamoDBPrayerLogRepository
     const [dateStr, prayerStr] = sk.split('#');
 
     if (!dateStr || !prayerStr) {
-      throw new Error(`Malformed prayer log SK: ${sk}`);
+      throw new InternalError(`Malformed prayer log SK: ${sk}`);
     }
 
     return new PrayerLog({
