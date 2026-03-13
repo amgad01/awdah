@@ -25,9 +25,18 @@ export class ApiStack extends cdk.Stack {
     const api = new apigatewayv2.HttpApi(this, 'AwdahApi', {
       apiName: `${resourcePrefix}Awdah-API-${props.environment}`,
       corsPreflight: {
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Amz-Date',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+        ],
         allowMethods: [apigatewayv2.CorsHttpMethod.ANY],
-        allowOrigins: ['*'],
+        allowOrigins:
+          props.environment === 'prod'
+            ? ['https://awdah.app'] // Replace with actual production domain
+            : ['*'], // Allow all for dev/staging for now, can be restricted later
       },
     });
 
@@ -109,6 +118,28 @@ export class ApiStack extends cdk.Stack {
     });
     props.dataStack.practicingPeriodsTable.grantReadWriteData(addPeriodFn);
 
+    // 6. Get User Settings
+    const getUserSettingsFn = new lambda_nodejs.NodejsFunction(this, 'GetUserSettingsFn', {
+      ...lambdaProps,
+      entry: path.join(
+        backendSrc,
+        'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
+      ),
+      handler: 'handler',
+    });
+    props.dataStack.userSettingsTable.grantReadData(getUserSettingsFn);
+
+    // 7. Update User Settings
+    const updateUserSettingsFn = new lambda_nodejs.NodejsFunction(this, 'UpdateUserSettingsFn', {
+      ...lambdaProps,
+      entry: path.join(
+        backendSrc,
+        'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
+      ),
+      handler: 'handler',
+    });
+    props.dataStack.userSettingsTable.grantReadWriteData(updateUserSettingsFn);
+
     // Routes
     api.addRoutes({
       path: '/salah/log',
@@ -156,6 +187,26 @@ export class ApiStack extends cdk.Stack {
       integration: new apigatewayv2_integrations.HttpLambdaIntegration(
         'AddPeriodIntegration',
         addPeriodFn,
+      ),
+      authorizer,
+    });
+
+    api.addRoutes({
+      path: '/user/profile',
+      methods: [apigatewayv2.HttpMethod.GET],
+      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
+        'GetUserSettingsIntegration',
+        getUserSettingsFn,
+      ),
+      authorizer,
+    });
+
+    api.addRoutes({
+      path: '/user/profile',
+      methods: [apigatewayv2.HttpMethod.POST],
+      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
+        'UpdateUserSettingsIntegration',
+        updateUserSettingsFn,
       ),
       authorizer,
     });
