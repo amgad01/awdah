@@ -2,5 +2,5 @@
 
 npx eslint . --ext .ts,.tsx --max-warnings=0
 npx prettier --check .
-npx tsc --noEmit
-npx vitest run --changed
+npm run typecheck --workspaces --if-present
+npm run test --workspaces --if-present -- --changed

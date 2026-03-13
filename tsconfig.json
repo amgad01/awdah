@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@awdah/shared": ["packages/shared/src"],
+      "@awdah/shared/*": ["packages/shared/src/*"]
+    }
+  },
+  "include": ["apps/backend/src/**/*.ts", "packages/shared/src/**/*.ts", "infra/**/*.ts"]
+}

@@ -1,11 +1,7 @@
 import { ValidationError } from '../../errors';
-import {
-  RAMADAN_MONTH_NUMBER,
-  HIJRI_MONTHS_IN_YEAR,
-} from '../../constants';
+import { RAMADAN_MONTH_NUMBER, HIJRI_MONTHS_IN_YEAR } from '../../constants';
 import { getHijriMonthName, type SupportedLocale } from '../../i18n';
 import { type HijriDateObject } from '../../types';
-
 
 export class HijriDate {
   readonly year: number;

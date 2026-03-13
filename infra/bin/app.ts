@@ -18,29 +18,29 @@ if (ticket) cdk.Tags.of(app).add('ticket', ticket);
 cdk.Tags.of(app).add('owner', 'Amgad Mahmoud');
 
 const dataStack = new DataStack(app, `Awdah-data-stack-${envWithTicket}`, {
-    environment,
-    ticket,
+  environment,
+  ticket,
 });
 const authStack = new AuthStack(app, `Awdah-auth-stack-${envWithTicket}`, {
-    environment,
-    ticket,
+  environment,
+  ticket,
 });
 
 new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
-    environment,
-    dataStack,
-    authStack,
-    ticket,
+  environment,
+  dataStack,
+  authStack,
+  ticket,
 });
 
 const backupStack = new BackupStack(app, `Awdah-backup-stack-${envWithTicket}`, {
-    environment,
-    dataStack,
-    ticket,
+  environment,
+  dataStack,
+  ticket,
 });
 
 new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
-    environment,
-    backupStack,
-    ticket,
+  environment,
+  backupStack,
+  ticket,
 });

@@ -1,4 +1,5 @@
-import { HijriDate, Gender } from '@awdah/shared';
+import { HijriDate } from '@awdah/shared';
+import type { Gender } from '@awdah/shared';
 
 export interface UserSettings {
   userId: string;

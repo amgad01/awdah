@@ -26,13 +26,13 @@ services:
     depends_on:
       - localstack
     ports:
-      - "3000:3000"
+      - '3000:3000'
 
   frontend:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
     ports:
-      - "8080:80"
+      - '8080:80'
     depends_on:
       - backend

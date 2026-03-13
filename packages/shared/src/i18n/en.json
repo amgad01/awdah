@@ -1,32 +1,32 @@
 {
-    "hijriMonths": [
-        "Muharram",
-        "Ṣafar",
-        "Rabīʿ al-Awwal",
-        "Rabīʿ ath-Thānī",
-        "Jumādá al-Ūlá",
-        "Jumādá al-Ākhirah",
-        "Rajab",
-        "Sha'bān",
-        "Ramaḍān",
-        "Shawwāl",
-        "Dhū al-Qa'dah",
-        "Dhū al-Ḥijjah"
-    ],
-    "prayers": {
-        "fajr": "Fajr",
-        "dhuhr": "Dhuhr",
-        "asr": "Asr",
-        "maghrib": "Maghrib",
-        "isha": "Isha"
-    },
-    "logTypes": {
-        "obligatory": "Obligatory",
-        "qadaa": "Qadaa"
-    },
-    "periodTypes": {
-        "salah": "Salah",
-        "sawm": "Sawm",
-        "both": "Both"
-    }
+  "hijriMonths": [
+    "Muharram",
+    "Ṣafar",
+    "Rabīʿ al-Awwal",
+    "Rabīʿ ath-Thānī",
+    "Jumādá al-Ūlá",
+    "Jumādá al-Ākhirah",
+    "Rajab",
+    "Sha'bān",
+    "Ramaḍān",
+    "Shawwāl",
+    "Dhū al-Qa'dah",
+    "Dhū al-Ḥijjah"
+  ],
+  "prayers": {
+    "fajr": "Fajr",
+    "dhuhr": "Dhuhr",
+    "asr": "Asr",
+    "maghrib": "Maghrib",
+    "isha": "Isha"
+  },
+  "logTypes": {
+    "obligatory": "Obligatory",
+    "qadaa": "Qadaa"
+  },
+  "periodTypes": {
+    "salah": "Salah",
+    "sawm": "Sawm",
+    "both": "Both"
+  }
 }

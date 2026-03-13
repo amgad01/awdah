@@ -1,26 +1,26 @@
 {
-    "name": "@awdah/shared",
-    "private": true,
-    "version": "0.0.0",
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.js"
-        }
-    },
-    "scripts": {
-        "build": "tsup src/index.ts --format cjs,esm --dts --clean --tsconfig tsconfig.build.json",
-        "typecheck": "tsc --noEmit"
-    },
-    "devDependencies": {
-        "tsup": "^8.5.1",
-        "typescript": "5.7.3"
-    },
-    "dependencies": {
-        "http-status-codes": "^2.3.0"
+  "name": "@awdah/shared",
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean --tsconfig tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "5.7.3"
+  },
+  "dependencies": {
+    "http-status-codes": "^2.3.0"
+  }
 }
