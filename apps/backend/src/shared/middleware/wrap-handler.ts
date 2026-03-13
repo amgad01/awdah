@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context } from 'aws-lambda';
-import { AppError, InternalError, ValidationError } from '@awdah/shared';
+import { AppError, InternalError, UnauthenticatedError, ValidationError } from '@awdah/shared';
 import { createLogger } from './logger';
 import { SECURITY_HEADERS } from './security-headers';
 
@@ -41,7 +41,10 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
       const jwt = authorizer?.jwt as Record<string, unknown> | undefined;
       const claims = jwt?.claims as Record<string, string> | undefined;
 
-      const userId = cognitoIdentity?.identityId || claims?.sub || 'anonymous';
+      const userId = cognitoIdentity?.identityId || claims?.sub;
+      if (!userId) {
+        throw new UnauthenticatedError('Missing user identity');
+      }
 
       // 2. Parse Body if present
       let body: TBody = {} as TBody;
