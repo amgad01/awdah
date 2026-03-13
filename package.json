@@ -4,6 +4,7 @@
   "author": "Amgad Mahmoud",
   "license": "SEE LICENSE IN LICENSE",
   "workspaces": [
+    "apps/frontend",
     "apps/backend",
     "packages/shared",
     "infra"
@@ -24,8 +25,8 @@
     "node": ">=20.19.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "eslint": "^10.0.3",
+    "@eslint/js": "9.21.0",
+    "eslint": "9.21.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "prettier": "^3.8.1",

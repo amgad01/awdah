@@ -45,6 +45,7 @@ Awdah is a full-stack serverless web application that helps Muslims return to th
 No AWS account or real credentials needed for local development.
 
 ### Local Development (Docker Compose)
+
 1. Ensure Docker is running.
 2. Run `docker compose up --build`.
 3. Frontend: `http://localhost:8080`, Backend: `http://localhost:3000`.
@@ -104,5 +105,5 @@ awdah/
 
 ## License
 
-Proprietary. Copyright (c) 2026 Amgad Mahmoud. All rights reserved. 
+Proprietary. Copyright (c) 2026 Amgad Mahmoud. All rights reserved.
 See [LICENSE](LICENSE) for full terms (Non-commercial use only, collaboration and permissions).
