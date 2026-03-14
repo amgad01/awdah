@@ -106,8 +106,10 @@ export abstract class BaseDynamoDBRepository<T> {
   }
 
   /**
-   * Saves or updates a domain entity in the database.
-   * Automatically executes key encoding and attribute mapping before persistence.
+   * Saves or updates a complete domain entity in the database (Upsert).
+   *
+   * RECOMMENDATION: Use this as the default method for Aggregate Roots to ensure
+   * domain consistency of the entire record. Replaces all attributes if the item exists.
    *
    * @param entity - The domain entity to persist.
    */
@@ -157,7 +159,10 @@ export abstract class BaseDynamoDBRepository<T> {
 
   /**
    * Performs a partial update on specific attributes of an existing item.
-   * More efficient than persist() for large items as it avoids full replacement.
+   *
+   * RECOMMENDATION: Use for performance optimization (large items) or when multiple
+   * users/processes need to update independent fields concurrently without
+   * a full "read-modify-write" cycle.
    *
    * @param keys - The PK and SK of the item to update.
    * @param updates - A key-value map of attributes to update.
