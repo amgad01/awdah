@@ -28,9 +28,6 @@ export class AuthStack extends cdk.Stack {
     this.userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool: this.userPool,
       authFlows: {
-        adminUserPassword: true,
-        custom: true,
-        userPassword: true,
         userSrp: true,
       },
     });
