@@ -14,11 +14,15 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean --tsconfig tsconfig.build.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.0",
     "tsup": "8.5.1",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "^4.1.0"
   },
   "dependencies": {
     "http-status-codes": "2.3.0"
