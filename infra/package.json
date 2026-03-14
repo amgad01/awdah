@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.241.0",
-    "constructs": "^10.5.0",
-    "esbuild": "^0.25.12",
+    "constructs": "10.5.0",
+    "esbuild": "0.25.12",
     "source-map-support": "0.5.21"
   },
   "devDependencies": {
