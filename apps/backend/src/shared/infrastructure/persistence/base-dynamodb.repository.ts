@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
 export abstract class BaseDynamoDBRepository<T> {
   protected constructor(
@@ -52,6 +52,14 @@ export abstract class BaseDynamoDBRepository<T> {
 
     const response = await this.docClient.send(command);
     return response.Count || 0;
+  }
+
+  protected async deleteItem(userId: string, sk: string): Promise<void> {
+    const command = new DeleteCommand({
+      TableName: this.tableName,
+      Key: { userId, sk },
+    });
+    await this.docClient.send(command);
   }
 
   protected abstract mapToDomain(item: Record<string, unknown>): T;

@@ -5,6 +5,7 @@ import {
 } from '../../../contexts/shared/domain/repositories/user.repository';
 import { HijriDate } from '@awdah/shared';
 import { settings } from '../../config/settings';
+import { UserSettingsSK } from './keys/user-settings-key';
 
 export class DynamoDBUserRepository implements IUserRepository {
   private readonly tableName = settings.tables.userSettings;
@@ -16,7 +17,7 @@ export class DynamoDBUserRepository implements IUserRepository {
       TableName: this.tableName,
       Key: {
         userId,
-        sk: 'SETTINGS',
+        sk: UserSettingsSK.SETTINGS,
       },
     });
 
@@ -35,7 +36,7 @@ export class DynamoDBUserRepository implements IUserRepository {
       TableName: this.tableName,
       Item: {
         userId: userSettings.userId,
-        sk: 'SETTINGS',
+        sk: UserSettingsSK.SETTINGS,
         bulughDate: userSettings.bulughDate.toString(),
         gender: userSettings.gender,
         updatedAt: new Date().toISOString(),

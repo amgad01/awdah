@@ -1,10 +1,11 @@
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
-import { HijriDate, InternalError } from '@awdah/shared';
+import { HijriDate } from '@awdah/shared';
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository } from './base-dynamodb.repository';
+import { FastLogKey } from './keys/fast-log-key';
 
 export class DynamoDBFastLogRepository
   extends BaseDynamoDBRepository<FastLog>
@@ -19,10 +20,10 @@ export class DynamoDBFastLogRepository
       TableName: this.tableName,
       Item: {
         userId: log.userId,
-        sk: log.date.toString(),
+        sk: FastLogKey.encodeSk(log.date.toString(), log.eventId),
         type: log.type.getValue(),
         loggedAt: log.loggedAt.toISOString(),
-        typeDate: `${log.type.getValue()}#${log.date.toString()}`,
+        typeDate: FastLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
       },
     });
 
@@ -36,27 +37,31 @@ export class DynamoDBFastLogRepository
   ): Promise<FastLog[]> {
     const items = await this.queryByPartitionKey(userId, {
       skBetween: {
-        start: start.toString(),
-        end: end.toString(),
+        start: FastLogKey.skPrefixForDate(start.toString()),
+        end: FastLogKey.skRangeEndForDate(end.toString()),
       },
     });
     return items.map((item) => this.mapToDomain(item));
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
-    return this.countByGSI(userId, 'GSI1', 'qadaa#');
+    return this.countByGSI(userId, 'GSI1', FastLogKey.typeDatePrefixForType('qadaa'));
   }
 
   protected mapToDomain(item: Record<string, unknown>): FastLog {
     const sk = (item.sk as string) || '';
-    if (!sk) {
-      throw new InternalError('Malformed fast log: missing SK');
-    }
+    const { date: dateStr, eventId } = FastLogKey.decodeSk(sk);
     return new FastLog({
       userId: (item.userId as string) || 'unknown',
-      date: HijriDate.fromString(sk),
+      eventId,
+      date: HijriDate.fromString(dateStr),
       type: new LogType((item.type as string) || 'unknown'),
       loggedAt: new Date((item.loggedAt as string) || new Date().toISOString()),
     });
+  }
+
+  async deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void> {
+    const sk = FastLogKey.encodeSk(date.toString(), eventId);
+    await this.deleteItem(userId, sk);
   }
 }
