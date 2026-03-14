@@ -1,8 +1,7 @@
 import { getSawmDebtUseCase } from '../../../../shared/di/container';
-import { wrapHandler } from '../../../../shared/middleware/wrap-handler';
-import { responses } from '../../../../shared/middleware/responses';
+import { CONTEXTS } from '../../../../shared/constants/contexts';
+import { createHandler } from '../../../../shared/middleware/create-handler';
 
-export const handler = wrapHandler('SawmContext', async ({ userId }) => {
-  const result = await getSawmDebtUseCase.execute(userId);
-  return responses.ok(result);
+export const handler = createHandler(CONTEXTS.SAWM, getSawmDebtUseCase, {
+  transformInput: (userId) => userId,
 });

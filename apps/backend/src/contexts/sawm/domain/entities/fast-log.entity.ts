@@ -3,6 +3,7 @@ import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface FastLogProps {
   userId: string;
+  eventId: string;
   date: HijriDate;
   type: LogType;
   loggedAt: Date;
@@ -13,6 +14,10 @@ export class FastLog {
 
   get userId(): string {
     return this.props.userId;
+  }
+
+  get eventId(): string {
+    return this.props.eventId;
   }
 
   get date(): HijriDate {

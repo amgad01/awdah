@@ -1,16 +1,10 @@
 import { logFastUseCase } from '../../../../shared/di/container';
-import { wrapHandler } from '../../../../shared/middleware/wrap-handler';
-import { responses } from '../../../../shared/middleware/responses';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
+import { logFastSchema } from '../../../../shared/validation/schemas';
+import { createHandler } from '../../../../shared/middleware/create-handler';
 
-export const handler = wrapHandler(
-  CONTEXTS.SAWM,
-  async ({ userId, body }: { userId: string; body: Record<string, unknown> }) => {
-    await logFastUseCase.execute({
-      userId,
-      date: body.date as string,
-      type: body.type as string,
-    });
-    return responses.created({ message: 'Fast logged successfully' });
-  },
-);
+export const handler = createHandler(CONTEXTS.SAWM, logFastUseCase, {
+  schema: logFastSchema,
+  statusCode: 201,
+  successMessage: 'Fast logged successfully',
+});

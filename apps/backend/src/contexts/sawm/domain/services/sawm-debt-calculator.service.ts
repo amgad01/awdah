@@ -32,20 +32,22 @@ export class SawmDebtCalculator {
     }
 
     // Intermediate gaps
+    // Convention: [inclusive start, exclusive end).
+    // gapStart = day AFTER the previous period ended — the last practicing day is not missed.
     for (let i = 0; i < sortedPeriods.length - 1; i++) {
-      const currentEnd = sortedPeriods[i]!.endDate;
-      const nextStart = sortedPeriods[i + 1]!.startDate;
+      const gapStart = sortedPeriods[i]!.endDate.addDays(1);
+      const gapEnd = sortedPeriods[i + 1]!.startDate;
 
-      if (currentEnd.isBefore(nextStart)) {
-        totalFastingDaysMissed += this.calculateRamadanDaysInGap(currentEnd, nextStart);
+      if (gapStart.isBefore(gapEnd)) {
+        totalFastingDaysMissed += this.calculateRamadanDaysInGap(gapStart, gapEnd);
       }
     }
 
-    // Final gap
+    // Final gap: from day after last period ends until today (exclusive)
     if (sortedPeriods.length > 0) {
-      const lastEnd = sortedPeriods[sortedPeriods.length - 1]!.endDate;
-      if (lastEnd.isBefore(today)) {
-        totalFastingDaysMissed += this.calculateRamadanDaysInGap(lastEnd, today);
+      const gapStart = sortedPeriods[sortedPeriods.length - 1]!.endDate.addDays(1);
+      if (gapStart.isBefore(today)) {
+        totalFastingDaysMissed += this.calculateRamadanDaysInGap(gapStart, today);
       }
     }
 
@@ -61,19 +63,21 @@ export class SawmDebtCalculator {
   private calculateRamadanDaysInGap(start: HijriDate, end: HijriDate): number {
     let missedDays = 0;
 
-    // We iterate through each year in the gap and check for Ramadan
-    // Ramadan is the 9th month.
+    // Iterate each Hijri year that could overlap with the gap.
+    // Gap convention: [start, end) — start is inclusive, end is exclusive.
+    // Ramadan convention: [ramadanDay1, ramadanExclusiveEnd) where
+    //   ramadanExclusiveEnd = first day of Shawwal (month 10, day 1).
+    // overlap = [max(start, ramadanDay1), min(end, ramadanExclusiveEnd))
+    // daysBetween(overlapStart, overlapEnd) counts days in an exclusive-end range.
     for (let year = start.year; year <= end.year; year++) {
       const ramadanStart = new HijriDate(year, 9, 1);
-      const ramadanEnd = new HijriDate(year, 9, this.calendarService.getRamadanDays(year));
+      const ramadanDays = this.calendarService.getRamadanDays(year);
+      const ramadanExclusiveEnd = new HijriDate(year, 9, ramadanDays).addDays(1);
 
-      // Check if Ramadan overlaps with the [start, end] gap
-      // Overlap [A, B] and [C, D] is: max(A, C) to min(B, D)
       const overlapStart = this.maxDate(start, ramadanStart);
-      const overlapEnd = this.minDate(end, ramadanEnd);
+      const overlapEnd = this.minDate(end, ramadanExclusiveEnd);
 
-      if (overlapStart.isBefore(overlapEnd) || overlapStart.equals(overlapEnd)) {
-        // There is an overlap. Calculate days (+1 because dates inclusive)
+      if (overlapStart.isBefore(overlapEnd)) {
         missedDays += this.calendarService.daysBetween(overlapStart, overlapEnd);
       }
     }

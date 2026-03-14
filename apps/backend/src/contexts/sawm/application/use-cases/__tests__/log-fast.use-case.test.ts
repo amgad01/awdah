@@ -6,6 +6,7 @@ describe('LogFastUseCase', () => {
     save: vi.fn(),
     findByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
+    deleteEntry: vi.fn(),
   };
 
   const useCase = new LogFastUseCase(mockRepo);
