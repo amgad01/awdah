@@ -8,6 +8,7 @@ export interface AuthenticatedRequest<
 > {
   userId: string;
   body: TBody;
+  query: Record<string, string>;
 }
 
 export type AuthenticatedHandler<TBody extends Record<string, unknown> = Record<string, unknown>> =
@@ -57,7 +58,8 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
       }
 
       // 3. Execute Handler
-      const result = await handler({ userId, body }, context);
+      const query = (event.queryStringParameters ?? {}) as Record<string, string>;
+      const result = await handler({ userId, body, query }, context);
 
       const duration = Date.now() - startTime;
       logger.info({ duration, statusCode: result.statusCode }, 'invocation completed');
