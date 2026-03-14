@@ -175,4 +175,34 @@ describe('SalahDebtCalculator', () => {
     expect(result.totalDaysMissed).toBe(1770);
     expect(mockCalendar.daysBetween).toHaveBeenCalledWith(bulugh, today);
   });
+  it('skips periods that start before lastHandledDate (branch coverage for line 40)', () => {
+    const bulugh = new HijriDate(1445, 1, 1);
+    const p1Start = new HijriDate(1445, 1, 1);
+    const p1End = new HijriDate(1445, 1, 10);
+    const p2Start = new HijriDate(1445, 1, 5);
+    const p2End = new HijriDate(1445, 1, 15);
+    const today = new HijriDate(1445, 1, 20);
+
+    const periods = [
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p1',
+        startDate: p1Start,
+        endDate: p1End,
+        type: 'salah',
+      }),
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p2',
+        startDate: p2Start,
+        endDate: p2End,
+        type: 'salah',
+      }),
+    ];
+
+    vi.mocked(mockCalendar.daysBetween).mockReturnValueOnce(5); // Day 16 to 20
+
+    const result = calculator.calculate(bulugh, periods, 0, today);
+    expect(result.totalDaysMissed).toBe(5);
+  });
 });
