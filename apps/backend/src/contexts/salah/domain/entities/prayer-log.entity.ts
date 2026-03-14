@@ -4,6 +4,7 @@ import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface PrayerLogProps {
   userId: string;
+  eventId: string;
   date: HijriDate;
   prayerName: PrayerName;
   type: LogType;
@@ -15,6 +16,10 @@ export class PrayerLog {
 
   get userId(): string {
     return this.props.userId;
+  }
+
+  get eventId(): string {
+    return this.props.eventId;
   }
 
   get date(): HijriDate {

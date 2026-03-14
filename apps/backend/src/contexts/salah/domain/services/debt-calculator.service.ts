@@ -26,18 +26,19 @@ export class SalahDebtCalculator {
     let lastHandledDate = bulughDate;
 
     // 2. Identify gaps between bulugh and practicing periods
+    // Convention: gaps use [inclusive start, exclusive end).
+    // lastHandledDate is always the START of the next possible gap,
+    // i.e. the day AFTER the previous period ended.
     for (const period of sortedPeriods) {
       if (lastHandledDate.isBefore(period.startDate)) {
-        // There is a gap before this period starts
+        // Gap = [lastHandledDate, period.startDate)
         totalDaysMissed += this.calendarService.daysBetween(lastHandledDate, period.startDate);
       }
 
-      // Update lastHandledDate to the day after the period ends
-      // Since we don't have a "nextDay" method yet, we use the period end date
-      // but the rule is: gap is from end of one to start of next.
-      // If end of P1 is 1445-01-01 and start of P2 is 1445-01-05, gap is 4 days.
-      if (lastHandledDate.isBefore(period.endDate) || lastHandledDate.equals(period.endDate)) {
-        lastHandledDate = period.endDate;
+      // The day after this period ends is where the next gap can begin.
+      const dayAfterPeriod = period.endDate.addDays(1);
+      if (lastHandledDate.isBefore(dayAfterPeriod) || lastHandledDate.equals(dayAfterPeriod)) {
+        lastHandledDate = dayAfterPeriod;
       }
     }
 

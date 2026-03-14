@@ -1,17 +1,10 @@
 import { logPrayerUseCase } from '../../../../shared/di/container';
-import { wrapHandler } from '../../../../shared/middleware/wrap-handler';
-import { responses } from '../../../../shared/middleware/responses';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
+import { logPrayerSchema } from '../../../../shared/validation/schemas';
+import { createHandler } from '../../../../shared/middleware/create-handler';
 
-export const handler = wrapHandler(
-  CONTEXTS.SALAH,
-  async ({ userId, body }: { userId: string; body: Record<string, unknown> }) => {
-    await logPrayerUseCase.execute({
-      userId,
-      date: body.date as string,
-      prayerName: body.prayerName as string,
-      type: body.type as string,
-    });
-    return responses.created({ message: 'Prayer logged successfully' });
-  },
-);
+export const handler = createHandler(CONTEXTS.SALAH, logPrayerUseCase, {
+  schema: logPrayerSchema,
+  statusCode: 201,
+  successMessage: 'Prayer logged successfully',
+});

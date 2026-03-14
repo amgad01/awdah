@@ -9,6 +9,7 @@ describe('LogPrayerUseCase', () => {
     findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
+    deleteEntry: vi.fn(),
   };
 
   const useCase = new LogPrayerUseCase(mockRepo);

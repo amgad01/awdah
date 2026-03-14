@@ -84,10 +84,9 @@ describe('SalahDebtCalculator', () => {
       }),
     ];
 
-    // Gap 1: bulugh to p1Start (354 days)
-    // Gap 2: p1End to p2Start (say 180 days)
-    // No gap after p2 as it ends "today"
-
+    // Gap 1: bulugh → p1Start (354 days)
+    // Gap 2: p1End.addDays(1) → p2Start (180 days)
+    // No final gap: p2End.addDays(1) > today
     vi.mocked(mockCalendar.daysBetween)
       .mockReturnValueOnce(354) // Gap 1
       .mockReturnValueOnce(180); // Gap 2
@@ -96,5 +95,84 @@ describe('SalahDebtCalculator', () => {
 
     expect(result.totalDaysMissed).toBe(354 + 180);
     expect(mockCalendar.daysBetween).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not count the last practicing day as missed (off-by-one boundary)', () => {
+    // P1 ends on day 5, P2 starts on day 8. Gap = days 6, 7 = 2 days.
+    const bulugh = new HijriDate(1445, 1, 1);
+    const p1End = new HijriDate(1445, 1, 5);
+    const p2Start = new HijriDate(1445, 1, 8);
+    const today = new HijriDate(1445, 2, 1);
+
+    const periods = [
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p1',
+        startDate: bulugh,
+        endDate: p1End,
+        type: 'salah',
+      }),
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p2',
+        startDate: p2Start,
+        endDate: today,
+        type: 'salah',
+      }),
+    ];
+
+    // Expect one daysBetween call for the gap between periods: [p1End+1, p2Start)
+    vi.mocked(mockCalendar.daysBetween).mockReturnValueOnce(2);
+
+    const result = calculator.calculate(bulugh, periods, 0, today);
+
+    expect(result.totalDaysMissed).toBe(2);
+    // Verify the gap boundaries passed to daysBetween are correct
+    expect(mockCalendar.daysBetween).toHaveBeenCalledWith(
+      p1End.addDays(1), // 1445-01-06 — day after practice ended
+      p2Start, // 1445-01-08 — exclusive end
+    );
+  });
+
+  it('produces zero missed days when two periods are directly adjacent', () => {
+    // P1 ends on 1445-01-05, P2 starts on 1445-01-06 — no gap
+    const bulugh = new HijriDate(1445, 1, 1);
+    const p1End = new HijriDate(1445, 1, 5);
+    const p2Start = new HijriDate(1445, 1, 6);
+    const today = new HijriDate(1445, 2, 1);
+
+    const periods = [
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p1',
+        startDate: bulugh,
+        endDate: p1End,
+        type: 'salah',
+      }),
+      new PracticingPeriod({
+        userId: 'u',
+        periodId: 'p2',
+        startDate: p2Start,
+        endDate: today,
+        type: 'salah',
+      }),
+    ];
+
+    const result = calculator.calculate(bulugh, periods, 0, today);
+
+    expect(result.totalDaysMissed).toBe(0);
+    expect(mockCalendar.daysBetween).not.toHaveBeenCalled();
+  });
+
+  it('counts all days from bulugh to today when there are no practicing periods', () => {
+    const bulugh = new HijriDate(1440, 1, 1);
+    const today = new HijriDate(1445, 1, 1);
+
+    vi.mocked(mockCalendar.daysBetween).mockReturnValueOnce(1770);
+
+    const result = calculator.calculate(bulugh, [], 0, today);
+
+    expect(result.totalDaysMissed).toBe(1770);
+    expect(mockCalendar.daysBetween).toHaveBeenCalledWith(bulugh, today);
   });
 });

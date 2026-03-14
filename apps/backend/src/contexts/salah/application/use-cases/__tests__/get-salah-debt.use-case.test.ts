@@ -10,6 +10,7 @@ describe('GetSalahDebtUseCase', () => {
     findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
+    deleteEntry: vi.fn(),
   };
   const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), delete: vi.fn() };
   const mockCalendar = { daysBetween: vi.fn(), getRamadanDays: vi.fn(), today: vi.fn() };
