@@ -11,7 +11,7 @@ import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-u
 // Shared Clients
 const rawClient = new DynamoDBClient({
   ...(process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {}),
-  maxAttempts: 3,
+  maxAttempts: 5,
 });
 
 export const dbClient = DynamoDBDocumentClient.from(rawClient, {
