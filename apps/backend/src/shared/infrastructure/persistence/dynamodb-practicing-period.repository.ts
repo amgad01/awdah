@@ -1,58 +1,43 @@
-import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  QueryCommand,
-  DeleteCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IPracticingPeriodRepository } from '../../../contexts/shared/domain/repositories/practicing-period.repository';
 import { PracticingPeriod } from '../../../contexts/shared/domain/entities/practicing-period.entity';
+import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { HijriDate } from '@awdah/shared';
 import { settings } from '../../config/settings';
-import { PracticingPeriodType } from '@awdah/shared';
 
-export class DynamoDBPracticingPeriodRepository implements IPracticingPeriodRepository {
-  private readonly tableName = settings.tables.practicingPeriods;
-
-  constructor(private readonly docClient: DynamoDBDocumentClient) {}
+export class DynamoDBPracticingPeriodRepository
+  extends BaseDynamoDBRepository<PracticingPeriod>
+  implements IPracticingPeriodRepository
+{
+  constructor(docClient: DynamoDBDocumentClient) {
+    super(docClient, settings.tables.practicingPeriods, 'periodId', 'userId');
+  }
 
   async save(period: PracticingPeriod): Promise<void> {
-    const command = new PutCommand({
-      TableName: this.tableName,
-      Item: {
-        userId: period.userId,
-        periodId: period.periodId,
-        startDate: period.startDate.toString(),
-        endDate: period.endDate.toString(),
-        type: period.type,
-      },
-    });
-
-    await this.docClient.send(command);
+    await this.persist(period);
   }
 
   async findByUser(userId: string): Promise<PracticingPeriod[]> {
-    const command = new QueryCommand({
-      TableName: this.tableName,
-      KeyConditionExpression: 'userId = :uid',
-      ExpressionAttributeValues: {
-        ':uid': userId,
-      },
-    });
-
-    const response = await this.docClient.send(command);
-    return (response.Items || []).map((item) => this.mapToDomain(item));
+    return this.findAll({ pk: userId });
   }
 
   async delete(userId: string, periodId: string): Promise<void> {
-    const command = new DeleteCommand({
-      TableName: this.tableName,
-      Key: {
-        userId,
-        periodId,
-      },
-    });
+    await this.deleteItem({ pk: userId, sk: periodId });
+  }
 
-    await this.docClient.send(command);
+  protected encodeKeys(period: PracticingPeriod): DomainKeys {
+    return {
+      pk: period.userId,
+      sk: period.periodId,
+    };
+  }
+
+  protected mapToPersistence(period: PracticingPeriod): Record<string, unknown> {
+    return {
+      startDate: period.startDate.toString(),
+      endDate: period.endDate.toString(),
+      type: period.type,
+    };
   }
 
   protected mapToDomain(item: Record<string, unknown>): PracticingPeriod {
@@ -61,7 +46,7 @@ export class DynamoDBPracticingPeriodRepository implements IPracticingPeriodRepo
       periodId: item.periodId as string,
       startDate: HijriDate.fromString(item.startDate as string),
       endDate: HijriDate.fromString(item.endDate as string),
-      type: item.type as PracticingPeriodType,
+      type: item.type as 'salah' | 'sawm' | 'both',
     });
   }
 }
