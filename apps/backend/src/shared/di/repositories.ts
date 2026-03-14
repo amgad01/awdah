@@ -9,9 +9,10 @@ import { DynamoDBPracticingPeriodRepository } from '../infrastructure/persistenc
 import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-user.repository';
 
 // Shared Clients
-const rawClient = new DynamoDBClient(
-  process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {},
-);
+const rawClient = new DynamoDBClient({
+  ...(process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {}),
+  maxAttempts: 3,
+});
 
 export const dbClient = DynamoDBDocumentClient.from(rawClient, {
   marshallOptions: { removeUndefinedValues: true },

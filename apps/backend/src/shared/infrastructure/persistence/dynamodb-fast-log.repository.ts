@@ -1,10 +1,10 @@
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
 import { HijriDate } from '@awdah/shared';
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { settings } from '../../config/settings';
-import { BaseDynamoDBRepository } from './base-dynamodb.repository';
+import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { FastLogKey } from './keys/fast-log-key';
 
 export class DynamoDBFastLogRepository
@@ -12,22 +12,11 @@ export class DynamoDBFastLogRepository
   implements IFastLogRepository
 {
   constructor(docClient: DynamoDBDocumentClient) {
-    super(docClient, settings.tables.fastLogs);
+    super(docClient, settings.tables.fastLogs, 'sk', 'userId');
   }
 
   async save(log: FastLog): Promise<void> {
-    const command = new PutCommand({
-      TableName: this.tableName,
-      Item: {
-        userId: log.userId,
-        sk: FastLogKey.encodeSk(log.date.toString(), log.eventId),
-        type: log.type.getValue(),
-        loggedAt: log.loggedAt.toISOString(),
-        typeDate: FastLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
-      },
-    });
-
-    await this.docClient.send(command);
+    await this.persist(log);
   }
 
   async findByUserAndDateRange(
@@ -35,33 +24,52 @@ export class DynamoDBFastLogRepository
     start: HijriDate,
     end: HijriDate,
   ): Promise<FastLog[]> {
-    const items = await this.queryByPartitionKey(userId, {
-      skBetween: {
+    const { items } = await this.findInRange({
+      pk: userId,
+      range: {
         start: FastLogKey.skPrefixForDate(start.toString()),
         end: FastLogKey.skRangeEndForDate(end.toString()),
       },
     });
-    return items.map((item) => this.mapToDomain(item));
+    return items;
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
-    return this.countByGSI(userId, 'GSI1', FastLogKey.typeDatePrefixForType('qadaa'));
-  }
-
-  protected mapToDomain(item: Record<string, unknown>): FastLog {
-    const sk = (item.sk as string) || '';
-    const { date: dateStr, eventId } = FastLogKey.decodeSk(sk);
-    return new FastLog({
-      userId: (item.userId as string) || 'unknown',
-      eventId,
-      date: HijriDate.fromString(dateStr),
-      type: new LogType((item.type as string) || 'unknown'),
-      loggedAt: new Date((item.loggedAt as string) || new Date().toISOString()),
+    return this.countByGSI({
+      pk: userId,
+      indexName: 'typeDateIndex',
+      skName: 'typeDate',
+      skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
     });
   }
 
   async deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void> {
-    const sk = FastLogKey.encodeSk(date.toString(), eventId);
-    await this.deleteItem(userId, sk);
+    await this.deleteItem({ pk: userId, sk: FastLogKey.encodeSk(date.toString(), eventId) });
+  }
+
+  protected encodeKeys(log: FastLog): DomainKeys {
+    return {
+      pk: log.userId,
+      sk: FastLogKey.encodeSk(log.date.toString(), log.eventId),
+    };
+  }
+
+  protected mapToPersistence(log: FastLog): Record<string, unknown> {
+    return {
+      type: log.type.getValue(),
+      loggedAt: log.loggedAt.toISOString(),
+      typeDate: FastLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
+    };
+  }
+
+  protected mapToDomain(item: Record<string, unknown>): FastLog {
+    const { date, eventId } = FastLogKey.decodeSk(item.sk as string);
+    return new FastLog({
+      userId: item.userId as string,
+      date: HijriDate.fromString(date),
+      eventId,
+      type: new LogType(item.type as string),
+      loggedAt: new Date(item.loggedAt as string),
+    });
   }
 }
