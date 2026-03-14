@@ -24,6 +24,7 @@ export class ApiStack extends cdk.Stack {
 
     const api = new apigatewayv2.HttpApi(this, 'AwdahApi', {
       apiName: `${resourcePrefix}Awdah-API-${props.environment}`,
+      createDefaultStage: false,
       corsPreflight: {
         allowHeaders: [
           'Content-Type',
@@ -32,17 +33,36 @@ export class ApiStack extends cdk.Stack {
           'X-Api-Key',
           'X-Amz-Security-Token',
         ],
-        allowMethods: [apigatewayv2.CorsHttpMethod.ANY],
+        allowMethods: [
+          apigatewayv2.CorsHttpMethod.GET,
+          apigatewayv2.CorsHttpMethod.POST,
+          apigatewayv2.CorsHttpMethod.DELETE,
+          apigatewayv2.CorsHttpMethod.OPTIONS,
+        ],
         allowOrigins:
           props.environment === 'prod'
-            ? ['https://awdah.app'] // Replace with actual production domain
-            : ['*'], // Allow all for dev/staging for now, can be restricted later
+            ? ['https://awdah.app']
+            : props.environment === 'staging'
+              ? ['https://staging.awdah.app']
+              : ['http://localhost:5173'],
+      },
+    });
+
+    new apigatewayv2.HttpStage(this, 'DefaultStage', {
+      httpApi: api,
+      stageName: '$default',
+      autoDeploy: true,
+      throttle: {
+        burstLimit: props.environment === 'prod' ? 200 : 500,
+        rateLimit: props.environment === 'prod' ? 100 : 250,
       },
     });
 
     const authorizer = new HttpUserPoolAuthorizer('AwdahAuthorizer', props.authStack.userPool, {
       userPoolClients: [props.authStack.userPoolClient],
     });
+
+    const API_VERSION = '/v1';
 
     const lambdaProps: Partial<lambda_nodejs.NodejsFunctionProps> = {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -65,151 +85,174 @@ export class ApiStack extends cdk.Stack {
 
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
 
+    const createLambda = (
+      id: string,
+      entryPath: string,
+      grantRead?: cdk.aws_dynamodb.ITable[],
+      grantWrite?: cdk.aws_dynamodb.ITable[],
+    ) => {
+      const fn = new lambda_nodejs.NodejsFunction(this, id, {
+        ...lambdaProps,
+        entry: path.join(backendSrc, entryPath),
+        handler: 'handler',
+      });
+      grantRead?.forEach((table) => table.grantReadData(fn));
+      grantWrite?.forEach((table) => table.grantReadWriteData(fn));
+      return fn;
+    };
+
     // 1. Log Prayer
-    const logPrayerFn = new lambda_nodejs.NodejsFunction(this, 'LogPrayerFn', {
-      ...lambdaProps,
-      entry: path.join(backendSrc, 'contexts/salah/infrastructure/handlers/log-prayer.handler.ts'),
-      handler: 'handler',
-    });
-    props.dataStack.prayerLogsTable.grantReadWriteData(logPrayerFn);
+    const logPrayerFn = createLambda(
+      'LogPrayerFn',
+      'contexts/salah/infrastructure/handlers/log-prayer.handler.ts',
+      [],
+      [props.dataStack.prayerLogsTable],
+    );
 
     // 2. Get Salah Debt
-    const getSalahDebtFn = new lambda_nodejs.NodejsFunction(this, 'GetSalahDebtFn', {
-      ...lambdaProps,
-      entry: path.join(
-        backendSrc,
-        'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
-      ),
-      handler: 'handler',
-    });
-    props.dataStack.prayerLogsTable.grantReadData(getSalahDebtFn);
-    props.dataStack.practicingPeriodsTable.grantReadData(getSalahDebtFn);
-    props.dataStack.userSettingsTable.grantReadData(getSalahDebtFn);
+    const getSalahDebtFn = createLambda(
+      'GetSalahDebtFn',
+      'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
+      [
+        props.dataStack.prayerLogsTable,
+        props.dataStack.practicingPeriodsTable,
+        props.dataStack.userSettingsTable,
+      ],
+    );
 
     // 3. Log Fast
-    const logFastFn = new lambda_nodejs.NodejsFunction(this, 'LogFastFn', {
-      ...lambdaProps,
-      entry: path.join(backendSrc, 'contexts/sawm/infrastructure/handlers/log-fast.handler.ts'),
-      handler: 'handler',
-    });
-    props.dataStack.fastLogsTable.grantReadWriteData(logFastFn);
+    const logFastFn = createLambda(
+      'LogFastFn',
+      'contexts/sawm/infrastructure/handlers/log-fast.handler.ts',
+      [],
+      [props.dataStack.fastLogsTable],
+    );
 
     // 4. Get Sawm Debt
-    const getSawmDebtFn = new lambda_nodejs.NodejsFunction(this, 'GetSawmDebtFn', {
-      ...lambdaProps,
-      entry: path.join(
-        backendSrc,
-        'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
-      ),
-      handler: 'handler',
-    });
-    props.dataStack.fastLogsTable.grantReadData(getSawmDebtFn);
-    props.dataStack.practicingPeriodsTable.grantReadData(getSawmDebtFn);
-    props.dataStack.userSettingsTable.grantReadData(getSawmDebtFn);
+    const getSawmDebtFn = createLambda(
+      'GetSawmDebtFn',
+      'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
+      [
+        props.dataStack.fastLogsTable,
+        props.dataStack.practicingPeriodsTable,
+        props.dataStack.userSettingsTable,
+      ],
+    );
 
     // 5. Add Practicing Period
-    const addPeriodFn = new lambda_nodejs.NodejsFunction(this, 'AddPeriodFn', {
-      ...lambdaProps,
-      entry: path.join(
-        backendSrc,
-        'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
-      ),
-      handler: 'handler',
-    });
-    props.dataStack.practicingPeriodsTable.grantReadWriteData(addPeriodFn);
+    const addPeriodFn = createLambda(
+      'AddPeriodFn',
+      'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
+      [],
+      [props.dataStack.practicingPeriodsTable],
+    );
 
     // 6. Get User Settings
-    const getUserSettingsFn = new lambda_nodejs.NodejsFunction(this, 'GetUserSettingsFn', {
-      ...lambdaProps,
-      entry: path.join(
-        backendSrc,
-        'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
-      ),
-      handler: 'handler',
-    });
-    props.dataStack.userSettingsTable.grantReadData(getUserSettingsFn);
+    const getUserSettingsFn = createLambda(
+      'GetUserSettingsFn',
+      'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
+      [props.dataStack.userSettingsTable],
+    );
 
     // 7. Update User Settings
-    const updateUserSettingsFn = new lambda_nodejs.NodejsFunction(this, 'UpdateUserSettingsFn', {
-      ...lambdaProps,
-      entry: path.join(
-        backendSrc,
-        'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
-      ),
-      handler: 'handler',
-    });
-    props.dataStack.userSettingsTable.grantReadWriteData(updateUserSettingsFn);
+    const updateUserSettingsFn = createLambda(
+      'UpdateUserSettingsFn',
+      'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
+      [],
+      [props.dataStack.userSettingsTable],
+    );
+
+    // 8. Get Prayer History
+    const getPrayerHistoryFn = createLambda(
+      'GetPrayerHistoryFn',
+      'contexts/salah/infrastructure/handlers/get-prayer-history.handler.ts',
+      [props.dataStack.prayerLogsTable],
+    );
+
+    // 9. Get Fast History
+    const getFastHistoryFn = createLambda(
+      'GetFastHistoryFn',
+      'contexts/sawm/infrastructure/handlers/get-fast-history.handler.ts',
+      [props.dataStack.fastLogsTable],
+    );
+
+    // 10. Delete Prayer Log
+    const deletePrayerLogFn = createLambda(
+      'DeletePrayerLogFn',
+      'contexts/salah/infrastructure/handlers/delete-prayer-log.handler.ts',
+      [],
+      [props.dataStack.prayerLogsTable],
+    );
+
+    // 11. Delete Fast Log
+    const deleteFastLogFn = createLambda(
+      'DeleteFastLogFn',
+      'contexts/sawm/infrastructure/handlers/delete-fast-log.handler.ts',
+      [],
+      [props.dataStack.fastLogsTable],
+    );
+
+    const addRoute = (
+      routePath: string,
+      method: apigatewayv2.HttpMethod,
+      fn: lambda.IFunction,
+      integrationId: string,
+    ) => {
+      api.addRoutes({
+        path: `${API_VERSION}${routePath}`,
+        methods: [method],
+        integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
+        authorizer,
+      });
+    };
 
     // Routes
-    api.addRoutes({
-      path: '/salah/log',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'LogPrayerIntegration',
-        logPrayerFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/salah/debt',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'GetSalahDebtIntegration',
-        getSalahDebtFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/sawm/log',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'LogFastIntegration',
-        logFastFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/sawm/debt',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'GetSawmDebtIntegration',
-        getSawmDebtFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/salah/practicing-period',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'AddPeriodIntegration',
-        addPeriodFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/user/profile',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'GetUserSettingsIntegration',
-        getUserSettingsFn,
-      ),
-      authorizer,
-    });
-
-    api.addRoutes({
-      path: '/user/profile',
-      methods: [apigatewayv2.HttpMethod.POST],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'UpdateUserSettingsIntegration',
-        updateUserSettingsFn,
-      ),
-      authorizer,
-    });
+    addRoute('/salah/log', apigatewayv2.HttpMethod.POST, logPrayerFn, 'LogPrayerIntegration');
+    addRoute('/salah/debt', apigatewayv2.HttpMethod.GET, getSalahDebtFn, 'GetSalahDebtIntegration');
+    addRoute(
+      '/salah/history',
+      apigatewayv2.HttpMethod.GET,
+      getPrayerHistoryFn,
+      'GetPrayerHistoryIntegration',
+    );
+    addRoute('/sawm/log', apigatewayv2.HttpMethod.POST, logFastFn, 'LogFastIntegration');
+    addRoute('/sawm/debt', apigatewayv2.HttpMethod.GET, getSawmDebtFn, 'GetSawmDebtIntegration');
+    addRoute(
+      '/sawm/history',
+      apigatewayv2.HttpMethod.GET,
+      getFastHistoryFn,
+      'GetFastHistoryIntegration',
+    );
+    addRoute(
+      '/salah/practicing-period',
+      apigatewayv2.HttpMethod.POST,
+      addPeriodFn,
+      'AddPeriodIntegration',
+    );
+    addRoute(
+      '/user/profile',
+      apigatewayv2.HttpMethod.GET,
+      getUserSettingsFn,
+      'GetUserSettingsIntegration',
+    );
+    addRoute(
+      '/user/profile',
+      apigatewayv2.HttpMethod.POST,
+      updateUserSettingsFn,
+      'UpdateUserSettingsIntegration',
+    );
+    addRoute(
+      '/salah/log',
+      apigatewayv2.HttpMethod.DELETE,
+      deletePrayerLogFn,
+      'DeletePrayerLogIntegration',
+    );
+    addRoute(
+      '/sawm/log',
+      apigatewayv2.HttpMethod.DELETE,
+      deleteFastLogFn,
+      'DeleteFastLogIntegration',
+    );
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
   }
