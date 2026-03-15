@@ -13,3 +13,27 @@ export const HIJRI_MONTHS_IN_YEAR = 12;
 export const RAMADAN_MONTH_NUMBER = 9;
 
 export const GENDERS = ['male', 'female'] as const;
+
+export const MADHABS = ['hanafi', 'shafii', 'maliki', 'hanbali', 'jafari'] as const;
+
+export const CALCULATION_METHODS = [
+  'MWL',
+  'ISNA',
+  'Egypt',
+  'Makkah',
+  'Karachi',
+  'Tehran',
+  'Jafari',
+] as const;
+
+export const MOON_SIGHTING_PREFERENCES = ['global', 'local', 'calculation'] as const;
+
+export const BREAK_REASONS = [
+  'sickness',
+  'travel',
+  'menstruation',
+  'pregnancy',
+  'nursing',
+  'forgetfulness',
+  'intentional',
+] as const;
