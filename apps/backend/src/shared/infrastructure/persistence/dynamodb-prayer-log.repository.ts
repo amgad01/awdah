@@ -76,6 +76,7 @@ export class DynamoDBPrayerLogRepository
       type: log.type.getValue(),
       loggedAt: log.loggedAt.toISOString(),
       typeDate: PrayerLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
+      isVoluntary: log.isVoluntary,
     };
   }
 
@@ -88,6 +89,7 @@ export class DynamoDBPrayerLogRepository
       eventId,
       type: new LogType(item.type as string),
       loggedAt: new Date(item.loggedAt as string),
+      isVoluntary: item.isVoluntary as boolean,
     });
   }
 }
