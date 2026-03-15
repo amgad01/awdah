@@ -83,7 +83,8 @@ describe('BaseDynamoDBRepository Integration (LocalStack)', () => {
   });
 
   it('createOnly should prevent duplicates', async () => {
-    const item = { id: 'dup-1', name: 'Original' };
+    const id = `dup-${Date.now()}`;
+    const item = { id, name: 'Original' };
 
     await repo.create(item);
 
@@ -92,7 +93,7 @@ describe('BaseDynamoDBRepository Integration (LocalStack)', () => {
   });
 
   it('updatePartial should perform atomic field updates', async () => {
-    const id = 'partial-1';
+    const id = `partial-${Date.now()}`;
     await repo.create({ id, name: 'Before' });
 
     await repo.update(id, { updated: 'Yes', name: 'After' });
