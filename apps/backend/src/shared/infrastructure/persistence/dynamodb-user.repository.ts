@@ -3,7 +3,14 @@ import {
   IUserRepository,
   UserSettings,
 } from '../../../contexts/shared/domain/repositories/user.repository';
-import { HijriDate } from '@awdah/shared';
+import {
+  HijriDate,
+  type Gender,
+  type Madhab,
+  type CalculationMethod,
+  type MoonSightingPreference,
+  type Location,
+} from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { UserSettingsSK } from './keys/user-settings-key';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
@@ -35,6 +42,10 @@ export class DynamoDBUserRepository
     return {
       bulughDate: userSettings.bulughDate.toString(),
       gender: userSettings.gender,
+      madhab: userSettings.madhab,
+      calculationMethod: userSettings.calculationMethod,
+      moonSightingPreference: userSettings.moonSightingPreference,
+      location: userSettings.location,
       updatedAt: new Date().toISOString(),
     };
   }
@@ -43,7 +54,11 @@ export class DynamoDBUserRepository
     return {
       userId: item.userId as string,
       bulughDate: HijriDate.fromString(item.bulughDate as string),
-      gender: item.gender as 'male' | 'female',
+      gender: item.gender as Gender,
+      madhab: item.madhab as Madhab | undefined,
+      calculationMethod: item.calculationMethod as CalculationMethod | undefined,
+      moonSightingPreference: item.moonSightingPreference as MoonSightingPreference | undefined,
+      location: item.location as Location | undefined,
     };
   }
 }

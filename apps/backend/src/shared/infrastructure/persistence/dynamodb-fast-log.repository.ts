@@ -1,7 +1,7 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, type BreakReason } from '@awdah/shared';
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
@@ -59,6 +59,8 @@ export class DynamoDBFastLogRepository
       type: log.type.getValue(),
       loggedAt: log.loggedAt.toISOString(),
       typeDate: FastLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
+      breakReason: log.breakReason,
+      isVoluntary: log.isVoluntary,
     };
   }
 
@@ -70,6 +72,8 @@ export class DynamoDBFastLogRepository
       eventId,
       type: new LogType(item.type as string),
       loggedAt: new Date(item.loggedAt as string),
+      breakReason: item.breakReason as BreakReason | undefined,
+      isVoluntary: item.isVoluntary as boolean,
     });
   }
 }
