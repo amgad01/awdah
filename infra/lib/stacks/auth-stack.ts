@@ -14,6 +14,8 @@ export class AuthStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
 
+    cdk.Tags.of(this).add('context', 'user');
+
     const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {

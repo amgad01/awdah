@@ -16,6 +16,8 @@ export class AlarmStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AlarmStackProps) {
     super(scope, id, props);
 
+    cdk.Tags.of(this).add('context', 'shared');
+
     const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
     const alertTopic = new sns.Topic(this, 'SystemAlerts', {
