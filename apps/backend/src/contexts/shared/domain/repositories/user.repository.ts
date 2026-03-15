@@ -1,10 +1,20 @@
-import { HijriDate } from '@awdah/shared';
-import type { Gender } from '@awdah/shared';
+import {
+  HijriDate,
+  type Gender,
+  type Madhab,
+  type CalculationMethod,
+  type MoonSightingPreference,
+  type Location,
+} from '@awdah/shared';
 
 export interface UserSettings {
   userId: string;
   bulughDate: HijriDate;
   gender: Gender;
+  madhab?: Madhab;
+  calculationMethod?: CalculationMethod;
+  moonSightingPreference?: MoonSightingPreference;
+  location?: Location;
 }
 
 export interface IUserRepository {

@@ -9,6 +9,7 @@ export interface PrayerLogProps {
   prayerName: PrayerName;
   type: LogType;
   loggedAt: Date;
+  isVoluntary?: boolean;
 }
 
 export class PrayerLog {
@@ -36,5 +37,9 @@ export class PrayerLog {
 
   get loggedAt(): Date {
     return this.props.loggedAt;
+  }
+
+  get isVoluntary(): boolean {
+    return this.props.isVoluntary ?? false;
   }
 }

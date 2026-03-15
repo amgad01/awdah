@@ -1,4 +1,4 @@
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, type BreakReason } from '@awdah/shared';
 import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface FastLogProps {
@@ -7,6 +7,8 @@ export interface FastLogProps {
   date: HijriDate;
   type: LogType;
   loggedAt: Date;
+  breakReason?: BreakReason;
+  isVoluntary?: boolean;
 }
 
 export class FastLog {
@@ -30,5 +32,13 @@ export class FastLog {
 
   get loggedAt(): Date {
     return this.props.loggedAt;
+  }
+
+  get breakReason(): BreakReason | undefined {
+    return this.props.breakReason;
+  }
+
+  get isVoluntary(): boolean {
+    return this.props.isVoluntary ?? false;
   }
 }
