@@ -5,6 +5,7 @@ import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as path from 'path';
 import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
@@ -19,6 +20,8 @@ export interface ApiStackProps extends cdk.StackProps {
 export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
+
+    cdk.Tags.of(this).add('context', 'api');
 
     const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
@@ -69,6 +72,7 @@ export class ApiStack extends cdk.Stack {
       architecture: lambda.Architecture.ARM_64,
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
+      tracing: lambda.Tracing.ACTIVE,
       bundling: {
         minify: true,
         sourceMap: true,
@@ -81,6 +85,7 @@ export class ApiStack extends cdk.Stack {
         PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
         USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
       },
+      logRetention: logs.RetentionDays.ONE_MONTH,
     };
 
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -88,6 +93,7 @@ export class ApiStack extends cdk.Stack {
     const createLambda = (
       id: string,
       entryPath: string,
+      context: string,
       grantRead?: cdk.aws_dynamodb.ITable[],
       grantWrite?: cdk.aws_dynamodb.ITable[],
     ) => {
@@ -96,6 +102,7 @@ export class ApiStack extends cdk.Stack {
         entry: path.join(backendSrc, entryPath),
         handler: 'handler',
       });
+      cdk.Tags.of(fn).add('context', context);
       grantRead?.forEach((table) => table.grantReadData(fn));
       grantWrite?.forEach((table) => table.grantReadWriteData(fn));
       return fn;
@@ -105,6 +112,7 @@ export class ApiStack extends cdk.Stack {
     const logPrayerFn = createLambda(
       'LogPrayerFn',
       'contexts/salah/infrastructure/handlers/log-prayer.handler.ts',
+      'salah',
       [],
       [props.dataStack.prayerLogsTable],
     );
@@ -113,6 +121,7 @@ export class ApiStack extends cdk.Stack {
     const getSalahDebtFn = createLambda(
       'GetSalahDebtFn',
       'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
+      'salah',
       [
         props.dataStack.prayerLogsTable,
         props.dataStack.practicingPeriodsTable,
@@ -124,6 +133,7 @@ export class ApiStack extends cdk.Stack {
     const logFastFn = createLambda(
       'LogFastFn',
       'contexts/sawm/infrastructure/handlers/log-fast.handler.ts',
+      'sawm',
       [],
       [props.dataStack.fastLogsTable],
     );
@@ -132,6 +142,7 @@ export class ApiStack extends cdk.Stack {
     const getSawmDebtFn = createLambda(
       'GetSawmDebtFn',
       'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
+      'sawm',
       [
         props.dataStack.fastLogsTable,
         props.dataStack.practicingPeriodsTable,
@@ -143,6 +154,7 @@ export class ApiStack extends cdk.Stack {
     const addPeriodFn = createLambda(
       'AddPeriodFn',
       'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
+      'salah',
       [],
       [props.dataStack.practicingPeriodsTable],
     );
@@ -151,6 +163,7 @@ export class ApiStack extends cdk.Stack {
     const getUserSettingsFn = createLambda(
       'GetUserSettingsFn',
       'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
+      'user',
       [props.dataStack.userSettingsTable],
     );
 
@@ -158,6 +171,7 @@ export class ApiStack extends cdk.Stack {
     const updateUserSettingsFn = createLambda(
       'UpdateUserSettingsFn',
       'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
+      'user',
       [],
       [props.dataStack.userSettingsTable],
     );
@@ -166,6 +180,7 @@ export class ApiStack extends cdk.Stack {
     const getPrayerHistoryFn = createLambda(
       'GetPrayerHistoryFn',
       'contexts/salah/infrastructure/handlers/get-prayer-history.handler.ts',
+      'salah',
       [props.dataStack.prayerLogsTable],
     );
 
@@ -173,6 +188,7 @@ export class ApiStack extends cdk.Stack {
     const getFastHistoryFn = createLambda(
       'GetFastHistoryFn',
       'contexts/sawm/infrastructure/handlers/get-fast-history.handler.ts',
+      'sawm',
       [props.dataStack.fastLogsTable],
     );
 
@@ -180,6 +196,7 @@ export class ApiStack extends cdk.Stack {
     const deletePrayerLogFn = createLambda(
       'DeletePrayerLogFn',
       'contexts/salah/infrastructure/handlers/delete-prayer-log.handler.ts',
+      'salah',
       [],
       [props.dataStack.prayerLogsTable],
     );
@@ -188,6 +205,7 @@ export class ApiStack extends cdk.Stack {
     const deleteFastLogFn = createLambda(
       'DeleteFastLogFn',
       'contexts/sawm/infrastructure/handlers/delete-fast-log.handler.ts',
+      'sawm',
       [],
       [props.dataStack.fastLogsTable],
     );

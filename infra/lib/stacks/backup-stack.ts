@@ -4,6 +4,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -21,6 +22,8 @@ export class BackupStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: BackupStackProps) {
     super(scope, id, props);
+
+    cdk.Tags.of(this).add('context', 'shared');
 
     const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
 
@@ -66,6 +69,8 @@ export class BackupStack extends cdk.Stack {
       architecture: lambda.Architecture.ARM_64,
       memorySize: 256,
       timeout: cdk.Duration.seconds(60),
+      tracing: lambda.Tracing.ACTIVE,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       deadLetterQueue: this.backupDLQ,
       retryAttempts: 2,
       bundling: {
