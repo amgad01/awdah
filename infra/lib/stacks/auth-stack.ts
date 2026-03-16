@@ -1,30 +1,25 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import { BaseStack, BaseStackProps } from '../shared/base-stack';
 
-export interface AuthStackProps extends cdk.StackProps {
-  environment: string;
-  ticket?: string;
-}
+export interface AuthStackProps extends BaseStackProps { }
 
-export class AuthStack extends cdk.Stack {
+export class AuthStack extends BaseStack {
   public readonly userPool: cognito.UserPool;
   public readonly userPoolClient: cognito.UserPoolClient;
 
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add('context', 'user');
-
-    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
+    this.addContextTag('user');
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: `${resourcePrefix}Awdah-UserPool-${props.environment}`,
+      userPoolName: this.fullResourceName('UserPool'),
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },
-      removalPolicy:
-        props.environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      removalPolicy: this.removalPolicy,
     });
 
     this.userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {

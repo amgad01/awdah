@@ -3,30 +3,26 @@ import { Construct } from 'constructs';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as logs from 'aws-cdk-lib/aws-logs';
 import * as path from 'path';
 import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
+import { BaseStack, BaseStackProps } from '../shared/base-stack';
+import { ProjectResourceFactory } from '../shared/resource-factory';
 
-export interface ApiStackProps extends cdk.StackProps {
-  environment: string;
+export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
   authStack: AuthStack;
-  ticket?: string;
 }
 
-export class ApiStack extends cdk.Stack {
+export class ApiStack extends BaseStack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add('context', 'api');
-
-    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
+    this.addContextTag('api');
 
     const api = new apigatewayv2.HttpApi(this, 'AwdahApi', {
-      apiName: `${resourcePrefix}Awdah-API-${props.environment}`,
+      apiName: this.fullResourceName('API'),
       createDefaultStage: false,
       corsPreflight: {
         allowHeaders: [
@@ -43,9 +39,9 @@ export class ApiStack extends cdk.Stack {
           apigatewayv2.CorsHttpMethod.OPTIONS,
         ],
         allowOrigins:
-          props.environment === 'prod'
+          this.projectEnv === 'prod'
             ? ['https://awdah.app']
-            : props.environment === 'staging'
+            : this.projectEnv === 'staging'
               ? ['https://staging.awdah.app']
               : ['http://localhost:5173'],
       },
@@ -56,8 +52,8 @@ export class ApiStack extends cdk.Stack {
       stageName: '$default',
       autoDeploy: true,
       throttle: {
-        burstLimit: props.environment === 'prod' ? 200 : 500,
-        rateLimit: props.environment === 'prod' ? 100 : 250,
+        burstLimit: this.projectEnv === 'prod' ? 200 : 500,
+        rateLimit: this.projectEnv === 'prod' ? 100 : 250,
       },
     });
 
@@ -66,29 +62,15 @@ export class ApiStack extends cdk.Stack {
     });
 
     const API_VERSION = '/v1';
-
-    const lambdaProps: Partial<lambda_nodejs.NodejsFunctionProps> = {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      architecture: lambda.Architecture.ARM_64,
-      memorySize: 256,
-      timeout: cdk.Duration.seconds(30),
-      tracing: lambda.Tracing.ACTIVE,
-      bundling: {
-        minify: true,
-        sourceMap: true,
-        externalModules: ['@aws-sdk/*'],
-      },
-      environment: {
-        NODE_ENV: props.environment,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-      },
-      logRetention: logs.RetentionDays.ONE_MONTH,
-    };
-
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
+
+    const sharedEnv = {
+      NODE_ENV: this.projectEnv,
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+    };
 
     const createLambda = (
       id: string,
@@ -97,18 +79,17 @@ export class ApiStack extends cdk.Stack {
       grantRead?: cdk.aws_dynamodb.ITable[],
       grantWrite?: cdk.aws_dynamodb.ITable[],
     ) => {
-      const fn = new lambda_nodejs.NodejsFunction(this, id, {
-        ...lambdaProps,
+      const fn = ProjectResourceFactory.createNodejsFunction(this, id, {
         entry: path.join(backendSrc, entryPath),
-        handler: 'handler',
+        context,
+        environment: sharedEnv,
       });
-      cdk.Tags.of(fn).add('context', context);
       grantRead?.forEach((table) => table.grantReadData(fn));
       grantWrite?.forEach((table) => table.grantReadWriteData(fn));
       return fn;
     };
 
-    // 1. Log Prayer
+    // Lambda Handlers
     const logPrayerFn = createLambda(
       'LogPrayerFn',
       'contexts/salah/infrastructure/handlers/log-prayer.handler.ts',
@@ -117,7 +98,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.prayerLogsTable],
     );
 
-    // 2. Get Salah Debt
     const getSalahDebtFn = createLambda(
       'GetSalahDebtFn',
       'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
@@ -129,7 +109,6 @@ export class ApiStack extends cdk.Stack {
       ],
     );
 
-    // 3. Log Fast
     const logFastFn = createLambda(
       'LogFastFn',
       'contexts/sawm/infrastructure/handlers/log-fast.handler.ts',
@@ -138,7 +117,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.fastLogsTable],
     );
 
-    // 4. Get Sawm Debt
     const getSawmDebtFn = createLambda(
       'GetSawmDebtFn',
       'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
@@ -150,7 +128,6 @@ export class ApiStack extends cdk.Stack {
       ],
     );
 
-    // 5. Add Practicing Period
     const addPeriodFn = createLambda(
       'AddPeriodFn',
       'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
@@ -159,7 +136,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.practicingPeriodsTable],
     );
 
-    // 6. Get User Settings
     const getUserSettingsFn = createLambda(
       'GetUserSettingsFn',
       'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
@@ -167,7 +143,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.userSettingsTable],
     );
 
-    // 7. Update User Settings
     const updateUserSettingsFn = createLambda(
       'UpdateUserSettingsFn',
       'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
@@ -176,7 +151,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.userSettingsTable],
     );
 
-    // 8. Get Prayer History
     const getPrayerHistoryFn = createLambda(
       'GetPrayerHistoryFn',
       'contexts/salah/infrastructure/handlers/get-prayer-history.handler.ts',
@@ -184,7 +158,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.prayerLogsTable],
     );
 
-    // 9. Get Fast History
     const getFastHistoryFn = createLambda(
       'GetFastHistoryFn',
       'contexts/sawm/infrastructure/handlers/get-fast-history.handler.ts',
@@ -192,7 +165,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.fastLogsTable],
     );
 
-    // 10. Delete Prayer Log
     const deletePrayerLogFn = createLambda(
       'DeletePrayerLogFn',
       'contexts/salah/infrastructure/handlers/delete-prayer-log.handler.ts',
@@ -201,7 +173,6 @@ export class ApiStack extends cdk.Stack {
       [props.dataStack.prayerLogsTable],
     );
 
-    // 11. Delete Fast Log
     const deleteFastLogFn = createLambda(
       'DeleteFastLogFn',
       'contexts/sawm/infrastructure/handlers/delete-fast-log.handler.ts',
@@ -224,7 +195,7 @@ export class ApiStack extends cdk.Stack {
       });
     };
 
-    // Routes
+    // Routes Definition
     addRoute('/salah/log', apigatewayv2.HttpMethod.POST, logPrayerFn, 'LogPrayerIntegration');
     addRoute('/salah/debt', apigatewayv2.HttpMethod.GET, getSalahDebtFn, 'GetSalahDebtIntegration');
     addRoute(

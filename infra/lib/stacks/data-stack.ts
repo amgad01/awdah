@@ -1,13 +1,11 @@
-import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { BaseStack, BaseStackProps } from '../shared/base-stack';
+import { ProjectResourceFactory } from '../shared/resource-factory';
 
-export interface DataStackProps extends cdk.StackProps {
-  environment: string;
-  ticket?: string;
-}
+export interface DataStackProps extends BaseStackProps { }
 
-export class DataStack extends cdk.Stack {
+export class DataStack extends BaseStack {
   public readonly prayerLogsTable: dynamodb.Table;
   public readonly fastLogsTable: dynamodb.Table;
   public readonly practicingPeriodsTable: dynamodb.Table;
@@ -16,22 +14,17 @@ export class DataStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: DataStackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add('context', 'shared');
-
-    const removalPolicy =
-      props.environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY;
-
-    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
+    this.addContextTag('shared');
 
     // 1. Prayer Logs Table
-    this.prayerLogsTable = new dynamodb.Table(this, 'PrayerLogsTable', {
-      tableName: `${resourcePrefix}Awdah-PrayerLogs-${props.environment}`,
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy,
-    });
+    this.prayerLogsTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'PrayerLogsTable',
+      this.fullResourceName('PrayerLogs'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
+    );
 
     this.prayerLogsTable.addGlobalSecondaryIndex({
       indexName: 'GSI1',
@@ -40,14 +33,14 @@ export class DataStack extends cdk.Stack {
     });
 
     // 2. Fast Logs Table
-    this.fastLogsTable = new dynamodb.Table(this, 'FastLogsTable', {
-      tableName: `${resourcePrefix}Awdah-FastLogs-${props.environment}`,
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy,
-    });
+    this.fastLogsTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'FastLogsTable',
+      this.fullResourceName('FastLogs'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
+    );
 
     this.fastLogsTable.addGlobalSecondaryIndex({
       indexName: 'GSI1',
@@ -56,23 +49,23 @@ export class DataStack extends cdk.Stack {
     });
 
     // 3. Practicing Periods Table
-    this.practicingPeriodsTable = new dynamodb.Table(this, 'PracticingPeriodsTable', {
-      tableName: `${resourcePrefix}Awdah-PracticingPeriods-${props.environment}`,
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'periodId', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy,
-    });
+    this.practicingPeriodsTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'PracticingPeriodsTable',
+      this.fullResourceName('PracticingPeriods'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'periodId', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
+    );
 
     // 4. User Settings Table
-    this.userSettingsTable = new dynamodb.Table(this, 'UserSettingsTable', {
-      tableName: `${resourcePrefix}Awdah-UserSettings-${props.environment}`,
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy,
-    });
+    this.userSettingsTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'UserSettingsTable',
+      this.fullResourceName('UserSettings'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
+    );
   }
 }

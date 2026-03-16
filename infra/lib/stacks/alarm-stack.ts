@@ -4,24 +4,21 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cloudwatch_actions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { BackupStack } from './backup-stack';
+import { BaseStack, BaseStackProps } from '../shared/base-stack';
 
-export interface AlarmStackProps extends cdk.StackProps {
-  environment: string;
+export interface AlarmStackProps extends BaseStackProps {
   backupStack: BackupStack;
   alertEmail?: string;
-  ticket?: string;
 }
 
-export class AlarmStack extends cdk.Stack {
+export class AlarmStack extends BaseStack {
   constructor(scope: Construct, id: string, props: AlarmStackProps) {
     super(scope, id, props);
 
-    cdk.Tags.of(this).add('context', 'shared');
-
-    const resourcePrefix = props.ticket ? `${props.ticket}-` : '';
+    this.addContextTag('shared');
 
     const alertTopic = new sns.Topic(this, 'SystemAlerts', {
-      topicName: `${resourcePrefix}Awdah-SystemAlerts-${props.environment}`,
+      topicName: this.fullResourceName('SystemAlerts'),
     });
 
     if (props.alertEmail) {
@@ -33,7 +30,7 @@ export class AlarmStack extends cdk.Stack {
     }
 
     const dlqAlarm = new cloudwatch.Alarm(this, 'BackupDLQAlarm', {
-      alarmName: `${resourcePrefix}Awdah-BackupDLQ-${props.environment}`,
+      alarmName: this.fullResourceName('BackupDLQ'),
       alarmDescription: 'Backup export Lambda failed and sent a message to the DLQ',
       metric: props.backupStack.backupDLQ.metricApproximateNumberOfMessagesVisible({
         period: cdk.Duration.minutes(5),
