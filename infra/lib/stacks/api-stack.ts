@@ -70,6 +70,7 @@ export class ApiStack extends BaseStack {
 
     const sharedEnv = {
       NODE_ENV: this.projectEnv,
+      LOG_LEVEL: this.projectEnv === 'prod' ? 'info' : 'debug',
       PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
       FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
       PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
