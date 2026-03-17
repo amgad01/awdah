@@ -1,0 +1,822 @@
+openapi: 3.1.0
+info:
+  title: Awdah API
+  version: 1.0.0
+  description: |
+    Awdah is a serverless Islamic ibadah tracker for making up missed Salah and Sawm.
+
+    ## Authentication
+
+    All endpoints except `GET /health` require a valid **Cognito JWT** passed as a
+    `Bearer` token in the `Authorization` header. The gateway validates the token and
+    injects the authenticated user id (`sub` claim) into the request context —
+    handlers never accept a caller-supplied user id.
+
+    ## Date format
+
+    All dates are **Hijri** in `YYYY-MM-DD` format (e.g. `1446-09-01`).
+    Gregorian-to-Hijri conversion must happen before calling the API.
+
+    ## Error shape
+
+    Every error response follows the same envelope:
+
+    ```json
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Human-readable description"
+      }
+    }
+    ```
+
+    Error codes: `VALIDATION_ERROR` (400), `UNAUTHENTICATED` (401),
+    `FORBIDDEN` (403), `NOT_FOUND` (404), `CONFLICT` (409),
+    `INTERNAL_ERROR` (500).
+
+servers:
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com
+    description: AWS API Gateway (replace with real endpoint per environment)
+    variables:
+      apiId:
+        default: your-api-id
+      region:
+        default: eu-west-1
+
+security:
+  - CognitoJWT: []
+
+tags:
+  - name: health
+    description: Infrastructure health check
+  - name: salah
+    description: Obligatory daily prayers — logging, debt, and history
+  - name: sawm
+    description: Obligatory fasting — logging, debt, and history
+  - name: user
+    description: User profile and settings
+
+paths:
+
+  # ---------------------------------------------------------------------------
+  # Health
+  # ---------------------------------------------------------------------------
+  /health:
+    get:
+      operationId: getHealth
+      tags: [health]
+      summary: Health check
+      description: Returns 200 if the service is running. No authentication required.
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  # ---------------------------------------------------------------------------
+  # Salah — prayer logs
+  # ---------------------------------------------------------------------------
+  /v1/salah/log:
+    post:
+      operationId: logPrayer
+      tags: [salah]
+      summary: Log a prayer
+      description: |
+        Records a single obligatory prayer as either performed on time (`obligatory`)
+        or as a make-up prayer (`qadaa`). The event id is generated server-side using
+        ULID and returned in the response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogPrayerRequest"
+            examples:
+              fajrOnTime:
+                summary: Fajr performed on time
+                value:
+                  date: "1446-09-01"
+                  prayerName: fajr
+                  type: obligatory
+              dhuhrQadaa:
+                summary: Dhuhr as qadaa
+                value:
+                  date: "1446-09-01"
+                  prayerName: dhuhr
+                  type: qadaa
+      responses:
+        "201":
+          description: Prayer logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      operationId: deletePrayerLog
+      tags: [salah]
+      summary: Delete a prayer log entry
+      description: Removes a specific prayer log event. Requires the exact `eventId` returned when the entry was created.
+      parameters:
+        - $ref: "#/components/parameters/date"
+        - name: prayerName
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PrayerName"
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+      responses:
+        "200":
+          description: Prayer log entry deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Salah — debt
+  # ---------------------------------------------------------------------------
+  /v1/salah/debt:
+    get:
+      operationId: getSalahDebt
+      tags: [salah]
+      summary: Get Salah qadaa debt summary
+      description: |
+        Calculates and returns the user's total Salah qadaa debt based on their
+        practicing-period history and completed qadaa log. All arithmetic runs
+        server-side in Hijri. Never returns a negative value.
+      responses:
+        "200":
+          description: Debt summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalahDebtResponse"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          description: User profile not found — onboarding not yet complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Salah — history
+  # ---------------------------------------------------------------------------
+  /v1/salah/history:
+    get:
+      operationId: getSalahHistory
+      tags: [salah]
+      summary: Get prayer log history
+      description: Returns all prayer log entries for the authenticated user within the given Hijri date range (inclusive).
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/HijriDate"
+          description: Start of the date range (Hijri, inclusive)
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/HijriDate"
+          description: End of the date range (Hijri, inclusive)
+      responses:
+        "200":
+          description: List of prayer log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrayerLogEntry"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Salah — practicing periods
+  # ---------------------------------------------------------------------------
+  /v1/salah/practicing-period:
+    post:
+      operationId: addPracticingPeriod
+      tags: [salah]
+      summary: Add a practicing period
+      description: |
+        Records a period during which the user was fully practicing. Gaps between
+        the bulugh date and any practicing period are used to calculate qadaa debt.
+        Periods must not overlap. The `type` field controls which debt calculation
+        this period applies to: `salah`, `sawm`, or `both`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddPracticingPeriodRequest"
+            examples:
+              bothContexts:
+                summary: Period covering both Salah and Sawm
+                value:
+                  startDate: "1440-01-01"
+                  endDate: "1445-12-30"
+                  type: both
+      responses:
+        "201":
+          description: Period created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddPracticingPeriodResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "409":
+          description: Overlapping period already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      operationId: deletePracticingPeriod
+      tags: [salah]
+      summary: Delete a practicing period
+      description: Removes a specific practicing period. Debt is recalculated the next time `GET /v1/salah/debt` or `GET /v1/sawm/debt` is called.
+      parameters:
+        - name: periodId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+      responses:
+        "200":
+          description: Period deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/salah/practicing-periods:
+    get:
+      operationId: getPracticingPeriods
+      tags: [salah]
+      summary: List all practicing periods
+      description: Returns all practicing periods recorded by the authenticated user, in no guaranteed order.
+      responses:
+        "200":
+          description: List of practicing periods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PracticingPeriod"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Sawm — fast logs
+  # ---------------------------------------------------------------------------
+  /v1/sawm/log:
+    post:
+      operationId: logFast
+      tags: [sawm]
+      summary: Log a fast
+      description: |
+        Records a single fasting day as either a current obligatory fast (`obligatory`)
+        or a make-up qadaa fast (`qadaa`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogFastRequest"
+            examples:
+              qadaaFast:
+                summary: Qadaa fast
+                value:
+                  date: "1446-09-01"
+                  type: qadaa
+      responses:
+        "201":
+          description: Fast logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      operationId: deleteFastLog
+      tags: [sawm]
+      summary: Delete a fast log entry
+      description: Removes a specific fast log event.
+      parameters:
+        - $ref: "#/components/parameters/date"
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+      responses:
+        "200":
+          description: Fast log entry deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Sawm — debt
+  # ---------------------------------------------------------------------------
+  /v1/sawm/debt:
+    get:
+      operationId: getSawmDebt
+      tags: [sawm]
+      summary: Get Sawm qadaa debt summary
+      description: |
+        Calculates and returns the user's total Ramadan qadaa debt based on their
+        practicing-period history and completed qadaa fasting log. Ramadan day
+        counts (29 or 30) are derived from the Hijri calendar library — never
+        hardcoded.
+      responses:
+        "200":
+          description: Debt summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SawmDebtResponse"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          description: User profile not found — onboarding not yet complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # Sawm — history
+  # ---------------------------------------------------------------------------
+  /v1/sawm/history:
+    get:
+      operationId: getSawmHistory
+      tags: [sawm]
+      summary: Get fast log history
+      description: Returns all fast log entries for the authenticated user within the given Hijri date range (inclusive).
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/HijriDate"
+          description: Start of the date range (Hijri, inclusive)
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/HijriDate"
+          description: End of the date range (Hijri, inclusive)
+      responses:
+        "200":
+          description: List of fast log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FastLogEntry"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # ---------------------------------------------------------------------------
+  # User profile
+  # ---------------------------------------------------------------------------
+  /v1/user/profile:
+    get:
+      operationId: getUserProfile
+      tags: [user]
+      summary: Get user profile
+      description: Returns the authenticated user's settings. Returns 404 if onboarding has not been completed.
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSettings"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "404":
+          description: Profile not found — onboarding not yet complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    post:
+      operationId: updateUserProfile
+      tags: [user]
+      summary: Create or update user profile
+      description: |
+        Creates the user profile on first call (onboarding) or updates it on
+        subsequent calls. Saving a new `bulughDate` triggers a debt recalculation
+        on the next call to the debt endpoints.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSettingsRequest"
+            examples:
+              maleUser:
+                summary: Male user profile
+                value:
+                  bulughDate: "1430-06-15"
+                  gender: male
+      responses:
+        "200":
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+# =============================================================================
+# Components
+# =============================================================================
+components:
+
+  securitySchemes:
+    CognitoJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito access token issued after sign-in
+
+  parameters:
+    date:
+      name: date
+      in: query
+      required: true
+      schema:
+        $ref: "#/components/schemas/HijriDate"
+      description: Hijri date in YYYY-MM-DD format
+
+  schemas:
+
+    # -------------------------------------------------------------------------
+    # Primitives
+    # -------------------------------------------------------------------------
+    HijriDate:
+      type: string
+      pattern: '^\d{4}-\d{2}-\d{2}$'
+      description: Hijri calendar date in YYYY-MM-DD format
+      example: "1446-09-01"
+
+    PrayerName:
+      type: string
+      enum: [fajr, dhuhr, asr, maghrib, isha]
+      description: One of the five obligatory daily prayers
+
+    LogType:
+      type: string
+      enum: [obligatory, qadaa]
+      description: |
+        `obligatory` — performed in its proper time; `qadaa` — a make-up for a
+        previously missed prayer or fast
+
+    PracticingPeriodType:
+      type: string
+      enum: [salah, sawm, both]
+      description: Which debt calculation this practicing period applies to
+
+    Gender:
+      type: string
+      enum: [male, female]
+
+    # -------------------------------------------------------------------------
+    # Requests
+    # -------------------------------------------------------------------------
+    LogPrayerRequest:
+      type: object
+      required: [date, prayerName, type]
+      additionalProperties: false
+      properties:
+        date:
+          $ref: "#/components/schemas/HijriDate"
+        prayerName:
+          $ref: "#/components/schemas/PrayerName"
+        type:
+          $ref: "#/components/schemas/LogType"
+
+    LogFastRequest:
+      type: object
+      required: [date, type]
+      additionalProperties: false
+      properties:
+        date:
+          $ref: "#/components/schemas/HijriDate"
+        type:
+          $ref: "#/components/schemas/LogType"
+
+    AddPracticingPeriodRequest:
+      type: object
+      required: [startDate, endDate, type]
+      additionalProperties: false
+      properties:
+        startDate:
+          $ref: "#/components/schemas/HijriDate"
+        endDate:
+          $ref: "#/components/schemas/HijriDate"
+        type:
+          $ref: "#/components/schemas/PracticingPeriodType"
+
+    UpdateUserSettingsRequest:
+      type: object
+      required: [bulughDate, gender]
+      additionalProperties: false
+      properties:
+        bulughDate:
+          $ref: "#/components/schemas/HijriDate"
+        gender:
+          $ref: "#/components/schemas/Gender"
+
+    # -------------------------------------------------------------------------
+    # Responses
+    # -------------------------------------------------------------------------
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "Prayer logged successfully"
+
+    AddPracticingPeriodResponse:
+      type: object
+      required: [periodId]
+      properties:
+        periodId:
+          type: string
+          description: ULID of the newly created period
+          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+
+    SalahDebtResponse:
+      type: object
+      required: [totalDaysMissed, totalPrayersOwed, completedPrayers, remainingPrayers]
+      properties:
+        totalDaysMissed:
+          type: integer
+          minimum: 0
+          description: Total number of days in gap periods since bulugh
+          example: 3285
+        totalPrayersOwed:
+          type: integer
+          minimum: 0
+          description: totalDaysMissed × 5
+          example: 16425
+        completedPrayers:
+          type: integer
+          minimum: 0
+          description: Total qadaa prayers already logged
+          example: 730
+        remainingPrayers:
+          type: integer
+          minimum: 0
+          description: totalPrayersOwed − completedPrayers (never negative)
+          example: 15695
+
+    SawmDebtResponse:
+      type: object
+      required: [totalFastingDaysMissed, completedFasts, remainingFasts]
+      properties:
+        totalFastingDaysMissed:
+          type: integer
+          minimum: 0
+          description: Total Ramadan fasting days missed across all gap periods
+          example: 270
+        completedFasts:
+          type: integer
+          minimum: 0
+          description: Total qadaa fasts already logged
+          example: 45
+        remainingFasts:
+          type: integer
+          minimum: 0
+          description: totalFastingDaysMissed − completedFasts (never negative)
+          example: 225
+
+    PrayerLogEntry:
+      type: object
+      required: [eventId, date, prayerName, type, loggedAt]
+      properties:
+        eventId:
+          type: string
+          description: ULID of the log entry
+          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+        date:
+          $ref: "#/components/schemas/HijriDate"
+        prayerName:
+          $ref: "#/components/schemas/PrayerName"
+        type:
+          $ref: "#/components/schemas/LogType"
+        loggedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the entry was created
+          example: "2025-03-17T14:30:00.000Z"
+
+    FastLogEntry:
+      type: object
+      required: [eventId, date, type, loggedAt]
+      properties:
+        eventId:
+          type: string
+          description: ULID of the log entry
+          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+        date:
+          $ref: "#/components/schemas/HijriDate"
+        type:
+          $ref: "#/components/schemas/LogType"
+        loggedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the entry was created
+          example: "2025-03-17T14:30:00.000Z"
+        breakReason:
+          type: string
+          description: Optional reason if the fast was broken (v1 reserved field)
+
+    PracticingPeriod:
+      type: object
+      required: [periodId, startDate, endDate, type]
+      properties:
+        periodId:
+          type: string
+          description: ULID of the period
+          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+        startDate:
+          $ref: "#/components/schemas/HijriDate"
+        endDate:
+          $ref: "#/components/schemas/HijriDate"
+        type:
+          $ref: "#/components/schemas/PracticingPeriodType"
+
+    UserSettings:
+      type: object
+      required: [userId, bulughDate, gender]
+      properties:
+        userId:
+          type: string
+          description: Cognito sub claim
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        bulughDate:
+          $ref: "#/components/schemas/HijriDate"
+        gender:
+          $ref: "#/components/schemas/Gender"
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - UNAUTHENTICATED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - INTERNAL_ERROR
+            message:
+              type: string
+              example: "Bulugh date cannot be before date of birth"
+
+  responses:
+    ValidationError:
+      description: Request failed schema validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: "date: Date must be in YYYY-MM-DD format"
+
+    Unauthenticated:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            error:
+              code: UNAUTHENTICATED
+              message: "Missing or invalid token"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            error:
+              code: NOT_FOUND
+              message: "Resource not found"
+
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: "An unexpected error occurred"

@@ -86,6 +86,31 @@ awdah/
 └── .github/workflows/    # CI/CD pipelines
 ```
 
+## API Documentation
+
+The full API reference is in [docs/api/openapi.yaml](docs/api/openapi.yaml) (OpenAPI 3.1.0).
+
+### Endpoints at a glance
+
+| Method   | Path                             | Description                              |
+| -------- | -------------------------------- | ---------------------------------------- |
+| `GET`    | `/health`                        | Health check (no auth)                   |
+| `POST`   | `/v1/salah/log`                  | Log a prayer (obligatory or qadaa)       |
+| `DELETE` | `/v1/salah/log`                  | Delete a prayer log entry                |
+| `GET`    | `/v1/salah/debt`                 | Get Salah qadaa debt summary             |
+| `GET`    | `/v1/salah/history`              | Get prayer log history by date range     |
+| `POST`   | `/v1/salah/practicing-period`    | Add a practicing period                  |
+| `GET`    | `/v1/salah/practicing-periods`   | List all practicing periods              |
+| `DELETE` | `/v1/salah/practicing-period`    | Delete a practicing period               |
+| `POST`   | `/v1/sawm/log`                   | Log a fast (obligatory or qadaa)         |
+| `DELETE` | `/v1/sawm/log`                   | Delete a fast log entry                  |
+| `GET`    | `/v1/sawm/debt`                  | Get Sawm qadaa debt summary              |
+| `GET`    | `/v1/sawm/history`               | Get fast log history by date range       |
+| `GET`    | `/v1/user/profile`               | Get user profile                         |
+| `POST`   | `/v1/user/profile`               | Create or update user profile            |
+
+All routes except `/health` require a Cognito JWT `Bearer` token. All dates are Hijri `YYYY-MM-DD`.
+
 ## CI/CD
 
 | Workflow     | Trigger       | Purpose                                  |
