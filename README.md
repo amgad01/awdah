@@ -82,9 +82,19 @@ awdah/
 ├── infra/                # AWS CDK stacks
 ├── packages/shared/      # Shared types and interfaces
 ├── docker/               # Docker Compose + LocalStack
-├── docs/architecture/    # Public architecture docs
+├── docs/                 # Public documentation
 └── .github/workflows/    # CI/CD pipelines
 ```
+
+## Documentation
+
+| Document                                                       | Description                                                |
+| -------------------------------------------------------------- | ---------------------------------------------------------- |
+| [docs/architecture/database.md](docs/architecture/database.md) | DynamoDB table design, key schema, access patterns         |
+| [docs/api/openapi.yaml](docs/api/openapi.yaml)                 | Full REST API reference (OpenAPI 3.1.0)                    |
+| [docs/religious-logic-faq.md](docs/religious-logic-faq.md)     | FAQ — how religious rulings and calendar logic are handled |
+| [apps/frontend/README.md](apps/frontend/README.md)             | Frontend setup, scripts, and environment variables         |
+| [apps/backend/README.md](apps/backend/README.md)               | Backend architecture, Lambda handlers, and testing         |
 
 ## API Documentation
 
@@ -92,22 +102,22 @@ The full API reference is in [docs/api/openapi.yaml](docs/api/openapi.yaml) (Ope
 
 ### Endpoints at a glance
 
-| Method   | Path                             | Description                              |
-| -------- | -------------------------------- | ---------------------------------------- |
-| `GET`    | `/health`                        | Health check (no auth)                   |
-| `POST`   | `/v1/salah/log`                  | Log a prayer (obligatory or qadaa)       |
-| `DELETE` | `/v1/salah/log`                  | Delete a prayer log entry                |
-| `GET`    | `/v1/salah/debt`                 | Get Salah qadaa debt summary             |
-| `GET`    | `/v1/salah/history`              | Get prayer log history by date range     |
-| `POST`   | `/v1/salah/practicing-period`    | Add a practicing period                  |
-| `GET`    | `/v1/salah/practicing-periods`   | List all practicing periods              |
-| `DELETE` | `/v1/salah/practicing-period`    | Delete a practicing period               |
-| `POST`   | `/v1/sawm/log`                   | Log a fast (obligatory or qadaa)         |
-| `DELETE` | `/v1/sawm/log`                   | Delete a fast log entry                  |
-| `GET`    | `/v1/sawm/debt`                  | Get Sawm qadaa debt summary              |
-| `GET`    | `/v1/sawm/history`               | Get fast log history by date range       |
-| `GET`    | `/v1/user/profile`               | Get user profile                         |
-| `POST`   | `/v1/user/profile`               | Create or update user profile            |
+| Method   | Path                           | Description                          |
+| -------- | ------------------------------ | ------------------------------------ |
+| `GET`    | `/health`                      | Health check (no auth)               |
+| `POST`   | `/v1/salah/log`                | Log a prayer (obligatory or qadaa)   |
+| `DELETE` | `/v1/salah/log`                | Delete a prayer log entry            |
+| `GET`    | `/v1/salah/debt`               | Get Salah qadaa debt summary         |
+| `GET`    | `/v1/salah/history`            | Get prayer log history by date range |
+| `POST`   | `/v1/salah/practicing-period`  | Add a practicing period              |
+| `GET`    | `/v1/salah/practicing-periods` | List all practicing periods          |
+| `DELETE` | `/v1/salah/practicing-period`  | Delete a practicing period           |
+| `POST`   | `/v1/sawm/log`                 | Log a fast (obligatory or qadaa)     |
+| `DELETE` | `/v1/sawm/log`                 | Delete a fast log entry              |
+| `GET`    | `/v1/sawm/debt`                | Get Sawm qadaa debt summary          |
+| `GET`    | `/v1/sawm/history`             | Get fast log history by date range   |
+| `GET`    | `/v1/user/profile`             | Get user profile                     |
+| `POST`   | `/v1/user/profile`             | Create or update user profile        |
 
 All routes except `/health` require a Cognito JWT `Bearer` token. All dates are Hijri `YYYY-MM-DD`.
 
