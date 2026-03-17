@@ -19,6 +19,8 @@ import { UpdateUserSettingsUseCase } from '../../contexts/user/application/use-c
 import { GetFastHistoryUseCase } from '../../contexts/sawm/application/use-cases/get-fast-history.use-case';
 import { DeletePrayerLogUseCase } from '../../contexts/salah/application/use-cases/delete-prayer-log.use-case';
 import { DeleteFastLogUseCase } from '../../contexts/sawm/application/use-cases/delete-fast-log.use-case';
+import { DeletePracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/delete-practicing-period.use-case';
+import { GetPracticingPeriodsUseCase } from '../../contexts/salah/application/use-cases/get-practicing-periods.use-case';
 
 // Salah Use Cases
 export const logPrayerUseCase = new LogPrayerUseCase(prayerLogRepo);
@@ -29,7 +31,9 @@ export const getSalahDebtUseCase = new GetSalahDebtUseCase(
   salahCalculator,
   calendarService,
 );
-export const addPracticingPeriodUseCase = new AddPracticingPeriodUseCase(periodRepo);
+export const addPracticingPeriodUseCase = new AddPracticingPeriodUseCase(periodRepo, userRepo);
+export const getPracticingPeriodsUseCase = new GetPracticingPeriodsUseCase(periodRepo);
+export const deletePracticingPeriodUseCase = new DeletePracticingPeriodUseCase(periodRepo);
 export const getPrayerHistoryUseCase = new GetPrayerHistoryUseCase(prayerLogRepo);
 export const deletePrayerLogUseCase = new DeletePrayerLogUseCase(prayerLogRepo);
 

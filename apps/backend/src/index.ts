@@ -19,7 +19,6 @@ app.use(cors());
 app.use(express.json());
 
 // Helper to simulate Lambda execution
-// Helper to simulate Lambda execution
 const runHandler = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: (event: APIGatewayProxyEventV2, context: Context) => Promise<any>,
