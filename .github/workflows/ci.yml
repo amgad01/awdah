@@ -55,7 +55,7 @@ jobs:
         run: npm run build --workspace=infra
 
       - name: Test (backend)
-        run: npm run test --workspace=apps/backend
+        run: npm run test:coverage --workspace=apps/backend
 
       - name: Test (shared)
         run: npm run test --workspace=packages/shared --if-present

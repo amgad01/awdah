@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check": "./scripts/pre-push-checks.sh",
     "prepare": "husky || true"
   },
   "engines": {
