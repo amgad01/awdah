@@ -16,7 +16,7 @@ export class GetSalahDebtUseCase {
     private readonly practicingPeriodRepository: IPracticingPeriodRepository,
     private readonly debtCalculator: SalahDebtCalculator,
     private readonly calendarService: IHijriCalendarService,
-  ) { }
+  ) {}
 
   async execute(userId: string): Promise<SalahDebtResult> {
     // 1. Get user settings (for bulugh date)

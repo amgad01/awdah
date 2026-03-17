@@ -57,7 +57,6 @@ tags:
     description: User profile and settings
 
 paths:
-
   # ---------------------------------------------------------------------------
   # Health
   # ---------------------------------------------------------------------------
@@ -69,7 +68,7 @@ paths:
       description: Returns 200 if the service is running. No authentication required.
       security: []
       responses:
-        "200":
+        '200':
           description: Service is healthy
           content:
             application/json:
@@ -98,33 +97,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LogPrayerRequest"
+              $ref: '#/components/schemas/LogPrayerRequest'
             examples:
               fajrOnTime:
                 summary: Fajr performed on time
                 value:
-                  date: "1446-09-01"
+                  date: '1446-09-01'
                   prayerName: fajr
                   type: obligatory
               dhuhrQadaa:
                 summary: Dhuhr as qadaa
                 value:
-                  date: "1446-09-01"
+                  date: '1446-09-01'
                   prayerName: dhuhr
                   type: qadaa
       responses:
-        "201":
+        '201':
           description: Prayer logged
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     delete:
       operationId: deletePrayerLog
@@ -132,34 +131,34 @@ paths:
       summary: Delete a prayer log entry
       description: Removes a specific prayer log event. Requires the exact `eventId` returned when the entry was created.
       parameters:
-        - $ref: "#/components/parameters/date"
+        - $ref: '#/components/parameters/date'
         - name: prayerName
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/PrayerName"
+            $ref: '#/components/schemas/PrayerName'
         - name: eventId
           in: query
           required: true
           schema:
             type: string
             minLength: 1
-            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+            example: '01HTBZ1234ABCDEFGHIJKLMNOP'
       responses:
-        "200":
+        '200':
           description: Prayer log entry deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Salah — debt
@@ -174,22 +173,22 @@ paths:
         practicing-period history and completed qadaa log. All arithmetic runs
         server-side in Hijri. Never returns a negative value.
       responses:
-        "200":
+        '200':
           description: Debt summary
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SalahDebtResponse"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
+                $ref: '#/components/schemas/SalahDebtResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
           description: User profile not found — onboarding not yet complete
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Salah — history
@@ -205,29 +204,29 @@ paths:
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/HijriDate"
+            $ref: '#/components/schemas/HijriDate'
           description: Start of the date range (Hijri, inclusive)
         - name: endDate
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/HijriDate"
+            $ref: '#/components/schemas/HijriDate'
           description: End of the date range (Hijri, inclusive)
       responses:
-        "200":
+        '200':
           description: List of prayer log entries
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PrayerLogEntry"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                  $ref: '#/components/schemas/PrayerLogEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Salah — practicing periods
@@ -247,33 +246,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AddPracticingPeriodRequest"
+              $ref: '#/components/schemas/AddPracticingPeriodRequest'
             examples:
               bothContexts:
                 summary: Period covering both Salah and Sawm
                 value:
-                  startDate: "1440-01-01"
-                  endDate: "1445-12-30"
+                  startDate: '1440-01-01'
+                  endDate: '1445-12-30'
                   type: both
       responses:
-        "201":
+        '201':
           description: Period created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AddPracticingPeriodResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "409":
+                $ref: '#/components/schemas/AddPracticingPeriodResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '409':
           description: Overlapping period already exists
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     delete:
       operationId: deletePracticingPeriod
@@ -287,22 +286,22 @@ paths:
           schema:
             type: string
             minLength: 1
-            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+            example: '01HTBZ1234ABCDEFGHIJKLMNOP'
       responses:
-        "200":
+        '200':
           description: Period deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /v1/salah/practicing-periods:
     get:
@@ -311,18 +310,18 @@ paths:
       summary: List all practicing periods
       description: Returns all practicing periods recorded by the authenticated user, in no guaranteed order.
       responses:
-        "200":
+        '200':
           description: List of practicing periods
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PracticingPeriod"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                  $ref: '#/components/schemas/PracticingPeriod'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Sawm — fast logs
@@ -340,26 +339,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LogFastRequest"
+              $ref: '#/components/schemas/LogFastRequest'
             examples:
               qadaaFast:
                 summary: Qadaa fast
                 value:
-                  date: "1446-09-01"
+                  date: '1446-09-01'
                   type: qadaa
       responses:
-        "201":
+        '201':
           description: Fast logged
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     delete:
       operationId: deleteFastLog
@@ -367,29 +366,29 @@ paths:
       summary: Delete a fast log entry
       description: Removes a specific fast log event.
       parameters:
-        - $ref: "#/components/parameters/date"
+        - $ref: '#/components/parameters/date'
         - name: eventId
           in: query
           required: true
           schema:
             type: string
             minLength: 1
-            example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+            example: '01HTBZ1234ABCDEFGHIJKLMNOP'
       responses:
-        "200":
+        '200':
           description: Fast log entry deleted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Sawm — debt
@@ -405,22 +404,22 @@ paths:
         counts (29 or 30) are derived from the Hijri calendar library — never
         hardcoded.
       responses:
-        "200":
+        '200':
           description: Debt summary
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SawmDebtResponse"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
+                $ref: '#/components/schemas/SawmDebtResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
           description: User profile not found — onboarding not yet complete
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # Sawm — history
@@ -436,29 +435,29 @@ paths:
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/HijriDate"
+            $ref: '#/components/schemas/HijriDate'
           description: Start of the date range (Hijri, inclusive)
         - name: endDate
           in: query
           required: true
           schema:
-            $ref: "#/components/schemas/HijriDate"
+            $ref: '#/components/schemas/HijriDate'
           description: End of the date range (Hijri, inclusive)
       responses:
-        "200":
+        '200':
           description: List of fast log entries
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/FastLogEntry"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                  $ref: '#/components/schemas/FastLogEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   # ---------------------------------------------------------------------------
   # User profile
@@ -470,22 +469,22 @@ paths:
       summary: Get user profile
       description: Returns the authenticated user's settings. Returns 404 if onboarding has not been completed.
       responses:
-        "200":
+        '200':
           description: User settings
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserSettings"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "404":
+                $ref: '#/components/schemas/UserSettings'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
           description: Profile not found — onboarding not yet complete
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
     post:
       operationId: updateUserProfile
@@ -500,32 +499,31 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateUserSettingsRequest"
+              $ref: '#/components/schemas/UpdateUserSettingsRequest'
             examples:
               maleUser:
                 summary: Male user profile
                 value:
-                  bulughDate: "1430-06-15"
+                  bulughDate: '1430-06-15'
                   gender: male
       responses:
-        "200":
+        '200':
           description: Profile saved
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "400":
-          $ref: "#/components/responses/ValidationError"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
 # =============================================================================
 # Components
 # =============================================================================
 components:
-
   securitySchemes:
     CognitoJWT:
       type: http
@@ -539,11 +537,10 @@ components:
       in: query
       required: true
       schema:
-        $ref: "#/components/schemas/HijriDate"
+        $ref: '#/components/schemas/HijriDate'
       description: Hijri date in YYYY-MM-DD format
 
   schemas:
-
     # -------------------------------------------------------------------------
     # Primitives
     # -------------------------------------------------------------------------
@@ -551,7 +548,7 @@ components:
       type: string
       pattern: '^\d{4}-\d{2}-\d{2}$'
       description: Hijri calendar date in YYYY-MM-DD format
-      example: "1446-09-01"
+      example: '1446-09-01'
 
     PrayerName:
       type: string
@@ -583,11 +580,11 @@ components:
       additionalProperties: false
       properties:
         date:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         prayerName:
-          $ref: "#/components/schemas/PrayerName"
+          $ref: '#/components/schemas/PrayerName'
         type:
-          $ref: "#/components/schemas/LogType"
+          $ref: '#/components/schemas/LogType'
 
     LogFastRequest:
       type: object
@@ -595,9 +592,9 @@ components:
       additionalProperties: false
       properties:
         date:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         type:
-          $ref: "#/components/schemas/LogType"
+          $ref: '#/components/schemas/LogType'
 
     AddPracticingPeriodRequest:
       type: object
@@ -605,11 +602,11 @@ components:
       additionalProperties: false
       properties:
         startDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         endDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         type:
-          $ref: "#/components/schemas/PracticingPeriodType"
+          $ref: '#/components/schemas/PracticingPeriodType'
 
     UpdateUserSettingsRequest:
       type: object
@@ -617,9 +614,9 @@ components:
       additionalProperties: false
       properties:
         bulughDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         gender:
-          $ref: "#/components/schemas/Gender"
+          $ref: '#/components/schemas/Gender'
 
     # -------------------------------------------------------------------------
     # Responses
@@ -630,7 +627,7 @@ components:
       properties:
         message:
           type: string
-          example: "Prayer logged successfully"
+          example: 'Prayer logged successfully'
 
     AddPracticingPeriodResponse:
       type: object
@@ -639,7 +636,7 @@ components:
         periodId:
           type: string
           description: ULID of the newly created period
-          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+          example: '01HTBZ1234ABCDEFGHIJKLMNOP'
 
     SalahDebtResponse:
       type: object
@@ -693,18 +690,18 @@ components:
         eventId:
           type: string
           description: ULID of the log entry
-          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+          example: '01HTBZ1234ABCDEFGHIJKLMNOP'
         date:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         prayerName:
-          $ref: "#/components/schemas/PrayerName"
+          $ref: '#/components/schemas/PrayerName'
         type:
-          $ref: "#/components/schemas/LogType"
+          $ref: '#/components/schemas/LogType'
         loggedAt:
           type: string
           format: date-time
           description: ISO 8601 timestamp when the entry was created
-          example: "2025-03-17T14:30:00.000Z"
+          example: '2025-03-17T14:30:00.000Z'
 
     FastLogEntry:
       type: object
@@ -713,16 +710,16 @@ components:
         eventId:
           type: string
           description: ULID of the log entry
-          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+          example: '01HTBZ1234ABCDEFGHIJKLMNOP'
         date:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         type:
-          $ref: "#/components/schemas/LogType"
+          $ref: '#/components/schemas/LogType'
         loggedAt:
           type: string
           format: date-time
           description: ISO 8601 timestamp when the entry was created
-          example: "2025-03-17T14:30:00.000Z"
+          example: '2025-03-17T14:30:00.000Z'
         breakReason:
           type: string
           description: Optional reason if the fast was broken (v1 reserved field)
@@ -734,13 +731,13 @@ components:
         periodId:
           type: string
           description: ULID of the period
-          example: "01HTBZ1234ABCDEFGHIJKLMNOP"
+          example: '01HTBZ1234ABCDEFGHIJKLMNOP'
         startDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         endDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         type:
-          $ref: "#/components/schemas/PracticingPeriodType"
+          $ref: '#/components/schemas/PracticingPeriodType'
 
     UserSettings:
       type: object
@@ -749,11 +746,11 @@ components:
         userId:
           type: string
           description: Cognito sub claim
-          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
         bulughDate:
-          $ref: "#/components/schemas/HijriDate"
+          $ref: '#/components/schemas/HijriDate'
         gender:
-          $ref: "#/components/schemas/Gender"
+          $ref: '#/components/schemas/Gender'
 
     ErrorEnvelope:
       type: object
@@ -774,7 +771,7 @@ components:
                 - INTERNAL_ERROR
             message:
               type: string
-              example: "Bulugh date cannot be before date of birth"
+              example: 'Bulugh date cannot be before date of birth'
 
   responses:
     ValidationError:
@@ -782,41 +779,41 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
+            $ref: '#/components/schemas/ErrorEnvelope'
           example:
             error:
               code: VALIDATION_ERROR
-              message: "date: Date must be in YYYY-MM-DD format"
+              message: 'date: Date must be in YYYY-MM-DD format'
 
     Unauthenticated:
       description: Missing or invalid JWT
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
+            $ref: '#/components/schemas/ErrorEnvelope'
           example:
             error:
               code: UNAUTHENTICATED
-              message: "Missing or invalid token"
+              message: 'Missing or invalid token'
 
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
+            $ref: '#/components/schemas/ErrorEnvelope'
           example:
             error:
               code: NOT_FOUND
-              message: "Resource not found"
+              message: 'Resource not found'
 
     InternalError:
       description: Unexpected server error
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
+            $ref: '#/components/schemas/ErrorEnvelope'
           example:
             error:
               code: INTERNAL_ERROR
-              message: "An unexpected error occurred"
+              message: 'An unexpected error occurred'

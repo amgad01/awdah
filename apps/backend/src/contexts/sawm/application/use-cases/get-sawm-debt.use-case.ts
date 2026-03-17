@@ -16,7 +16,7 @@ export class GetSawmDebtUseCase {
     private readonly practicingPeriodRepository: IPracticingPeriodRepository,
     private readonly debtCalculator: SawmDebtCalculator,
     private readonly calendarService: IHijriCalendarService,
-  ) { }
+  ) {}
 
   async execute(userId: string): Promise<SawmDebtResult> {
     const settings = await this.userRepository.findById(userId);
