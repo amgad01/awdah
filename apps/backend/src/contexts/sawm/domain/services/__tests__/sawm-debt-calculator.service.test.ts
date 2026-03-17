@@ -99,28 +99,31 @@ describe('SawmDebtCalculator', () => {
   });
 
   it('passes exclusive end (first day of Shawwal) to daysBetween for a full Ramadan', () => {
-    // This test verifies the exact arguments passed to daysBetween
-    const bulugh = new HijriDate(1444, 1, 1);
-    const today = new HijriDate(1445, 1, 1);
+    // Uses year 1443 because Ramadan 1443 has 30 days per the Umm al-Qura calendar,
+    // matching the mocked getRamadanDays value. Year 1444 has only 29 days and would
+    // cause addDays(30) to overflow incorrectly.
+    const bulugh = new HijriDate(1443, 1, 1);
+    const today = new HijriDate(1444, 1, 1);
 
     vi.mocked(mockCalendar.getRamadanDays).mockReturnValue(30);
     vi.mocked(mockCalendar.daysBetween).mockReturnValue(30);
 
     calculator.calculate(bulugh, [], 0, today);
 
-    // Ramadan 1444: days 1–30, so exclusive end is month 10 day 1 (first of Shawwal)
+    // Ramadan 1443: days 1–30, so exclusive end is month 10 day 1 (first of Shawwal)
     expect(mockCalendar.daysBetween).toHaveBeenCalledWith(
-      new HijriDate(1444, 9, 1), // first day of Ramadan
-      new HijriDate(1444, 10, 1), // first day of Shawwal — exclusive end
+      new HijriDate(1443, 9, 1), // first day of Ramadan
+      new HijriDate(1443, 10, 1), // first day of Shawwal — exclusive end
     );
   });
 
   it('does not count the last practicing day of Ramadan as a missed fast', () => {
-    // Practice ends on 1444-09-20 (day 20 of Ramadan).
-    // Gap starts on 1444-09-21. Days 21–30 of Ramadan (10 days) are missed.
-    const bulugh = new HijriDate(1444, 1, 1);
-    const p1End = new HijriDate(1444, 9, 20);
-    const today = new HijriDate(1445, 1, 1);
+    // Uses year 1443 because Ramadan 1443 has 30 days per the Umm al-Qura calendar.
+    // Practice ends on 1443-09-20 (day 20 of Ramadan).
+    // Gap starts on 1443-09-21. Days 21–30 of Ramadan (10 days) are missed.
+    const bulugh = new HijriDate(1443, 1, 1);
+    const p1End = new HijriDate(1443, 9, 20);
+    const today = new HijriDate(1444, 1, 1);
 
     const period = new PracticingPeriod({
       userId: 'u',
@@ -135,11 +138,11 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [period], 0, today);
 
-    // Final gap starts at 1444-09-21 (day after practice ended)
+    // Final gap starts at 1443-09-21 (day after practice ended)
     expect(result.totalFastingDaysMissed).toBe(10);
     expect(mockCalendar.daysBetween).toHaveBeenCalledWith(
-      new HijriDate(1444, 9, 21), // day after practice ended — gap start
-      new HijriDate(1444, 10, 1), // first of Shawwal — exclusive Ramadan end
+      new HijriDate(1443, 9, 21), // day after practice ended — gap start
+      new HijriDate(1443, 10, 1), // first of Shawwal — exclusive Ramadan end
     );
   });
 
