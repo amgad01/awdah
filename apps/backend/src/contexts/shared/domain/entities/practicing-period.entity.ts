@@ -41,6 +41,10 @@ export class PracticingPeriod {
     return this.props.type;
   }
 
+  coversContext(context: 'salah' | 'sawm'): boolean {
+    return this.props.type === context || this.props.type === 'both';
+  }
+
   overlapsWith(other: PracticingPeriod): boolean {
     return (
       (this.startDate.isBefore(other.endDate) || this.startDate.equals(other.endDate)) &&
