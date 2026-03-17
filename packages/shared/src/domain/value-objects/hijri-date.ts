@@ -1,3 +1,4 @@
+import { toHijri, toGregorian } from 'hijri-converter';
 import { ValidationError } from '../../errors';
 import { RAMADAN_MONTH_NUMBER, HIJRI_MONTHS_IN_YEAR } from '../../constants';
 import { getHijriMonthName, type SupportedLocale } from '../../i18n';
@@ -22,6 +23,7 @@ export class HijriDate {
     if (this.month < 1 || this.month > HIJRI_MONTHS_IN_YEAR) {
       throw new ValidationError(`Hijri month must be between 1 and ${HIJRI_MONTHS_IN_YEAR}`);
     }
+    // Hijri months alternate between 29 and 30 days. No month can have more than 30.
     if (this.day < 1 || this.day > 30) {
       throw new ValidationError('Hijri day must be between 1 and 30');
     }
@@ -75,35 +77,15 @@ export class HijriDate {
     return `${monthName} ${this.day}, ${this.year}`;
   }
 
+  toGregorian(): Date {
+    const { gy, gm, gd } = toGregorian(this.year, this.month, this.day);
+    return new Date(Date.UTC(gy, gm - 1, gd));
+  }
 
   addDays(days: number): HijriDate {
-    // Simplified Hijri calendar math (assuming 30 days per month for simplicity in v1)
-    // Accurate Hijri arithmetic requires complex astronomical algorithms or lookups.
-    // For MVP/v1, we use 30-day approximation if acceptable,
-    // but better to implement a basic one.
-    let d = this.day + days;
-    let m = this.month;
-    let y = this.year;
-
-    while (d > 30) {
-      d -= 30;
-      m++;
-      if (m > 12) {
-        m = 1;
-        y++;
-      }
-    }
-
-    while (d < 1) {
-      m--;
-      if (m < 1) {
-        m = 12;
-        y--;
-      }
-      d += 30;
-    }
-
-    return new HijriDate(y, m, d);
+    const gregorian = this.toGregorian();
+    gregorian.setUTCDate(gregorian.getUTCDate() + days);
+    return HijriDate.fromGregorian(gregorian);
   }
 
   static fromString(dateStr: string): HijriDate {
@@ -123,17 +105,13 @@ export class HijriDate {
   }
 
   static fromGregorian(date: Date): HijriDate {
-    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-uma', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-    }).formatToParts(date);
-
-    const year = parseInt(parts.find((p) => p.type === 'year')?.value || '1445') || 1445;
-    const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') || 1;
-    const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1') || 1;
-
-    return new HijriDate(year, month, day);
+    // Use UTC components to avoid local timezone shifts during conversion
+    const { hy, hm, hd } = toHijri(
+      date.getUTCFullYear(),
+      date.getUTCMonth() + 1,
+      date.getUTCDate(),
+    );
+    return new HijriDate(hy, hm, hd);
   }
 
   static today(): HijriDate {
