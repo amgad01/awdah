@@ -31,18 +31,14 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
     );
 
     try {
-      // 1. Extract User Identity
+      // 1. Extract User Identity — HTTP API JWT authorizer always populates authorizer.jwt.claims
       const authorizer = (
         event.requestContext as unknown as { authorizer?: Record<string, unknown> }
       ).authorizer;
 
-      const iam = authorizer?.iam as Record<string, unknown> | undefined;
-      const cognitoIdentity = iam?.cognitoIdentity as Record<string, string> | undefined;
-
       const jwt = authorizer?.jwt as Record<string, unknown> | undefined;
       const claims = jwt?.claims as Record<string, string> | undefined;
-
-      const userId = cognitoIdentity?.identityId || claims?.sub;
+      const userId = claims?.sub;
       if (!userId) {
         throw new UnauthenticatedError('Missing user identity');
       }

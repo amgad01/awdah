@@ -37,6 +37,10 @@ export const fastHistoryQuerySchema = z.object({
   endDate: hijriDateString,
 });
 
+export const deletePracticingPeriodSchema = z.object({
+  periodId: z.string().min(1, 'periodId is required'),
+});
+
 export const deletePrayerLogSchema = z.object({
   date: hijriDateString,
   prayerName: z.enum(PRAYER_NAMES),
