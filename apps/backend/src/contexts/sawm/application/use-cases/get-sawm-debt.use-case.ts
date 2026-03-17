@@ -1,4 +1,5 @@
 import { NotFoundError } from '@awdah/shared';
+import { userSettingsNotFound } from '../../../../shared/errors/messages';
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import {
@@ -15,18 +16,24 @@ export class GetSawmDebtUseCase {
     private readonly practicingPeriodRepository: IPracticingPeriodRepository,
     private readonly debtCalculator: SawmDebtCalculator,
     private readonly calendarService: IHijriCalendarService,
-  ) {}
+  ) { }
 
   async execute(userId: string): Promise<SawmDebtResult> {
     const settings = await this.userRepository.findById(userId);
     if (!settings) {
-      throw new NotFoundError(`User settings for ${userId} not found`);
+      throw new NotFoundError(userSettingsNotFound(userId));
     }
 
-    const periods = await this.practicingPeriodRepository.findByUser(userId);
+    const allPeriods = await this.practicingPeriodRepository.findByUser(userId);
+    const relevantPeriods = allPeriods.filter((p) => p.coversContext('sawm'));
     const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userId);
     const today = this.calendarService.today();
 
-    return this.debtCalculator.calculate(settings.bulughDate, periods, completedQadaa, today);
+    return this.debtCalculator.calculate(
+      settings.bulughDate,
+      relevantPeriods,
+      completedQadaa,
+      today,
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
-import { FastLog } from '../../domain/entities/fast-log.entity';
 import { HijriDate } from '@awdah/shared';
+import type { BreakReason, LogType as LogTypeT } from '@awdah/shared';
 
 export interface GetFastHistoryCommand {
   userId: string;
@@ -8,13 +8,28 @@ export interface GetFastHistoryCommand {
   endDate: string; // YYYY-MM-DD
 }
 
+export interface FastLogDto {
+  eventId: string;
+  date: string;
+  type: LogTypeT;
+  loggedAt: string;
+  breakReason?: BreakReason;
+}
+
 export class GetFastHistoryUseCase {
   constructor(private readonly repository: IFastLogRepository) {}
 
-  async execute(command: GetFastHistoryCommand): Promise<FastLog[]> {
+  async execute(command: GetFastHistoryCommand): Promise<FastLogDto[]> {
     const start = HijriDate.fromString(command.startDate);
     const end = HijriDate.fromString(command.endDate);
 
-    return this.repository.findByUserAndDateRange(command.userId, start, end);
+    const logs = await this.repository.findByUserAndDateRange(command.userId, start, end);
+    return logs.map((log) => ({
+      eventId: log.eventId,
+      date: log.date.toString(),
+      type: log.type.getValue(),
+      loggedAt: log.loggedAt.toISOString(),
+      ...(log.breakReason !== undefined && { breakReason: log.breakReason }),
+    }));
   }
 }

@@ -1,4 +1,5 @@
 import { NotFoundError } from '@awdah/shared';
+import { userSettingsNotFound } from '../../../../shared/errors/messages';
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import {
@@ -15,17 +16,18 @@ export class GetSalahDebtUseCase {
     private readonly practicingPeriodRepository: IPracticingPeriodRepository,
     private readonly debtCalculator: SalahDebtCalculator,
     private readonly calendarService: IHijriCalendarService,
-  ) {}
+  ) { }
 
   async execute(userId: string): Promise<SalahDebtResult> {
     // 1. Get user settings (for bulugh date)
     const settings = await this.userRepository.findById(userId);
     if (!settings) {
-      throw new NotFoundError(`User settings for ${userId} not found`);
+      throw new NotFoundError(userSettingsNotFound(userId));
     }
 
-    // 2. Get all practicing periods
-    const periods = await this.practicingPeriodRepository.findByUser(userId);
+    // 2. Get all practicing periods that apply to salah
+    const allPeriods = await this.practicingPeriodRepository.findByUser(userId);
+    const relevantPeriods = allPeriods.filter((p) => p.coversContext('salah'));
 
     // 3. Get total qadaa count
     const completedQadaa = await this.prayerLogRepository.countQadaaCompleted(userId);
@@ -33,6 +35,11 @@ export class GetSalahDebtUseCase {
     // 4. Calculate debt
     const today = this.calendarService.today();
 
-    return this.debtCalculator.calculate(settings.bulughDate, periods, completedQadaa, today);
+    return this.debtCalculator.calculate(
+      settings.bulughDate,
+      relevantPeriods,
+      completedQadaa,
+      today,
+    );
   }
 }

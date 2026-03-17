@@ -1,6 +1,6 @@
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
-import { PrayerLog } from '../../domain/entities/prayer-log.entity';
 import { HijriDate } from '@awdah/shared';
+import type { PrayerName as PrayerNameType, LogType as LogTypeT } from '@awdah/shared';
 
 export interface GetPrayerHistoryCommand {
   userId: string;
@@ -8,13 +8,28 @@ export interface GetPrayerHistoryCommand {
   endDate: string; // YYYY-MM-DD
 }
 
+export interface PrayerLogDto {
+  eventId: string;
+  date: string;
+  prayerName: PrayerNameType;
+  type: LogTypeT;
+  loggedAt: string;
+}
+
 export class GetPrayerHistoryUseCase {
   constructor(private readonly repository: IPrayerLogRepository) {}
 
-  async execute(command: GetPrayerHistoryCommand): Promise<PrayerLog[]> {
+  async execute(command: GetPrayerHistoryCommand): Promise<PrayerLogDto[]> {
     const start = HijriDate.fromString(command.startDate);
     const end = HijriDate.fromString(command.endDate);
 
-    return this.repository.findByUserAndDateRange(command.userId, start, end);
+    const logs = await this.repository.findByUserAndDateRange(command.userId, start, end);
+    return logs.map((log) => ({
+      eventId: log.eventId,
+      date: log.date.toString(),
+      prayerName: log.prayerName.getValue(),
+      type: log.type.getValue(),
+      loggedAt: log.loggedAt.toISOString(),
+    }));
   }
 }
