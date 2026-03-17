@@ -3,6 +3,12 @@ import { DynamoDBClient, CreateTableCommand } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { BaseDynamoDBRepository, DomainKeys } from '../base-dynamodb.repository';
 
+// These tests require a running LocalStack instance at localhost:4566.
+// They are skipped automatically when LOCALSTACK_AVAILABLE is not set to 'true'.
+const localstackAvailable = process.env.LOCALSTACK_AVAILABLE === 'true';
+console.log('LOCALSTACK_AVAILABLE env:', process.env.LOCALSTACK_AVAILABLE);
+console.log('localstackAvailable boolean:', localstackAvailable);
+
 // Concrete implementation for testing
 class TestRepository extends BaseDynamoDBRepository<{
   id: string;
@@ -50,7 +56,7 @@ class TestRepository extends BaseDynamoDBRepository<{
   }
 }
 
-describe('BaseDynamoDBRepository Integration (LocalStack)', () => {
+describe.skipIf(!localstackAvailable)('BaseDynamoDBRepository Integration (LocalStack)', () => {
   const tableName = 'Test-Integration-Table';
   const client = new DynamoDBClient({
     region: 'eu-west-1',

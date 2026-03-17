@@ -4,8 +4,14 @@ import {
   AddPracticingPeriodCommand,
 } from '../add-practicing-period.use-case';
 import { IPracticingPeriodRepository } from '../../../../shared/domain/repositories/practicing-period.repository';
+import {
+  IUserRepository,
+  UserSettings,
+} from '../../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, ValidationError } from '@awdah/shared';
+import { HijriDate, NotFoundError, ValidationError } from '@awdah/shared';
+
+const BULUGH_DATE = '1440-01-01';
 
 describe('AddPracticingPeriodUseCase', () => {
   let useCase: AddPracticingPeriodUseCase;
@@ -13,12 +19,23 @@ describe('AddPracticingPeriodUseCase', () => {
     save: vi.fn(),
     findByUser: vi.fn(),
     delete: vi.fn(),
-    findById: vi.fn(),
   } as unknown as IPracticingPeriodRepository;
+
+  const mockUserRepo = {
+    findById: vi.fn(),
+    save: vi.fn(),
+  } as unknown as IUserRepository;
+
+  const defaultUserSettings: UserSettings = {
+    userId: 'user-1',
+    bulughDate: HijriDate.fromString(BULUGH_DATE),
+    gender: 'male',
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useCase = new AddPracticingPeriodUseCase(mockRepo);
+    vi.mocked(mockUserRepo.findById).mockResolvedValue(defaultUserSettings);
+    useCase = new AddPracticingPeriodUseCase(mockRepo, mockUserRepo);
   });
 
   const command: AddPracticingPeriodCommand = {
@@ -56,6 +73,26 @@ describe('AddPracticingPeriodUseCase', () => {
     vi.mocked(mockRepo.findByUser).mockResolvedValue([existingPeriod]);
 
     await expect(useCase.execute(command)).rejects.toThrow(ValidationError);
+    expect(mockRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('throws ValidationError if start date is before bulugh date', async () => {
+    const earlyCommand: AddPracticingPeriodCommand = {
+      ...command,
+      startDate: '1439-06-01', // before BULUGH_DATE 1440-01-01
+    };
+
+    vi.mocked(mockRepo.findByUser).mockResolvedValue([]);
+
+    await expect(useCase.execute(earlyCommand)).rejects.toThrow(ValidationError);
+    expect(mockRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('throws NotFoundError if user settings are not found', async () => {
+    vi.mocked(mockUserRepo.findById).mockResolvedValue(null);
+    vi.mocked(mockRepo.findByUser).mockResolvedValue([]);
+
+    await expect(useCase.execute(command)).rejects.toThrow(NotFoundError);
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 });
