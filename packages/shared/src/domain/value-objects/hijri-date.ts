@@ -59,6 +59,14 @@ export class HijriDate {
     return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Called automatically by JSON.stringify. Returns the Hijri date as a YYYY-MM-DD string
+   * so HijriDate instances in API responses serialize as strings, not objects.
+   */
+  toJSON(): string {
+    return this.toString();
+  }
+
   format(locale: SupportedLocale = 'en'): string {
     const monthName = getHijriMonthName(this.month, locale);
     if (locale === 'ar') {
@@ -66,6 +74,7 @@ export class HijriDate {
     }
     return `${monthName} ${this.day}, ${this.year}`;
   }
+
 
   addDays(days: number): HijriDate {
     // Simplified Hijri calendar math (assuming 30 days per month for simplicity in v1)
