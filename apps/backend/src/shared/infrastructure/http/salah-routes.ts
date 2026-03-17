@@ -4,6 +4,8 @@ import { handler as logPrayerHandler } from '../../../contexts/salah/infrastruct
 import { handler as getSalahDebtHandler } from '../../../contexts/salah/infrastructure/handlers/get-salah-debt.handler';
 import { handler as getPrayerHistoryHandler } from '../../../contexts/salah/infrastructure/handlers/get-prayer-history.handler';
 import { handler as addPracticingPeriodHandler } from '../../../contexts/salah/infrastructure/handlers/add-practicing-period.handler';
+import { handler as getPracticingPeriodsHandler } from '../../../contexts/salah/infrastructure/handlers/get-practicing-periods.handler';
+import { handler as deletePracticingPeriodHandler } from '../../../contexts/salah/infrastructure/handlers/delete-practicing-period.handler';
 import { handler as deletePrayerLogHandler } from '../../../contexts/salah/infrastructure/handlers/delete-prayer-log.handler';
 
 export const registerSalahRoutes = (
@@ -25,5 +27,11 @@ export const registerSalahRoutes = (
   );
   router.post(`${apiVersion}/salah/practicing-period`, (req, res) =>
     runHandler(addPracticingPeriodHandler, req, res),
+  );
+  router.get(`${apiVersion}/salah/practicing-periods`, (req, res) =>
+    runHandler(getPracticingPeriodsHandler, req, res),
+  );
+  router.delete(`${apiVersion}/salah/practicing-period`, (req, res) =>
+    runHandler(deletePracticingPeriodHandler, req, res),
   );
 };
