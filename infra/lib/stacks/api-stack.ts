@@ -16,6 +16,9 @@ export interface ApiStackProps extends BaseStackProps {
 }
 
 export class ApiStack extends BaseStack {
+  public readonly httpApi: apigatewayv2.HttpApi;
+  public readonly lambdaFunctions: lambda.IFunction[];
+
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
@@ -46,6 +49,7 @@ export class ApiStack extends BaseStack {
               : ['http://localhost:5173'],
       },
     });
+    this.httpApi = api;
 
     new apigatewayv2.HttpStage(this, 'DefaultStage', {
       httpApi: api,
@@ -132,6 +136,21 @@ export class ApiStack extends BaseStack {
       'AddPeriodFn',
       'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
       'salah',
+      [props.dataStack.userSettingsTable],
+      [props.dataStack.practicingPeriodsTable],
+    );
+
+    const getPeriodsFn = createLambda(
+      'GetPeriodsFn',
+      'contexts/salah/infrastructure/handlers/get-practicing-periods.handler.ts',
+      'salah',
+      [props.dataStack.practicingPeriodsTable],
+    );
+
+    const deletePeriodFn = createLambda(
+      'DeletePeriodFn',
+      'contexts/salah/infrastructure/handlers/delete-practicing-period.handler.ts',
+      'salah',
       [],
       [props.dataStack.practicingPeriodsTable],
     );
@@ -181,6 +200,12 @@ export class ApiStack extends BaseStack {
       [props.dataStack.fastLogsTable],
     );
 
+    const healthFn = createLambda(
+      'HealthFn',
+      'shared/infrastructure/handlers/health.handler.ts',
+      'shared',
+    );
+
     const addRoute = (
       routePath: string,
       method: apigatewayv2.HttpMethod,
@@ -219,6 +244,18 @@ export class ApiStack extends BaseStack {
       'AddPeriodIntegration',
     );
     addRoute(
+      '/salah/practicing-periods',
+      apigatewayv2.HttpMethod.GET,
+      getPeriodsFn,
+      'GetPeriodsIntegration',
+    );
+    addRoute(
+      '/salah/practicing-period',
+      apigatewayv2.HttpMethod.DELETE,
+      deletePeriodFn,
+      'DeletePeriodIntegration',
+    );
+    addRoute(
       '/user/profile',
       apigatewayv2.HttpMethod.GET,
       getUserSettingsFn,
@@ -242,6 +279,33 @@ export class ApiStack extends BaseStack {
       deleteFastLogFn,
       'DeleteFastLogIntegration',
     );
+
+    api.addRoutes({
+      path: '/health',
+      methods: [apigatewayv2.HttpMethod.GET],
+      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
+        'HealthIntegration',
+        healthFn,
+      ),
+    });
+
+    // Expose all business Lambda functions so AlarmStack can create per-function alarms.
+    // Health function is intentionally excluded — it never fails in ways requiring alerts.
+    this.lambdaFunctions = [
+      logPrayerFn,
+      getSalahDebtFn,
+      logFastFn,
+      getSawmDebtFn,
+      addPeriodFn,
+      getPeriodsFn,
+      deletePeriodFn,
+      getUserSettingsFn,
+      updateUserSettingsFn,
+      getPrayerHistoryFn,
+      getFastHistoryFn,
+      deletePrayerLogFn,
+      deleteFastLogFn,
+    ];
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
   }

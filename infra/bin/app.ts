@@ -26,7 +26,7 @@ const authStack = new AuthStack(app, `Awdah-auth-stack-${envWithTicket}`, {
   ticket,
 });
 
-new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
+const apiStack = new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
   projectEnv: environment,
   dataStack,
   authStack,
@@ -42,6 +42,8 @@ const backupStack = new BackupStack(app, `Awdah-backup-stack-${envWithTicket}`, 
 new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
   projectEnv: environment,
   backupStack,
+  apiStack,
+  dataStack,
   ticket,
 });
 

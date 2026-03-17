@@ -7,90 +7,90 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
 export interface LambdaOptions {
-    entry: string;
-    handler?: string;
-    memorySize?: number;
-    timeout?: cdk.Duration;
-    environment?: Record<string, string>;
-    deadLetterQueue?: cdk.aws_sqs.IQueue;
-    retryAttempts?: number;
-    context?: string;
+  entry: string;
+  handler?: string;
+  memorySize?: number;
+  timeout?: cdk.Duration;
+  environment?: Record<string, string>;
+  deadLetterQueue?: cdk.aws_sqs.IQueue;
+  retryAttempts?: number;
+  context?: string;
 }
 
 /**
  * Factory for creating standardized AWS resources with project defaults.
  */
 export class ProjectResourceFactory {
-    /**
-     * Creates a Node.js Lambda function with project-standard props.
-     */
-    public static createNodejsFunction(
-        scope: Construct,
-        id: string,
-        options: LambdaOptions,
-    ): lambda_nodejs.NodejsFunction {
-        const fn = new lambda_nodejs.NodejsFunction(scope, id, {
-            entry: options.entry,
-            handler: options.handler ?? 'handler',
-            runtime: lambda.Runtime.NODEJS_20_X,
-            architecture: lambda.Architecture.ARM_64,
-            memorySize: options.memorySize ?? 256,
-            timeout: options.timeout ?? cdk.Duration.seconds(30),
-            tracing: lambda.Tracing.ACTIVE,
-            logRetention: logs.RetentionDays.ONE_MONTH,
-            environment: options.environment,
-            deadLetterQueue: options.deadLetterQueue,
-            retryAttempts: options.retryAttempts,
-            bundling: {
-                minify: true,
-                sourceMap: true,
-                externalModules: ['@aws-sdk/*'],
-            },
-        });
+  /**
+   * Creates a Node.js Lambda function with project-standard props.
+   */
+  public static createNodejsFunction(
+    scope: Construct,
+    id: string,
+    options: LambdaOptions,
+  ): lambda_nodejs.NodejsFunction {
+    const fn = new lambda_nodejs.NodejsFunction(scope, id, {
+      entry: options.entry,
+      handler: options.handler ?? 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      architecture: lambda.Architecture.ARM_64,
+      memorySize: options.memorySize ?? 256,
+      timeout: options.timeout ?? cdk.Duration.seconds(30),
+      tracing: lambda.Tracing.ACTIVE,
+      logRetention: logs.RetentionDays.ONE_MONTH,
+      environment: options.environment,
+      deadLetterQueue: options.deadLetterQueue,
+      retryAttempts: options.retryAttempts,
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
+      },
+    });
 
-        if (options.context) {
-            cdk.Tags.of(fn).add('context', options.context);
-        }
-
-        return fn;
+    if (options.context) {
+      cdk.Tags.of(fn).add('context', options.context);
     }
 
-    /**
-     * Creates an S3 Bucket with project-standard encryption and removal policy.
-     */
-    public static createS3Bucket(
-        scope: Construct,
-        id: string,
-        bucketName: string,
-        removalPolicy: cdk.RemovalPolicy,
-    ): s3.Bucket {
-        return new s3.Bucket(scope, id, {
-            bucketName,
-            removalPolicy,
-            autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
-            versioned: true,
-            encryption: s3.BucketEncryption.S3_MANAGED,
-        });
-    }
+    return fn;
+  }
 
-    /**
-     * Creates a DynamoDB Table with project-standard PITR and billing mode.
-     */
-    public static createDynamoDBTable(
-        scope: Construct,
-        id: string,
-        tableName: string,
-        partitionKey: dynamodb.Attribute,
-        sortKey: dynamodb.Attribute | undefined,
-        removalPolicy: cdk.RemovalPolicy,
-    ): dynamodb.Table {
-        return new dynamodb.Table(scope, id, {
-            tableName,
-            partitionKey,
-            sortKey,
-            billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-            pointInTimeRecovery: true,
-            removalPolicy,
-        });
-    }
+  /**
+   * Creates an S3 Bucket with project-standard encryption and removal policy.
+   */
+  public static createS3Bucket(
+    scope: Construct,
+    id: string,
+    bucketName: string,
+    removalPolicy: cdk.RemovalPolicy,
+  ): s3.Bucket {
+    return new s3.Bucket(scope, id, {
+      bucketName,
+      removalPolicy,
+      autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
+      versioned: true,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+    });
+  }
+
+  /**
+   * Creates a DynamoDB Table with project-standard PITR and billing mode.
+   */
+  public static createDynamoDBTable(
+    scope: Construct,
+    id: string,
+    tableName: string,
+    partitionKey: dynamodb.Attribute,
+    sortKey: dynamodb.Attribute | undefined,
+    removalPolicy: cdk.RemovalPolicy,
+  ): dynamodb.Table {
+    return new dynamodb.Table(scope, id, {
+      tableName,
+      partitionKey,
+      sortKey,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecovery: true,
+      removalPolicy,
+    });
+  }
 }

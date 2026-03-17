@@ -3,7 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { BaseStack, BaseStackProps } from '../shared/base-stack';
 import { ProjectResourceFactory } from '../shared/resource-factory';
 
-export interface DataStackProps extends BaseStackProps { }
+export type DataStackProps = BaseStackProps;
 
 export class DataStack extends BaseStack {
   public readonly prayerLogsTable: dynamodb.Table;
@@ -27,7 +27,7 @@ export class DataStack extends BaseStack {
     );
 
     this.prayerLogsTable.addGlobalSecondaryIndex({
-      indexName: 'GSI1',
+      indexName: 'typeDateIndex',
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'typeDate', type: dynamodb.AttributeType.STRING },
     });
@@ -43,7 +43,7 @@ export class DataStack extends BaseStack {
     );
 
     this.fastLogsTable.addGlobalSecondaryIndex({
-      indexName: 'GSI1',
+      indexName: 'typeDateIndex',
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'typeDate', type: dynamodb.AttributeType.STRING },
     });
