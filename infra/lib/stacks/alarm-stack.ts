@@ -66,12 +66,12 @@ export class AlarmStack extends BaseStack {
     );
 
     // ── API Gateway 5xx errors ────────────────────────────────────────────────
-    // HTTP API exposes 5XX count under the AWS/ApiGateway2 namespace.
+    // HTTP API v2 publishes under AWS/ApiGatewayV2 with lowercase metric name.
     addAlarm(
       'ApiGateway5xxAlarm',
       new cloudwatch.Metric({
-        namespace: 'AWS/ApiGateway',
-        metricName: '5XXError',
+        namespace: 'AWS/ApiGatewayV2',
+        metricName: '5xx',
         dimensionsMap: { ApiId: props.apiStack.httpApi.apiId },
         period: cdk.Duration.minutes(5),
         statistic: 'Sum',
