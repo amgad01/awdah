@@ -1,9 +1,25 @@
 import { z } from 'zod';
-import { PRAYER_NAMES, LOG_TYPES, PRACTICING_PERIOD_TYPES, GENDERS } from '@awdah/shared';
+import {
+  PRAYER_NAMES,
+  LOG_TYPES,
+  PRACTICING_PERIOD_TYPES,
+  GENDERS,
+  HijriDate,
+} from '@awdah/shared';
 
 const hijriDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
-const hijriDateString = z.string().regex(hijriDatePattern, 'Date must be in YYYY-MM-DD format');
+const hijriDateString = z
+  .string()
+  .regex(hijriDatePattern, 'Date must be in YYYY-MM-DD format')
+  .refine((s) => {
+    try {
+      HijriDate.fromString(s);
+      return true;
+    } catch {
+      return false;
+    }
+  }, 'Invalid Hijri date');
 
 export const logPrayerSchema = z.object({
   date: hijriDateString,
