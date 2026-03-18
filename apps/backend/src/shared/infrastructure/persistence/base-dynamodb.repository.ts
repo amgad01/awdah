@@ -99,9 +99,7 @@ export abstract class BaseDynamoDBRepository<T> {
       },
     });
 
-    const response = await this.docClient.send(command).catch((error) => {
-      throw error;
-    });
+    const response = await this.docClient.send(command);
     return response.Item ? this.mapToDomain(response.Item as Record<string, unknown>) : null;
   }
 
@@ -126,9 +124,7 @@ export abstract class BaseDynamoDBRepository<T> {
       },
     });
 
-    await this.docClient.send(command).catch((error) => {
-      throw error;
-    });
+    await this.docClient.send(command);
   }
 
   /**
@@ -152,9 +148,7 @@ export abstract class BaseDynamoDBRepository<T> {
       ConditionExpression: `attribute_not_exists(${this.pkName})`,
     });
 
-    await this.docClient.send(command).catch((error) => {
-      throw error;
-    });
+    await this.docClient.send(command);
   }
 
   /**
@@ -191,9 +185,7 @@ export abstract class BaseDynamoDBRepository<T> {
       ExpressionAttributeValues: expressionAttributeValues,
     });
 
-    await this.docClient.send(command).catch((error) => {
-      throw error;
-    });
+    await this.docClient.send(command);
   }
 
   /**
