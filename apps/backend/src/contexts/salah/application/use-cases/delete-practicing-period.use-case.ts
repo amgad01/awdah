@@ -1,5 +1,4 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
-import { NotFoundError } from '@awdah/shared';
 
 export interface DeletePracticingPeriodCommand {
   userId: string;
@@ -10,12 +9,8 @@ export class DeletePracticingPeriodUseCase {
   constructor(private readonly repository: IPracticingPeriodRepository) {}
 
   async execute(command: DeletePracticingPeriodCommand): Promise<void> {
-    const existing = await this.repository.findByUser(command.userId);
-    const period = existing.find((p) => p.periodId === command.periodId);
-    if (!period) {
-      throw new NotFoundError(`Practicing period ${command.periodId} not found`);
-    }
-
+    // DELETE is idempotent — if the item is already gone the caller's intent
+    // is fulfilled. DynamoDB DeleteItem is a no-op for a non-existent key.
     await this.repository.delete(command.userId, command.periodId);
   }
 }

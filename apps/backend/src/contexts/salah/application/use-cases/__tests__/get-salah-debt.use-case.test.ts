@@ -18,7 +18,10 @@ describe('GetSalahDebtUseCase', () => {
   beforeEach(() => {
     userRepository = { findById: vi.fn() } as unknown as IUserRepository;
     prayerLogRepository = { countQadaaCompleted: vi.fn() } as unknown as IPrayerLogRepository;
-    practicingPeriodRepository = { findByUser: vi.fn() } as unknown as IPracticingPeriodRepository;
+    practicingPeriodRepository = {
+      findByUser: vi.fn(),
+      findById: vi.fn(),
+    } as unknown as IPracticingPeriodRepository;
     calendarService = {
       today: vi.fn(),
       daysBetween: vi.fn().mockReturnValue(10),

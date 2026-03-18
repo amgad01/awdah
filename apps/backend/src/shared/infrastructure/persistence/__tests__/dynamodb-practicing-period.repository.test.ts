@@ -5,6 +5,7 @@ import {
   PutCommand,
   QueryCommand,
   DeleteCommand,
+  GetCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBPracticingPeriodRepository } from '../dynamodb-practicing-period.repository';
 import { PracticingPeriod } from '../../../../contexts/shared/domain/entities/practicing-period.entity';
@@ -86,5 +87,35 @@ describe('DynamoDBPracticingPeriodRepository', () => {
         periodId,
       },
     });
+  });
+
+  it('should return a period when findById finds a match', async () => {
+    ddbMock.on(GetCommand).resolves({
+      Item: {
+        userId,
+        periodId,
+        startDate: '1440-01-01',
+        endDate: '1441-01-01',
+        type: 'both',
+      },
+    });
+
+    const result = await repository.findById(userId, periodId);
+
+    expect(result).not.toBeNull();
+    expect(result?.periodId).toBe(periodId);
+    const calls = ddbMock.commandCalls(GetCommand);
+    expect(calls[0]?.args[0].input).toEqual({
+      TableName: tableName,
+      Key: { userId, periodId },
+    });
+  });
+
+  it('should return null when findById finds no match', async () => {
+    ddbMock.on(GetCommand).resolves({ Item: undefined });
+
+    const result = await repository.findById(userId, 'nonexistent');
+
+    expect(result).toBeNull();
   });
 });

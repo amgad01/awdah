@@ -21,6 +21,10 @@ export class DynamoDBPracticingPeriodRepository
     return this.findAll({ pk: userId });
   }
 
+  async findById(userId: string, periodId: string): Promise<PracticingPeriod | null> {
+    return this.retrieve({ pk: userId, sk: periodId });
+  }
+
   async delete(userId: string, periodId: string): Promise<void> {
     await this.deleteItem({ pk: userId, sk: periodId });
   }

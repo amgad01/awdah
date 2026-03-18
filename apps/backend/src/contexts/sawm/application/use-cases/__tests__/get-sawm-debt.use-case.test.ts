@@ -11,7 +11,7 @@ describe('GetSawmDebtUseCase', () => {
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
   };
-  const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), delete: vi.fn() };
+  const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), findById: vi.fn(), delete: vi.fn() };
   const mockCalendar = { daysBetween: vi.fn(), getRamadanDays: vi.fn(), today: vi.fn() };
 
   const calculator = new SawmDebtCalculator(mockCalendar);

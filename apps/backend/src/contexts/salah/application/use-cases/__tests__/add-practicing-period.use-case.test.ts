@@ -18,6 +18,7 @@ describe('AddPracticingPeriodUseCase', () => {
   const mockRepo = {
     save: vi.fn(),
     findByUser: vi.fn(),
+    findById: vi.fn(),
     delete: vi.fn(),
   } as unknown as IPracticingPeriodRepository;
 
