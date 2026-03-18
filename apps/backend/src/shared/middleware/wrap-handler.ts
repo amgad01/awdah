@@ -21,8 +21,11 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
   contextName: string,
   handler: AuthenticatedHandler<TBody>,
 ): (event: APIGatewayProxyEventV2, context: Context) => Promise<APIGatewayProxyResultV2> {
+  // Logger is created once at cold start; a cheap child is forked per invocation to bind requestId.
+  const baseLogger = createLogger(contextName);
+
   return async (event, context) => {
-    const logger = createLogger(contextName, context.awsRequestId);
+    const logger = baseLogger.child({ requestId: context.awsRequestId });
     const startTime = Date.now();
 
     logger.info(

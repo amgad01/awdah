@@ -5,6 +5,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
+import { getConfig } from './config';
 
 export interface LambdaOptions {
   entry: string;
@@ -15,6 +16,7 @@ export interface LambdaOptions {
   deadLetterQueue?: cdk.aws_sqs.IQueue;
   retryAttempts?: number;
   context?: string;
+  reservedConcurrentExecutions?: number;
 }
 
 /**
@@ -29,18 +31,21 @@ export class ProjectResourceFactory {
     id: string,
     options: LambdaOptions,
   ): lambda_nodejs.NodejsFunction {
+    const config = getConfig(scope);
+
     const fn = new lambda_nodejs.NodejsFunction(scope, id, {
       entry: options.entry,
       handler: options.handler ?? 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
       memorySize: options.memorySize ?? 256,
-      timeout: options.timeout ?? cdk.Duration.seconds(30),
+      timeout: options.timeout ?? config.lambdaTimeout,
       tracing: lambda.Tracing.ACTIVE,
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: options.environment,
       deadLetterQueue: options.deadLetterQueue,
       retryAttempts: options.retryAttempts,
+      reservedConcurrentExecutions: options.reservedConcurrentExecutions,
       bundling: {
         minify: true,
         sourceMap: true,

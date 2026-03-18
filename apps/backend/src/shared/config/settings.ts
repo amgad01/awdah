@@ -1,15 +1,56 @@
+/**
+ * Validates and retrieves environment variables.
+ * Accepts either a single key (returns string) or an array of keys (returns void).
+ */
+function requireEnv(key: string, localFallback: string): string;
+function requireEnv(keys: string[]): void;
+function requireEnv(keyOrKeys: string | string[], localFallback?: string): string | void {
+  const isLocal = process.env.LOCALSTACK_ENDPOINT !== undefined || process.env.NODE_ENV === 'test';
+
+  if (Array.isArray(keyOrKeys)) {
+    if (!isLocal) {
+      const missing = keyOrKeys.filter((k) => !process.env[k]);
+      if (missing.length > 0) {
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+      }
+    }
+    return;
+  }
+
+  const value = process.env[keyOrKeys];
+  if (!value) {
+    if (isLocal) return localFallback || '';
+    throw new Error(`Missing required environment variable: ${keyOrKeys}`);
+  }
+  return value;
+}
+
+// Validate all required table env vars at module load. In prod/staging this
+// runs at Lambda cold start and reports every missing variable in one error.
+requireEnv([
+  'PRAYER_LOGS_TABLE',
+  'FAST_LOGS_TABLE',
+  'PRACTICING_PERIODS_TABLE',
+  'USER_SETTINGS_TABLE',
+]);
+
 export const settings = {
   env: process.env.NODE_ENV || 'dev',
   region: process.env.AWS_REGION || 'us-east-1',
   tables: {
-    prayerLogs:
-      process.env.PRAYER_LOGS_TABLE || `Awdah-PrayerLogs-${process.env.NODE_ENV || 'dev'}`,
-    fastLogs: process.env.FAST_LOGS_TABLE || `Awdah-FastLogs-${process.env.NODE_ENV || 'dev'}`,
-    practicingPeriods:
-      process.env.PRACTICING_PERIODS_TABLE ||
+    prayerLogs: requireEnv(
+      'PRAYER_LOGS_TABLE',
+      `Awdah-PrayerLogs-${process.env.NODE_ENV || 'dev'}`,
+    ),
+    fastLogs: requireEnv('FAST_LOGS_TABLE', `Awdah-FastLogs-${process.env.NODE_ENV || 'dev'}`),
+    practicingPeriods: requireEnv(
+      'PRACTICING_PERIODS_TABLE',
       `Awdah-PracticingPeriods-${process.env.NODE_ENV || 'dev'}`,
-    userSettings:
-      process.env.USER_SETTINGS_TABLE || `Awdah-UserSettings-${process.env.NODE_ENV || 'dev'}`,
+    ),
+    userSettings: requireEnv(
+      'USER_SETTINGS_TABLE',
+      `Awdah-UserSettings-${process.env.NODE_ENV || 'dev'}`,
+    ),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
 };

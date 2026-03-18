@@ -4,7 +4,7 @@ import { createLogger } from '../../middleware/logger';
 const dynamo = new DynamoDBClient({});
 
 export async function handler(): Promise<void> {
-  const logger = createLogger('BackupExport', 'scheduled');
+  const logger = createLogger('BackupExport');
   const tableArns = (process.env.TABLE_ARNS || '').split(',').filter(Boolean);
   const s3Bucket = process.env.BACKUP_BUCKET;
 
