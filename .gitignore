@@ -47,5 +47,9 @@ npm-debug.log*
 # AI agent config
 .agent/
 
+# Codegraph artifacts
+.code-review-graph/
+.code-review-graph.db
+
 # TypeScript build info
 *.tsbuildinfo

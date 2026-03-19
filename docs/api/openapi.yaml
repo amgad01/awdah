@@ -35,8 +35,10 @@ info:
     `INTERNAL_ERROR` (500).
 
 servers:
+  - url: http://localhost:3000
+    description: Local Simulation Server
   - url: https://{apiId}.execute-api.{region}.amazonaws.com
-    description: AWS API Gateway (replace with real endpoint per environment)
+    description: AWS API Gateway
     variables:
       apiId:
         default: your-api-id
