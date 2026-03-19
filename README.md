@@ -18,22 +18,28 @@ Awdah is a full-stack serverless web application that helps Muslims return to th
 
 عودة تطبيق ويب يساعدك على قضاء ما فاتك من صلوات وصيام، بهدوء ومن غير حُكم. تتبّع ما عليك، وابدأ عودتك خطوةً بخطوة.
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com)
 [![CDK](https://img.shields.io/badge/CDK-IaC-FF9900?logo=amazonaws&logoColor=white)](https://docs.aws.amazon.com/cdk)
+[![i18n](https://img.shields.io/badge/i18n-EN%20%7C%20AR-26A69A)](https://www.i18next.com)
+[![RTL](https://img.shields.io/badge/RTL-Supported-26A69A)](https://developer.mozilla.org/en-US/docs/Glossary/RTL)
 
 ## Tech Stack
 
-| Layer          | Technology                      |
-| -------------- | ------------------------------- |
-| Frontend       | React, TypeScript, Vite         |
-| Backend        | Node.js, TypeScript, AWS Lambda |
-| Infrastructure | AWS CDK (TypeScript)            |
-| Database       | DynamoDB (PAY_PER_REQUEST)      |
-| Auth           | AWS Cognito                     |
-| CI/CD          | GitHub Actions                  |
-| Local dev      | Docker Compose, LocalStack      |
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Frontend       | React 19, TypeScript, Vite, CSS Modules      |
+| State          | TanStack Query (server), React hooks (local) |
+| i18n / RTL     | i18next, react-i18next — English + Arabic    |
+| Backend        | Node.js, TypeScript, Express, AWS Lambda     |
+| Infrastructure | AWS CDK (TypeScript)                         |
+| Database       | DynamoDB (PAY_PER_REQUEST)                   |
+| Auth           | AWS Cognito (local bypass for dev)           |
+| E2E Testing    | Playwright                                   |
+| Unit Testing   | Vitest                                       |
+| CI/CD          | GitHub Actions                               |
+| Local dev      | Docker Compose, LocalStack                   |
 
 ## Prerequisites
 
@@ -77,13 +83,26 @@ See [docs/architecture/](docs/architecture/) for diagrams and detailed documenta
 
 ```
 awdah/
-├── apps/frontend/        # React SPA (GitHub Pages)
-├── apps/backend/         # AWS Lambda functions
-├── infra/                # AWS CDK stacks
-├── packages/shared/      # Shared types and interfaces
-├── docker/               # Docker Compose + LocalStack
-├── docs/                 # Public documentation
-└── .github/workflows/    # CI/CD pipelines
+├── apps/
+│   ├── frontend/           # React SPA (Vite, CSS Modules, i18next)
+│   │   ├── src/
+│   │   │   ├── features/   # Bounded context UI (salah, sawm, dashboard, history, settings, auth)
+│   │   │   ├── components/ # Shared UI components (card, progress-bar, day-nav, language-switcher)
+│   │   │   ├── hooks/      # Custom hooks (use-auth, use-language, use-worship)
+│   │   │   ├── i18n/       # Translation files (en.json, ar.json)
+│   │   │   ├── utils/      # Formatters (fmtNumber, date-utils)
+│   │   │   └── lib/        # API client
+│   │   └── e2e/            # Playwright E2E tests
+│   └── backend/            # Express server simulating AWS Lambda
+│       └── src/contexts/   # Salah + Sawm bounded contexts (Clean Architecture)
+├── infra/                  # AWS CDK stacks (auth, api, data, backup, alarm)
+├── packages/shared/        # Shared types, Hijri logic, domain interfaces
+├── docker/                 # LocalStack config + bootstrap scripts
+├── docs/                   # Public documentation
+│   ├── api/openapi.yaml    # OpenAPI 3.1.0 spec
+│   └── architecture/       # Database design, diagrams
+├── .github/workflows/      # CI/CD pipelines
+└── docker-compose.yml      # Local orchestration
 ```
 
 ## Documentation
