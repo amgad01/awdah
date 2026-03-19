@@ -6,6 +6,8 @@ services:
     environment:
       - SERVICES=dynamodb,s3,sqs,sns,events,secretsmanager
       - DEFAULT_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
       - DEBUG=0
       - PERSISTENCE=1
     volumes:
@@ -19,10 +21,17 @@ services:
       dockerfile: apps/backend/Dockerfile
     environment:
       - NODE_ENV=development
+      - PORT=3000
+      - DEV_AUTH_BYPASS=true
       - LOCALSTACK_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=eu-west-1
       - AWS_DEFAULT_REGION=eu-west-1
+      - PRAYER_LOGS_TABLE=Awdah-PrayerLogs-dev
+      - FAST_LOGS_TABLE=Awdah-FastLogs-dev
+      - PRACTICING_PERIODS_TABLE=Awdah-PracticingPeriods-dev
+      - USER_SETTINGS_TABLE=Awdah-UserSettings-dev
     depends_on:
       - localstack
     ports:
@@ -32,6 +41,9 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:3000
+        - VITE_AUTH_MODE=local
     ports:
       - '8080:80'
     depends_on:

@@ -6,6 +6,11 @@ set -euo pipefail
 
 ENDPOINT="http://localhost:4566"
 REGION="eu-west-1"
+
+# Ensure credentials are set for aws-cli
+export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_DEFAULT_REGION=$REGION
 ENV="dev"
 USER_ID="local-dev-user"
 

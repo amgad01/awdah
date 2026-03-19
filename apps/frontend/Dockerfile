@@ -15,7 +15,17 @@ RUN npm install --ignore-scripts
 # Build shared package first
 RUN npm run build --workspace=packages/shared
 
-# Build frontend
+# Build frontend with build-time environment variables
+ARG VITE_API_BASE_URL
+ARG VITE_AUTH_MODE
+ARG VITE_COGNITO_CLIENT_ID
+ARG VITE_AWS_REGION
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_AUTH_MODE=$VITE_AUTH_MODE
+ENV VITE_COGNITO_CLIENT_ID=$VITE_COGNITO_CLIENT_ID
+ENV VITE_AWS_REGION=$VITE_AWS_REGION
+
 RUN npm run build --workspace=frontend
 
 # Stage 2: Serve with Nginx
