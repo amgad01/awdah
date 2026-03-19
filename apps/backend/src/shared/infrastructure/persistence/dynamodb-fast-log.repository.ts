@@ -37,7 +37,7 @@ export class DynamoDBFastLogRepository
   async countQadaaCompleted(userId: string): Promise<number> {
     return this.countByGSI({
       pk: userId,
-      indexName: 'typeDateIndex',
+      indexName: 'GSI1',
       skName: 'typeDate',
       skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
     });

@@ -97,8 +97,9 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 // Start server if run directly
 if (require.main === module) {
-  app.listen(port, () => {
-    logger.info({ port }, 'Backend simulation server listening');
+  const serverPort = typeof port === 'string' ? parseInt(port, 10) : port;
+  app.listen(serverPort, '0.0.0.0', () => {
+    logger.info({ port: serverPort }, 'Backend simulation server listening on 0.0.0.0');
   });
 }
 

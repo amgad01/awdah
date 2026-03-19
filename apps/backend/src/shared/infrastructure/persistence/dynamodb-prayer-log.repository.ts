@@ -46,7 +46,7 @@ export class DynamoDBPrayerLogRepository
   async countQadaaCompleted(userId: string): Promise<number> {
     return this.countByGSI({
       pk: userId,
-      indexName: 'typeDateIndex',
+      indexName: 'GSI1',
       skName: 'typeDate',
       skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
     });

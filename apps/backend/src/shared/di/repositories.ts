@@ -1,5 +1,6 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { settings } from '../config/settings';
 import { UmAlQuraCalendarService } from '../infrastructure/services/umalqura-calendar.service';
 import { SalahDebtCalculator } from '../../contexts/salah/domain/services/debt-calculator.service';
 import { SawmDebtCalculator } from '../../contexts/sawm/domain/services/sawm-debt-calculator.service';
@@ -10,6 +11,7 @@ import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-u
 
 // Shared Clients
 const rawClient = new DynamoDBClient({
+  region: settings.region,
   ...(process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {}),
   maxAttempts: 5,
 });

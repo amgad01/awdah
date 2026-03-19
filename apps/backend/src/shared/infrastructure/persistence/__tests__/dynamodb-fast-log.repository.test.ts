@@ -85,7 +85,7 @@ describe('DynamoDBFastLogRepository', () => {
     expect(count).toBe(10);
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
-      IndexName: 'typeDateIndex',
+      IndexName: 'GSI1',
       Select: 'COUNT',
       KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :type)',
     });
