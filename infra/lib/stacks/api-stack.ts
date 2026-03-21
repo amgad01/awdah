@@ -4,6 +4,7 @@ import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
@@ -75,6 +76,7 @@ export class ApiStack extends BaseStack {
       FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
       PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
       USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
     };
 
     const createLambda = (
@@ -201,6 +203,41 @@ export class ApiStack extends BaseStack {
       [props.dataStack.fastLogsTable],
     );
 
+    // Account deletion — requires read+write on all user tables AND Cognito AdminDeleteUser.
+    // DynamoDB is deleted first; Cognito is deleted second (per architecture spec).
+    const deleteAccountFn = createLambda(
+      'DeleteAccountFn',
+      'contexts/user/infrastructure/handlers/delete-account.handler.ts',
+      'user',
+      [],
+      [
+        props.dataStack.prayerLogsTable,
+        props.dataStack.fastLogsTable,
+        props.dataStack.practicingPeriodsTable,
+        props.dataStack.userSettingsTable,
+      ],
+    );
+    deleteAccountFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['cognito-idp:AdminDeleteUser'],
+        resources: [
+          `arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${props.authStack.userPool.userPoolId}`,
+        ],
+      }),
+    );
+
+    const exportDataFn = createLambda(
+      'ExportDataFn',
+      'contexts/user/infrastructure/handlers/export-data.handler.ts',
+      'user',
+      [
+        props.dataStack.prayerLogsTable,
+        props.dataStack.fastLogsTable,
+        props.dataStack.practicingPeriodsTable,
+        props.dataStack.userSettingsTable,
+      ],
+    );
+
     const healthFn = createLambda(
       'HealthFn',
       'shared/infrastructure/handlers/health.handler.ts',
@@ -280,6 +317,13 @@ export class ApiStack extends BaseStack {
       deleteFastLogFn,
       'DeleteFastLogIntegration',
     );
+    addRoute(
+      '/user/account',
+      apigatewayv2.HttpMethod.DELETE,
+      deleteAccountFn,
+      'DeleteAccountIntegration',
+    );
+    addRoute('/user/export', apigatewayv2.HttpMethod.GET, exportDataFn, 'ExportDataIntegration');
 
     api.addRoutes({
       path: '/health',
@@ -306,6 +350,8 @@ export class ApiStack extends BaseStack {
       getFastHistoryFn,
       deletePrayerLogFn,
       deleteFastLogFn,
+      deleteAccountFn,
+      exportDataFn,
     ];
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
