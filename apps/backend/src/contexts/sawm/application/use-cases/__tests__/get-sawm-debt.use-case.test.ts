@@ -4,7 +4,12 @@ import { SawmDebtCalculator } from '../../../domain/services/sawm-debt-calculato
 import { HijriDate } from '@awdah/shared';
 
 describe('GetSawmDebtUseCase', () => {
-  const mockUserRepo = { findById: vi.fn(), save: vi.fn() };
+  const mockUserRepo = {
+    findById: vi.fn(),
+    save: vi.fn(),
+    deleteAccount: vi.fn(),
+    exportData: vi.fn(),
+  };
   const mockFastLogRepo = {
     save: vi.fn(),
     findByUserAndDateRange: vi.fn(),
@@ -51,6 +56,6 @@ describe('GetSawmDebtUseCase', () => {
 
   it('throws NotFoundError if user settings missing', async () => {
     mockUserRepo.findById.mockResolvedValue(null);
-    await expect(useCase.execute('u')).rejects.toThrow('User settings for u not found');
+    await expect(useCase.execute('u')).rejects.toThrow('User settings not found');
   });
 });

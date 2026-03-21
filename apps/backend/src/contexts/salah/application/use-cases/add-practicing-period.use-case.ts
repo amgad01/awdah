@@ -8,7 +8,7 @@ import { ulid } from 'ulid';
 export interface AddPracticingPeriodCommand {
   userId: string;
   startDate: string; // YYYY-MM-DD Hijri
-  endDate: string; // YYYY-MM-DD Hijri
+  endDate?: string; // YYYY-MM-DD Hijri — optional for open-ended (currently practicing)
   type: PracticingPeriodType;
 }
 
@@ -16,15 +16,15 @@ export class AddPracticingPeriodUseCase {
   constructor(
     private readonly repository: IPracticingPeriodRepository,
     private readonly userRepository: IUserRepository,
-  ) {}
+  ) { }
 
   async execute(command: AddPracticingPeriodCommand): Promise<{ periodId: string }> {
     const startDate = HijriDate.fromString(command.startDate);
-    const endDate = HijriDate.fromString(command.endDate);
+    const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
 
     const userSettings = await this.userRepository.findById(command.userId);
     if (!userSettings) {
-      throw new NotFoundError(userSettingsNotFound(command.userId));
+      throw new NotFoundError(userSettingsNotFound);
     }
 
     if (startDate.isBefore(userSettings.bulughDate)) {

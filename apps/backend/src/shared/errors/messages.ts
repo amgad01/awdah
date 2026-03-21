@@ -1,2 +1,1 @@
-export const userSettingsNotFound = (userId: string): string =>
-  `User settings for ${userId} not found`;
+export const userSettingsNotFound = 'User settings not found';

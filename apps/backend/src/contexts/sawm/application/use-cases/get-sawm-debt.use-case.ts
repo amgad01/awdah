@@ -21,7 +21,7 @@ export class GetSawmDebtUseCase {
   async execute(userId: string): Promise<SawmDebtResult> {
     const settings = await this.userRepository.findById(userId);
     if (!settings) {
-      throw new NotFoundError(userSettingsNotFound(userId));
+      throw new NotFoundError(userSettingsNotFound);
     }
 
     const allPeriods = await this.practicingPeriodRepository.findByUser(userId);

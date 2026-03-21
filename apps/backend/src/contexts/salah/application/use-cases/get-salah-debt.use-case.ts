@@ -22,7 +22,7 @@ export class GetSalahDebtUseCase {
     // 1. Get user settings (for bulugh date)
     const settings = await this.userRepository.findById(userId);
     if (!settings) {
-      throw new NotFoundError(userSettingsNotFound(userId));
+      throw new NotFoundError(userSettingsNotFound);
     }
 
     // 2. Get all practicing periods that apply to salah
