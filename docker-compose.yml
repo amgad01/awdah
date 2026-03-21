@@ -22,6 +22,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+      # DEV_AUTH_BYPASS allows the local Express simulator to accept requests
+      # without an x-user-id header, falling back to 'local-dev-user'.
+      # This flag is checked only in src/index.ts (local runner) and is never
+      # present in production Lambda environments — safe to commit here.
       - DEV_AUTH_BYPASS=true
       - LOCALSTACK_ENDPOINT=http://localstack:4566
       - AWS_ACCESS_KEY_ID=test
