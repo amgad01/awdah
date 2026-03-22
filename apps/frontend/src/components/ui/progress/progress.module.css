@@ -1,0 +1,51 @@
+.wrapper {
+  width: 100%;
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.label {
+  color: var(--color-text-secondary);
+}
+
+.percentage {
+  color: var(--color-primary);
+}
+
+.track {
+  height: 8px;
+  background-color: var(--color-divider);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease-in-out;
+}
+
+.primary {
+  background-color: var(--color-primary);
+}
+
+.accent {
+  background-color: var(--color-accent);
+}
+
+.success {
+  background-color: var(--color-success);
+}
+
+.footer {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+}
