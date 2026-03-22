@@ -1,0 +1,29 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  padding-top: var(--header-height);
+}
+
+.container {
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  width: 100%;
+}
+
+/* Responsive sidebar layout for desktop */
+@media (min-width: 1024px) {
+  .wrapper {
+    flex-direction: row;
+  }
+
+  .main {
+    padding-top: 0;
+    margin-inline-start: var(--sidebar-width);
+  }
+}

@@ -23,7 +23,6 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo): void {
     // Log the render error for observability. In production this feeds into
     // browser devtools and any monitoring service wired to window.onerror.
-    // eslint-disable-next-line no-console
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
