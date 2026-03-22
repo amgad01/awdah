@@ -35,7 +35,8 @@ export class SawmDebtCalculator {
     // Convention: [inclusive start, exclusive end).
     // gapStart = day AFTER the previous period ended — the last practicing day is not missed.
     for (let i = 0; i < sortedPeriods.length - 1; i++) {
-      const gapStart = sortedPeriods[i]!.endDate.addDays(1);
+      const prevEffectiveEnd = sortedPeriods[i]!.endDate ?? today;
+      const gapStart = prevEffectiveEnd.addDays(1);
       const gapEnd = sortedPeriods[i + 1]!.startDate;
 
       if (gapStart.isBefore(gapEnd)) {
@@ -44,10 +45,14 @@ export class SawmDebtCalculator {
     }
 
     // Final gap: from day after last period ends until today (exclusive)
+    // Open-ended last period means no final gap.
     if (sortedPeriods.length > 0) {
-      const gapStart = sortedPeriods[sortedPeriods.length - 1]!.endDate.addDays(1);
-      if (gapStart.isBefore(today)) {
-        totalFastingDaysMissed += this.calculateRamadanDaysInGap(gapStart, today);
+      const lastPeriod = sortedPeriods[sortedPeriods.length - 1]!;
+      if (!lastPeriod.isOpenEnded) {
+        const gapStart = lastPeriod.endDate!.addDays(1);
+        if (gapStart.isBefore(today)) {
+          totalFastingDaysMissed += this.calculateRamadanDaysInGap(gapStart, today);
+        }
       }
     }
 

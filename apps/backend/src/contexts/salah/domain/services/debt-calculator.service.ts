@@ -36,7 +36,9 @@ export class SalahDebtCalculator {
       }
 
       // The day after this period ends is where the next gap can begin.
-      const dayAfterPeriod = period.endDate.addDays(1);
+      // For open-ended periods (currently practicing), use today as the effective end.
+      const effectiveEndDate = period.endDate ?? today;
+      const dayAfterPeriod = effectiveEndDate.addDays(1);
       if (lastHandledDate.isBefore(dayAfterPeriod) || lastHandledDate.equals(dayAfterPeriod)) {
         lastHandledDate = dayAfterPeriod;
       }

@@ -16,7 +16,7 @@ export class AddPracticingPeriodUseCase {
   constructor(
     private readonly repository: IPracticingPeriodRepository,
     private readonly userRepository: IUserRepository,
-  ) { }
+  ) {}
 
   async execute(command: AddPracticingPeriodCommand): Promise<{ periodId: string }> {
     const startDate = HijriDate.fromString(command.startDate);

@@ -6,7 +6,7 @@ export interface PracticingPeriodProps {
   userId: string;
   periodId: string;
   startDate: HijriDate;
-  endDate: HijriDate;
+  endDate?: HijriDate; // undefined = open-ended (user is currently practicing)
   type: PracticingPeriodType;
 }
 
@@ -16,7 +16,7 @@ export class PracticingPeriod {
   }
 
   private validate(): void {
-    if (this.props.endDate.isBefore(this.props.startDate)) {
+    if (this.props.endDate && this.props.endDate.isBefore(this.props.startDate)) {
       throw new ValidationError('Practicing period end date cannot be before start date');
     }
   }
@@ -33,8 +33,12 @@ export class PracticingPeriod {
     return this.props.startDate;
   }
 
-  get endDate(): HijriDate {
+  get endDate(): HijriDate | undefined {
     return this.props.endDate;
+  }
+
+  get isOpenEnded(): boolean {
+    return this.props.endDate === undefined;
   }
 
   get type(): PracticingPeriodType {
@@ -46,9 +50,16 @@ export class PracticingPeriod {
   }
 
   overlapsWith(other: PracticingPeriod): boolean {
-    return (
-      (this.startDate.isBefore(other.endDate) || this.startDate.equals(other.endDate)) &&
-      (this.endDate.isAfter(other.startDate) || this.endDate.equals(other.startDate))
-    );
+    // If other has no endDate it extends to infinity: this.startDate is always before it
+    const thisStartBeforeOtherEnd =
+      !other.endDate ||
+      this.startDate.isBefore(other.endDate) ||
+      this.startDate.equals(other.endDate);
+    // If this has no endDate it extends to infinity: it always extends past other.startDate
+    const thisEndAfterOtherStart =
+      !this.props.endDate ||
+      this.props.endDate.isAfter(other.startDate) ||
+      this.props.endDate.equals(other.startDate);
+    return thisStartBeforeOtherEnd && thisEndAfterOtherStart;
   }
 }

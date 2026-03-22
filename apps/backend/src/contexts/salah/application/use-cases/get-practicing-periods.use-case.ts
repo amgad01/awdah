@@ -4,7 +4,7 @@ import { PracticingPeriodType } from '@awdah/shared';
 export interface PracticingPeriodDto {
   periodId: string;
   startDate: string;
-  endDate: string;
+  endDate?: string; // undefined for open-ended (currently practicing) periods
   type: PracticingPeriodType;
 }
 
@@ -16,7 +16,7 @@ export class GetPracticingPeriodsUseCase {
     return periods.map((p) => ({
       periodId: p.periodId,
       startDate: p.startDate.toString(),
-      endDate: p.endDate.toString(),
+      endDate: p.endDate?.toString(),
       type: p.type,
     }));
   }

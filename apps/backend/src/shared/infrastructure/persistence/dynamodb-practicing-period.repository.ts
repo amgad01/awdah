@@ -39,7 +39,7 @@ export class DynamoDBPracticingPeriodRepository
   protected mapToPersistence(period: PracticingPeriod): Record<string, unknown> {
     return {
       startDate: period.startDate.toString(),
-      endDate: period.endDate.toString(),
+      endDate: period.endDate?.toString(), // undefined for open-ended periods
       type: period.type,
     };
   }
@@ -49,7 +49,7 @@ export class DynamoDBPracticingPeriodRepository
       userId: item.userId as string,
       periodId: item.periodId as string,
       startDate: HijriDate.fromString(item.startDate as string),
-      endDate: HijriDate.fromString(item.endDate as string),
+      endDate: item.endDate ? HijriDate.fromString(item.endDate as string) : undefined,
       type: item.type as 'salah' | 'sawm' | 'both',
     });
   }
