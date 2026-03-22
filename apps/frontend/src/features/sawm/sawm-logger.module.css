@@ -1,0 +1,90 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* ── Loading ── */
+.loadingRow {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  color: var(--color-text-muted);
+}
+
+/* ── Log Button ── */
+.logBtn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-background);
+  border: 1.5px solid var(--color-divider);
+  transition: var(--transition-fast);
+  cursor: pointer;
+}
+
+.logBtn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-alpha-5);
+}
+
+.logBtn.logged {
+  background-color: var(--color-accent-alpha-12);
+  border-color: var(--color-accent);
+}
+
+.logBtn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon {
+  color: var(--color-text-muted);
+  transition: var(--transition-fast);
+}
+
+.iconLogged {
+  color: var(--color-accent);
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.text {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.logged .text {
+  color: var(--color-accent);
+}
+
+.checkCircle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-divider);
+  color: var(--color-text-muted);
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.checkCircleLogged {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.logBtn:hover:not(:disabled) .checkCircle:not(.checkCircleLogged) {
+  background-color: var(--color-accent);
+  color: white;
+}

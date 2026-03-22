@@ -1,0 +1,762 @@
+/* Wizard layout */
+.wizard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.wizardHeader {
+  background: var(--color-surface);
+  border-block-end: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.appName {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--color-primary);
+  letter-spacing: -0.03em;
+  flex: 1;
+}
+
+.stepCounter {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Step indicator dots */
+.stepDots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 0.2s ease;
+}
+
+.dot.active {
+  background: var(--color-primary);
+  width: 20px;
+  border-radius: 4px;
+}
+
+.dot.done {
+  background: var(--color-primary-light, #4caf90);
+}
+
+/* Progress bar */
+.progressBar {
+  height: 3px;
+  background: var(--color-border);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+/* Scrollable step content */
+.stepContent {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navigation footer */
+.footer {
+  background: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  position: sticky;
+  inset-block-end: 0;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.backBtn:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
+}
+
+.nextBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.nextBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nextBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.footerSpacer {
+  flex: 1;
+}
+
+/* ─── Step shared styles ──────────────────────────────── */
+.step {
+  flex: 1;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.stepTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.stepSubtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.stepTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+/* Explainer box */
+.explainer {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-inline-start: 3px solid var(--color-primary);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Form field */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+/* Toggle switch (Gregorian / Hijri) */
+.calendarToggle {
+  display: flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 3px;
+  width: fit-content;
+}
+
+.calendarToggleBtn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendarToggleBtn.selected {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Hijri date row */
+.hijriRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Radio group (gender) */
+.radioGroup {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.radioCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--color-surface);
+}
+
+.radioCard.selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.radioCard input {
+  display: none;
+}
+
+.radioLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Bulugh toggle */
+.bulughToggle {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.toggleOption {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-weight: 500;
+}
+
+.toggleOption.selected {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+/* Calculated bulugh note */
+.calculatedDate {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-radius: 10px;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.calculatedDateValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.calculatedDateNote {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Validation error */
+.error {
+  font-size: 0.82rem;
+  color: var(--color-error, #d32f2f);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── Privacy step ─────────────────────────── */
+.privacyWelcome {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.privacyIcon {
+  font-size: 3.5rem;
+  margin-block-end: var(--spacing-md);
+}
+
+.privacyDataList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.privacyDataItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.privacyDataItem::before {
+  content: '•';
+  color: var(--color-primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-block-start: 1px;
+}
+
+.consentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.consentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.consentRow input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-block-start: 2px;
+  accent-color: var(--color-primary);
+}
+
+.consentText {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+/* ─── Periods step ────────────────────────── */
+.periodList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.periodItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  gap: var(--spacing-md);
+}
+
+.periodItemDates {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.periodDatesText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.periodTypeTag {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.deletePeriodBtn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.deletePeriodBtn:hover {
+  border-color: var(--color-error, #d32f2f);
+  color: var(--color-error, #d32f2f);
+}
+
+.addPeriodBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.addPeriodBtn:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.periodForm {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.periodFormTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.checkRow input[type='checkbox'] {
+  accent-color: var(--color-primary);
+}
+
+.checkLabel {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.periodFormBtns {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.periodSaveBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.periodSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.periodCancelBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.emptyPeriods {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+}
+
+.emptyPeriodsHint {
+  margin-block-start: var(--spacing-xs);
+  font-size: 0.8rem;
+}
+
+/* ─── Intention step ──────────────────────── */
+.intentionSlider {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.intentionValue {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.intentionUnit {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.projectionPreview {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  border-radius: 10px;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.scholarNote {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  text-align: center;
+  border-inline-start: 3px solid var(--color-primary);
+  padding-inline-start: var(--spacing-md);
+}
+
+/* Saving overlay */
+.savingOverlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  flex: 1;
+}
+
+.savingText {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+/* ─── Result step ─────────────────────────── */
+.resultStep {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  gap: var(--spacing-lg);
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.resultEmoji {
+  font-size: 3rem;
+  text-align: center;
+}
+
+.resultTitles {
+  text-align: center;
+}
+
+.resultTitle {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.resultArabicSubtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.debtCards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.debtCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.debtCardValue {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+.debtCardLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.resultProjection {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  border-radius: 10px;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  width: 100%;
+}
+
+.resultEncouragement {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.resultScholarNote {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  text-align: center;
+  border-inline-start: 3px solid var(--color-primary);
+  padding-inline-start: var(--spacing-md);
+  width: 100%;
+}
+
+.beginBtn {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--color-primary);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.beginBtn:hover {
+  opacity: 0.9;
+}
+
+.zeroDebtCard {
+  background: color-mix(in srgb, #4caf90 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, #4caf90 40%, transparent);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  text-align: center;
+  width: 100%;
+}
+
+.zeroDebtTitle {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+}
+
+.zeroDebtHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-block-start: var(--spacing-sm);
+}

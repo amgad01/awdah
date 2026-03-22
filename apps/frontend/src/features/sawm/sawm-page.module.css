@@ -1,0 +1,162 @@
+.page {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: var(--color-text-muted);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xxl);
+}
+
+.headerIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-accent-alpha-12);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: 2px;
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .debtCard {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Stats ── */
+.statsRow {
+  display: flex;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.statBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statNum {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.statCompleted .statNum {
+  color: var(--color-success);
+}
+
+.statRemaining .statNum {
+  color: var(--color-accent);
+}
+
+.progressSection {
+  margin-bottom: var(--spacing-md);
+}
+
+.completedMsg {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-success);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(46, 125, 50, 0.08);
+  border-radius: var(--border-radius-md);
+}
+
+.projectionMsg {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-accent-alpha-5);
+  border-radius: var(--border-radius-md);
+  border-inline-start: 3px solid var(--color-accent);
+}
+
+/* ── Guidance ── */
+.loggerCard {
+  /* full width on desktop when paired with debtCard */
+}
+
+.guidanceCard {
+  grid-column: 1 / -1;
+}
+
+.guidanceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.guidanceItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.bullet {
+  color: var(--color-accent);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.guidanceNote {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-inline-start: 3px solid var(--color-primary-light);
+}

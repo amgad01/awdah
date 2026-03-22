@@ -1,0 +1,266 @@
+.dashboard {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xxl);
+}
+
+.title {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.name {
+  color: var(--color-primary);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+}
+
+.dateInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.sparkle {
+  color: var(--color-accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.debtCard {
+  grid-column: span 12;
+}
+
+.todayCard {
+  grid-column: span 12;
+}
+
+.sawmCard {
+  grid-column: span 12;
+}
+
+.statCard {
+  grid-column: span 12;
+}
+
+@media (min-width: 768px) {
+  .debtCard {
+    grid-column: span 8;
+  }
+
+  .todayCard {
+    grid-column: span 4;
+  }
+
+  .sawmCard {
+    grid-column: span 6;
+  }
+
+  .statCard {
+    grid-column: span 6;
+  }
+}
+
+.debtContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md) 0;
+}
+
+@media (min-width: 480px) {
+  .debtContent {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.gaugePlaceholder {
+  flex-shrink: 0;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 12px solid var(--color-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.gaugePlaceholder::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  inset-inline-start: -12px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 12px solid var(--color-primary);
+  border-bottom-color: transparent;
+  border-inline-start-color: transparent;
+  transform: rotate(45deg);
+}
+
+.mainStat {
+  text-align: center;
+}
+
+.count {
+  display: block;
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.progressSection {
+  flex: 1;
+}
+
+.encouragement {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  border-inline-start: 3px solid var(--color-accent);
+  padding-inline-start: var(--spacing-sm);
+}
+
+.prayerList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.prayerItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-background);
+}
+
+.prayerCircle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-divider);
+}
+
+.prayerName {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.nextInfo {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background-color: rgba(0, 77, 64, 0.05);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.sawmContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.sawmStat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.sunIcon {
+  color: var(--color-accent);
+}
+
+.sawmCount {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.sawmLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.chartPlaceholder {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-divider);
+}
+
+.chartIcon {
+  margin-bottom: var(--spacing-sm);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.sawmStatInfo {
+  display: flex;
+  margin-bottom: var(--spacing-md);
+}
+
+.statMini {
+  display: flex;
+  flex-direction: column;
+}
+
+.statVal {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.statLab {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}

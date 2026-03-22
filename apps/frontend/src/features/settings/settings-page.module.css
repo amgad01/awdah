@@ -1,0 +1,531 @@
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: var(--spacing-md);
+}
+
+.title {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+/* ── Section Card ── */
+.section {
+  /* Card handles its own padding */
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.sectionIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--border-radius-md);
+  background-color: rgba(0, 77, 64, 0.08);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+/* ── Account ── */
+.accountInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 800;
+  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.accountDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accountName {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.accountEmail {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ── Privacy & Data ── */
+.privacyText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.exportBtn {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-inner);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: var(--color-border-hover);
+  border-color: var(--color-text-muted);
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── About ── */
+.aboutInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.aboutRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border-faint);
+}
+
+.aboutKey {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.aboutVal {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* ── Actions ── */
+.signOutBtn {
+  margin-top: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  transition: all 0.2s;
+}
+
+.signOutBtn:hover:not(:disabled) {
+  background: var(--color-border-hover);
+  border-color: var(--color-text-muted);
+}
+
+.signOutBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Danger Zone ── */
+.dangerZone {
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  background-color: rgba(220, 38, 38, 0.02);
+}
+
+.dangerIcon {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.deleteBtn {
+  margin-top: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  background: white;
+  border: 1px solid #fee2e2;
+  border-radius: var(--border-radius-lg);
+  color: #dc2626;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.deleteConfirm {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.deleteConfirmText {
+  font-size: var(--font-size-sm);
+  color: #dc2626;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.deletePasswordInput {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-bg-inner);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+}
+
+.deletePasswordInput:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+.deleteErrorText {
+  font-size: var(--font-size-xs);
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.deleteConfirmBtns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.deleteConfirmBtn {
+  padding: var(--spacing-md);
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  cursor: pointer;
+}
+
+.deleteConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteCancelBtn {
+  padding: var(--spacing-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  cursor: pointer;
+}
+
+.comingSoon {
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.accountEmail {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Row Button (language etc) ── */
+.rowBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--color-divider);
+  background: var(--color-background);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: start;
+}
+
+.rowBtn:hover {
+  border-color: var(--color-primary-light);
+  background-color: rgba(0, 121, 107, 0.04);
+}
+
+.rowLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowLabel {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.rowHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.rowChevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Coming Soon ── */
+.comingSoon {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ── Privacy ── */
+.privacyText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ── About ── */
+.aboutInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.aboutRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.aboutRow:last-child {
+  border-bottom: none;
+}
+
+.aboutKey {
+  color: var(--color-text-muted);
+}
+
+.aboutVal {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* ── Sign Out Button ── */
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--color-error);
+  background: transparent;
+  color: var(--color-error);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.signOutBtn:hover:not(:disabled) {
+  background-color: var(--color-error);
+  color: var(--color-text-on-primary);
+}
+
+.signOutBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Danger zone ─────────────────────────── */
+.dangerZone {
+  border-color: color-mix(in srgb, var(--color-error) 30%, var(--color-border)) !important;
+}
+
+.dangerIcon {
+  background: color-mix(in srgb, var(--color-error) 12%, var(--color-surface)) !important;
+  color: var(--color-error) !important;
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius-md);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-block-start: var(--spacing-sm);
+}
+
+.deleteBtn:hover {
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.deleteConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-block-start: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: color-mix(in srgb, var(--color-error) 5%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-error) 25%, transparent);
+  border-radius: var(--border-radius-md);
+}
+
+.deleteConfirmText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.deletePasswordInput {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.deletePasswordInput:focus {
+  outline: none;
+  border-color: var(--color-error);
+}
+
+.deleteErrorText {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin: 0;
+}
+
+.deleteConfirmBtns {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.deleteConfirmBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-error);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteCancelBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
