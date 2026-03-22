@@ -522,6 +522,72 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /v1/user/account:
+    delete:
+      operationId: deleteAccount
+      tags: [user]
+      summary: Delete account
+      description: |
+        Permanently deletes all data for the authenticated user: user settings, prayer logs,
+        fast logs, and practicing periods. This action cannot be undone.
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /v1/user/export:
+    get:
+      operationId: exportData
+      tags: [user]
+      summary: Export user data
+      description: |
+        Returns all stored data for the authenticated user across all tables
+        (user settings, prayer logs, fast logs, and practicing periods) as a
+        single JSON document. Intended for GDPR data-export requests.
+      responses:
+        '200':
+          description: User data export
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [exportedAt, userId]
+                properties:
+                  exportedAt:
+                    type: string
+                    format: date-time
+                    example: '2026-03-22T00:00:00.000Z'
+                  userId:
+                    type: string
+                    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+                  settings:
+                    type: array
+                    items:
+                      type: object
+                  prayerLogs:
+                    type: array
+                    items:
+                      type: object
+                  fastLogs:
+                    type: array
+                    items:
+                      type: object
+                  practicingPeriods:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 # =============================================================================
 # Components
 # =============================================================================
@@ -600,13 +666,16 @@ components:
 
     AddPracticingPeriodRequest:
       type: object
-      required: [startDate, endDate, type]
+      required: [startDate, type]
       additionalProperties: false
       properties:
         startDate:
           $ref: '#/components/schemas/HijriDate'
         endDate:
-          $ref: '#/components/schemas/HijriDate'
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Omit or set to null for an open-ended period (user is currently practicing)
         type:
           $ref: '#/components/schemas/PracticingPeriodType'
 
@@ -615,6 +684,11 @@ components:
       required: [bulughDate, gender]
       additionalProperties: false
       properties:
+        dateOfBirth:
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Optional date of birth in Hijri — used as a reference, stored but not required for debt calculation
         bulughDate:
           $ref: '#/components/schemas/HijriDate'
         gender:
@@ -728,7 +802,7 @@ components:
 
     PracticingPeriod:
       type: object
-      required: [periodId, startDate, endDate, type]
+      required: [periodId, startDate, type]
       properties:
         periodId:
           type: string
@@ -737,7 +811,10 @@ components:
         startDate:
           $ref: '#/components/schemas/HijriDate'
         endDate:
-          $ref: '#/components/schemas/HijriDate'
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Absent for open-ended periods (user is currently practicing)
         type:
           $ref: '#/components/schemas/PracticingPeriodType'
 
@@ -749,6 +826,11 @@ components:
           type: string
           description: Cognito sub claim
           example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+        dateOfBirth:
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Optional date of birth in Hijri
         bulughDate:
           $ref: '#/components/schemas/HijriDate'
         gender:

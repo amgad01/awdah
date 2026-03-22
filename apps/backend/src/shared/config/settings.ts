@@ -25,18 +25,20 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
   return value;
 }
 
-// Validate all required table env vars at module load. In prod/staging this
+// Validate all required env vars at module load. In prod/staging this
 // runs at Lambda cold start and reports every missing variable in one error.
 requireEnv([
   'PRAYER_LOGS_TABLE',
   'FAST_LOGS_TABLE',
   'PRACTICING_PERIODS_TABLE',
   'USER_SETTINGS_TABLE',
+  'COGNITO_USER_POOL_ID',
 ]);
 
 export const settings = {
   env: process.env.NODE_ENV || 'dev',
   region: process.env.AWS_REGION || 'us-east-1',
+  cognitoUserPoolId: requireEnv('COGNITO_USER_POOL_ID', 'us-east-1_localdev'),
   tables: {
     prayerLogs: requireEnv(
       'PRAYER_LOGS_TABLE',

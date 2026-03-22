@@ -34,13 +34,14 @@ export const logFastSchema = z.object({
 
 export const addPracticingPeriodSchema = z.object({
   startDate: hijriDateString,
-  endDate: hijriDateString,
+  endDate: hijriDateString.optional(),
   type: z.enum(PRACTICING_PERIOD_TYPES),
 });
 
 export const updateUserSettingsSchema = z.object({
   bulughDate: hijriDateString,
   gender: z.enum(GENDERS),
+  dateOfBirth: hijriDateString.optional(),
 });
 
 export const prayerHistoryQuerySchema = z.object({

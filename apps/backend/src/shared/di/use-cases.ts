@@ -8,6 +8,7 @@ import {
   calendarService,
 } from './repositories';
 
+import { CognitoAdminService } from '../infrastructure/cognito/cognito-admin.service';
 import { LogPrayerUseCase } from '../../contexts/salah/application/use-cases/log-prayer.use-case';
 import { GetSalahDebtUseCase } from '../../contexts/salah/application/use-cases/get-salah-debt.use-case';
 import { LogFastUseCase } from '../../contexts/sawm/application/use-cases/log-fast.use-case';
@@ -16,6 +17,8 @@ import { AddPracticingPeriodUseCase } from '../../contexts/salah/application/use
 import { GetPrayerHistoryUseCase } from '../../contexts/salah/application/use-cases/get-prayer-history.use-case';
 import { GetUserSettingsUseCase } from '../../contexts/user/application/use-cases/get-user-settings.use-case';
 import { UpdateUserSettingsUseCase } from '../../contexts/user/application/use-cases/update-user-settings.use-case';
+import { DeleteAccountUseCase } from '../../contexts/user/application/use-cases/delete-account.use-case';
+import { ExportDataUseCase } from '../../contexts/user/application/use-cases/export-data.use-case';
 import { GetFastHistoryUseCase } from '../../contexts/sawm/application/use-cases/get-fast-history.use-case';
 import { DeletePrayerLogUseCase } from '../../contexts/salah/application/use-cases/delete-prayer-log.use-case';
 import { DeleteFastLogUseCase } from '../../contexts/sawm/application/use-cases/delete-fast-log.use-case';
@@ -52,3 +55,5 @@ export const deleteFastLogUseCase = new DeleteFastLogUseCase(fastLogRepo);
 // User Use Cases
 export const getUserSettingsUseCase = new GetUserSettingsUseCase(userRepo);
 export const updateUserSettingsUseCase = new UpdateUserSettingsUseCase(userRepo);
+export const deleteAccountUseCase = new DeleteAccountUseCase(userRepo, new CognitoAdminService());
+export const exportDataUseCase = new ExportDataUseCase(userRepo);

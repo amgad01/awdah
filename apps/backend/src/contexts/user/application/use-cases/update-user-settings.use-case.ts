@@ -5,6 +5,7 @@ export interface UpdateUserSettingsCommand {
   userId: string;
   bulughDate: string;
   gender: Gender;
+  dateOfBirth?: string;
 }
 
 export class UpdateUserSettingsUseCase {
@@ -15,6 +16,7 @@ export class UpdateUserSettingsUseCase {
       userId: command.userId,
       bulughDate: HijriDate.fromString(command.bulughDate),
       gender: command.gender,
+      dateOfBirth: command.dateOfBirth ? HijriDate.fromString(command.dateOfBirth) : undefined,
     };
 
     await this.userRepository.save(settings);
