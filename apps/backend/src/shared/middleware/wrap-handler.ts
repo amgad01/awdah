@@ -25,13 +25,15 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
   const baseLogger = createLogger(contextName);
 
   return async (event, context) => {
-    const logger = baseLogger.child({ requestId: context.awsRequestId });
     const startTime = Date.now();
 
-    logger.info(
-      { path: event.rawPath, method: event.requestContext?.http?.method },
-      'invocation started',
-    );
+    const logger = baseLogger.child({
+      requestId: context.awsRequestId,
+      path: event.rawPath,
+      method: event.requestContext?.http?.method,
+    });
+
+    logger.debug('invocation started');
 
     try {
       // 1. Extract User Identity — HTTP API JWT authorizer always populates authorizer.jwt.claims
@@ -61,7 +63,7 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
       const result = await handler({ userId, body, query }, context);
 
       const duration = Date.now() - startTime;
-      logger.info({ duration, statusCode: result.statusCode }, 'invocation completed');
+      logger.debug({ duration, statusCode: result.statusCode }, 'invocation completed');
 
       return {
         statusCode: result.statusCode,
