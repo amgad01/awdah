@@ -4,9 +4,11 @@ import { handler as logPrayerHandler } from '../../../contexts/salah/infrastruct
 import { handler as getSalahDebtHandler } from '../../../contexts/salah/infrastructure/handlers/get-salah-debt.handler';
 import { handler as getPrayerHistoryHandler } from '../../../contexts/salah/infrastructure/handlers/get-prayer-history.handler';
 import { handler as addPracticingPeriodHandler } from '../../../contexts/salah/infrastructure/handlers/add-practicing-period.handler';
+import { handler as updatePracticingPeriodHandler } from '../../../contexts/salah/infrastructure/handlers/update-practicing-period.handler';
 import { handler as getPracticingPeriodsHandler } from '../../../contexts/salah/infrastructure/handlers/get-practicing-periods.handler';
 import { handler as deletePracticingPeriodHandler } from '../../../contexts/salah/infrastructure/handlers/delete-practicing-period.handler';
 import { handler as deletePrayerLogHandler } from '../../../contexts/salah/infrastructure/handlers/delete-prayer-log.handler';
+import { handler as resetPrayerLogsHandler } from '../../../contexts/salah/infrastructure/handlers/reset-prayer-logs.handler';
 
 export const registerSalahRoutes = (
   router: express.Router,
@@ -21,12 +23,18 @@ export const registerSalahRoutes = (
   router.delete(`${apiVersion}/salah/log`, (req, res) =>
     runHandler(deletePrayerLogHandler, req, res),
   );
+  router.delete(`${apiVersion}/salah/logs`, (req, res) =>
+    runHandler(resetPrayerLogsHandler, req, res),
+  );
   router.get(`${apiVersion}/salah/debt`, (req, res) => runHandler(getSalahDebtHandler, req, res));
   router.get(`${apiVersion}/salah/history`, (req, res) =>
     runHandler(getPrayerHistoryHandler, req, res),
   );
   router.post(`${apiVersion}/salah/practicing-period`, (req, res) =>
     runHandler(addPracticingPeriodHandler, req, res),
+  );
+  router.put(`${apiVersion}/salah/practicing-period`, (req, res) =>
+    runHandler(updatePracticingPeriodHandler, req, res),
   );
   router.get(`${apiVersion}/salah/practicing-periods`, (req, res) =>
     runHandler(getPracticingPeriodsHandler, req, res),

@@ -23,7 +23,10 @@ import { GetFastHistoryUseCase } from '../../contexts/sawm/application/use-cases
 import { DeletePrayerLogUseCase } from '../../contexts/salah/application/use-cases/delete-prayer-log.use-case';
 import { DeleteFastLogUseCase } from '../../contexts/sawm/application/use-cases/delete-fast-log.use-case';
 import { DeletePracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/delete-practicing-period.use-case';
+import { UpdatePracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/update-practicing-period.use-case';
 import { GetPracticingPeriodsUseCase } from '../../contexts/salah/application/use-cases/get-practicing-periods.use-case';
+import { ResetPrayerLogsUseCase } from '../../contexts/salah/application/use-cases/reset-prayer-logs.use-case';
+import { ResetFastLogsUseCase } from '../../contexts/sawm/application/use-cases/reset-fast-logs.use-case';
 
 // Salah Use Cases
 export const logPrayerUseCase = new LogPrayerUseCase(prayerLogRepo);
@@ -35,10 +38,15 @@ export const getSalahDebtUseCase = new GetSalahDebtUseCase(
   calendarService,
 );
 export const addPracticingPeriodUseCase = new AddPracticingPeriodUseCase(periodRepo, userRepo);
+export const updatePracticingPeriodUseCase = new UpdatePracticingPeriodUseCase(
+  periodRepo,
+  userRepo,
+);
 export const getPracticingPeriodsUseCase = new GetPracticingPeriodsUseCase(periodRepo);
 export const deletePracticingPeriodUseCase = new DeletePracticingPeriodUseCase(periodRepo);
 export const getPrayerHistoryUseCase = new GetPrayerHistoryUseCase(prayerLogRepo);
 export const deletePrayerLogUseCase = new DeletePrayerLogUseCase(prayerLogRepo);
+export const resetPrayerLogsUseCase = new ResetPrayerLogsUseCase(prayerLogRepo);
 
 // Sawm Use Cases
 export const logFastUseCase = new LogFastUseCase(fastLogRepo);
@@ -51,6 +59,7 @@ export const getSawmDebtUseCase = new GetSawmDebtUseCase(
 );
 export const getFastHistoryUseCase = new GetFastHistoryUseCase(fastLogRepo);
 export const deleteFastLogUseCase = new DeleteFastLogUseCase(fastLogRepo);
+export const resetFastLogsUseCase = new ResetFastLogsUseCase(fastLogRepo);
 
 // User Use Cases
 export const getUserSettingsUseCase = new GetUserSettingsUseCase(userRepo);
