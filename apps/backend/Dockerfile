@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:24-slim AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm run build --workspace=packages/shared
 RUN npm run build --workspace=@awdah/backend
 
 # Stage 2: Runtime
-FROM node:24-slim
+FROM node:20-slim
 
 WORKDIR /app
 
