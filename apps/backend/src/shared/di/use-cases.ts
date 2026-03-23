@@ -3,23 +3,25 @@ import {
   fastLogRepo,
   periodRepo,
   userRepo,
+  userDataLifecycleService,
   salahCalculator,
   sawmCalculator,
   calendarService,
 } from './repositories';
-
-import { CognitoAdminService } from '../infrastructure/cognito/cognito-admin.service';
+import { cognitoAdminService } from './services';
 import { LogPrayerUseCase } from '../../contexts/salah/application/use-cases/log-prayer.use-case';
 import { GetSalahDebtUseCase } from '../../contexts/salah/application/use-cases/get-salah-debt.use-case';
 import { LogFastUseCase } from '../../contexts/sawm/application/use-cases/log-fast.use-case';
 import { GetSawmDebtUseCase } from '../../contexts/sawm/application/use-cases/get-sawm-debt.use-case';
 import { AddPracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/add-practicing-period.use-case';
 import { GetPrayerHistoryUseCase } from '../../contexts/salah/application/use-cases/get-prayer-history.use-case';
+import { GetPrayerHistoryPageUseCase } from '../../contexts/salah/application/use-cases/get-prayer-history-page.use-case';
 import { GetUserSettingsUseCase } from '../../contexts/user/application/use-cases/get-user-settings.use-case';
 import { UpdateUserSettingsUseCase } from '../../contexts/user/application/use-cases/update-user-settings.use-case';
 import { DeleteAccountUseCase } from '../../contexts/user/application/use-cases/delete-account.use-case';
 import { ExportDataUseCase } from '../../contexts/user/application/use-cases/export-data.use-case';
 import { GetFastHistoryUseCase } from '../../contexts/sawm/application/use-cases/get-fast-history.use-case';
+import { GetFastHistoryPageUseCase } from '../../contexts/sawm/application/use-cases/get-fast-history-page.use-case';
 import { DeletePrayerLogUseCase } from '../../contexts/salah/application/use-cases/delete-prayer-log.use-case';
 import { DeleteFastLogUseCase } from '../../contexts/sawm/application/use-cases/delete-fast-log.use-case';
 import { DeletePracticingPeriodUseCase } from '../../contexts/salah/application/use-cases/delete-practicing-period.use-case';
@@ -45,6 +47,7 @@ export const updatePracticingPeriodUseCase = new UpdatePracticingPeriodUseCase(
 export const getPracticingPeriodsUseCase = new GetPracticingPeriodsUseCase(periodRepo);
 export const deletePracticingPeriodUseCase = new DeletePracticingPeriodUseCase(periodRepo);
 export const getPrayerHistoryUseCase = new GetPrayerHistoryUseCase(prayerLogRepo);
+export const getPrayerHistoryPageUseCase = new GetPrayerHistoryPageUseCase(prayerLogRepo);
 export const deletePrayerLogUseCase = new DeletePrayerLogUseCase(prayerLogRepo);
 export const resetPrayerLogsUseCase = new ResetPrayerLogsUseCase(prayerLogRepo);
 
@@ -58,11 +61,15 @@ export const getSawmDebtUseCase = new GetSawmDebtUseCase(
   calendarService,
 );
 export const getFastHistoryUseCase = new GetFastHistoryUseCase(fastLogRepo);
+export const getFastHistoryPageUseCase = new GetFastHistoryPageUseCase(fastLogRepo);
 export const deleteFastLogUseCase = new DeleteFastLogUseCase(fastLogRepo);
 export const resetFastLogsUseCase = new ResetFastLogsUseCase(fastLogRepo);
 
 // User Use Cases
 export const getUserSettingsUseCase = new GetUserSettingsUseCase(userRepo);
 export const updateUserSettingsUseCase = new UpdateUserSettingsUseCase(userRepo);
-export const deleteAccountUseCase = new DeleteAccountUseCase(userRepo, new CognitoAdminService());
-export const exportDataUseCase = new ExportDataUseCase(userRepo);
+export const deleteAccountUseCase = new DeleteAccountUseCase(
+  userDataLifecycleService,
+  cognitoAdminService,
+);
+export const exportDataUseCase = new ExportDataUseCase(userDataLifecycleService);

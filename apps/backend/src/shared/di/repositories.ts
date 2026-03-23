@@ -8,13 +8,11 @@ import { DynamoDBPrayerLogRepository } from '../infrastructure/persistence/dynam
 import { DynamoDBFastLogRepository } from '../infrastructure/persistence/dynamodb-fast-log.repository';
 import { DynamoDBPracticingPeriodRepository } from '../infrastructure/persistence/dynamodb-practicing-period.repository';
 import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-user.repository';
+import { DynamoDBUserDataLifecycleService } from '../infrastructure/persistence/dynamodb-user-data-lifecycle.service';
+import { createAwsClientConfig } from '../infrastructure/aws/client-config';
 
 // Shared Clients
-const rawClient = new DynamoDBClient({
-  region: settings.region,
-  ...(process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {}),
-  maxAttempts: 5,
-});
+const rawClient = new DynamoDBClient(createAwsClientConfig({ region: settings.region }));
 
 export const dbClient = DynamoDBDocumentClient.from(rawClient, {
   marshallOptions: { removeUndefinedValues: true },
@@ -30,3 +28,4 @@ export const prayerLogRepo = new DynamoDBPrayerLogRepository(dbClient);
 export const fastLogRepo = new DynamoDBFastLogRepository(dbClient);
 export const periodRepo = new DynamoDBPracticingPeriodRepository(dbClient);
 export const userRepo = new DynamoDBUserRepository(dbClient);
+export const userDataLifecycleService = new DynamoDBUserDataLifecycleService(dbClient);

@@ -22,9 +22,4 @@ export interface UserSettings {
 export interface IUserRepository {
   findById(userId: string): Promise<UserSettings | null>;
   save(settings: UserSettings): Promise<void>;
-  deleteAccount(userId: string): Promise<void>;
-  /**
-   * Retrieves all historical entries for a user across all tables.
-   */
-  exportData(userId: string): Promise<Record<string, unknown>>;
 }
