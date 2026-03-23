@@ -1,0 +1,70 @@
+import type {
+  IUserLifecycleJobRepository,
+  UserLifecycleJob,
+} from '../../domain/repositories/user-lifecycle-job.repository';
+import type { IUserDataLifecycleService } from '../../domain/services/user-data-lifecycle.service.interface';
+
+export interface ProcessUserLifecycleJobCommand {
+  userId: string;
+  jobId: string;
+}
+
+export class ProcessUserLifecycleJobUseCase {
+  constructor(
+    private readonly jobRepository: IUserLifecycleJobRepository,
+    private readonly userDataLifecycleService: IUserDataLifecycleService,
+  ) {}
+
+  async execute(command: ProcessUserLifecycleJobCommand): Promise<UserLifecycleJob | null> {
+    const startedAt = new Date().toISOString();
+    const job = await this.jobRepository.tryMarkProcessing(
+      command.userId,
+      command.jobId,
+      startedAt,
+    );
+
+    if (!job) {
+      return null;
+    }
+
+    try {
+      if (job.type === 'export') {
+        const data = await this.userDataLifecycleService.exportUserData(command.userId);
+        const exportFileName = `awdah-data-export-${startedAt.split('T')[0]}.json`;
+        const { chunkCount } = await this.jobRepository.saveExportResult(
+          command.userId,
+          command.jobId,
+          {
+            fileName: exportFileName,
+            contentType: 'application/json;charset=utf-8',
+            data,
+            expiresAt: job.expiresAt,
+          },
+        );
+
+        return this.jobRepository.markCompleted(command.userId, command.jobId, {
+          completedAt: new Date().toISOString(),
+          exportFileName,
+          exportContentType: 'application/json;charset=utf-8',
+          exportChunkCount: chunkCount,
+        });
+      }
+
+      await this.userDataLifecycleService.deleteUserData(command.userId);
+
+      return this.jobRepository.markCompleted(command.userId, command.jobId, {
+        completedAt: new Date().toISOString(),
+        authCleanupRequired: true,
+        authDeleted: false,
+      });
+    } catch (error) {
+      await this.jobRepository.markFailed(
+        command.userId,
+        command.jobId,
+        new Date().toISOString(),
+        error instanceof Error ? error.message : 'Unexpected lifecycle job failure',
+      );
+      throw error;
+    }
+  }
+}

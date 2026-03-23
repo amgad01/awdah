@@ -4,6 +4,7 @@ import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambda_event_sources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { DataStack } from './data-stack';
@@ -110,6 +111,7 @@ export class ApiStack extends BaseStack {
       FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
       PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
       USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
     };
 
@@ -276,18 +278,37 @@ export class ApiStack extends BaseStack {
         id: 'DeleteAccountFn',
         entryPath: 'contexts/user/infrastructure/handlers/delete-account.handler.ts',
         context: 'user',
-        writeTables: userReadTables,
-        memorySize: config.heavyOperationMemorySize,
-        timeout: config.heavyOperationTimeout,
-        reservedConcurrentExecutions: config.adminOperationConcurrency,
-        durationAlarmThresholdMs: config.heavyLambdaDurationAlarmMs,
-        concurrencyAlarmThreshold: config.adminOperationConcurrency,
+        writeTables: [props.dataStack.userLifecycleJobsTable],
       },
       {
         id: 'ExportDataFn',
         entryPath: 'contexts/user/infrastructure/handlers/export-data.handler.ts',
         context: 'user',
-        readTables: userReadTables,
+        writeTables: [props.dataStack.userLifecycleJobsTable],
+      },
+      {
+        id: 'GetUserLifecycleJobStatusFn',
+        entryPath: 'contexts/user/infrastructure/handlers/get-user-lifecycle-job-status.handler.ts',
+        context: 'user',
+        readTables: [props.dataStack.userLifecycleJobsTable],
+      },
+      {
+        id: 'DownloadExportDataFn',
+        entryPath: 'contexts/user/infrastructure/handlers/download-export-data.handler.ts',
+        context: 'user',
+        readTables: [props.dataStack.userLifecycleJobsTable],
+      },
+      {
+        id: 'FinalizeDeleteAccountFn',
+        entryPath: 'contexts/user/infrastructure/handlers/finalize-delete-account.handler.ts',
+        context: 'user',
+        writeTables: [props.dataStack.userLifecycleJobsTable],
+      },
+      {
+        id: 'ProcessUserLifecycleJobFn',
+        entryPath: 'shared/infrastructure/handlers/process-user-lifecycle-job.handler.ts',
+        context: 'user',
+        writeTables: [props.dataStack.userLifecycleJobsTable, ...userReadTables],
         memorySize: config.heavyOperationMemorySize,
         timeout: config.heavyOperationTimeout,
         reservedConcurrentExecutions: config.adminOperationConcurrency,
@@ -309,15 +330,25 @@ export class ApiStack extends BaseStack {
       return fn;
     };
 
-    // Account deletion — requires read+write on all user tables AND Cognito AdminDeleteUser.
-    // DynamoDB is deleted first; Cognito is deleted second (per architecture spec).
-    const deleteAccountFn = getBusinessLambda('DeleteAccountFn');
-    deleteAccountFn.addToRolePolicy(
+    const finalizeDeleteAccountFn = getBusinessLambda('FinalizeDeleteAccountFn');
+    finalizeDeleteAccountFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ['cognito-idp:AdminDeleteUser'],
         resources: [
           `arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${props.authStack.userPool.userPoolId}`,
         ],
+      }),
+    );
+
+    const processUserLifecycleJobFn = getBusinessLambda(
+      'ProcessUserLifecycleJobFn',
+    ) as lambda.Function;
+    processUserLifecycleJobFn.addEventSource(
+      new lambda_event_sources.DynamoEventSource(props.dataStack.userLifecycleJobsTable, {
+        startingPosition: lambda.StartingPosition.LATEST,
+        batchSize: 5,
+        bisectBatchOnError: true,
+        retryAttempts: 2,
       }),
     );
 
@@ -457,10 +488,28 @@ export class ApiStack extends BaseStack {
         integrationId: 'DeleteAccountIntegration',
       },
       {
+        path: '/user/account/auth',
+        method: apigatewayv2.HttpMethod.DELETE,
+        lambdaId: 'FinalizeDeleteAccountFn',
+        integrationId: 'FinalizeDeleteAccountIntegration',
+      },
+      {
         path: '/user/export',
         method: apigatewayv2.HttpMethod.GET,
+        lambdaId: 'DownloadExportDataFn',
+        integrationId: 'DownloadExportDataIntegration',
+      },
+      {
+        path: '/user/export',
+        method: apigatewayv2.HttpMethod.POST,
         lambdaId: 'ExportDataFn',
         integrationId: 'ExportDataIntegration',
+      },
+      {
+        path: '/user/jobs/status',
+        method: apigatewayv2.HttpMethod.GET,
+        lambdaId: 'GetUserLifecycleJobStatusFn',
+        integrationId: 'GetUserLifecycleJobStatusIntegration',
       },
     ];
 

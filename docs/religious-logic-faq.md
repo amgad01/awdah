@@ -1,6 +1,8 @@
-# Religious and Technical Logic (FAQ)
+# Religious Logic (FAQ)
 
-This document provides transparency on how religious rulings and technical constraints are handled within the Awdah application. It is intended for both users and developers to understand the basis of the app's logic.
+This document explains the Islamic rulings and scholarly positions that drive the app's calculations. It is intended for users who want to understand the fiqh basis of how Awdah works.
+
+For the technical implementation details — how the codebase handles date formats, log schema decisions, and the derived-completion design — see [docs/technical-decisions.md](technical-decisions.md).
 
 ---
 
@@ -8,52 +10,67 @@ This document provides transparency on how religious rulings and technical const
 
 ### **Q: How are Hijri dates calculated?**
 
-We use the **UMALQURA (Umm al-Qura)** calendar system, which is the official civil Hijri calendar of Saudi Arabia. Technically, this is implemented using the standard `Intl.DateTimeFormat` API available in modern Node.js environments.
+We use the **Umm al-Qura** calendar system, which is the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally.
 
 ### **Q: Why don't you assume every month is 30 days?**
 
-Assuming 30 days per month (the "simplified" approach) leads to significant cumulative errors. A real Hijri year is approximately 354-355 days, not 360. By using a standard library, we ensure that:
+A real Hijri year is approximately 354–355 days, not 360. Assuming 30 days per month produces cumulative errors that would distort your qadaa count over time. Using the Umm al-Qura calendar ensures that:
 
-1. Months are correctly assigned 29 or 30 days.
-2. Ramadan is identified accurately based on the astronomical calculations of the chosen calendar system.
-3. Your qadaa debt is calculated precisely based on actual days passed, not rough estimates.
+1. Months are correctly assigned 29 or 30 days as they actually fall.
+2. Ramadan is identified and counted accurately.
+3. Your qadaa is calculated on the actual number of days that passed, not an estimate.
 
 ---
 
-## 2. Puberty (Bulugh) and Debt Calculation
+## 2. Puberty (Bulugh) and Missed Obligations
 
-### **Q: What is the age of Bulugh in the app?**
+### **Q: What is the age of Bulugh?**
 
-If you do not know your exact date of Bulugh, the app offers a default helper that sets it at **15 Hijri years** from your date of birth. This is based on the consensus (ijma') of the Hanafi, Shafi'i, and Hanbali schools of thought.
+Bulugh (reaching the age of religious accountability) is established by signs of puberty: wet dream or seminal emission (male), or onset of menstruation (female), or the growth of coarse pubic hair.
 
-### **Q: How is "Missed Days" calculated?**
+If none of these occur earlier, the **default age is 15 Hijri years**. This is the position of the Hanafi, Shafi'i, and Hanbali schools based on the hadith that the Prophet ﷺ inspected Ibn 'Umar before Uhud and found him not yet of age, then accepted him before Khandaq at 15 (_Sahih al-Bukhari 2664, Sahih Muslim 1868_).
 
-Debt is only calculated for the "gaps" in your practicing history.
+### **Q: How is the missed obligations count calculated?**
 
-- **Start point:** Your date of Bulugh.
-- **End point:** The current date.
-- **Exclusions:** Any "Practicing Periods" you add where you were consistently performing your obligations.
-- **Formula:** `(Total Days from Bulugh to Today) - (Total Days in Practicing Periods)`.
+Qadaa obligations accumulate only during the "gaps" in your practicing history — periods between your date of Bulugh and when you were consistently fulfilling your obligations.
+
+- **Start:** Date of Bulugh
+- **End:** Current date (or start of your next practicing period)
+- **Excluded:** Any Practicing Periods you record
+
+The formula is: `(Total days across all gap periods) × 5` for Salah, or the sum of Ramadan days that fell within gap periods for Sawm.
 
 ---
 
 ## 3. Salah (Prayer) Qadaa
 
-### **Q: Which prayers are included in the qadaa debt?**
+### **Q: Which prayers are included in the qadaa count?**
 
-The debt includes the five daily obligatory prayers: **Fajr, Dhuhr, Asr, Maghrib, and Isha**.
+The five daily obligatory (Fard) prayers: **Fajr, Dhuhr, Asr, Maghrib, and Isha**.
 
 ### **Q: What about Witr?**
 
-In v1, Witr is not tracked as a separate qadaa debt. While the Hanafi school considers Witr obligatory (Wajib), the majority view is that it is Sunnah Mu'akkadah. To maintain cross-madhab compatibility in v1, we focus on the five agreed-upon Fard prayers.
+Witr is not tracked as a separate qadaa obligation in v1. The Hanafi school considers Witr Wajib, but the majority view (Maliki, Shafi'i, Hanbali) holds it to be Sunnah Mu'akkadah. To maintain cross-madhab compatibility in v1, Awdah focuses on the five Fard prayers agreed upon by all schools.
+
+### **Q: Is there a time limit on making up missed prayers?**
+
+No scholarly expiry on qadaa is recognised. The obligation remains until it is fulfilled. Scholars across the four major madhabs agree on this. See _Radd al-Muhtar_ (Hanafi), _Minhaj al-Talibin_ (Shafi'i), _al-Mughni_ (Hanbali).
 
 ---
 
 ## 4. Sawm (Fasting) Qadaa
 
-### **Q: How does the app calculate missed fasts?**
+### **Q: How does the app calculate missed Ramadan fasts?**
 
-The app identifies every Ramadan that occurred during your "gap" periods and counts the number of days in those specific Ramadans (29 or 30) using the Um al-Qura calendar.
+The app identifies every Ramadan that fell within your gap periods and counts the actual days of that Ramadan (29 or 30) using the Umm al-Qura calendar — no hardcoded values.
+
+### **Q: What about fasts broken intentionally (Kaffarah)?**
+
+Kaffarah is out of scope for v1. All missed fasts are treated as standard qadaa regardless of the reason. Kaffarah calculation will be considered for a future release.
+
+### **Q: What about menstruation exemptions for women?**
+
+Also out of scope for v1. The Sawm count currently does not subtract exempted Ramadan days for menstruating women. This will be addressed in v2.
 
 ---
 
@@ -61,20 +78,13 @@ The app identifies every Ramadan that occurred during your "gap" periods and cou
 
 ### **Q: Is my religious data sensitive?**
 
-Yes. Religious practice data is considered sensitive personal data.
+Yes. Religious practice data is considered sensitive personal data under GDPR and similar frameworks.
 
 - **Encryption:** All data is encrypted at rest in AWS DynamoDB.
-- **Access:** Your logs are private to you. We do not sell or share your worship data with anyone.
-- **Storage:** We do not store raw passwords; authentication is handled by AWS Cognito.
+- **Access:** Your logs are private to you. We do not sell or share your data.
+- **Authentication:** Handled by AWS Cognito — we never store raw passwords.
+- **Deletion:** Full account deletion is available in Settings and removes all data immediately.
 
 ---
 
-## 6. Technical Integrity
-
-### **Q: How do you handle timezones?**
-
-All religious calculations (e.g., determining which Hijri day it is) are performed using **UTC** to avoid errors caused by the user's local device settings or DST changes. This ensures that a prayer logged on "1 Ramadhan" remains "1 Ramadhan" regardless of where the user travels.
-
----
-
-_Note: This doc is a living document and will be updated as new features (like menstruation exemptions or Kaffarah) are added in v2._
+_Note: All rulings referenced here must be verified by a qualified scholar before the app is published. Scholar review status is tracked in the references content files._

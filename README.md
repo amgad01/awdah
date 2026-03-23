@@ -33,7 +33,7 @@ Awdah is a full-stack serverless web application that helps Muslims return to th
 | State          | TanStack Query (server), React hooks (local) |
 | i18n / RTL     | i18next, react-i18next — English + Arabic    |
 | Backend        | Node.js, TypeScript, Express, AWS Lambda     |
-| Infrastructure | AWS CDK (TypeScript)                         |
+| Infrastructure | AWS CDK, S3, CloudFront                      |
 | Database       | DynamoDB (PAY_PER_REQUEST)                   |
 | Auth           | AWS Cognito (local bypass for dev)           |
 | E2E Testing    | Playwright                                   |
@@ -53,10 +53,18 @@ No AWS account or real credentials needed for local development.
 ### Local Development (Docker Compose)
 
 1. Ensure Docker is running.
-2. Run `docker compose up --build`.
-3. Frontend: `http://localhost:8080`, Backend: `http://localhost:3000`.
+2. Run `docker compose up --build localstack backend frontend`.
+3. Wait until the services report healthy.
+4. Frontend: `http://localhost:8080`, Backend: `http://localhost:3000`.
 
 The frontend proxies API calls to the local Lambda runner. LocalStack simulates DynamoDB, S3, SQS, SNS, EventBridge, and Secrets Manager.
+
+### Public demo route
+
+- Demo page: `http://localhost:8080/demo`
+- Static demo data: `apps/frontend/public/demo-data/sample-user.json`
+
+The `/demo` route is intentionally backed by a bundled JSON asset rather than live AWS data. That makes it useful for portfolio links, hiring-manager walkthroughs, and non-AWS static hosting where only the frontend is deployed.
 
 ### Local AWS credentials
 
@@ -95,7 +103,7 @@ awdah/
 │   │   └── e2e/            # Playwright E2E tests
 │   └── backend/            # Express server simulating AWS Lambda
 │       └── src/contexts/   # Salah + Sawm bounded contexts (Clean Architecture)
-├── infra/                  # AWS CDK stacks (auth, api, data, backup, alarm)
+├── infra/                  # AWS CDK stacks (auth, api, data, backup, alarm, frontend)
 ├── packages/shared/        # Shared types, Hijri logic, domain interfaces
 ├── docker/                 # LocalStack config + bootstrap scripts
 ├── docs/                   # Public documentation
@@ -126,27 +134,44 @@ The full API reference is in [docs/api/openapi.yaml](docs/api/openapi.yaml) (Ope
 | `GET`    | `/health`                      | Health check (no auth)               |
 | `POST`   | `/v1/salah/log`                | Log a prayer (obligatory or qadaa)   |
 | `DELETE` | `/v1/salah/log`                | Delete a prayer log entry            |
+| `DELETE` | `/v1/salah/logs`               | Delete all prayer log entries        |
 | `GET`    | `/v1/salah/debt`               | Get Salah qadaa debt summary         |
 | `GET`    | `/v1/salah/history`            | Get prayer log history by date range |
 | `POST`   | `/v1/salah/practicing-period`  | Add a practicing period              |
+| `PUT`    | `/v1/salah/practicing-period`  | Update a practicing period           |
 | `GET`    | `/v1/salah/practicing-periods` | List all practicing periods          |
 | `DELETE` | `/v1/salah/practicing-period`  | Delete a practicing period           |
 | `POST`   | `/v1/sawm/log`                 | Log a fast (obligatory or qadaa)     |
 | `DELETE` | `/v1/sawm/log`                 | Delete a fast log entry              |
+| `DELETE` | `/v1/sawm/logs`                | Delete all fast log entries          |
 | `GET`    | `/v1/sawm/debt`                | Get Sawm qadaa debt summary          |
 | `GET`    | `/v1/sawm/history`             | Get fast log history by date range   |
 | `GET`    | `/v1/user/profile`             | Get user profile                     |
 | `POST`   | `/v1/user/profile`             | Create or update user profile        |
+| `DELETE` | `/v1/user/account`             | Delete the authenticated account     |
+| `GET`    | `/v1/user/export`              | Export all user data                 |
 
 All routes except `/health` require a Cognito JWT `Bearer` token. All dates are Hijri `YYYY-MM-DD`.
 
 ## CI/CD
 
-| Workflow     | Trigger       | Purpose                                  |
-| ------------ | ------------- | ---------------------------------------- |
-| `ci.yml`     | Every PR      | ESLint, Prettier, tsc, Vitest, npm audit |
-| `e2e.yml`    | Merge to main | Deploy to staging, run Playwright        |
-| `deploy.yml` | Manual        | CDK deploy to staging or prod            |
+| Workflow           | Trigger           | Purpose                                                        |
+| ------------------ | ----------------- | -------------------------------------------------------------- |
+| `ci.yml`           | PRs, main, manual | ESLint, Prettier, tsc, builds, Vitest, npm audit               |
+| `e2e.yml`          | Manual            | Playwright E2E against the local full stack                    |
+| `deploy.yml`       | Manual            | Deploy backend infra, build SPA, deploy CloudFront frontend    |
+| `deploy-pages.yml` | Manual            | Build SPA with GitHub Pages base path and deploy to `gh-pages` |
+
+## Deployment Targets
+
+| Target       | Version | Frontend URL                        | Notes                                    |
+| ------------ | ------- | ----------------------------------- | ---------------------------------------- |
+| GitHub Pages | v1      | `https://<org>.github.io/awdah`     | Set `VITE_BASE_PATH=/awdah/` at build    |
+| CloudFront   | v2      | `https://awdah.app` (custom domain) | `VITE_BASE_PATH` unset (defaults to `/`) |
+
+Both targets call the same AWS backend. To allow a GitHub Pages origin in the API CORS policy, pass `--context frontendOrigin=https://<org>.github.io` when running `cdk deploy`.
+
+See [`private-docs/decisions/deployment-strategy.md`](private-docs/decisions/deployment-strategy.md) for complete step-by-step setup.
 
 ## Contributing
 

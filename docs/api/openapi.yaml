@@ -157,8 +157,30 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ---------------------------------------------------------------------------
+  # Salah — reset all logs
+  # ---------------------------------------------------------------------------
+  /v1/salah/logs:
+    delete:
+      operationId: resetSalahLogs
+      tags: [salah]
+      summary: Delete all Salah prayer logs
+      description: |
+        Permanently deletes all prayer log entries (daily tracker and qadaa) for the
+        authenticated user. The user's profile, bulugh date, and practicing periods are
+        not affected. Debt is recalculated on the next call to `GET /v1/salah/debt`.
+      responses:
+        '200':
+          description: All prayer logs deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -276,6 +298,42 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+    put:
+      operationId: updatePracticingPeriod
+      tags: [salah]
+      summary: Update a practicing period
+      description: |
+        Updates an existing practicing period in place. The period keeps the same
+        `periodId`, and the updated range must still remain non-overlapping with
+        the user's other recorded periods.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePracticingPeriodRequest'
+      responses:
+        '200':
+          description: Period updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Updated period overlaps with an existing period
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
     delete:
       operationId: deletePracticingPeriod
       tags: [salah]
@@ -300,8 +358,6 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -387,8 +443,30 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ---------------------------------------------------------------------------
+  # Sawm — reset all logs
+  # ---------------------------------------------------------------------------
+  /v1/sawm/logs:
+    delete:
+      operationId: resetSawmLogs
+      tags: [sawm]
+      summary: Delete all Sawm fast logs
+      description: |
+        Permanently deletes all fast log entries for the authenticated user. The user's
+        profile, bulugh date, and practicing periods are not affected. Debt is
+        recalculated on the next call to `GET /v1/sawm/debt`.
+      responses:
+        '200':
+          description: All fast logs deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -675,7 +753,26 @@ components:
           allOf:
             - $ref: '#/components/schemas/HijriDate'
           nullable: true
-          description: Omit or set to null for an open-ended period (user is currently practicing)
+          description: Omit or set to null for an open-ended period (user is currently practicing). When provided, must not be earlier than startDate (validated server-side).
+        type:
+          $ref: '#/components/schemas/PracticingPeriodType'
+
+    UpdatePracticingPeriodRequest:
+      type: object
+      required: [periodId, startDate, type]
+      additionalProperties: false
+      properties:
+        periodId:
+          type: string
+          minLength: 1
+          example: '01HTBZ1234ABCDEFGHIJKLMNOP'
+        startDate:
+          $ref: '#/components/schemas/HijriDate'
+        endDate:
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Omit or set to null for an open-ended period (user is currently practicing). When provided, must not be earlier than startDate (validated server-side).
         type:
           $ref: '#/components/schemas/PracticingPeriodType'
 
@@ -691,6 +788,11 @@ components:
           description: Optional date of birth in Hijri — used as a reference, stored but not required for debt calculation
         bulughDate:
           $ref: '#/components/schemas/HijriDate'
+        revertDate:
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Optional date of reversion to Islam — when present and later than bulughDate, debt calculation starts from this date. Must not be earlier than bulughDate (validated server-side).
         gender:
           $ref: '#/components/schemas/Gender'
 
@@ -716,7 +818,8 @@ components:
 
     SalahDebtResponse:
       type: object
-      required: [totalDaysMissed, totalPrayersOwed, completedPrayers, remainingPrayers]
+      required:
+        [totalDaysMissed, totalPrayersOwed, completedPrayers, remainingPrayers, perPrayerRemaining]
       properties:
         totalDaysMissed:
           type: integer
@@ -738,25 +841,37 @@ components:
           minimum: 0
           description: totalPrayersOwed − completedPrayers (never negative)
           example: 15695
+        perPrayerRemaining:
+          type: object
+          description: Remaining qadaa count per prayer name (fajr, dhuhr, asr, maghrib, isha)
+          additionalProperties:
+            type: integer
+            minimum: 0
+          example:
+            fajr: 3139
+            dhuhr: 3139
+            asr: 3139
+            maghrib: 3139
+            isha: 3139
 
     SawmDebtResponse:
       type: object
-      required: [totalFastingDaysMissed, completedFasts, remainingFasts]
+      required: [totalDaysOwed, completedDays, remainingDays]
       properties:
-        totalFastingDaysMissed:
+        totalDaysOwed:
           type: integer
           minimum: 0
           description: Total Ramadan fasting days missed across all gap periods
           example: 270
-        completedFasts:
+        completedDays:
           type: integer
           minimum: 0
           description: Total qadaa fasts already logged
           example: 45
-        remainingFasts:
+        remainingDays:
           type: integer
           minimum: 0
-          description: totalFastingDaysMissed − completedFasts (never negative)
+          description: totalDaysOwed − completedDays (never negative)
           example: 225
 
     PrayerLogEntry:
@@ -833,6 +948,11 @@ components:
           description: Optional date of birth in Hijri
         bulughDate:
           $ref: '#/components/schemas/HijriDate'
+        revertDate:
+          allOf:
+            - $ref: '#/components/schemas/HijriDate'
+          nullable: true
+          description: Optional date of reversion to Islam
         gender:
           $ref: '#/components/schemas/Gender'
 

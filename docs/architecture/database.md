@@ -11,7 +11,7 @@ Tracks all prayer-related activities (logged prayers, missed prayers, etc.).
 - **Partition Key (`PK`)**: `userId` (String) - Cognito User ID.
 - **Sort Key (`SK`)**: `sk` (String) - Typically `DATE#YYYY-MM-DD` or specific event IDs.
 - **GSIs**:
-  - `GSI1`: Partition Key: `userId`, Sort Key: `typeDate` (e.g., `LOG#2026-03-10`) for efficient date-range queries.
+  - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate` (e.g., `LOG#2026-03-10`) for efficient date-range queries.
 
 ### 2. Fast Logs (`Awdah-FastLogs-{env}`)
 
@@ -20,7 +20,7 @@ Tracks fasting history.
 - **Partition Key (`PK`)**: `userId` (String).
 - **Sort Key (`SK`)**: `sk` (String) - `DATE#YYYY-MM-DD`.
 - **GSIs**:
-  - `GSI1`: Partition Key: `userId`, Sort Key: `typeDate`.
+  - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate`.
 
 ### 3. Practicing Periods (`Awdah-PracticingPeriods-{env}`)
 
