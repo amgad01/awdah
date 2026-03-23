@@ -3,6 +3,11 @@ import { AppError, InternalError, UnauthenticatedError, ValidationError } from '
 import { createLogger } from './logger';
 import { SECURITY_HEADERS } from './security-headers';
 
+const JSON_RESPONSE_HEADERS = {
+  'Content-Type': 'application/json',
+  ...SECURITY_HEADERS,
+};
+
 export interface AuthenticatedRequest<
   TBody extends Record<string, unknown> = Record<string, unknown>,
 > {
@@ -36,27 +41,8 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
     logger.debug('invocation started');
 
     try {
-      // 1. Extract User Identity — HTTP API JWT authorizer always populates authorizer.jwt.claims
-      const authorizer = (
-        event.requestContext as unknown as { authorizer?: Record<string, unknown> }
-      ).authorizer;
-
-      const jwt = authorizer?.jwt as Record<string, unknown> | undefined;
-      const claims = jwt?.claims as Record<string, string> | undefined;
-      const userId = claims?.sub;
-      if (!userId) {
-        throw new UnauthenticatedError('Missing user identity');
-      }
-
-      // 2. Parse Body if present
-      let body: TBody = {} as TBody;
-      if (event.body) {
-        try {
-          body = JSON.parse(event.body);
-        } catch {
-          throw new ValidationError('Invalid JSON body');
-        }
-      }
+      const userId = extractUserId(event);
+      const body = parseRequestBody<TBody>(event.body);
 
       // 3. Execute Handler
       const query = (event.queryStringParameters ?? {}) as Record<string, string>;
@@ -65,41 +51,55 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
       const duration = Date.now() - startTime;
       logger.debug({ duration, statusCode: result.statusCode }, 'invocation completed');
 
-      return {
-        statusCode: result.statusCode,
-        headers: {
-          'Content-Type': 'application/json',
-          ...SECURITY_HEADERS,
-        },
-        body: JSON.stringify(result.body),
-      };
+      return jsonResponse(result.statusCode, result.body);
     } catch (error) {
       const duration = Date.now() - startTime;
 
       if (error instanceof AppError) {
         logger.warn({ duration, code: error.code, statusCode: error.statusCode }, error.message);
-        return {
-          statusCode: error.statusCode,
-          headers: {
-            'Content-Type': 'application/json',
-            ...SECURITY_HEADERS,
-          },
-          body: JSON.stringify(error.toJSON()),
-        };
+        return jsonResponse(error.statusCode, error.toJSON());
       }
 
       const unexpectedError = error instanceof Error ? error : new Error(String(error));
       logger.error({ duration, err: unexpectedError }, 'unexpected error');
 
       const internalError = new InternalError('An unexpected error occurred');
-      return {
-        statusCode: internalError.statusCode,
-        headers: {
-          'Content-Type': 'application/json',
-          ...SECURITY_HEADERS,
-        },
-        body: JSON.stringify(internalError.toJSON()),
-      };
+      return jsonResponse(internalError.statusCode, internalError.toJSON());
     }
+  };
+}
+
+function extractUserId(event: APIGatewayProxyEventV2): string {
+  // HTTP API JWT authorizer always populates authorizer.jwt.claims when auth succeeds.
+  const authorizer = (event.requestContext as unknown as { authorizer?: Record<string, unknown> })
+    .authorizer;
+  const jwt = authorizer?.jwt as Record<string, unknown> | undefined;
+  const claims = jwt?.claims as Record<string, string> | undefined;
+  const userId = claims?.sub;
+
+  if (!userId) {
+    throw new UnauthenticatedError('Missing user identity');
+  }
+
+  return userId;
+}
+
+function parseRequestBody<TBody extends Record<string, unknown>>(rawBody?: string): TBody {
+  if (!rawBody) {
+    return {} as TBody;
+  }
+
+  try {
+    return JSON.parse(rawBody) as TBody;
+  } catch {
+    throw new ValidationError('Invalid JSON body');
+  }
+}
+
+function jsonResponse(statusCode: number, body: unknown): APIGatewayProxyResultV2 {
+  return {
+    statusCode,
+    headers: JSON_RESPONSE_HEADERS,
+    body: JSON.stringify(body),
   };
 }

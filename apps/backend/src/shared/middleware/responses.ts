@@ -13,11 +13,12 @@ function createResponse<T>(statusCode: number, dataOrOptions: T | ResponseOption
     ('message' in dataOrOptions || 'data' in dataOrOptions)
   ) {
     const { message, data } = dataOrOptions as ResponseOptions<T>;
+    const hasData = data !== undefined;
     return {
       statusCode,
       body: {
-        ...(message ? { message } : {}),
-        ...(data ? (typeof data === 'object' ? data : { data }) : {}),
+        ...(message !== undefined ? { message } : {}),
+        ...(hasData ? (data !== null && typeof data === 'object' ? data : { data }) : {}),
       },
     };
   }

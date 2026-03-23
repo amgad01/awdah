@@ -80,6 +80,13 @@ describe('wrap-handler', () => {
       expect(result.statusCode).toBe(StatusCodes.CREATED);
       expect(result.body).toEqual({ message });
     });
+
+    it('should preserve falsy response data', () => {
+      expect(responses.ok({ data: 0 }).body).toEqual({ data: 0 });
+      expect(responses.ok({ data: false }).body).toEqual({ data: false });
+      expect(responses.ok({ data: '' }).body).toEqual({ data: '' });
+      expect(responses.ok({ message: '', data: 0 }).body).toEqual({ message: '', data: 0 });
+    });
   });
 
   describe('wrapHandler', () => {

@@ -86,4 +86,27 @@ describe('create-handler', () => {
     expect(JSON.parse(res.body)).toEqual({ message: 'All good' });
     expect(useCase.execute).toHaveBeenCalledWith({ userId: 'test-user-id', foo: 'bar' });
   });
+
+  it('allows handlers to present transport envelopes without pushing that shape into the use case', async () => {
+    const useCase: {
+      execute: (input: { userId: string }) => Promise<{ authDeleted: boolean }>;
+    } = {
+      execute: vi.fn().mockResolvedValue({ authDeleted: false }),
+    };
+    const handler = createHandler('TestContext', useCase, {
+      present: (result) => ({
+        message: 'Cleanup pending',
+        authDeleted: result.authDeleted,
+      }),
+    });
+
+    const result = await handler(createMockEvent({}), mockContext);
+    const res = result as { statusCode: number; body: string };
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual({
+      message: 'Cleanup pending',
+      authDeleted: false,
+    });
+  });
 });

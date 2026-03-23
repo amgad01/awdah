@@ -231,4 +231,50 @@ describe('API Route Tests', () => {
 
     expect(response.statusCode).toBe(400);
   });
+
+  it('GET /v1/salah/history/page with x-user-id should call the paged history use case', async () => {
+    vi.mocked(mockUseCases.getPrayerHistoryPageUseCase.execute).mockResolvedValueOnce({
+      items: [],
+      hasMore: false,
+    });
+
+    const response = await invokeApp(
+      'GET',
+      '/v1/salah/history/page?startDate=1446-08-01&endDate=1446-08-30&limit=50',
+      {
+        headers: { 'x-user-id': 'test-user' },
+      },
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(mockUseCases.getPrayerHistoryPageUseCase.execute).toHaveBeenCalledWith({
+      userId: 'test-user',
+      startDate: '1446-08-01',
+      endDate: '1446-08-30',
+      limit: 50,
+    });
+  });
+
+  it('GET /v1/sawm/history/page with x-user-id should call the paged history use case', async () => {
+    vi.mocked(mockUseCases.getFastHistoryPageUseCase.execute).mockResolvedValueOnce({
+      items: [],
+      hasMore: false,
+    });
+
+    const response = await invokeApp(
+      'GET',
+      '/v1/sawm/history/page?startDate=1446-08-01&endDate=1446-08-30&limit=50',
+      {
+        headers: { 'x-user-id': 'test-user' },
+      },
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(mockUseCases.getFastHistoryPageUseCase.execute).toHaveBeenCalledWith({
+      userId: 'test-user',
+      startDate: '1446-08-01',
+      endDate: '1446-08-30',
+      limit: 50,
+    });
+  });
 });

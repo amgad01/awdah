@@ -8,6 +8,10 @@ import {
 } from '@awdah/shared';
 
 const hijriDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_UNPAGED_HISTORY_RANGE_DAYS = 120;
+const MAX_PAGED_HISTORY_RANGE_DAYS = 365;
+const DEFAULT_HISTORY_PAGE_LIMIT = 100;
+const MAX_HISTORY_PAGE_LIMIT = 200;
 
 const hijriDateString = z
   .string()
@@ -75,6 +79,10 @@ export const prayerHistoryQuerySchema = z
   .refine((d) => d.endDate >= d.startDate, {
     message: 'End date cannot be before start date',
     path: ['endDate'],
+  })
+  .refine((d) => isWithinHistoryRange(d.startDate, d.endDate, MAX_UNPAGED_HISTORY_RANGE_DAYS), {
+    message: `History range cannot exceed ${MAX_UNPAGED_HISTORY_RANGE_DAYS} days`,
+    path: ['endDate'],
   });
 
 export const fastHistoryQuerySchema = z
@@ -84,6 +92,31 @@ export const fastHistoryQuerySchema = z
   })
   .refine((d) => d.endDate >= d.startDate, {
     message: 'End date cannot be before start date',
+    path: ['endDate'],
+  })
+  .refine((d) => isWithinHistoryRange(d.startDate, d.endDate, MAX_UNPAGED_HISTORY_RANGE_DAYS), {
+    message: `History range cannot exceed ${MAX_UNPAGED_HISTORY_RANGE_DAYS} days`,
+    path: ['endDate'],
+  });
+
+export const pagedHistoryQuerySchema = z
+  .object({
+    startDate: hijriDateString,
+    endDate: hijriDateString,
+    limit: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(MAX_HISTORY_PAGE_LIMIT)
+      .default(DEFAULT_HISTORY_PAGE_LIMIT),
+    cursor: z.string().min(1).optional(),
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  })
+  .refine((d) => isWithinHistoryRange(d.startDate, d.endDate, MAX_PAGED_HISTORY_RANGE_DAYS), {
+    message: `History range cannot exceed ${MAX_PAGED_HISTORY_RANGE_DAYS} days`,
     path: ['endDate'],
   });
 
@@ -101,3 +134,10 @@ export const deleteFastLogSchema = z.object({
   date: hijriDateString,
   eventId: z.string().min(1),
 });
+
+function isWithinHistoryRange(startDate: string, endDate: string, maxDays: number): boolean {
+  const start = HijriDate.fromString(startDate).toGregorian().getTime();
+  const end = HijriDate.fromString(endDate).toGregorian().getTime();
+  const diffDays = Math.floor((end - start) / 86_400_000);
+  return diffDays <= maxDays;
+}
