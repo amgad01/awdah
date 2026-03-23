@@ -6,12 +6,16 @@ export const MESSAGES = {
   },
   SALAH: {
     PRAYER_LOGGED: 'Prayer logged successfully',
-    PRAYER_DELETED: 'Prayer record deleted',
-    PERIOD_ADDED: 'Practicing period added',
+    PRAYER_DELETED: 'Prayer log deleted',
+    PERIOD_ADDED: 'Practicing period added successfully',
+    PERIOD_UPDATED: 'Practicing period updated successfully',
+    PERIOD_DELETED: 'Practicing period deleted',
+    PRAYERS_RESET: 'All prayer logs cleared',
   },
   SAWM: {
     FAST_LOGGED: 'Fast logged successfully',
-    FAST_DELETED: 'Fast record deleted',
+    FAST_DELETED: 'Fast log deleted',
+    FASTS_RESET: 'All fast logs cleared',
   },
   SHARED: {
     OPERATION_SUCCESSFUL: 'Operation successful',

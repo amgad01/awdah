@@ -1,6 +1,6 @@
 import { wrapHandler } from './wrap-handler';
 import { parseBody } from '../validation/parse-body';
-import { type AnyZodObject } from 'zod';
+import { type ZodSchema } from 'zod';
 
 interface UseCase<TInput, TOutput = unknown> {
   execute(input: TInput): Promise<TOutput>;
@@ -11,7 +11,7 @@ export interface CreateHandlerOptions<TInput> {
   successMessage?: string;
   statusCode?: number;
   transformInput?: (userId: string, input: Record<string, unknown>) => TInput;
-  schema?: AnyZodObject;
+  schema?: ZodSchema<Record<string, unknown>>;
 }
 
 export function createHandler<TInput, TOutput = unknown>(
@@ -28,16 +28,13 @@ export function createHandler<TInput, TOutput = unknown>(
   } = options;
 
   return wrapHandler(contextName, async ({ userId, body, query }) => {
-    const parsedInput = schema
-      ? parseBody(schema, useQuery ? query : body)
-      : useQuery
-        ? query
-        : body;
+    const rawInput = useQuery ? query : body;
+    const parsedInput = schema ? parseBody(schema, rawInput) : rawInput;
     const result = await useCase.execute(transformInput(userId, parsedInput));
 
     return {
       statusCode,
-      body: result || { message: successMessage || 'Operation successful' },
+      body: result ?? { message: successMessage ?? 'Operation successful' },
     };
   });
 }

@@ -32,27 +32,60 @@ export const logFastSchema = z.object({
   type: z.enum(LOG_TYPES),
 });
 
-export const addPracticingPeriodSchema = z.object({
-  startDate: hijriDateString,
-  endDate: hijriDateString.optional(),
-  type: z.enum(PRACTICING_PERIOD_TYPES),
-});
+export const addPracticingPeriodSchema = z
+  .object({
+    startDate: hijriDateString,
+    endDate: hijriDateString.optional(),
+    type: z.enum(PRACTICING_PERIOD_TYPES),
+  })
+  .refine((d) => !d.endDate || d.endDate >= d.startDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  });
 
-export const updateUserSettingsSchema = z.object({
-  bulughDate: hijriDateString,
-  gender: z.enum(GENDERS),
-  dateOfBirth: hijriDateString.optional(),
-});
+export const updatePracticingPeriodSchema = z
+  .object({
+    periodId: z.string().min(1),
+    startDate: hijriDateString,
+    endDate: hijriDateString.optional(),
+    type: z.enum(PRACTICING_PERIOD_TYPES),
+  })
+  .refine((d) => !d.endDate || d.endDate >= d.startDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  });
 
-export const prayerHistoryQuerySchema = z.object({
-  startDate: hijriDateString,
-  endDate: hijriDateString,
-});
+export const updateUserSettingsSchema = z
+  .object({
+    bulughDate: hijriDateString,
+    gender: z.enum(GENDERS),
+    dateOfBirth: hijriDateString.optional(),
+    revertDate: hijriDateString.optional(),
+  })
+  .refine((d) => !d.revertDate || d.revertDate >= d.bulughDate, {
+    message: 'Revert date cannot be before bulugh date',
+    path: ['revertDate'],
+  });
 
-export const fastHistoryQuerySchema = z.object({
-  startDate: hijriDateString,
-  endDate: hijriDateString,
-});
+export const prayerHistoryQuerySchema = z
+  .object({
+    startDate: hijriDateString,
+    endDate: hijriDateString,
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  });
+
+export const fastHistoryQuerySchema = z
+  .object({
+    startDate: hijriDateString,
+    endDate: hijriDateString,
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: 'End date cannot be before start date',
+    path: ['endDate'],
+  });
 
 export const deletePracticingPeriodSchema = z.object({
   periodId: z.string().min(1, 'periodId is required'),
