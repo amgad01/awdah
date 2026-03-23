@@ -604,65 +604,108 @@ paths:
     delete:
       operationId: deleteAccount
       tags: [user]
-      summary: Delete account
+      summary: Start account deletion
       description: |
-        Permanently deletes all data for the authenticated user: user settings, prayer logs,
-        fast logs, and practicing periods. This action cannot be undone.
+        Starts an asynchronous account-deletion job for the authenticated user.
+        The heavy data cleanup runs in the background; sign-in cleanup is finalized separately.
       responses:
-        '200':
-          description: Account deleted successfully
+        '202':
+          description: Account deletion job started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /v1/user/export:
-    get:
-      operationId: exportData
+  /v1/user/account/auth:
+    delete:
+      operationId: finalizeDeleteAccount
       tags: [user]
-      summary: Export user data
+      summary: Finalize account sign-in cleanup
       description: |
-        Returns all stored data for the authenticated user across all tables
-        (user settings, prayer logs, fast logs, and practicing periods) as a
-        single JSON document. Intended for GDPR data-export requests.
+        Deletes the authenticated user's Cognito sign-in access after the async
+        account-data deletion job has completed.
+      parameters:
+        - $ref: '#/components/parameters/jobId'
+      responses:
+        '200':
+          description: Account auth cleanup result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAccountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /v1/user/jobs/status:
+    get:
+      operationId: getUserLifecycleJobStatus
+      tags: [user]
+      summary: Get lifecycle job status
+      parameters:
+        - $ref: '#/components/parameters/jobId'
+      responses:
+        '200':
+          description: Lifecycle job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLifecycleJobStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /v1/user/export:
+    post:
+      operationId: startExportData
+      tags: [user]
+      summary: Start user data export
+      description: |
+        Starts an asynchronous user-data export job for the authenticated user.
+      responses:
+        '202':
+          description: User data export job started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLifecycleJobStartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      operationId: downloadExportData
+      tags: [user]
+      summary: Download completed user data export
+      description: |
+        Returns the completed export payload for a previously started export job.
+      parameters:
+        - $ref: '#/components/parameters/jobId'
       responses:
         '200':
           description: User data export
           content:
             application/json:
               schema:
-                type: object
-                required: [exportedAt, userId]
-                properties:
-                  exportedAt:
-                    type: string
-                    format: date-time
-                    example: '2026-03-22T00:00:00.000Z'
-                  userId:
-                    type: string
-                    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-                  settings:
-                    type: array
-                    items:
-                      type: object
-                  prayerLogs:
-                    type: array
-                    items:
-                      type: object
-                  fastLogs:
-                    type: array
-                    items:
-                      type: object
-                  practicingPeriods:
-                    type: array
-                    items:
-                      type: object
+                $ref: '#/components/schemas/ExportDownloadResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -685,6 +728,14 @@ components:
       schema:
         $ref: '#/components/schemas/HijriDate'
       description: Hijri date in YYYY-MM-DD format
+    jobId:
+      name: jobId
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Background lifecycle job identifier
 
   schemas:
     # -------------------------------------------------------------------------
@@ -806,6 +857,82 @@ components:
         message:
           type: string
           example: 'Prayer logged successfully'
+
+    UserLifecycleJob:
+      type: object
+      required: [jobId, type, status, requestedAt]
+      properties:
+        jobId:
+          type: string
+          example: '01JQ3H9QYB3Y9Y8STK3T8M2Q0P'
+        type:
+          type: string
+          enum: [export, delete-account]
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        requestedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        errorMessage:
+          type: string
+        exportFileName:
+          type: string
+        exportContentType:
+          type: string
+        exportChunkCount:
+          type: integer
+          minimum: 0
+        authCleanupRequired:
+          type: boolean
+        authDeleted:
+          type: boolean
+        authCleanupCompletedAt:
+          type: string
+          format: date-time
+
+    UserLifecycleJobStartResponse:
+      type: object
+      required: [message, job]
+      properties:
+        message:
+          type: string
+        job:
+          $ref: '#/components/schemas/UserLifecycleJob'
+
+    UserLifecycleJobStatusResponse:
+      type: object
+      required: [job]
+      properties:
+        job:
+          $ref: '#/components/schemas/UserLifecycleJob'
+
+    DeleteAccountResponse:
+      type: object
+      required: [message, authDeleted]
+      properties:
+        message:
+          type: string
+        authDeleted:
+          type: boolean
+
+    ExportDownloadResponse:
+      type: object
+      required: [message, fileName, data]
+      properties:
+        message:
+          type: string
+        fileName:
+          type: string
+          example: 'awdah-data-export-2026-03-23.json'
+        data:
+          type: object
 
     AddPracticingPeriodResponse:
       type: object

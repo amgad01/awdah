@@ -36,6 +36,15 @@ Stores user-specific preferences (e.g., calculation methods, language).
 - **Partition Key (`PK`)**: `userId` (String).
 - **Sort Key (`SK`)**: `sk` (String) - Fixed value for simple settings (e.g., `SETTINGS`).
 
+### 5. User Lifecycle Jobs (`Awdah-UserLifecycleJobs-{env}`)
+
+Tracks background export and account-deletion work so heavy lifecycle operations do not stay on the request path.
+
+- **Partition Key (`PK`)**: `userId` (String).
+- **Sort Key (`SK`)**: `sk` (String) - `JOB#{jobId}` for metadata and `JOB#{jobId}#CHUNK#{index}` for export payload chunks.
+- **TTL**: `expiresAt` removes old job metadata/export chunks automatically after the retention window.
+- **Stream**: `NEW_IMAGE` stream is enabled so newly created pending jobs can trigger the background worker.
+
 ## Resource Isolation
 
 To support parallel development on multiple feature branches, table names are prefixed with the ticket number (e.g., `123-Awdah-...`) when deployed from a feature branch. This ensures isolation and avoids conflicts with existing resources.
