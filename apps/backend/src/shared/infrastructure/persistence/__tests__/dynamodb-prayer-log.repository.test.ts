@@ -90,7 +90,7 @@ describe('DynamoDBPrayerLogRepository', () => {
     expect(count).toBe(5);
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
-      IndexName: 'GSI1',
+      IndexName: 'typeDateIndex',
       Select: 'COUNT',
       KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :type)',
     });
@@ -152,6 +152,39 @@ describe('DynamoDBPrayerLogRepository', () => {
       UpdateExpression: 'SET #attr0 = :val0',
       ExpressionAttributeNames: { '#attr0': 'type' },
       ExpressionAttributeValues: { ':val0': 'qadaa' },
+    });
+  });
+
+  it('should fetch paged prayer history in descending order with an encoded cursor', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          userId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', eventId),
+          type: 'qadaa',
+          loggedAt: '2024-01-01T12:00:00.000Z',
+        },
+      ],
+      LastEvaluatedKey: {
+        userId,
+        sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', eventId),
+      },
+    });
+
+    const result = await repository.findPageByUserAndDateRange(
+      userId,
+      HijriDate.fromString(dateStr),
+      HijriDate.fromString(dateStr),
+      { limit: 25 },
+    );
+
+    expect(result.items).toHaveLength(1);
+    expect(result.nextCursor).toBeDefined();
+
+    const calls = ddbMock.commandCalls(QueryCommand);
+    expect(calls.at(-1)!.args[0].input).toMatchObject({
+      Limit: 25,
+      ScanIndexForward: false,
     });
   });
 });

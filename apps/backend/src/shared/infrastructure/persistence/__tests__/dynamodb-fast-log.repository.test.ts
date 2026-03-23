@@ -85,9 +85,42 @@ describe('DynamoDBFastLogRepository', () => {
     expect(count).toBe(10);
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
-      IndexName: 'GSI1',
+      IndexName: 'typeDateIndex',
       Select: 'COUNT',
       KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :type)',
+    });
+  });
+
+  it('should fetch paged fast history in descending order with an encoded cursor', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          userId,
+          sk: FastLogKey.encodeSk(dateStr, eventId),
+          type: 'qadaa',
+          loggedAt: '2024-03-14T12:00:00.000Z',
+        },
+      ],
+      LastEvaluatedKey: {
+        userId,
+        sk: FastLogKey.encodeSk(dateStr, eventId),
+      },
+    });
+
+    const result = await repository.findPageByUserAndDateRange(
+      userId,
+      HijriDate.fromString(dateStr),
+      HijriDate.fromString(dateStr),
+      { limit: 25 },
+    );
+
+    expect(result.items).toHaveLength(1);
+    expect(result.nextCursor).toBeDefined();
+
+    const calls = ddbMock.commandCalls(QueryCommand);
+    expect(calls.at(-1)!.args[0].input).toMatchObject({
+      Limit: 25,
+      ScanIndexForward: false,
     });
   });
 });

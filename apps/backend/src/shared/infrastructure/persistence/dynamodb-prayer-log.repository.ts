@@ -7,6 +7,7 @@ import { LogType } from '../../../contexts/shared/domain/value-objects/log-type'
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { PrayerLogKey } from './keys/prayer-log-key';
+import { decodeCursor, encodeCursor } from './cursor';
 
 export class DynamoDBPrayerLogRepository
   extends BaseDynamoDBRepository<PrayerLog>
@@ -39,6 +40,32 @@ export class DynamoDBPrayerLogRepository
         end: PrayerLogKey.skRangeEndForDate(end.toString()),
       },
     });
+  }
+
+  async findPageByUserAndDateRange(
+    userId: string,
+    start: HijriDate,
+    end: HijriDate,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    },
+  ): Promise<{ items: PrayerLog[]; nextCursor?: string }> {
+    const result = await this.findInRange({
+      pk: userId,
+      range: {
+        start: PrayerLogKey.skPrefixForDate(start.toString()),
+        end: PrayerLogKey.skRangeEndForDate(end.toString()),
+      },
+      limit: options?.limit,
+      exclusiveStartKey: decodeCursor(options?.cursor),
+      scanIndexForward: false,
+    });
+
+    return {
+      items: result.items,
+      nextCursor: encodeCursor(result.lastEvaluatedKey),
+    };
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {

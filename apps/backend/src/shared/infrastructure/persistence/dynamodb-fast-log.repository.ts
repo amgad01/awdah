@@ -6,6 +6,7 @@ import { LogType } from '../../../contexts/shared/domain/value-objects/log-type'
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { FastLogKey } from './keys/fast-log-key';
+import { decodeCursor, encodeCursor } from './cursor';
 
 export class DynamoDBFastLogRepository
   extends BaseDynamoDBRepository<FastLog>
@@ -38,6 +39,32 @@ export class DynamoDBFastLogRepository
         end: FastLogKey.skRangeEndForDate(end.toString()),
       },
     });
+  }
+
+  async findPageByUserAndDateRange(
+    userId: string,
+    start: HijriDate,
+    end: HijriDate,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    },
+  ): Promise<{ items: FastLog[]; nextCursor?: string }> {
+    const result = await this.findInRange({
+      pk: userId,
+      range: {
+        start: FastLogKey.skPrefixForDate(start.toString()),
+        end: FastLogKey.skRangeEndForDate(end.toString()),
+      },
+      limit: options?.limit,
+      exclusiveStartKey: decodeCursor(options?.cursor),
+      scanIndexForward: false,
+    });
+
+    return {
+      items: result.items,
+      nextCursor: encodeCursor(result.lastEvaluatedKey),
+    };
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {

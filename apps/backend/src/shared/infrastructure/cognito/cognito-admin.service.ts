@@ -4,16 +4,15 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import type { ICognitoAdminService } from '../../../contexts/user/domain/services/cognito-admin.service.interface';
 import { settings } from '../../config/settings';
+import { createAwsClientConfig } from '../aws/client-config';
 
 export class CognitoAdminService implements ICognitoAdminService {
   private readonly client: CognitoIdentityProviderClient;
 
-  constructor() {
-    this.client = new CognitoIdentityProviderClient({
-      region: settings.region,
-      // In local development, point to LocalStack instead of real Cognito
-      ...(process.env.LOCALSTACK_ENDPOINT ? { endpoint: process.env.LOCALSTACK_ENDPOINT } : {}),
-    });
+  constructor(
+    client = new CognitoIdentityProviderClient(createAwsClientConfig({ region: settings.region })),
+  ) {
+    this.client = client;
   }
 
   /**

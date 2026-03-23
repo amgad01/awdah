@@ -60,13 +60,15 @@ export abstract class BaseDynamoDBRepository<T> {
     skPrefix,
     limit,
     exclusiveStartKey,
+    scanIndexForward,
   }: {
     pk: string;
     skPrefix: string;
     limit?: number;
     exclusiveStartKey?: Record<string, unknown>;
+    scanIndexForward?: boolean;
   }): Promise<QueryResult<T>> {
-    return this.queryRawInternalPaged(pk, { skPrefix, limit, exclusiveStartKey });
+    return this.queryRawInternalPaged(pk, { skPrefix, limit, exclusiveStartKey, scanIndexForward });
   }
 
   /**
@@ -103,13 +105,20 @@ export abstract class BaseDynamoDBRepository<T> {
     range,
     limit,
     exclusiveStartKey,
+    scanIndexForward,
   }: {
     pk: string;
     range: { start: string; end: string };
     limit?: number;
     exclusiveStartKey?: Record<string, unknown>;
+    scanIndexForward?: boolean;
   }): Promise<QueryResult<T>> {
-    return this.queryRawInternalPaged(pk, { skBetween: range, limit, exclusiveStartKey });
+    return this.queryRawInternalPaged(pk, {
+      skBetween: range,
+      limit,
+      exclusiveStartKey,
+      scanIndexForward,
+    });
   }
 
   /**
@@ -372,6 +381,7 @@ export abstract class BaseDynamoDBRepository<T> {
       indexName?: string;
       limit?: number;
       exclusiveStartKey?: Record<string, unknown>;
+      scanIndexForward?: boolean;
     },
   ): Promise<QueryResult<T>> {
     let keyCondition = `${this.pkName} = :pk`;
@@ -393,6 +403,7 @@ export abstract class BaseDynamoDBRepository<T> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ExpressionAttributeValues: expressionAttributeValues as Record<string, any>,
       Limit: options?.limit,
+      ScanIndexForward: options?.scanIndexForward,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ExclusiveStartKey: options?.exclusiveStartKey as Record<string, any>,
     });
