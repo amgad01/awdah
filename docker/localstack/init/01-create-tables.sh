@@ -92,4 +92,21 @@ create_table_if_missing "Awdah-UserSettings-${ENV}" \
     AttributeName=sk,KeyType=RANGE \
   --billing-mode PAY_PER_REQUEST
 
+# 5. User Lifecycle Jobs — PK: userId, SK: sk, TTL: expiresAt, Stream: NEW_IMAGE
+create_table_if_missing "Awdah-UserLifecycleJobs-${ENV}" \
+  --attribute-definitions \
+    AttributeName=userId,AttributeType=S \
+    AttributeName=sk,AttributeType=S \
+  --key-schema \
+    AttributeName=userId,KeyType=HASH \
+    AttributeName=sk,KeyType=RANGE \
+  --billing-mode PAY_PER_REQUEST \
+  --stream-specification StreamEnabled=true,StreamViewType=NEW_IMAGE
+
+aws dynamodb update-time-to-live \
+  --table-name "Awdah-UserLifecycleJobs-${ENV}" \
+  --endpoint-url "$ENDPOINT" \
+  --region "$REGION" \
+  --time-to-live-specification "Enabled=true, AttributeName=expiresAt" > /dev/null 2>&1 || true
+
 echo "DynamoDB tables ready."

@@ -19,6 +19,11 @@ export interface LambdaOptions {
   reservedConcurrentExecutions?: number;
 }
 
+export interface DynamoDBTableOptions {
+  stream?: dynamodb.StreamViewType;
+  timeToLiveAttribute?: string;
+}
+
 /**
  * Factory for creating standardized AWS resources with project defaults.
  */
@@ -91,6 +96,7 @@ export class ProjectResourceFactory {
     partitionKey: dynamodb.Attribute,
     sortKey: dynamodb.Attribute | undefined,
     removalPolicy: cdk.RemovalPolicy,
+    options: DynamoDBTableOptions = {},
   ): dynamodb.Table {
     return new dynamodb.Table(scope, id, {
       tableName,
@@ -101,6 +107,8 @@ export class ProjectResourceFactory {
         pointInTimeRecoveryEnabled: true,
       },
       removalPolicy,
+      stream: options.stream,
+      timeToLiveAttribute: options.timeToLiveAttribute,
     });
   }
 }

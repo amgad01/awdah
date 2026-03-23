@@ -10,6 +10,7 @@ export class DataStack extends BaseStack {
   public readonly fastLogsTable: dynamodb.Table;
   public readonly practicingPeriodsTable: dynamodb.Table;
   public readonly userSettingsTable: dynamodb.Table;
+  public readonly userLifecycleJobsTable: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props: DataStackProps) {
     super(scope, id, props);
@@ -66,6 +67,20 @@ export class DataStack extends BaseStack {
       { name: 'userId', type: dynamodb.AttributeType.STRING },
       { name: 'sk', type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
+    );
+
+    // 5. User Lifecycle Jobs Table
+    this.userLifecycleJobsTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'UserLifecycleJobsTable',
+      this.fullResourceName('UserLifecycleJobs'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
+      {
+        stream: dynamodb.StreamViewType.NEW_IMAGE,
+        timeToLiveAttribute: 'expiresAt',
+      },
     );
   }
 }

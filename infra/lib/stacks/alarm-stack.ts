@@ -172,6 +172,7 @@ export class AlarmStack extends BaseStack {
       { table: props.dataStack.fastLogsTable, label: 'FastLogs' },
       { table: props.dataStack.practicingPeriodsTable, label: 'PracticingPeriods' },
       { table: props.dataStack.userSettingsTable, label: 'UserSettings' },
+      { table: props.dataStack.userLifecycleJobsTable, label: 'UserLifecycleJobs' },
     ];
 
     tables.forEach(({ table, label }) => {
