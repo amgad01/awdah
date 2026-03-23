@@ -5,5 +5,8 @@ import { createHandler } from '../../../../shared/middleware/create-handler';
 
 export const handler = createHandler(CONTEXTS.USER, exportDataUseCase, {
   transformInput: (userId) => ({ userId }),
-  successMessage: MESSAGES.USER.DATA_EXPORTED,
+  present: (data) => ({
+    message: MESSAGES.USER.DATA_EXPORTED,
+    data,
+  }),
 });

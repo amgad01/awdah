@@ -10,8 +10,6 @@ describe('UpdateUserSettingsUseCase', () => {
   const mockRepo: IUserRepository = {
     findById: vi.fn(),
     save: vi.fn(),
-    deleteAccount: vi.fn(),
-    exportData: vi.fn(),
   };
 
   const useCase = new UpdateUserSettingsUseCase(mockRepo);
