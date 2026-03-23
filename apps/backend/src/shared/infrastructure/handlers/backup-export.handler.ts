@@ -1,7 +1,8 @@
 import { DynamoDBClient, ExportTableToPointInTimeCommand } from '@aws-sdk/client-dynamodb';
 import { createLogger } from '../../middleware/logger';
+import { createAwsClientConfig } from '../aws/client-config';
 
-const dynamo = new DynamoDBClient({});
+const dynamo = new DynamoDBClient(createAwsClientConfig());
 
 export async function handler(): Promise<void> {
   const logger = createLogger('BackupExport');
