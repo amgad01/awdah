@@ -17,7 +17,10 @@ describe('GetSalahDebtUseCase', () => {
 
   beforeEach(() => {
     userRepository = { findById: vi.fn() } as unknown as IUserRepository;
-    prayerLogRepository = { countQadaaCompleted: vi.fn() } as unknown as IPrayerLogRepository;
+    prayerLogRepository = {
+      countQadaaCompleted: vi.fn(),
+      countQadaaCompletedByPrayer: vi.fn(),
+    } as unknown as IPrayerLogRepository;
     practicingPeriodRepository = {
       findByUser: vi.fn(),
       findById: vi.fn(),
@@ -46,6 +49,13 @@ describe('GetSalahDebtUseCase', () => {
     vi.mocked(userRepository.findById).mockResolvedValue({ userId, bulughDate: bulgeDate } as any);
     vi.mocked(practicingPeriodRepository.findByUser).mockResolvedValue([]);
     vi.mocked(prayerLogRepository.countQadaaCompleted).mockResolvedValue(100);
+    vi.mocked(prayerLogRepository.countQadaaCompletedByPrayer).mockResolvedValue({
+      fajr: 20,
+      dhuhr: 20,
+      asr: 20,
+      maghrib: 20,
+      isha: 20,
+    });
     vi.mocked(calendarService.today).mockReturnValue(today);
 
     const result = await useCase.execute(userId);

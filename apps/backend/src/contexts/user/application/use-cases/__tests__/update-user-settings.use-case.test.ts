@@ -3,6 +3,7 @@ import {
   UpdateUserSettingsUseCase,
   UpdateUserSettingsCommand,
 } from '../update-user-settings.use-case';
+import { ValidationError } from '@awdah/shared';
 import { IUserRepository } from '../../../../shared/domain/repositories/user.repository';
 
 describe('UpdateUserSettingsUseCase', () => {
@@ -43,6 +44,18 @@ describe('UpdateUserSettingsUseCase', () => {
     };
 
     await expect(useCase.execute(command)).rejects.toThrow();
+    expect(mockRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects settings when bulugh is before date of birth', async () => {
+    const command: UpdateUserSettingsCommand = {
+      userId: 'user-123',
+      bulughDate: '1430-01-01',
+      dateOfBirth: '1430-01-02',
+      gender: 'female',
+    };
+
+    await expect(useCase.execute(command)).rejects.toThrow(ValidationError);
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 });

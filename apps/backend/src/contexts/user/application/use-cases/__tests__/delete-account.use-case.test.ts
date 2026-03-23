@@ -24,19 +24,21 @@ describe('DeleteAccountUseCase', () => {
   const command: DeleteAccountCommand = { userId: 'user-1' };
 
   it('deletes DynamoDB data then removes Cognito user', async () => {
-    await useCase.execute(command);
+    const result = await useCase.execute(command);
 
     // DynamoDB deletion must come first (GDPR priority)
     expect(mockUserRepo.deleteAccount).toHaveBeenCalledWith(command.userId);
     expect(mockCognitoService.deleteUser).toHaveBeenCalledWith(command.userId);
+    expect(result.authDeleted).toBe(true);
   });
 
-  it('does not throw if Cognito deletion fails after DynamoDB deletion succeeds', async () => {
+  it('returns a partial-success result if Cognito deletion fails after DynamoDB deletion succeeds', async () => {
     vi.mocked(mockCognitoService.deleteUser).mockRejectedValue(new Error('Cognito unavailable'));
 
-    // Must resolve — the DynamoDB data is gone, which is the GDPR-critical step
-    await expect(useCase.execute(command)).resolves.toBeUndefined();
+    const result = await useCase.execute(command);
     expect(mockUserRepo.deleteAccount).toHaveBeenCalledWith(command.userId);
+    expect(result.authDeleted).toBe(false);
+    expect(result.message).toContain('identity cleanup');
   });
 
   it('throws if DynamoDB deletion fails — does not proceed to Cognito', async () => {

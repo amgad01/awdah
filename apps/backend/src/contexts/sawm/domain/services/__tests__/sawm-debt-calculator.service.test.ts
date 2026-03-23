@@ -25,8 +25,8 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [], 0, today);
 
-    expect(result.totalFastingDaysMissed).toBe(0);
-    expect(result.remainingFasts).toBe(0);
+    expect(result.totalDaysOwed).toBe(0);
+    expect(result.remainingDays).toBe(0);
   });
 
   it('calculates debt if gap covers a full Ramadan', () => {
@@ -38,8 +38,8 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [], 0, today);
 
-    expect(result.totalFastingDaysMissed).toBe(30);
-    expect(result.remainingFasts).toBe(30);
+    expect(result.totalDaysOwed).toBe(30);
+    expect(result.remainingDays).toBe(30);
     expect(mockCalendar.getRamadanDays).toHaveBeenCalledWith(1444);
   });
 
@@ -53,7 +53,7 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [], 0, today);
 
-    expect(result.totalFastingDaysMissed).toBe(16);
+    expect(result.totalDaysOwed).toBe(16);
   });
 
   it('handles multiple years with multiple Ramadans', () => {
@@ -66,7 +66,7 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [], 0, today);
 
-    expect(result.totalFastingDaysMissed).toBe(60);
+    expect(result.totalDaysOwed).toBe(60);
     expect(mockCalendar.getRamadanDays).toHaveBeenCalledTimes(3);
   });
 
@@ -94,7 +94,7 @@ describe('SawmDebtCalculator', () => {
     const result = calculator.calculate(bulugh, [period], 0, today);
 
     // Only Ramadan 1445 should be counted
-    expect(result.totalFastingDaysMissed).toBe(29);
+    expect(result.totalDaysOwed).toBe(29);
     expect(mockCalendar.getRamadanDays).toHaveBeenCalledWith(1445);
   });
 
@@ -139,7 +139,7 @@ describe('SawmDebtCalculator', () => {
     const result = calculator.calculate(bulugh, [period], 0, today);
 
     // Final gap starts at 1443-09-21 (day after practice ended)
-    expect(result.totalFastingDaysMissed).toBe(10);
+    expect(result.totalDaysOwed).toBe(10);
     expect(mockCalendar.daysBetween).toHaveBeenCalledWith(
       new HijriDate(1443, 9, 21), // day after practice ended — gap start
       new HijriDate(1443, 10, 1), // first of Shawwal — exclusive Ramadan end
@@ -176,7 +176,7 @@ describe('SawmDebtCalculator', () => {
 
     // Gap = [p1End+1, p2Start) = [1444-06-11, 1444-06-11) = empty
     // No Ramadan in an empty gap
-    expect(result.totalFastingDaysMissed).toBe(0);
+    expect(result.totalDaysOwed).toBe(0);
     expect(mockCalendar.daysBetween).not.toHaveBeenCalled();
   });
 
@@ -189,8 +189,8 @@ describe('SawmDebtCalculator', () => {
 
     const result = calculator.calculate(bulugh, [], 12, today);
 
-    expect(result.totalFastingDaysMissed).toBe(30);
-    expect(result.completedFasts).toBe(12);
-    expect(result.remainingFasts).toBe(18);
+    expect(result.totalDaysOwed).toBe(30);
+    expect(result.completedDays).toBe(12);
+    expect(result.remainingDays).toBe(18);
   });
 });

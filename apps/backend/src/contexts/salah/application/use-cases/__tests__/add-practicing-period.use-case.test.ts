@@ -9,7 +9,7 @@ import {
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, NotFoundError, ValidationError } from '@awdah/shared';
+import { HijriDate, NotFoundError, ValidationError, ConflictError } from '@awdah/shared';
 
 const BULUGH_DATE = '1440-01-01';
 
@@ -62,7 +62,7 @@ describe('AddPracticingPeriodUseCase', () => {
     }
   });
 
-  it('throws ValidationError if period overlaps with existing one', async () => {
+  it('throws ConflictError if period overlaps with existing one', async () => {
     const existingPeriod = new PracticingPeriod({
       userId: 'user-1',
       periodId: 'existing-1',
@@ -73,7 +73,7 @@ describe('AddPracticingPeriodUseCase', () => {
 
     vi.mocked(mockRepo.findByUser).mockResolvedValue([existingPeriod]);
 
-    await expect(useCase.execute(command)).rejects.toThrow(ValidationError);
+    await expect(useCase.execute(command)).rejects.toThrow(ConflictError);
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 

@@ -12,9 +12,12 @@ describe('GetSawmDebtUseCase', () => {
   };
   const mockFastLogRepo = {
     save: vi.fn(),
+    findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
+    findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
+    clearAll: vi.fn(),
   };
   const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), findById: vi.fn(), delete: vi.fn() };
   const mockCalendar = { daysBetween: vi.fn(), getRamadanDays: vi.fn(), today: vi.fn() };
@@ -45,9 +48,9 @@ describe('GetSawmDebtUseCase', () => {
 
     const result = await useCase.execute('u');
 
-    expect(result.totalFastingDaysMissed).toBe(150);
-    expect(result.completedFasts).toBe(10);
-    expect(result.remainingFasts).toBe(140);
+    expect(result.totalDaysOwed).toBe(150);
+    expect(result.completedDays).toBe(10);
+    expect(result.remainingDays).toBe(140);
 
     expect(mockUserRepo.findById).toHaveBeenCalledWith('u');
     expect(mockPeriodRepo.findByUser).toHaveBeenCalledWith('u');

@@ -4,9 +4,12 @@ import { LogFastUseCase } from '../log-fast.use-case';
 describe('LogFastUseCase', () => {
   const mockRepo = {
     save: vi.fn(),
+    findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
+    findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
+    clearAll: vi.fn(),
   };
 
   const useCase = new LogFastUseCase(mockRepo);
@@ -29,5 +32,6 @@ describe('LogFastUseCase', () => {
     expect(savedLog.userId).toBe('user-1');
     expect(savedLog.date.toString()).toBe('1445-09-01');
     expect(savedLog.type.getValue()).toBe('obligatory');
+    expect(savedLog.eventId).toBe('obligatory');
   });
 });

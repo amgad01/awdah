@@ -6,8 +6,11 @@ describe('DeleteFastLogUseCase', () => {
   const mockRepo: IFastLogRepository = {
     save: vi.fn(),
     deleteEntry: vi.fn(),
+    findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
+    findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
+    clearAll: vi.fn(),
   };
 
   const useCase = new DeleteFastLogUseCase(mockRepo);

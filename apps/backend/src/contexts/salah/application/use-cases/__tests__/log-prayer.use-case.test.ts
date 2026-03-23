@@ -11,8 +11,10 @@ describe('LogPrayerUseCase', () => {
     repository = {
       save: vi.fn(),
       findByUserAndDate: vi.fn(),
-      countQadaaByDate: vi.fn(),
+      findByUserAndDateRange: vi.fn(),
+      countQadaaCompleted: vi.fn(),
       deleteEntry: vi.fn(),
+      clearAll: vi.fn(),
     } as unknown as IPrayerLogRepository;
     useCase = new LogPrayerUseCase(repository);
   });
@@ -33,6 +35,18 @@ describe('LogPrayerUseCase', () => {
     expect(savedLog.date.toString()).toBe(command.date);
     expect(savedLog.prayerName.getValue()).toBe(command.prayerName);
     expect(savedLog.type.getValue()).toBe(command.type);
+  });
+
+  it('uses a stable event id for obligatory prayers to make repeated writes idempotent', async () => {
+    await useCase.execute({
+      userId: 'user-123',
+      date: '1445-09-01',
+      prayerName: 'fajr',
+      type: 'obligatory',
+    });
+
+    const savedLog = vi.mocked(repository.save).mock.calls[0]![0] as PrayerLog;
+    expect(savedLog.eventId).toBe('obligatory');
   });
 
   it('should throw error if date refers to the future (logic in HijriDate)', () => {
