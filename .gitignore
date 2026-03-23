@@ -35,6 +35,8 @@ Thumbs.db
 
 # Test coverage
 coverage/
+apps/frontend/playwright-report/
+apps/frontend/test-results/
 
 # Logs
 *.log
@@ -53,3 +55,4 @@ npm-debug.log*
 
 # TypeScript build info
 *.tsbuildinfo
+apps/frontend/public/*.zip
