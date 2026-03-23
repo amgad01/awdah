@@ -36,6 +36,9 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: ESLint (frontend)
+        run: npm run lint --workspace=apps/frontend
+
       - name: Prettier
         run: npm run format:check
 
@@ -48,8 +51,14 @@ jobs:
       - name: TypeScript (shared)
         run: npm run typecheck --workspace=packages/shared
 
+      - name: TypeScript (frontend)
+        run: npm run typecheck --workspace=apps/frontend
+
       - name: Build backend
         run: npm run build --workspace=apps/backend
+
+      - name: Build frontend
+        run: npm run build --workspace=apps/frontend
 
       - name: Build infra
         run: npm run build --workspace=infra
