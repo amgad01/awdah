@@ -22,11 +22,22 @@ export class CognitoAdminService implements ICognitoAdminService {
    * resolves it regardless of the pool's alias configuration.
    */
   async deleteUser(userId: string): Promise<void> {
-    await this.client.send(
-      new AdminDeleteUserCommand({
-        UserPoolId: settings.cognitoUserPoolId,
-        Username: userId,
-      }),
-    );
+    try {
+      await this.client.send(
+        new AdminDeleteUserCommand({
+          UserPoolId: settings.cognitoUserPoolId,
+          Username: userId,
+        }),
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === 'UserNotFoundException' || error.name === 'ResourceNotFoundException')
+      ) {
+        return;
+      }
+
+      throw error;
+    }
   }
 }

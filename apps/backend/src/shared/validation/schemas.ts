@@ -135,6 +135,10 @@ export const deleteFastLogSchema = z.object({
   eventId: z.string().min(1),
 });
 
+export const userLifecycleJobQuerySchema = z.object({
+  jobId: z.string().min(1, 'jobId is required'),
+});
+
 function isWithinHistoryRange(startDate: string, endDate: string, maxDays: number): boolean {
   const start = HijriDate.fromString(startDate).toGregorian().getTime();
   const end = HijriDate.fromString(endDate).toGregorian().getTime();

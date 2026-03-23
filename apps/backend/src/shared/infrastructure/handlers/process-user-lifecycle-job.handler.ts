@@ -1,5 +1,4 @@
 import type { DynamoDBStreamEvent } from 'aws-lambda';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { processUserLifecycleJobUseCase } from '../../di/container';
 import { createLogger } from '../../middleware/logger';
 
@@ -11,10 +10,9 @@ export async function handler(event: DynamoDBStreamEvent): Promise<void> {
       continue;
     }
 
-    const item = unmarshall(record.dynamodb.NewImage) as Record<string, unknown>;
-    const userId = item.userId;
-    const sk = item.sk;
-    const status = item.status;
+    const userId = getStringAttribute(record.dynamodb.NewImage.userId);
+    const sk = getStringAttribute(record.dynamodb.NewImage.sk);
+    const status = getStringAttribute(record.dynamodb.NewImage.status);
 
     if (
       typeof userId !== 'string' ||
@@ -34,4 +32,8 @@ export async function handler(event: DynamoDBStreamEvent): Promise<void> {
   }
 
   logger.debug({ recordCount: event.Records.length }, 'Lifecycle job stream batch processed');
+}
+
+function getStringAttribute(value?: { S?: string }): string | undefined {
+  return value?.S;
 }

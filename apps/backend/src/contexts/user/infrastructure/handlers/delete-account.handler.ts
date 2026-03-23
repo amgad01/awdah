@@ -5,10 +5,9 @@ import { createHandler } from '../../../../shared/middleware/create-handler';
 
 export const handler = createHandler(CONTEXTS.USER, deleteAccountUseCase, {
   transformInput: (userId) => ({ userId }),
-  present: (result) => ({
-    message: result.authDeleted
-      ? MESSAGES.USER.ACCOUNT_DELETED
-      : MESSAGES.USER.ACCOUNT_DELETED_WITH_AUTH_CLEANUP_PENDING,
-    authDeleted: result.authDeleted,
+  statusCode: 202,
+  present: (job) => ({
+    message: MESSAGES.USER.ACCOUNT_DELETION_STARTED,
+    job,
   }),
 });

@@ -9,6 +9,7 @@ import { DynamoDBFastLogRepository } from '../infrastructure/persistence/dynamod
 import { DynamoDBPracticingPeriodRepository } from '../infrastructure/persistence/dynamodb-practicing-period.repository';
 import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-user.repository';
 import { DynamoDBUserDataLifecycleService } from '../infrastructure/persistence/dynamodb-user-data-lifecycle.service';
+import { DynamoDBUserLifecycleJobRepository } from '../infrastructure/persistence/dynamodb-user-lifecycle-job.repository';
 import { createAwsClientConfig } from '../infrastructure/aws/client-config';
 
 // Shared Clients
@@ -29,3 +30,4 @@ export const fastLogRepo = new DynamoDBFastLogRepository(dbClient);
 export const periodRepo = new DynamoDBPracticingPeriodRepository(dbClient);
 export const userRepo = new DynamoDBUserRepository(dbClient);
 export const userDataLifecycleService = new DynamoDBUserDataLifecycleService(dbClient);
+export const userLifecycleJobRepo = new DynamoDBUserLifecycleJobRepository(dbClient);

@@ -1,9 +1,12 @@
 export const MESSAGES = {
   USER: {
+    DATA_EXPORT_STARTED: 'Data export started successfully',
     DATA_EXPORTED: 'Data exported successfully',
+    ACCOUNT_DELETION_STARTED: 'Account deletion started successfully',
     ACCOUNT_DELETED: 'Account deleted successfully',
     ACCOUNT_DELETED_WITH_AUTH_CLEANUP_PENDING:
       'Account data was deleted, but identity cleanup could not be completed automatically.',
+    ACCOUNT_AUTH_DELETED: 'Account sign-in access deleted successfully',
     SETTINGS_UPDATED: 'Settings updated successfully',
   },
   SALAH: {

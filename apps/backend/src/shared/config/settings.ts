@@ -32,6 +32,7 @@ requireEnv([
   'FAST_LOGS_TABLE',
   'PRACTICING_PERIODS_TABLE',
   'USER_SETTINGS_TABLE',
+  'USER_LIFECYCLE_JOBS_TABLE',
   'COGNITO_USER_POOL_ID',
 ]);
 
@@ -52,6 +53,10 @@ export const settings = {
     userSettings: requireEnv(
       'USER_SETTINGS_TABLE',
       `Awdah-UserSettings-${process.env.NODE_ENV || 'dev'}`,
+    ),
+    userLifecycleJobs: requireEnv(
+      'USER_LIFECYCLE_JOBS_TABLE',
+      `Awdah-UserLifecycleJobs-${process.env.NODE_ENV || 'dev'}`,
     ),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
