@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import {
   IUserRepository,
   UserSettings,
@@ -14,6 +14,20 @@ import {
 import { settings } from '../../config/settings';
 import { UserSettingsSK } from './keys/user-settings-key';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
+
+// Single source of truth for all user-owned tables.
+// Used by both deleteAccount() and exportData() to stay in sync.
+const USER_MANAGED_TABLES = [
+  { key: 'settings', tableName: settings.tables.userSettings, pkName: 'userId', skName: 'sk' },
+  { key: 'prayerLogs', tableName: settings.tables.prayerLogs, pkName: 'userId', skName: 'sk' },
+  { key: 'fastLogs', tableName: settings.tables.fastLogs, pkName: 'userId', skName: 'sk' },
+  {
+    key: 'practicingPeriods',
+    tableName: settings.tables.practicingPeriods,
+    pkName: 'userId',
+    skName: 'periodId',
+  },
+] as const;
 
 export class DynamoDBUserRepository
   extends BaseDynamoDBRepository<UserSettings>
@@ -32,18 +46,7 @@ export class DynamoDBUserRepository
   }
 
   async deleteAccount(userId: string): Promise<void> {
-    const tablesToClear = [
-      { tableName: settings.tables.userSettings, pkName: 'userId', skName: 'sk' },
-      { tableName: settings.tables.prayerLogs, pkName: 'userId', skName: 'sk' },
-      { tableName: settings.tables.fastLogs, pkName: 'userId', skName: 'sk' },
-      {
-        tableName: settings.tables.practicingPeriods,
-        pkName: 'userId',
-        skName: 'periodId',
-      },
-    ];
-
-    for (const { tableName, pkName, skName } of tablesToClear) {
+    for (const { tableName, pkName, skName } of USER_MANAGED_TABLES) {
       let lastKey: Record<string, unknown> | undefined;
       do {
         const queryResult = await this.docClient.send(
@@ -59,38 +62,28 @@ export class DynamoDBUserRepository
         const keys = (queryResult.Items ?? []) as Record<string, unknown>[];
         lastKey = queryResult.LastEvaluatedKey as Record<string, unknown> | undefined;
 
-        // BatchWrite processes up to 25 items at a time
-        for (let i = 0; i < keys.length; i += 25) {
-          const batch = keys.slice(i, i + 25);
-          await this.docClient.send(
-            new BatchWriteCommand({
-              RequestItems: {
-                [tableName]: batch.map((key) => ({
-                  DeleteRequest: { Key: { [pkName]: key[pkName], [skName]: key[skName] } },
-                })),
-              },
-            }),
-          );
-        }
+        await this.deleteKeysInBatches(
+          tableName,
+          keys.map((key) => ({
+            [pkName]: key[pkName],
+            [skName]: key[skName],
+          })),
+        );
       } while (lastKey);
     }
   }
 
   async exportData(userId: string): Promise<Record<string, unknown>> {
-    const tablesToExport = [
-      { key: 'settings', tableName: settings.tables.userSettings, pkName: 'userId' },
-      { key: 'prayerLogs', tableName: settings.tables.prayerLogs, pkName: 'userId' },
-      { key: 'fastLogs', tableName: settings.tables.fastLogs, pkName: 'userId' },
-      { key: 'practicingPeriods', tableName: settings.tables.practicingPeriods, pkName: 'userId' },
-    ];
+    // Internal DynamoDB keys that should not appear in exported data
+    const internalKeys = new Set(['userId', 'sk', 'typeDate']);
 
     const result: Record<string, unknown> = {
       exportedAt: new Date().toISOString(),
       userId,
     };
 
-    for (const { key, tableName, pkName } of tablesToExport) {
-      const items: unknown[] = [];
+    for (const { key, tableName, pkName, skName } of USER_MANAGED_TABLES) {
+      const items: Record<string, unknown>[] = [];
       let lastKey: Record<string, unknown> | undefined;
 
       do {
@@ -104,7 +97,19 @@ export class DynamoDBUserRepository
           }),
         );
         if (queryResult.Items) {
-          items.push(...queryResult.Items);
+          for (const item of queryResult.Items) {
+            const cleaned: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(item)) {
+              if (!internalKeys.has(k)) {
+                cleaned[k] = v;
+              }
+            }
+            // Keep skName if it's meaningful (e.g. periodId)
+            if (skName !== 'sk' && item[skName] !== undefined) {
+              cleaned[skName] = item[skName];
+            }
+            items.push(cleaned);
+          }
         }
         lastKey = queryResult.LastEvaluatedKey as Record<string, unknown> | undefined;
       } while (lastKey);
@@ -126,6 +131,7 @@ export class DynamoDBUserRepository
     return {
       dateOfBirth: userSettings.dateOfBirth?.toString(),
       bulughDate: userSettings.bulughDate.toString(),
+      revertDate: userSettings.revertDate?.toString(),
       gender: userSettings.gender,
       madhab: userSettings.madhab,
       calculationMethod: userSettings.calculationMethod,
@@ -140,6 +146,7 @@ export class DynamoDBUserRepository
       userId: item.userId as string,
       dateOfBirth: item.dateOfBirth ? HijriDate.fromString(item.dateOfBirth as string) : undefined,
       bulughDate: HijriDate.fromString(item.bulughDate as string),
+      revertDate: item.revertDate ? HijriDate.fromString(item.revertDate as string) : undefined,
       gender: item.gender as Gender,
       madhab: item.madhab as Madhab | undefined,
       calculationMethod: item.calculationMethod as CalculationMethod | undefined,

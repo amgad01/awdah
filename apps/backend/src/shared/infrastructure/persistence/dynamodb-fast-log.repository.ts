@@ -19,25 +19,31 @@ export class DynamoDBFastLogRepository
     await this.persist(log);
   }
 
+  async findByUserAndDate(userId: string, date: HijriDate): Promise<FastLog[]> {
+    return this.findAllWithPrefix({
+      pk: userId,
+      skPrefix: FastLogKey.skPrefixForDate(date.toString()),
+    });
+  }
+
   async findByUserAndDateRange(
     userId: string,
     start: HijriDate,
     end: HijriDate,
   ): Promise<FastLog[]> {
-    const { items } = await this.findInRange({
+    return this.findAllInRange({
       pk: userId,
       range: {
         start: FastLogKey.skPrefixForDate(start.toString()),
         end: FastLogKey.skRangeEndForDate(end.toString()),
       },
     });
-    return items;
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
     return this.countByGSI({
       pk: userId,
-      indexName: 'GSI1',
+      indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
     });
@@ -45,6 +51,10 @@ export class DynamoDBFastLogRepository
 
   async deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void> {
     await this.deleteItem({ pk: userId, sk: FastLogKey.encodeSk(date.toString(), eventId) });
+  }
+
+  async clearAll(userId: string): Promise<void> {
+    await this.deleteAll({ pk: userId });
   }
 
   protected encodeKeys(log: FastLog): DomainKeys {

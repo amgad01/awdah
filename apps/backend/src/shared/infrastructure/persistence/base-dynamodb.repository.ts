@@ -1,11 +1,17 @@
 import {
   DynamoDBDocumentClient,
+  BatchWriteCommand,
   QueryCommand,
   DeleteCommand,
   GetCommand,
   PutCommand,
   UpdateCommand,
+  type BatchWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
+import { InternalError } from '@awdah/shared';
+
+const MAX_BATCH_DELETE_ATTEMPTS = 5;
+const BATCH_DELETE_RETRY_BASE_DELAY_MS = 50;
 
 export interface DomainKeys {
   pk: string;
@@ -32,7 +38,11 @@ export abstract class BaseDynamoDBRepository<T> {
    * @returns A promise that resolves to an array of domain entities.
    */
   protected async findAll({ pk }: { pk: string }): Promise<T[]> {
-    return this.queryRawInternal(pk);
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.queryRawInternalPaged(pk, {
+        exclusiveStartKey,
+      }),
+    );
   }
 
   /**
@@ -60,6 +70,25 @@ export abstract class BaseDynamoDBRepository<T> {
   }
 
   /**
+   * Retrieves all items for a partition key where the sort key begins with a given prefix.
+   */
+  protected async findAllWithPrefix({
+    pk,
+    skPrefix,
+  }: {
+    pk: string;
+    skPrefix: string;
+  }): Promise<T[]> {
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.findWithPrefix({
+        pk,
+        skPrefix,
+        exclusiveStartKey,
+      }),
+    );
+  }
+
+  /**
    * Retrieves items for a partition key where the sort key (SK) falls within a specific range.
    * Commonly used for time-series data or lexicographical ranges.
    *
@@ -81,6 +110,25 @@ export abstract class BaseDynamoDBRepository<T> {
     exclusiveStartKey?: Record<string, unknown>;
   }): Promise<QueryResult<T>> {
     return this.queryRawInternalPaged(pk, { skBetween: range, limit, exclusiveStartKey });
+  }
+
+  /**
+   * Retrieves all items for a partition key where the sort key falls within a range.
+   */
+  protected async findAllInRange({
+    pk,
+    range,
+  }: {
+    pk: string;
+    range: { start: string; end: string };
+  }): Promise<T[]> {
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.findInRange({
+        pk,
+        range,
+        exclusiveStartKey,
+      }),
+    );
   }
 
   /**
@@ -206,6 +254,67 @@ export abstract class BaseDynamoDBRepository<T> {
   }
 
   /**
+   * Deletes all items for a given partition key using paginated queries and batch deletes.
+   * Suitable for "clear all records for a user" operations.
+   *
+   * @param pk - The partition key value whose items should be deleted.
+   */
+  protected async deleteAll({ pk }: { pk: string }): Promise<void> {
+    let lastKey: Record<string, unknown> | undefined;
+    do {
+      const queryResult = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          KeyConditionExpression: '#pk = :pk',
+          ExpressionAttributeNames: { '#pk': this.pkName },
+          ExpressionAttributeValues: { ':pk': pk },
+          ProjectionExpression: `${this.pkName}, ${this.skName}`,
+          ExclusiveStartKey: lastKey,
+        }),
+      );
+      const keys = (queryResult.Items ?? []) as Record<string, unknown>[];
+      lastKey = queryResult.LastEvaluatedKey as Record<string, unknown> | undefined;
+      await this.deleteKeysInBatches(
+        this.tableName,
+        keys.map((key) => ({ [this.pkName]: key[this.pkName], [this.skName]: key[this.skName] })),
+      );
+    } while (lastKey);
+  }
+
+  /**
+   * Deletes arbitrary keys in DynamoDB-sized batches with bounded retries for unprocessed items.
+   */
+  protected async deleteKeysInBatches(
+    tableName: string,
+    keys: Array<Record<string, unknown>>,
+  ): Promise<void> {
+    for (let i = 0; i < keys.length; i += 25) {
+      const batch = keys.slice(i, i + 25);
+      let requestItems: BatchWriteCommandInput['RequestItems'] = {
+        [tableName]: batch.map((key) => ({
+          DeleteRequest: { Key: key },
+        })),
+      };
+
+      for (let attempt = 1; this.hasPendingBatchWrites(requestItems); attempt += 1) {
+        const result: { UnprocessedItems?: BatchWriteCommandInput['RequestItems'] } =
+          await this.docClient.send(new BatchWriteCommand({ RequestItems: requestItems }));
+        requestItems = result.UnprocessedItems;
+
+        if (!this.hasPendingBatchWrites(requestItems)) break;
+
+        if (attempt >= MAX_BATCH_DELETE_ATTEMPTS) {
+          throw new InternalError(
+            `Failed to delete all batch items from ${tableName} after ${MAX_BATCH_DELETE_ATTEMPTS} attempts`,
+          );
+        }
+
+        await this.sleep(this.getBatchDeleteRetryDelayMs(attempt));
+      }
+    }
+  }
+
+  /**
    * Performs an efficient count operation using a Global Secondary Index (GSI).
    * Best for calculating aggregate counts without scanning the entire table.
    *
@@ -226,28 +335,28 @@ export abstract class BaseDynamoDBRepository<T> {
     skName: string;
     skPrefix: string;
   }): Promise<number> {
-    const command = new QueryCommand({
-      TableName: this.tableName,
-      IndexName: indexName,
-      KeyConditionExpression: `${this.pkName} = :pk AND begins_with(${skName}, :type)`,
-      ExpressionAttributeValues: {
-        ':pk': pk,
-        ':type': skPrefix,
-      },
-      Select: 'COUNT',
-    });
+    let total = 0;
+    let exclusiveStartKey: Record<string, unknown> | undefined;
 
-    const response = await this.docClient.send(command);
-    return response.Count || 0;
-  }
+    do {
+      const command = new QueryCommand({
+        TableName: this.tableName,
+        IndexName: indexName,
+        KeyConditionExpression: `${this.pkName} = :pk AND begins_with(${skName}, :type)`,
+        ExpressionAttributeValues: {
+          ':pk': pk,
+          ':type': skPrefix,
+        },
+        Select: 'COUNT',
+        ExclusiveStartKey: exclusiveStartKey,
+      });
 
-  /**
-   * Internal wrapper for non-paged queries to maintain backward compatibility.
-   * Fetches only the first naturally occurring page of results.
-   */
-  private async queryRawInternal(pkValue: string): Promise<T[]> {
-    const { items } = await this.queryRawInternalPaged(pkValue);
-    return items;
+      const response = await this.docClient.send(command);
+      total += response.Count || 0;
+      exclusiveStartKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (exclusiveStartKey);
+
+    return total;
   }
 
   /**
@@ -313,6 +422,36 @@ export abstract class BaseDynamoDBRepository<T> {
    * Abstract method to map a raw DynamoDB record back to a domain-level entity.
    */
   protected abstract mapToDomain(item: Record<string, unknown>): T;
+
+  private hasPendingBatchWrites(requestItems: BatchWriteCommandInput['RequestItems']): boolean {
+    if (!requestItems) return false;
+    return Object.values(requestItems).some((requests) => (requests?.length ?? 0) > 0);
+  }
+
+  private async collectAllPages(
+    fetchPage: (exclusiveStartKey?: Record<string, unknown>) => Promise<QueryResult<T>>,
+  ): Promise<T[]> {
+    const allItems: T[] = [];
+    let lastKey: Record<string, unknown> | undefined;
+
+    do {
+      const { items, lastEvaluatedKey } = await fetchPage(lastKey);
+      allItems.push(...items);
+      lastKey = lastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (lastKey);
+
+    return allItems;
+  }
+
+  private getBatchDeleteRetryDelayMs(attempt: number): number {
+    const exponentialDelay = BATCH_DELETE_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+    const halfDelay = Math.floor(exponentialDelay / 2);
+    return halfDelay + Math.floor(Math.random() * Math.max(halfDelay, 1));
+  }
+
+  private async sleep(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
 }
 
 /** Represents a set of items returned from a paged DynamoDB query */
