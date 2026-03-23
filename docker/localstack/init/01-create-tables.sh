@@ -42,7 +42,7 @@ create_table_if_missing "Awdah-PrayerLogs-${ENV}" \
   --billing-mode PAY_PER_REQUEST \
   --global-secondary-indexes '[
     {
-      "IndexName": "GSI1",
+      "IndexName": "typeDateIndex",
       "KeySchema": [
         {"AttributeName": "userId", "KeyType": "HASH"},
         {"AttributeName": "typeDate", "KeyType": "RANGE"}
@@ -63,7 +63,7 @@ create_table_if_missing "Awdah-FastLogs-${ENV}" \
   --billing-mode PAY_PER_REQUEST \
   --global-secondary-indexes '[
     {
-      "IndexName": "GSI1",
+      "IndexName": "typeDateIndex",
       "KeySchema": [
         {"AttributeName": "userId", "KeyType": "HASH"},
         {"AttributeName": "typeDate", "KeyType": "RANGE"}
