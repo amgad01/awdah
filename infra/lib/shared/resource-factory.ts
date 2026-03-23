@@ -32,6 +32,9 @@ export class ProjectResourceFactory {
     options: LambdaOptions,
   ): lambda_nodejs.NodejsFunction {
     const config = getConfig(scope);
+    const logGroup = new logs.LogGroup(scope, `${id}LogGroup`, {
+      retention: logs.RetentionDays.ONE_MONTH,
+    });
 
     const fn = new lambda_nodejs.NodejsFunction(scope, id, {
       entry: options.entry,
@@ -41,7 +44,7 @@ export class ProjectResourceFactory {
       memorySize: options.memorySize ?? 256,
       timeout: options.timeout ?? config.lambdaTimeout,
       tracing: lambda.Tracing.ACTIVE,
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logGroup,
       environment: options.environment,
       deadLetterQueue: options.deadLetterQueue,
       retryAttempts: options.retryAttempts,
@@ -94,7 +97,9 @@ export class ProjectResourceFactory {
       partitionKey,
       sortKey,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true,
+      },
       removalPolicy,
     });
   }

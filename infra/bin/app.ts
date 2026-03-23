@@ -6,10 +6,20 @@ import { AlarmStack } from '../lib/stacks/alarm-stack';
 import { ApiStack } from '../lib/stacks/api-stack';
 import { AuthStack } from '../lib/stacks/auth-stack';
 import { BackupStack } from '../lib/stacks/backup-stack';
+import { FrontendStack } from '../lib/stacks/frontend-stack';
 
 const app = new cdk.App();
-const environment = app.node.tryGetContext('appEnv') || 'dev';
+const environment = app.node.tryGetContext('env') || app.node.tryGetContext('appEnv') || 'dev';
 const ticket = app.node.tryGetContext('ticket');
+const alertEmail = app.node.tryGetContext('alertEmail');
+const frontendDomainName = app.node.tryGetContext('frontendDomainName');
+const frontendHostedZoneName = app.node.tryGetContext('frontendHostedZoneName');
+const frontendHostedZoneId = app.node.tryGetContext('frontendHostedZoneId');
+const frontendCertificateArn = app.node.tryGetContext('frontendCertificateArn');
+const frontendOrigin = app.node.tryGetContext('frontendOrigin') as string | undefined;
+const deployFrontend =
+  app.node.tryGetContext('deployFrontend') === true ||
+  app.node.tryGetContext('deployFrontend') === 'true';
 const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
 cdk.Tags.of(app).add('project', 'Awdah');
@@ -31,6 +41,7 @@ const apiStack = new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
   dataStack,
   authStack,
   ticket,
+  frontendOrigin,
 });
 
 const backupStack = new BackupStack(app, `Awdah-backup-stack-${envWithTicket}`, {
@@ -44,7 +55,20 @@ new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
   backupStack,
   apiStack,
   dataStack,
+  alertEmail,
   ticket,
 });
+
+if (deployFrontend) {
+  new FrontendStack(app, `Awdah-frontend-stack-${envWithTicket}`, {
+    projectEnv: environment,
+    apiStack,
+    domainName: frontendDomainName,
+    hostedZoneId: frontendHostedZoneId,
+    hostedZoneName: frontendHostedZoneName,
+    certificateArn: frontendCertificateArn,
+    ticket,
+  });
+}
 
 app.synth();
