@@ -11,6 +11,7 @@ export interface UserSettings {
   userId: string;
   dateOfBirth?: HijriDate;
   bulughDate: HijriDate;
+  revertDate?: HijriDate;
   gender: Gender;
   madhab?: Madhab;
   calculationMethod?: CalculationMethod;
