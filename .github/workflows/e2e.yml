@@ -1,5 +1,6 @@
 name: E2E Tests
 on:
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -11,9 +12,9 @@ concurrency:
 
 jobs:
   e2e:
-    name: Playwright against staging
+    name: Playwright E2E (full stack)
+    if: false # enable once infrastructure is ready
     runs-on: ubuntu-latest
-    environment: staging
     steps:
       - uses: actions/checkout@v4
 
@@ -26,31 +27,67 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Detect Playwright setup
-        id: detect_playwright
+      - name: Start full stack
+        run: docker compose up -d localstack backend frontend
+
+      - name: Wait for LocalStack
         run: |
-          if npm ls @playwright/test --depth=0 >/dev/null 2>&1; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:4566/_localstack/health | grep -Eq '"dynamodb"[[:space:]]*:[[:space:]]*"(running|available)"'; then
+              sleep 5
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs localstack
+          exit 1
+
+      - name: Wait for backend
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs backend
+          exit 1
+
+      - name: Wait for frontend
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs frontend
+          exit 1
 
       - name: Install Playwright browsers
-        if: steps.detect_playwright.outputs.enabled == 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
-        if: steps.detect_playwright.outputs.enabled == 'true'
-        run: npx playwright test
+      - name: Run Playwright tests (Chromium)
+        run: env E2E_BASE_URL=http://localhost:8080 npx playwright test --project=chromium
+        working-directory: apps/frontend
 
-      - name: Skip message
-        if: steps.detect_playwright.outputs.enabled != 'true'
-        run: echo "No Playwright configuration found; skipping E2E execution."
+      - name: Capture stack logs
+        if: always()
+        run: docker compose logs > /tmp/awdah-e2e-stack.log
+
+      - name: Upload stack log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-stack-log-${{ github.run_id }}
+          path: /tmp/awdah-e2e-stack.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload test results
-        if: always() && steps.detect_playwright.outputs.enabled == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
-          path: playwright-report/
+          path: apps/frontend/playwright-report/
           retention-days: 7

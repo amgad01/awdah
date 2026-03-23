@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (pages deployments are always public)'
+        required: false
+        default: 'pages'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to GitHub Pages
+    if: false # enable once GitHub Pages environment secrets are configured
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Build frontend for GitHub Pages
+        run: npm run build --workspace=apps/frontend
+        env:
+          # Base path must match the GitHub repo name
+          VITE_BASE_PATH: /awdah/
+          # Real Cognito credentials are read from GitHub environment secrets
+          VITE_AUTH_MODE: cognito
+          VITE_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+          # Full URL of the deployed API Gateway endpoint
+          VITE_API_BASE_URL: ${{ vars.PAGES_API_BASE_URL }}
+          VITE_APP_VERSION: ${{ github.sha }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/frontend/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

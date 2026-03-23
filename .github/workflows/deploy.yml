@@ -16,17 +16,24 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+  group: deploy-${{ github.event.inputs.environment }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: CDK Deploy to ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+    name: CDK Deploy to ${{ github.event.inputs.environment }}
+    if: false # enable once AWS credentials are configured
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment }}
     env:
-      TARGET_ENV: ${{ github.event_name == 'push' && 'staging' || github.event.inputs.environment }}
+      TARGET_ENV: ${{ github.event.inputs.environment }}
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      DATA_STACK_NAME: Awdah-data-stack-${{ github.event.inputs.environment }}
+      AUTH_STACK_NAME: Awdah-auth-stack-${{ github.event.inputs.environment }}
+      API_STACK_NAME: Awdah-api-stack-${{ github.event.inputs.environment }}
+      BACKUP_STACK_NAME: Awdah-backup-stack-${{ github.event.inputs.environment }}
+      ALARM_STACK_NAME: Awdah-alarm-stack-${{ github.event.inputs.environment }}
+      FRONTEND_STACK_NAME: Awdah-frontend-stack-${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,6 +45,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
 
       - name: Build infra
         run: |
@@ -65,7 +75,58 @@ jobs:
       - name: CDK deploy
         run: |
           cd infra
-          npx cdk deploy --all --context env=${{ env.TARGET_ENV }} --require-approval never
+          npx cdk deploy \
+            ${{ env.DATA_STACK_NAME }} \
+            ${{ env.AUTH_STACK_NAME }} \
+            ${{ env.API_STACK_NAME }} \
+            ${{ env.BACKUP_STACK_NAME }} \
+            ${{ env.ALARM_STACK_NAME }} \
+            --context env=${{ env.TARGET_ENV }} \
+            --require-approval never
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Resolve frontend build inputs
+        run: |
+          USER_POOL_ID=$(aws cloudformation describe-stacks \
+            --stack-name "${AUTH_STACK_NAME}" \
+            --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" \
+            --output text)
+          USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks \
+            --stack-name "${AUTH_STACK_NAME}" \
+            --query "Stacks[0].Outputs[?OutputKey=='UserPoolClientId'].OutputValue" \
+            --output text)
+
+          echo "VITE_COGNITO_USER_POOL_ID=${USER_POOL_ID}" >> "$GITHUB_ENV"
+          echo "VITE_COGNITO_CLIENT_ID=${USER_POOL_CLIENT_ID}" >> "$GITHUB_ENV"
+          echo "VITE_AUTH_MODE=cognito" >> "$GITHUB_ENV"
+          echo "VITE_API_BASE_URL=" >> "$GITHUB_ENV"
+          echo "VITE_APP_VERSION=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Build frontend
+        run: npm run build --workspace=apps/frontend
+        env:
+          VITE_API_BASE_URL: ${{ env.VITE_API_BASE_URL }}
+          VITE_AUTH_MODE: ${{ env.VITE_AUTH_MODE }}
+          VITE_COGNITO_USER_POOL_ID: ${{ env.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ env.VITE_COGNITO_CLIENT_ID }}
+          VITE_AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+
+      - name: CDK deploy frontend
+        run: |
+          cd infra
+          npx cdk deploy \
+            ${{ env.FRONTEND_STACK_NAME }} \
+            --context env=${{ env.TARGET_ENV }} \
+            --context deployFrontend=true \
+            --require-approval never
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
