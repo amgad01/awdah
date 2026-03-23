@@ -1,4 +1,4 @@
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, PRAYER_NAMES } from '@awdah/shared';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
 import { PRAYERS_PER_DAY } from '@awdah/shared';
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
@@ -8,6 +8,7 @@ export interface SalahDebtResult {
   totalPrayersOwed: number;
   completedPrayers: number;
   remainingPrayers: number;
+  perPrayerRemaining: Record<string, number>;
 }
 
 export class SalahDebtCalculator {
@@ -18,6 +19,7 @@ export class SalahDebtCalculator {
     periods: PracticingPeriod[],
     completedQadaaCount: number,
     today: HijriDate,
+    completedByPrayer?: Record<string, number>,
   ): SalahDebtResult {
     // 1. Sort practicing periods by start date
     const sortedPeriods = [...periods].sort((a, b) => (a.startDate.isBefore(b.startDate) ? -1 : 1));
@@ -52,11 +54,19 @@ export class SalahDebtCalculator {
     const totalPrayersOwed = totalDaysMissed * PRAYERS_PER_DAY;
     const remainingPrayers = Math.max(0, totalPrayersOwed - completedQadaaCount);
 
+    const perPrayerRemaining: Record<string, number> = {};
+    for (const name of PRAYER_NAMES) {
+      const owedPerPrayer = totalDaysMissed;
+      const completedPerPrayer = completedByPrayer?.[name] ?? 0;
+      perPrayerRemaining[name] = Math.max(0, owedPerPrayer - completedPerPrayer);
+    }
+
     return {
       totalDaysMissed,
       totalPrayersOwed,
       completedPrayers: completedQadaaCount,
       remainingPrayers,
+      perPrayerRemaining,
     };
   }
 }

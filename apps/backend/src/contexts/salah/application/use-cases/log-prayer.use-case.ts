@@ -16,12 +16,17 @@ export class LogPrayerUseCase {
   constructor(private readonly repository: IPrayerLogRepository) {}
 
   async execute(command: LogPrayerCommand): Promise<void> {
+    const date = HijriDate.fromString(command.date);
+    const prayerName = new PrayerName(command.prayerName);
+    const type = new LogType(command.type);
+    const typeValue = type.getValue();
+
     const prayerLog = new PrayerLog({
       userId: command.userId,
-      eventId: ulid(),
-      date: HijriDate.fromString(command.date),
-      prayerName: new PrayerName(command.prayerName),
-      type: new LogType(command.type),
+      eventId: typeValue === 'obligatory' ? typeValue : ulid(),
+      date,
+      prayerName,
+      type,
       loggedAt: new Date(),
     });
 

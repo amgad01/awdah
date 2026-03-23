@@ -3,9 +3,9 @@ import { PracticingPeriod } from '../../../shared/domain/entities/practicing-per
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 
 export interface SawmDebtResult {
-  totalFastingDaysMissed: number;
-  completedFasts: number;
-  remainingFasts: number;
+  totalDaysOwed: number;
+  completedDays: number;
+  remainingDays: number;
 }
 
 export class SawmDebtCalculator {
@@ -59,9 +59,9 @@ export class SawmDebtCalculator {
     const remainingFasts = Math.max(0, totalFastingDaysMissed - completedQadaaCount);
 
     return {
-      totalFastingDaysMissed,
-      completedFasts: completedQadaaCount,
-      remainingFasts,
+      totalDaysOwed: totalFastingDaysMissed,
+      completedDays: completedQadaaCount,
+      remainingDays: remainingFasts,
     };
   }
 

@@ -4,6 +4,8 @@ import { HijriDate } from '@awdah/shared';
 export interface IFastLogRepository {
   save(log: FastLog): Promise<void>;
   deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void>;
+  findByUserAndDate(userId: string, date: HijriDate): Promise<FastLog[]>;
   findByUserAndDateRange(userId: string, start: HijriDate, end: HijriDate): Promise<FastLog[]>;
   countQadaaCompleted(userId: string): Promise<number>;
+  clearAll(userId: string): Promise<void>;
 }

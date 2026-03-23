@@ -1,7 +1,13 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, NotFoundError, PracticingPeriodType, ValidationError } from '@awdah/shared';
+import {
+  HijriDate,
+  NotFoundError,
+  PracticingPeriodType,
+  ValidationError,
+  ConflictError,
+} from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
 import { ulid } from 'ulid';
 
@@ -42,7 +48,7 @@ export class AddPracticingPeriodUseCase {
     const existing = await this.repository.findByUser(command.userId);
     for (const p of existing) {
       if (p.overlapsWith(newPeriod)) {
-        throw new ValidationError('The new practicing period overlaps with an existing one');
+        throw new ConflictError('The new practicing period overlaps with an existing one');
       }
     }
 
