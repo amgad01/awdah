@@ -33,7 +33,10 @@ const mockUseCases = {
   getUserSettingsUseCase: { execute: vi.fn() },
   updateUserSettingsUseCase: { execute: vi.fn() },
   deleteAccountUseCase: { execute: vi.fn() },
+  finalizeDeleteAccountUseCase: { execute: vi.fn() },
   exportDataUseCase: { execute: vi.fn() },
+  downloadExportDataUseCase: { execute: vi.fn() },
+  getUserLifecycleJobStatusUseCase: { execute: vi.fn() },
 };
 
 vi.mock('../shared/di/container', () => mockUseCases);

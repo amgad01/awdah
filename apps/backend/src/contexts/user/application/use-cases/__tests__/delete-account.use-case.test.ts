@@ -1,19 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DeleteAccountUseCase, DeleteAccountCommand } from '../delete-account.use-case';
-import { ICognitoAdminService } from '../../../domain/services/cognito-admin.service.interface';
-import { IUserDataLifecycleService } from '../../../domain/services/user-data-lifecycle.service.interface';
+import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import type { IUserLifecycleJobDispatcher } from '../../../domain/services/user-lifecycle-job-dispatcher.service.interface';
 
 describe('DeleteAccountUseCase', () => {
-  const mockLifecycleService: IUserDataLifecycleService = {
-    deleteUserData: vi.fn(),
-    exportUserData: vi.fn(),
+  const mockJobRepository: IUserLifecycleJobRepository = {
+    createJob: vi.fn(),
+    findById: vi.fn(),
+    tryMarkProcessing: vi.fn(),
+    markCompleted: vi.fn(),
+    markFailed: vi.fn(),
+    saveExportResult: vi.fn(),
+    readExportResult: vi.fn(),
+    markAuthDeleted: vi.fn(),
+  };
+  const mockDispatcher: IUserLifecycleJobDispatcher = {
+    dispatch: vi.fn(),
   };
 
-  const mockCognitoService: ICognitoAdminService = {
-    deleteUser: vi.fn(),
-  };
-
-  const useCase = new DeleteAccountUseCase(mockLifecycleService, mockCognitoService);
+  const useCase = new DeleteAccountUseCase(mockJobRepository, mockDispatcher);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,28 +26,32 @@ describe('DeleteAccountUseCase', () => {
 
   const command: DeleteAccountCommand = { userId: 'user-1' };
 
-  it('deletes DynamoDB data then removes Cognito user', async () => {
+  it('creates a pending delete-account job and dispatches it for background processing', async () => {
+    vi.mocked(mockJobRepository.createJob).mockResolvedValue({
+      userId: 'user-1',
+      jobId: 'job-1',
+      type: 'delete-account',
+      status: 'pending',
+      requestedAt: '2026-03-23T00:00:00.000Z',
+      expiresAt: 1,
+      authCleanupRequired: true,
+      authDeleted: false,
+    });
+
     const result = await useCase.execute(command);
 
-    // DynamoDB deletion must come first (GDPR priority)
-    expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith(command.userId);
-    expect(mockCognitoService.deleteUser).toHaveBeenCalledWith(command.userId);
-    expect(result.authDeleted).toBe(true);
-  });
-
-  it('returns a partial-success result if Cognito deletion fails after DynamoDB deletion succeeds', async () => {
-    vi.mocked(mockCognitoService.deleteUser).mockRejectedValue(new Error('Cognito unavailable'));
-
-    const result = await useCase.execute(command);
-    expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith(command.userId);
-    expect(result.authDeleted).toBe(false);
-  });
-
-  it('throws if DynamoDB deletion fails — does not proceed to Cognito', async () => {
-    vi.mocked(mockLifecycleService.deleteUserData).mockRejectedValue(new Error('DynamoDB error'));
-
-    await expect(useCase.execute(command)).rejects.toThrow('DynamoDB error');
-    // Cognito must not be touched if DynamoDB step failed
-    expect(mockCognitoService.deleteUser).not.toHaveBeenCalled();
+    expect(mockJobRepository.createJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: command.userId,
+        type: 'delete-account',
+        authCleanupRequired: true,
+        authDeleted: false,
+      }),
+    );
+    expect(mockDispatcher.dispatch).toHaveBeenCalledWith({
+      userId: command.userId,
+      jobId: 'job-1',
+    });
+    expect(result.jobId).toBe('job-1');
   });
 });
