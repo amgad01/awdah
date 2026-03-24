@@ -27,14 +27,19 @@ export async function runLocalLambdaHandler(
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (event.requestContext as any).authorizer = {
+  const requestContext = event.requestContext as APIGatewayProxyEventV2['requestContext'] & {
+    authorizer?: { jwt: { claims: { sub: string } } };
+  };
+
+  requestContext.authorizer = {
     jwt: {
       claims: {
         sub: userId || 'local-dev-user',
       },
     },
   };
+
+  event.requestContext = requestContext as APIGatewayProxyEventV2['requestContext'];
 
   try {
     const result = normalizeHttpResult(

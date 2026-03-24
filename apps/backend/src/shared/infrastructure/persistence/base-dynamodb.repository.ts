@@ -28,7 +28,7 @@ export abstract class BaseDynamoDBRepository<T> {
     protected readonly tableName: string,
     protected readonly skName: string,
     protected readonly pkName: string,
-  ) {}
+  ) { }
 
   /**
    * Retrieves all items associated with a specific partition key (PK).
@@ -400,12 +400,10 @@ export abstract class BaseDynamoDBRepository<T> {
       TableName: this.tableName,
       IndexName: options?.indexName,
       KeyConditionExpression: keyCondition,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ExpressionAttributeValues: expressionAttributeValues as Record<string, any>,
+      ExpressionAttributeValues: expressionAttributeValues as Record<string, unknown>,
       Limit: options?.limit,
       ScanIndexForward: options?.scanIndexForward,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ExclusiveStartKey: options?.exclusiveStartKey as Record<string, any>,
+      ExclusiveStartKey: options?.exclusiveStartKey,
     });
 
     const response = await this.docClient.send(command);
