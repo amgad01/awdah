@@ -32,7 +32,7 @@ export const PROFILE_STALE_TIME_MS = 5 * 60 * 1000;
 export const DEFAULT_HISTORY_RANGE_DAYS = 30;
 
 /** Number of log records to fetch per history page */
-export const HISTORY_PAGE_SIZE = 100;
+export const HISTORY_PAGE_SIZE = 20;
 
 /** The five obligatory daily prayers, in order */
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
