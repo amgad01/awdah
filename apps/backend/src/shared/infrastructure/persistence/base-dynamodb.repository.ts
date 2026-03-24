@@ -28,7 +28,7 @@ export abstract class BaseDynamoDBRepository<T> {
     protected readonly tableName: string,
     protected readonly skName: string,
     protected readonly pkName: string,
-  ) { }
+  ) {}
 
   /**
    * Retrieves all items associated with a specific partition key (PK).

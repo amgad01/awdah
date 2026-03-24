@@ -153,13 +153,13 @@ async function fetchCombinedHistoryPage(
     hasMore,
     nextPageParam: hasMore
       ? {
-        prayerCursor,
-        fastCursor,
-        prayerBuffer,
-        fastBuffer,
-        prayerExhausted,
-        fastExhausted,
-      }
+          prayerCursor,
+          fastCursor,
+          prayerBuffer,
+          fastBuffer,
+          prayerExhausted,
+          fastExhausted,
+        }
       : undefined,
   };
 }
