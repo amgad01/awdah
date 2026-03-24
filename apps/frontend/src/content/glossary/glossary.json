@@ -1,0 +1,79 @@
+{
+  "bulugh": {
+    "arabic": "البلوغ",
+    "synonyms": {
+      "en": "puberty · age of accountability · Islamic maturity · age of obligation",
+      "ar": "سن التكليف · سن المسؤولية الدينية"
+    },
+    "definition": {
+      "en": "The point at which a Muslim becomes legally responsible for their religious duties. Signs include physical puberty; the scholarly default is 15 Hijri years when signs are unknown.",
+      "ar": "المرحلة التي يصبح فيها المسلم ملزماً شرعاً بأداء الفرائض. علاماته: علامات الحلم، وإن لم تظهر فسن الخامسة عشرة هجرية هو الافتراضي."
+    }
+  },
+  "qadaa": {
+    "arabic": "القضاء",
+    "synonyms": {
+      "en": "makeup · making up missed obligations · compensation",
+      "ar": "الصلوات الفائتة · التعويض"
+    },
+    "definition": {
+      "en": "The practice of fulfilling missed obligatory prayers or fasts. Every missed obligation remains owed until it is made up, regardless of how long ago it was missed.",
+      "ar": "أداء الصلوات أو أيام الصيام التي فاتت. كل فريضة فائتة يجب قضاؤها بغض النظر عن مدة الفوات."
+    }
+  },
+  "salah": {
+    "arabic": "الصلاة",
+    "synonyms": {
+      "en": "prayer · ritual prayer · namaz (South Asian)",
+      "ar": "الفريضة · الصلوات الخمس"
+    },
+    "definition": {
+      "en": "The five obligatory daily prayers in Islam: Fajr (dawn), Dhuhr (midday), Asr (afternoon), Maghrib (sunset), and Isha (night).",
+      "ar": "الصلوات الخمس الواجبة يومياً: الفجر والظهر والعصر والمغرب والعشاء."
+    }
+  },
+  "sawm": {
+    "arabic": "الصوم",
+    "synonyms": {
+      "en": "fasting · Ramadan fast · roza (South Asian)",
+      "ar": "الصيام · صوم رمضان"
+    },
+    "definition": {
+      "en": "The obligatory fast during the month of Ramadan — abstaining from food, drink, and certain acts from dawn until sunset each day.",
+      "ar": "الصيام الواجب في شهر رمضان، بالإمساك عن الطعام والشراب من طلوع الفجر حتى غروب الشمس."
+    }
+  },
+  "ramadan": {
+    "arabic": "رمضان",
+    "synonyms": {
+      "en": "the holy month · month of fasting",
+      "ar": "الشهر الكريم · شهر الصيام"
+    },
+    "definition": {
+      "en": "The ninth month of the Islamic (Hijri) calendar, in which fasting is obligatory for all accountable Muslims.",
+      "ar": "الشهر التاسع في التقويم الهجري الإسلامي، الذي يجب فيه صيام شهر كامل على كل مسلم بالغ."
+    }
+  },
+  "hijri": {
+    "arabic": "الهجري",
+    "synonyms": {
+      "en": "Islamic calendar · lunar calendar · AH (Anno Hegirae)",
+      "ar": "التقويم الإسلامي · التقويم القمري"
+    },
+    "definition": {
+      "en": "The Islamic lunar calendar. Years are counted from the Hijra (the Prophet's migration from Mecca to Medina). Hijri years are ~11 days shorter than Gregorian years.",
+      "ar": "التقويم القمري الإسلامي. تُعدّ السنوات من الهجرة النبوية. السنة الهجرية أقصر من الميلادية بـ 11 يوماً تقريباً."
+    }
+  },
+  "mukallaf": {
+    "arabic": "مكلَّف",
+    "synonyms": {
+      "en": "legally accountable person · one upon whom obligations apply",
+      "ar": "المسلم البالغ العاقل"
+    },
+    "definition": {
+      "en": "A Muslim who is legally accountable — i.e., has reached bulugh and is of sound mind. Religious obligations only apply to a mukallaf.",
+      "ar": "المسلم الذي بلغ سن التكليف وكان عاقلاً. الفرائض الدينية لا تجب إلا على المكلَّف."
+    }
+  }
+}
