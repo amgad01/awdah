@@ -61,7 +61,7 @@ In deployed environments, the frontend can also leave `VITE_API_BASE_URL` empty 
 - Route: `/demo`
 - Data source: `public/demo-data/sample-user.json`
 
-The demo route is a public, JSON-backed sample account meant for portfolio links, hiring-manager walkthroughs, and non-AWS static deployments. It does not require live API data, Cognito, or AWS infrastructure to render.
+The demo route is a public, JSON-backed sample account meant for portfolio links, and non-AWS static deployments. It does not require live API data, Cognito, or AWS infrastructure to render.
 
 ## RTL and i18n
 
