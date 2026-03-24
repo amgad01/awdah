@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# Awdah — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 SPA with TypeScript, Vite, CSS Modules, and full Arabic RTL support.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Area        | Stack                                        |
+| ----------- | -------------------------------------------- |
+| UI          | React 19, CSS Modules, Framer Motion         |
+| State       | TanStack Query (server), React hooks (local) |
+| i18n / RTL  | i18next, react-i18next — English + Arabic    |
+| Routing     | React Router v7                              |
+| Charts      | Recharts                                     |
+| Icons       | Lucide React                                 |
+| E2E Testing | Playwright                                   |
 
-## React Compiler
+## Project Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```
+src/
+├── features/           # Feature modules (auth, dashboard, history, salah, sawm, settings, learn)
+├── components/         # Shared UI components (card, progress, nav, language-switcher)
+├── hooks/              # Custom hooks (use-auth, use-language, use-worship, use-dual-date)
+├── contexts/           # Shared React context providers (auth)
+├── i18n/               # i18next config + translation files
+├── content/            # Static content (FAQ data, scholar references)
+├── lib/                # Env validation, utilities
+├── utils/              # Formatters (fmtNumber, date-utils)
+└── main.tsx            # App entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+```bash
+npm run dev              # Vite dev server (http://localhost:5173)
+npm run build            # TypeScript check + Vite production build
+npm run typecheck        # TypeScript only
+npm run lint             # ESLint
+npm run preview          # Preview production build locally
+npm run test:e2e         # Playwright E2E tests
+npm run test:e2e:ui      # Playwright interactive UI mode
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+## Environment Variables
+
+| Variable                    | Description                                                                                                                   | Required     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `VITE_API_BASE_URL`         | Backend API URL. Leave empty for same-origin `/v1/*`.                                                                         | Optional     |
+| `VITE_AUTH_MODE`            | `cognito` / `local`                                                                                                           | Yes          |
+| `VITE_COGNITO_USER_POOL_ID` | Cognito User Pool ID                                                                                                          | Cognito mode |
+| `VITE_COGNITO_CLIENT_ID`    | Cognito Client ID                                                                                                             | Cognito mode |
+| `VITE_AWS_REGION`           | AWS region                                                                                                                    | Cognito mode |
+| `VITE_BASE_PATH`            | Vite `base` path. Set to `/awdah/` for GitHub Pages, leave unset (defaults to `/`) for CloudFront or same-origin deployments. | Optional     |
+
+In local dev mode (`VITE_AUTH_MODE=local`), the Vite dev server proxies `/v1` and `/health` to `http://localhost:3000`. No Cognito is required, but the backend and LocalStack still need to be running for data-backed flows.
+
+In deployed environments, the frontend can also leave `VITE_API_BASE_URL` empty when the host serves the SPA and proxies `/v1/*` and `/health` to the API from the same origin.
+
+## Static Demo Route
+
+- Route: `/demo`
+- Data source: `public/demo-data/sample-user.json`
+
+The demo route is a public, JSON-backed sample account meant for portfolio links, hiring-manager walkthroughs, and non-AWS static deployments. It does not require live API data, Cognito, or AWS infrastructure to render.
+
+## RTL and i18n
+
+All CSS uses logical properties (`margin-inline-start`, `padding-inline-end`). The `dir` attribute on `<html>` toggles RTL/LTR based on selected language. All display strings are externalised into `src/i18n/en.json` and `src/i18n/ar.json`.
+
+## E2E Tests
+
+Tests live in `e2e/` and run against the local frontend dev server in `VITE_AUTH_MODE=local`, with the backend on `http://localhost:3000` and LocalStack providing DynamoDB.
+
+```bash
+npm run test:e2e         # Headless
+npm run test:e2e:ui      # Interactive
 ```
