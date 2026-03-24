@@ -82,7 +82,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignu
 
       <div className={styles.footer}>
         <span>{t('auth.no_account')}</span>
-        <button onClick={onSwitchToSignup} className={styles.switchBtn}>
+        <button type="button" onClick={onSwitchToSignup} className={styles.switchBtn}>
           {t('auth.sign_up')}
         </button>
       </div>

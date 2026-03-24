@@ -114,7 +114,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         </form>
 
         <div className={styles.footer}>
-          <button onClick={handleResend} className={styles.switchBtn}>
+          <button type="button" onClick={handleResend} className={styles.switchBtn}>
             {t('auth.verify_resend')}
           </button>
         </div>
@@ -186,7 +186,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
 
       <div className={styles.footer}>
         <span>{t('auth.have_account')}</span>
-        <button onClick={onSwitchToLogin} className={styles.switchBtn}>
+        <button type="button" onClick={onSwitchToLogin} className={styles.switchBtn}>
           {t('auth.login')}
         </button>
       </div>
