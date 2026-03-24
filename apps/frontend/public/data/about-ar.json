@@ -1,0 +1,90 @@
+{
+  "project_badge": "المشروع",
+  "project_title": "عن عودة",
+  "project_subtitle": "رفيقك في رحلة قضاء ما فاتك من صلوات وصيام، بهدوء واستمرارية.",
+  "why_title": "رسالتنا",
+  "why_body": "وُلد مشروع عودة من الرغبة في جعل رحلة قضاء العبادات الفائتة أقل إرهاقاً. نؤمن بتوفير أدوات عالية الجودة، تحترم الخصوصية، وتقدّر قدسية رحلتك الروحية.",
+  "who_title": "لمن هذا التطبيق؟",
+  "who_body": "سواء كنت تعود للصلاة بعد انقطاع طويل، أو ترغب فقط في تتبع أيام معدودة، يوفر لك عودة الهيكل والتحفيز اللازمين للمحافظة على الثبات.",
+  "features_title": "المميزات الأساسية",
+  "features": [
+    {
+      "id": "salah",
+      "icon": "Moon",
+      "title": "متابعة الصلاة",
+      "body": "تتبع دقيق للصلوات الفائتة مع رؤية واضحة لما تبقى عليك من ديون."
+    },
+    {
+      "id": "sawm",
+      "icon": "Sun",
+      "title": "تتبع الصيام",
+      "body": "سجل أيام الصيام الفائتة مع دعم خاص لقضاء رمضان والأيام التطوعية."
+    },
+    {
+      "id": "hijri",
+      "icon": "Calendar",
+      "title": "تقويم هجري أصيل",
+      "body": "مصمم حول التقويم الهجري مع دعم دقيق للتاريخ المزدوج في جميع الإدخالات."
+    },
+    {
+      "id": "bilingual",
+      "icon": "Globe",
+      "title": "دعم كامل للغة العربية",
+      "body": "تجربة مستخدم متكاملة من اليمين إلى اليسار باللغتين العربية والإنجليزية."
+    },
+    {
+      "id": "privacy",
+      "icon": "Shield",
+      "title": "الخصوصية أولاً",
+      "body": "بياناتك ملك لك. مشفرة وآمنة ومصممة بأقل قدر ممكن من جمع البيانات."
+    },
+    {
+      "id": "learn",
+      "icon": "BookOpen",
+      "title": "مسار تعليمي",
+      "body": "مصادر مختارة لفهم الأحكام الشرعية والحكم من قضاء العبادات."
+    }
+  ],
+  "team_title": "المطور",
+  "team": [
+    {
+      "id": "amgad01",
+      "name": "أمجد محمود",
+      "role": "المؤسس · المعماري التقني · المطور الرئيسي",
+      "bio": "مهندس سحابة (Cloud Engineer) مقيم في ألمانيا، بخبرة 5 سنوات في بناء تطبيقات الـ SaaS على AWS. شغوف بالهندسة النظيفة (Clean Architecture) وبناء أدوات تخدم المجتمع.",
+      "github": "amgad01",
+      "socials": [
+        {
+          "type": "linkedin",
+          "url": "https://linkedin.com/in/amgad-m"
+        },
+        {
+          "type": "credly",
+          "url": "https://credly.com/users/amgad-mahmoud"
+        },
+        {
+          "type": "stackoverflow",
+          "url": "https://stackoverflow.com/users/14566143/amgad"
+        },
+        {
+          "type": "substack",
+          "url": "https://substack.com/@amah01"
+        }
+      ],
+      "tech_title": "التقنيات المستخدمة",
+      "tech": [
+        "TypeScript",
+        "Python",
+        "Angular",
+        "React",
+        "Node.js",
+        "IaC (AWS CDK, CDK for Terraform)",
+        "NoSQL (DynamoDB)",
+        "Serverless (Lambda, API Gateway)",
+        "Auth (Cognito)",
+        "Clean Architecture",
+        "DDD"
+      ]
+    }
+  ]
+}

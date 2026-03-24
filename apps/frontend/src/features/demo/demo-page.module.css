@@ -1,0 +1,628 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}
+
+.loading {
+  min-height: 18rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 360px);
+  gap: var(--spacing-lg);
+  align-items: start;
+  margin-bottom: var(--spacing-lg);
+}
+
+.headerCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.badge {
+  width: fit-content;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  color: #6f5200;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 48rem;
+}
+
+.story {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.headerChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+/* ── Hero ── */
+.hero {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.heroMain {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) 0%,
+    var(--color-surface) 58%,
+    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+}
+
+.heroBadge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-sm);
+}
+
+.heroTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  max-width: 450px;
+  margin-bottom: var(--spacing-md);
+  line-height: 1.6;
+}
+
+.heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.heroCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.heroCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-primary);
+}
+
+.heroCardHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.heroCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.heroCardItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.heroCardLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.heroCardValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+/* ── Record Streaks ── */
+.recordStreakList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.recordStreakRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.recordStreakIcon {
+  color: var(--color-primary);
+}
+
+/* ── Source Card ── */
+.sourceCard {
+  gap: var(--spacing-sm);
+}
+
+.sourceLabel {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.sourceText {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.sourcePath {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.85rem;
+}
+
+.overviewGrid,
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.overviewCard {
+  gap: var(--spacing-sm);
+}
+
+.cardIconRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sampleName {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.definitionList {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.definitionList div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.definitionList dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.definitionList dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.definitionValue {
+  font-weight: 600;
+}
+
+.dualDateStack {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.dualDateLine {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+.dualDateLineSecondary {
+  color: var(--color-text-secondary);
+}
+
+.calendarTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.25rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metricRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.metricValue {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.metricLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.statBox {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+}
+
+.statBox strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.statBox span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.prayerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.prayerTile {
+  display: grid;
+  gap: 0.3rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.prayerDone {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-success) 26%, var(--color-border));
+}
+
+.prayerPending {
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.prayerName {
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.prayerStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.weeklyHeader {
+  margin-top: var(--spacing-md);
+}
+
+.weeklyHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.weeklyChart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--spacing-xs);
+  align-items: end;
+  margin-top: var(--spacing-sm);
+}
+
+.weeklyBarCol {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+}
+
+.weeklyBarTrack {
+  width: 100%;
+  height: 6.5rem;
+  display: flex;
+  align-items: end;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  padding: 0.2rem;
+}
+
+.weeklyBar {
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+}
+
+.weeklyValue {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.weeklyLabel {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.periodList,
+.historyList,
+.settingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.periodCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+}
+
+.periodHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.periodBadge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.periodDateStack {
+  margin: 0;
+}
+
+.periodMeta {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.periodMetaLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.periodMetaDate {
+  font-size: var(--font-size-xs);
+}
+
+.historyRow,
+.settingRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--spacing-sm);
+  align-items: start;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.historyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.historyCopy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.historyCopy strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.historyCopy span,
+.historyDate {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.historyDate {
+  justify-items: end;
+  min-width: 13rem;
+}
+
+.settingRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.settingLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.hostingCallout {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  display: grid;
+  gap: 0.35rem;
+}
+
+.hostingLabel {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: #7a6002;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hostingText {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .header,
+  .hero,
+  .overviewGrid,
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .prayerGrid,
+  .statRow,
+  .heroCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .weeklyChart {
+    gap: 0.2rem;
+  }
+
+  .historyRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .historyDate {
+    grid-column: 2;
+    justify-items: start;
+    min-width: 0;
+  }
+}

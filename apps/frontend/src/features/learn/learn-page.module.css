@@ -1,0 +1,283 @@
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.headerCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.title {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-block-start: var(--spacing-xs);
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.searchField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.searchLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.searchInput:focus {
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border-color: var(--color-primary);
+}
+
+.sectionNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.sectionPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+/* ── Sections ── */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.sectionCard {
+  /* Card handles padding */
+}
+
+.sectionTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-block-end: var(--spacing-sm);
+  padding-block-end: var(--spacing-sm);
+  border-block-end: 1px solid var(--color-divider);
+}
+
+/* ── Accordion ── */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accordionItem {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  transition: background 0.15s;
+}
+
+.accordionItem:hover {
+  background-color: var(--color-primary-alpha-5, rgba(0, 77, 64, 0.04));
+}
+
+.accordionItemOpen {
+  background-color: var(--color-primary-alpha-5, rgba(0, 77, 64, 0.04));
+}
+
+.accordionTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  color: var(--color-text-primary);
+}
+
+.accordionQuestion {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.accordionChevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 0.2s;
+}
+
+.accordionChevronOpen {
+  transform: rotate(180deg);
+}
+
+.accordionBody {
+  padding: 0 var(--spacing-md) var(--spacing-sm);
+}
+
+.accordionAnswer {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.glossarySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.glossaryHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.glossaryTitle {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.glossarySubtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.glossaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.glossaryCard {
+  gap: var(--spacing-sm);
+}
+
+.glossaryCardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.glossaryTerm {
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  color: var(--color-text-primary);
+}
+
+.glossaryArabic {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.glossarySynonyms {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.glossaryDefinition {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.emptyCard {
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding-block: var(--spacing-md);
+}
+
+.footerNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 700px) {
+  .glossaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .glossaryCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "project_badge": "The Project",
+  "project_title": "About Awdah",
+  "project_subtitle": "Helping you return to your missed prayers and fasts, gently and sustainably.",
+  "why_title": "Our Mission",
+  "why_body": "Awdah was born from a desire to make the journey of making up missed worship (Qada'a) less overwhelming. We believe in high-quality, privacy-first tools that respect the sanctity of your spiritual journey.",
+  "who_title": "Who it's for",
+  "who_body": "Whether you are returning to practice after a long break, or simply keeping track of a few missed days, Awdah provides the structure and motivation to help you stay consistent.",
+  "features_title": "Core Features",
+  "features": [
+    {
+      "id": "salah",
+      "icon": "Moon",
+      "title": "Salah Monitoring",
+      "body": "Detailed tracking of missed obligatory prayers with a clear view of your remaining debt."
+    },
+    {
+      "id": "sawm",
+      "icon": "Sun",
+      "title": "Sawm Tracking",
+      "body": "Log missed fasts with specific support for Ramadan recovery and voluntary days."
+    },
+    {
+      "id": "hijri",
+      "icon": "Calendar",
+      "title": "Hijri First",
+      "body": "Built around the Islamic calendar with accurate dual-date support for all entries."
+    },
+    {
+      "id": "bilingual",
+      "icon": "Globe",
+      "title": "Full Arabic Support",
+      "body": "First-class Right-to-Left (RTL) experience in both English and Arabic."
+    },
+    {
+      "id": "privacy",
+      "icon": "Shield",
+      "title": "Privacy First",
+      "body": "Your data is yours. Secure, encrypted, and designed with minimal data collection in mind."
+    },
+    {
+      "id": "learn",
+      "icon": "BookOpen",
+      "title": "Educational Path",
+      "body": "Curated resources to understand the religious rulings and wisdom behind Qada'a."
+    }
+  ],
+  "team_title": "The Architect",
+  "team": [
+    {
+      "id": "amgad01",
+      "name": "Amgad Mahmoud",
+      "role": "Founder · Architect · Lead Developer",
+      "bio": "Cloud Engineer based in Germany with 5 years of experience building serverless SaaS on AWS. Passionate about Clean Architecture, DDD, and building tools that serve the community.",
+      "github": "amgad01",
+      "socials": [
+        {
+          "type": "linkedin",
+          "url": "https://linkedin.com/in/amgad-m"
+        },
+        {
+          "type": "credly",
+          "url": "https://credly.com/users/amgad-mahmoud"
+        },
+        {
+          "type": "stackoverflow",
+          "url": "https://stackoverflow.com/users/14566143/amgad"
+        },
+        {
+          "type": "substack",
+          "url": "https://substack.com/@amah01"
+        }
+      ],
+      "tech_title": "Tech Stack",
+      "tech": [
+        "TypeScript",
+        "React",
+        "Node.js",
+        "AWS CDK",
+        "DynamoDB",
+        "Lambda",
+        "Cognito",
+        "Clean Architecture",
+        "DDD"
+      ]
+    }
+  ]
+}

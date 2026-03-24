@@ -1,0 +1,59 @@
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.85rem 1rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)),
+    var(--color-surface)
+  );
+  border: 1.5px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-accent) 18%, transparent);
+  margin-block-end: var(--spacing-md);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.message {
+  flex: 1;
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+
+.dismiss:hover {
+  color: var(--color-text);
+}
