@@ -13,6 +13,39 @@
   box-shadow: var(--shadow-md);
 }
 
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-decoration: none;
+  color: inherit;
+  margin-inline-end: var(--spacing-xl);
+  flex-shrink: 0;
+}
+
+.logoLink:hover {
+  opacity: 0.9;
+}
+
+.logoEn {
+  font-weight: 800;
+  font-size: var(--font-size-xl);
+  letter-spacing: -0.02em;
+}
+
+.logoAr {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  opacity: 0.85;
+}
+
+.logoDivider {
+  opacity: 0.35;
+  font-size: var(--font-size-md);
+  font-weight: 400;
+}
+
+/* keep .logo for any legacy references */
 .logo {
   font-weight: 800;
   font-size: var(--font-size-xl);

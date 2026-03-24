@@ -20,6 +20,30 @@
   background-color: var(--color-primary-alpha-5);
 }
 
+.switcherInverse {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.switcherInverse:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.switcherInverse .active {
+  color: white;
+}
+
+.switcherInverse .inactive {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.switcherInverse .divider {
+  color: rgba(255, 255, 255, 0.38);
+}
+
 .active {
   color: var(--color-primary);
 }
@@ -33,11 +57,57 @@
   font-weight: 400;
 }
 
-/* Full variant (used in settings) */
-.fullBtn {
+/* Compact select — shown when 3+ languages are supported */
+.select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.select:hover,
+.select:focus {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  outline: none;
+}
+
+.selectInverse {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.selectInverse:hover,
+.selectInverse:focus {
+  border-color: rgba(255, 255, 255, 0.32);
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.selectInverse option {
+  color: var(--color-text-primary);
+}
+
+/* Full variant — language list in settings */
+.langList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.langOption {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--spacing-sm);
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
@@ -47,13 +117,31 @@
   transition: var(--transition-fast);
 }
 
-.fullBtn:hover {
+.langOption:hover {
   border-color: var(--color-primary-light);
   background-color: var(--color-primary-alpha-5);
 }
 
-.fullLabel {
+.langOptionActive {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.langNative {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
+  flex: 1;
+}
+
+.langEnglish {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.langCheck {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-inline-start: auto;
 }

@@ -9,6 +9,9 @@ export interface DayNavProps {
   onPrev: () => void;
   onNext: () => void;
   isNextDisabled?: boolean;
+  isPrevDisabled?: boolean;
+  /** Optional content rendered after the next button (e.g. a count badge). */
+  trailing?: React.ReactNode;
 }
 
 export const DayNav: React.FC<DayNavProps> = ({
@@ -17,6 +20,8 @@ export const DayNav: React.FC<DayNavProps> = ({
   onPrev,
   onNext,
   isNextDisabled = false,
+  isPrevDisabled = false,
+  trailing,
 }) => {
   const { t, isRTL } = useLanguage();
 
@@ -29,6 +34,7 @@ export const DayNav: React.FC<DayNavProps> = ({
       <button
         className={styles.navBtn}
         onClick={onPrev}
+        disabled={isPrevDisabled}
         aria-label={t('common.previous_day')}
         type="button"
       >
@@ -49,6 +55,7 @@ export const DayNav: React.FC<DayNavProps> = ({
       >
         <NextIcon size={18} aria-hidden="true" />
       </button>
+      {trailing}
     </div>
   );
 };

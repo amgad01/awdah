@@ -1,12 +1,11 @@
 import React, { type ReactNode } from 'react';
 import styles from './card.module.css';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   subtitle?: string;
   children: ReactNode;
   variant?: 'default' | 'primary' | 'outline' | 'glass';
-  className?: string;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -15,11 +14,12 @@ export const Card: React.FC<CardProps> = ({
   children,
   variant = 'default',
   className = '',
+  ...props
 }) => {
   const cardClassName = `${styles.card} ${styles[variant]} ${className}`;
 
   return (
-    <div className={cardClassName}>
+    <div className={cardClassName} {...props}>
       {(title || subtitle) && (
         <div className={styles.header}>
           {title && <h3 className={styles.title}>{title}</h3>}

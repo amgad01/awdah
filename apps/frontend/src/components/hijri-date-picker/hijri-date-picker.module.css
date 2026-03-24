@@ -50,7 +50,9 @@
 
 .hijriRow {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  /* Month gets most space; day and year share the rest equally.
+     year column has a minimum so it never collapses below a readable width. */
+  grid-template-columns: 2fr 1fr minmax(80px, 1fr);
   gap: var(--spacing-sm);
 }
 
@@ -71,4 +73,17 @@
 .hint {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
+}
+
+.dualPreview {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  border: 1px solid var(--color-divider, var(--color-border));
+  border-radius: var(--border-radius, 8px);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-muted);
 }
