@@ -59,12 +59,10 @@ No AWS account or real credentials needed for local development.
 
 The frontend proxies API calls to the local Lambda runner. LocalStack simulates DynamoDB, S3, SQS, SNS, EventBridge, and Secrets Manager.
 
-### Public demo route
+### Public Demo & About
 
-- Demo page: `http://localhost:8080/demo`
-- Static demo data: `apps/frontend/public/demo-data/sample-user.json`
-
-The `/demo` route is intentionally backed by a bundled JSON asset rather than live AWS data. That makes it useful for portfolio links, hiring-manager walkthroughs, and non-AWS static hosting where only the frontend is deployed.
+- **Live Demo**: `http://localhost:8080/demo` — A fully hydrated preview using bundled JSON data (`/demo-data/sample-user.json`), perfect for portfolio reviews without requiring a live backend.
+- **Project Context**: `http://localhost:8080/about` — Learn about the project's mission, technical foundations, and the developer behind it.
 
 ### Local AWS credentials
 
@@ -171,7 +169,7 @@ All routes except `/health` require a Cognito JWT `Bearer` token. All dates are 
 
 Both targets call the same AWS backend. To allow a GitHub Pages origin in the API CORS policy, pass `--context frontendOrigin=https://<org>.github.io` when running `cdk deploy`.
 
-See [`private-docs/decisions/deployment-strategy.md`](private-docs/decisions/deployment-strategy.md) for complete step-by-step setup.
+See [`docs/architecture/`](docs/architecture/) for complete architectural decisions and setup guides.
 
 ## Contributing
 
