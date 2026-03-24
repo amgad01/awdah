@@ -142,49 +142,74 @@
 }
 
 .heroCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  gap: var(--spacing-sm);
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 88%, #0f3f37) 100%
+  );
+  color: var(--color-text-on-primary);
+  border: none;
+  box-shadow: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
 }
 
 .heroCardHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--color-primary);
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  color: rgba(255, 255, 255, 0.88);
 }
 
-.heroCardHeader h3 {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.heroCardGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-sm);
-}
-
-.heroCardItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.heroCardLabel {
+.heroCardKicker {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .heroCardValue {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-text-primary);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.heroCardLabel {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: var(--font-size-sm);
+}
+
+.heroCardBody {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.7;
+}
+
+.heroCardStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.heroCardStat {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.heroCardStat strong {
+  font-size: 1.2rem;
+  color: white;
+}
+
+.heroCardStat span {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Record Streaks ── */
@@ -608,7 +633,7 @@
 @media (max-width: 640px) {
   .prayerGrid,
   .statRow,
-  .heroCardGrid {
+  .heroCardStats {
     grid-template-columns: 1fr;
   }
 

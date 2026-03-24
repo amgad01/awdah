@@ -250,21 +250,25 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
 
         <Card className={styles.heroCard}>
           <div className={styles.heroCardHeader}>
+            <span className={styles.heroCardKicker}>{t('dashboard.hero_focus')}</span>
             <Icons.Target size={18} />
-            <h3>{t('dashboard.snapshot_today')}</h3>
           </div>
-          <div className={styles.heroCardGrid}>
-            <div className={styles.heroCardItem}>
-              <span className={styles.heroCardLabel}>{t('dashboard.snapshot_salah')}</span>
-              <span className={styles.heroCardValue}>
-                {fmtNumber(data.salah.qadaaLoggedToday)} / {fmtNumber(data.user.dailyIntention)}
-              </span>
+          <div className={styles.heroCardValue}>{fmtNumber(data.salah.completed)}</div>
+          <p className={styles.heroCardLabel}>{t('dashboard.completed_label')}</p>
+          <p className={styles.heroCardBody}>
+            {t('dashboard.hero_focus_body', {
+              prayers: fmtNumber(data.salah.completed),
+              fasts: fmtNumber(data.sawm.completed),
+            })}
+          </p>
+          <div className={styles.heroCardStats}>
+            <div className={styles.heroCardStat}>
+              <strong>{fmtNumber(data.salah.remaining)}</strong>
+              <span>{t('dashboard.prayers_remaining')}</span>
             </div>
-            <div className={styles.heroCardItem}>
-              <span className={styles.heroCardLabel}>{t('dashboard.snapshot_sawm')}</span>
-              <span className={styles.heroCardValue}>
-                {data.sawm.todayStatus === 'logged' ? fmtNumber(1) : fmtNumber(0)}
-              </span>
+            <div className={styles.heroCardStat}>
+              <strong>{fmtNumber(data.sawm.remaining)}</strong>
+              <span>{t('dashboard.fasts_remaining')}</span>
             </div>
           </div>
         </Card>

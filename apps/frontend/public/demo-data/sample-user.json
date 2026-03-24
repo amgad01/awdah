@@ -7,13 +7,13 @@
     "story": {
       "en": "Maryam represents a fully used account: she has tracked daily worship, logged qadaa consistently, added practicing periods, and relies on history and privacy tools to stay organised.",
       "ar": "يعرض هذا المثال مريم كحساب مستخدَم فعلياً: تسجّل عباداتها اليومية، وتقضي ما فاتها باستمرار، وتضيف فترات الالتزام، وتراجع السجل وأدوات الخصوصية لتنظيم رحلتها."
-    },
-    "bestPrayerStreak": {
-      "name": "fajr",
-      "count": 21
-    },
-    "monThuStreak": 4
+    }
   },
+  "bestPrayerStreak": {
+    "name": "fajr",
+    "count": 21
+  },
+  "monThuStreak": 4,
   "profile": {
     "dateOfBirth": "1421-06-15",
     "bulughDate": "1434-01-10",
