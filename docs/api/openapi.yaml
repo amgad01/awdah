@@ -252,6 +252,53 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /v1/salah/history/page:
+    get:
+      operationId: getSalahHistoryPage
+      tags: [salah]
+      summary: Get paged prayer log history
+      description: Returns a paginated list of prayer log entries for the authenticated user within the given Hijri date range.
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/HijriDate'
+          description: Start of the date range (Hijri, inclusive)
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/HijriDate'
+          description: End of the date range (Hijri, inclusive)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            maximum: 200
+          description: Maximum number of items to return in the page
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Pagination cursor returned in the previous response
+      responses:
+        '200':
+          description: Paginated list of prayer log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrayerHistoryPage'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
   # ---------------------------------------------------------------------------
   # Salah — practicing periods
   # ---------------------------------------------------------------------------
@@ -532,6 +579,53 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FastLogEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /v1/sawm/history/page:
+    get:
+      operationId: getSawmHistoryPage
+      tags: [sawm]
+      summary: Get paged fast log history
+      description: Returns a paginated list of fast log entries for the authenticated user within the given Hijri date range.
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/HijriDate'
+          description: Start of the date range (Hijri, inclusive)
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/HijriDate'
+          description: End of the date range (Hijri, inclusive)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            maximum: 200
+          description: Maximum number of items to return in the page
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Pagination cursor returned in the previous response
+      responses:
+        '200':
+          description: Paginated list of fast log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FastHistoryPage'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -1041,6 +1135,32 @@ components:
         breakReason:
           type: string
           description: Optional reason if the fast was broken (v1 reserved field)
+
+    PrayerHistoryPage:
+      type: object
+      required: [items, hasMore]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrayerLogEntry'
+        nextCursor:
+          type: string
+        hasMore:
+          type: boolean
+
+    FastHistoryPage:
+      type: object
+      required: [items, hasMore]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FastLogEntry'
+        nextCursor:
+          type: string
+        hasMore:
+          type: boolean
 
     PracticingPeriod:
       type: object
