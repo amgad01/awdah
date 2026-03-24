@@ -18,9 +18,12 @@ test.describe('Salah Tracker', () => {
   });
 
   test('displays all five prayers', async ({ page }) => {
+    await page.getByRole('tab', { name: /daily prayers/i }).click();
     const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
     for (const prayer of prayers) {
-      await expect(page.getByRole('button', { name: new RegExp(prayer, 'i') })).toBeVisible();
+      await expect(page.getByRole('button', { name: new RegExp(prayer, 'i') }).first()).toBeVisible(
+        { timeout: 10_000 },
+      );
     }
   });
 
@@ -29,14 +32,16 @@ test.describe('Salah Tracker', () => {
     const wasPressed = (await fajrBtn.getAttribute('aria-pressed')) === 'true';
 
     await fajrBtn.click();
-    // Toggle from current state
-    const expectedState = !wasPressed;
-    await expect(fajrBtn).toHaveAttribute('aria-pressed', String(expectedState), {
-      timeout: 5_000,
-    });
+
+    if (wasPressed) {
+      await expect(page.getByRole('alert')).toBeVisible({ timeout: 5_000 });
+    } else {
+      await expect(fajrBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
+    }
   });
 
   test('navigates to previous day and back', async ({ page }) => {
+    await page.getByRole('tab', { name: /qadaa prayers/i }).click();
     const prevBtn = page.getByLabel(/previous day/i);
     const nextBtn = page.getByLabel(/next day/i);
 
@@ -60,16 +65,26 @@ test.describe('Sawm Tracker', () => {
   });
 
   test('shows fast log button', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /log fast|fast logged/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', {
+        name: /mark qadaa fast|qadaa fast logged|ramadan fast|ramadan fast logged/i,
+      }),
+    ).toBeVisible();
   });
 
   test('toggles a fast log', async ({ page }) => {
-    const logBtn = page.getByRole('button', { name: /log fast|fast logged/i });
+    const logBtn = page.getByRole('button', {
+      name: /mark qadaa fast|qadaa fast logged|ramadan fast|ramadan fast logged/i,
+    });
     const wasPressed = (await logBtn.getAttribute('aria-pressed')) === 'true';
 
     await logBtn.click();
-    const expectedState = !wasPressed;
-    await expect(logBtn).toHaveAttribute('aria-pressed', String(expectedState), { timeout: 5_000 });
+
+    if (wasPressed) {
+      await expect(page.getByRole('alert')).toBeVisible({ timeout: 5_000 });
+    } else {
+      await expect(logBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
+    }
   });
 
   test('navigates to previous day', async ({ page }) => {

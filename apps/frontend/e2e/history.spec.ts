@@ -21,26 +21,20 @@ test.describe('History Page', () => {
     await expect(page.getByRole('heading', { name: /history/i })).toBeVisible();
   });
 
-  test('shows date navigation controls', async ({ page }) => {
-    await expect(page.getByLabel(/previous day/i).first()).toBeVisible();
-    await expect(page.getByLabel(/next day/i).first()).toBeVisible();
+  test('shows date filter controls', async ({ page }) => {
+    await page.getByRole('button', { name: /filters/i }).click();
+    await expect(page.getByLabel(/^from$/i)).toBeVisible();
+    await expect(page.getByLabel(/^to$/i)).toBeVisible();
   });
 
-  test('shows empty state for a day with no logs', async ({ page }) => {
-    // Navigate to a past date that likely has no logs
-    const prevBtn = page.getByLabel(/previous day/i).first();
-    // Go back 30 days
-    for (let i = 0; i < 30; i++) {
-      await prevBtn.click();
-    }
-    // Should not crash — either shows logs or empty state message
+  test('renders history content without invalid placeholders', async ({ page }) => {
     await expect(page.locator('body')).not.toContainText('undefined');
     await expect(page.locator('body')).not.toContainText('null');
   });
 
   test('filter buttons are present and interactive', async ({ page }) => {
-    // Look for filter controls (all / salah / sawm)
-    const allFilter = page.getByRole('button', { name: /all/i });
+    await page.getByRole('button', { name: /filters/i }).click();
+    const allFilter = page.getByRole('button', { name: /^all$/i }).first();
     if (await allFilter.isVisible()) {
       await allFilter.click();
       await expect(allFilter).toBeVisible();
