@@ -12,7 +12,12 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import { jwtDecode } from 'jwt-decode';
 import type { AuthService, UserSession } from './auth-service';
-import { TOKEN_KEY, USER_KEY } from './auth-service';
+import {
+  TOKEN_KEY,
+  clearPersistedSession,
+  persistSession,
+  readPersistedSession,
+} from './auth-service';
 
 // VITE_COGNITO_USER_POOL_ID is required for SRP — the UserPool ID encodes the region too
 const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID || '';
@@ -26,6 +31,7 @@ interface CognitoJwtPayload {
   sub: string;
   email?: string;
   'cognito:username'?: string;
+  exp?: number;
 }
 
 /** Extract a UserSession from a completed Cognito authentication session. */
@@ -34,6 +40,7 @@ function buildSession(cognitoSession: CognitoUserSession): UserSession {
   // ID token is decoded once here purely to read display attributes (email, username).
   const accessToken = cognitoSession.getAccessToken().getJwtToken();
   const idToken = cognitoSession.getIdToken().getJwtToken();
+  const accessTokenPayload = jwtDecode<CognitoJwtPayload>(accessToken);
   const decoded = jwtDecode<CognitoJwtPayload>(idToken);
 
   return {
@@ -41,6 +48,7 @@ function buildSession(cognitoSession: CognitoUserSession): UserSession {
     username: decoded['cognito:username'] || decoded.email || decoded.sub,
     email: decoded.email,
     token: accessToken,
+    expiresAt: accessTokenPayload.exp ? accessTokenPayload.exp * 1000 : Date.now() + 55 * 60_000,
   };
 }
 
@@ -55,8 +63,7 @@ export const cognitoAuthService: AuthService = {
       cognitoUser.authenticateUser(authDetails, {
         onSuccess: (cognitoSession: CognitoUserSession) => {
           const session = buildSession(cognitoSession);
-          localStorage.setItem(TOKEN_KEY, session.token);
-          localStorage.setItem(USER_KEY, JSON.stringify(session));
+          persistSession(session);
           resolve(session);
         },
         onFailure: (err: Error) => reject(err),
@@ -89,7 +96,7 @@ export const cognitoAuthService: AuthService = {
   },
 
   async signOut(): Promise<void> {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = typeof window === 'undefined' ? null : window.sessionStorage.getItem(TOKEN_KEY);
     if (token) {
       try {
         // GlobalSignOut invalidates all sessions server-side — requires the access token
@@ -99,22 +106,15 @@ export const cognitoAuthService: AuthService = {
         // (token may already be expired or the account may have been deleted)
       }
     }
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearPersistedSession();
   },
 
   getCurrentUser(): UserSession | null {
-    const userJson = localStorage.getItem(USER_KEY);
-    if (!userJson) return null;
-    try {
-      return JSON.parse(userJson) as UserSession;
-    } catch {
-      return null;
-    }
+    return readPersistedSession();
   },
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return readPersistedSession()?.token ?? null;
   },
 
   isAuthenticated(): boolean {

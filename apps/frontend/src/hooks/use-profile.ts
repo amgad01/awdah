@@ -1,7 +1,52 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { api, type UserLifecycleJobResponse, type UserLifecycleJobType } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
+
+const USER_JOB_POLL_INTERVAL_MS = 1_500;
+const USER_JOB_POLL_TIMEOUT_MS = 90_000;
+
+function invalidatePeriodRelatedQueries(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForLifecycleJob(
+  jobId: string,
+  expectedType: UserLifecycleJobType,
+): Promise<UserLifecycleJobResponse> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < USER_JOB_POLL_TIMEOUT_MS) {
+    const response = await api.user.getJobStatus(jobId);
+    const job = response?.job;
+
+    if (!job) {
+      throw new Error('The background task could not be found.');
+    }
+
+    if (job.type !== expectedType) {
+      throw new Error('The background task returned an unexpected result.');
+    }
+
+    if (job.status === 'completed') {
+      return job;
+    }
+
+    if (job.status === 'failed') {
+      throw new Error(job.errorMessage || 'The background task failed.');
+    }
+
+    await sleep(USER_JOB_POLL_INTERVAL_MS);
+  }
+
+  throw new Error('The background task is taking longer than expected. Please try again shortly.');
+}
 
 export const useProfile = () => {
   return useQuery({
@@ -13,9 +58,12 @@ export const useProfile = () => {
 };
 
 export const useOnboardingStatus = () => {
-  const { data, isLoading, isError } = useProfile();
+  const { data, error, isLoading, isError } = useProfile();
   return {
+    data,
+    error,
     isLoading,
+    isError,
     // Onboarding is complete when the profile exists and has a bulughDate
     isComplete: !isLoading && !isError && data != null && !!data.bulughDate,
   };
@@ -24,8 +72,12 @@ export const useOnboardingStatus = () => {
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { bulughDate: string; gender: string; dateOfBirth?: string }) =>
-      api.user.updateProfile(data),
+    mutationFn: (data: {
+      bulughDate: string;
+      gender: string;
+      dateOfBirth?: string;
+      revertDate?: string;
+    }) => api.user.updateProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
@@ -48,9 +100,18 @@ export const useAddPracticingPeriod = () => {
     mutationFn: (data: { startDate: string; endDate?: string; type: string }) =>
       api.salah.addPeriod(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
+      invalidatePeriodRelatedQueries(queryClient);
+    },
+  });
+};
+
+export const useUpdatePracticingPeriod = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { periodId: string; startDate: string; endDate?: string; type: string }) =>
+      api.salah.updatePeriod(data),
+    onSuccess: () => {
+      invalidatePeriodRelatedQueries(queryClient);
     },
   });
 };
@@ -60,32 +121,53 @@ export const useDeletePracticingPeriod = () => {
   return useMutation({
     mutationFn: (periodId: string) => api.salah.deletePeriod(periodId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
+      invalidatePeriodRelatedQueries(queryClient);
     },
   });
 };
 
 export const useDeleteAccount = () => {
   return useMutation({
-    mutationFn: () => api.user.deleteAccount(),
+    mutationFn: async () => {
+      const started = await api.user.startDeleteAccount();
+      const job = started?.job;
+
+      if (!job) {
+        throw new Error('Account deletion could not be started.');
+      }
+
+      await waitForLifecycleJob(job.jobId, 'delete-account');
+      return api.user.finalizeDeleteAccount(job.jobId);
+    },
   });
 };
 
 export const useExportData = () => {
   return useMutation({
-    mutationFn: () => api.user.exportData(),
+    mutationFn: async () => {
+      const started = await api.user.startExportData();
+      const job = started?.job;
+
+      if (!job) {
+        throw new Error('Data export could not be started.');
+      }
+
+      await waitForLifecycleJob(job.jobId, 'export');
+      return api.user.downloadExportData(job.jobId);
+    },
     onSuccess: (response) => {
       if (!response?.data) return;
-      const dataStr = JSON.stringify(response.data, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-      const exportFileDefaultName = `awdah-data-export-${new Date().toISOString().split('T')[0]}.json`;
-
+      const dataBlob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: 'application/json;charset=utf-8',
+      });
+      const objectUrl = URL.createObjectURL(dataBlob);
+      const exportFileDefaultName =
+        response.fileName || `awdah-data-export-${new Date().toISOString().split('T')[0]}.json`;
       const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('href', objectUrl);
       linkElement.setAttribute('download', exportFileDefaultName);
       linkElement.click();
+      URL.revokeObjectURL(objectUrl);
     },
   });
 };

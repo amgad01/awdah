@@ -2,18 +2,18 @@
  * Validates required Vite environment variables at application startup.
  *
  * In auth mode 'local' (development), Cognito variables are not required — the local
- * simulation handles authentication directly. In any other mode they must be present.
+ * simulation handles authentication directly. In any other mode the Cognito variables
+ * must be present.
  *
- * Throws loudly so the build breaks visibly rather than silently defaulting to empty strings,
- * which would produce cryptic Cognito errors at runtime.
+ * `VITE_API_BASE_URL` is optional in all modes:
+ * - empty => same-origin requests (for example CloudFront proxying `/v1/*` to the API)
+ * - set   => explicit backend origin
+ *
+ * Throws loudly so startup fails visibly rather than silently defaulting to missing
+ * Cognito values, which would produce cryptic runtime auth errors.
  */
 export function validateEnv(): void {
   const authMode = import.meta.env.VITE_AUTH_MODE;
-
-  // API base URL is always required
-  if (!import.meta.env.VITE_API_URL) {
-    throw new Error('[env] VITE_API_URL is required');
-  }
 
   // Cognito variables are only required when using real authentication
   if (authMode !== 'local') {

@@ -1,20 +1,27 @@
 import type { AuthService, UserSession } from './auth-service';
-import { TOKEN_KEY, USER_KEY } from './auth-service';
+import { clearPersistedSession, persistSession, readPersistedSession } from './auth-service';
 
 const LOCAL_TOKEN = 'local-dev-token';
+const LOCAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
+
+function localUserId(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  const safe = normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return `local-${safe || 'dev-user'}`;
+}
 
 export const localAuthService: AuthService = {
   async signIn(email: string, password: string): Promise<UserSession> {
     void password;
     const session: UserSession = {
-      userId: 'local-dev-user',
+      userId: localUserId(email),
       username: email.split('@')[0] || 'dev',
       email,
       token: LOCAL_TOKEN,
+      expiresAt: Date.now() + LOCAL_SESSION_DURATION_MS,
     };
 
-    localStorage.setItem(TOKEN_KEY, LOCAL_TOKEN);
-    localStorage.setItem(USER_KEY, JSON.stringify(session));
+    persistSession(session);
 
     return session;
   },
@@ -28,22 +35,15 @@ export const localAuthService: AuthService = {
   },
 
   async signOut(): Promise<void> {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearPersistedSession();
   },
 
   getCurrentUser(): UserSession | null {
-    const userJson = localStorage.getItem(USER_KEY);
-    if (!userJson) return null;
-    try {
-      return JSON.parse(userJson);
-    } catch {
-      return null;
-    }
+    return readPersistedSession();
   },
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return readPersistedSession()?.token ?? null;
   },
 
   isAuthenticated(): boolean {
