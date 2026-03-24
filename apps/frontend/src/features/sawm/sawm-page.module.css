@@ -1,5 +1,19 @@
 .page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
   animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loading {
@@ -10,74 +24,155 @@
   color: var(--color-text-muted);
 }
 
-/* ── Header ── */
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xxl);
-}
-
-.headerIcon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--border-radius-lg);
-  background-color: var(--color-accent-alpha-12);
-  color: var(--color-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: var(--font-size-xxl);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-
-.subtitle {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin-top: 2px;
-}
-
-/* ── Grid ── */
-.grid {
+/* ── Hero ── */
+.hero {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 340px);
   gap: var(--spacing-lg);
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  border-radius: calc(var(--border-radius-xl) + 4px);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-accent) 10%, var(--color-surface)) 0%,
+      var(--color-surface) 58%,
+      color-mix(in srgb, var(--color-accent) 5%, var(--color-surface)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--color-accent) 14%, var(--color-border));
+  box-shadow: 0 28px 60px -48px rgba(180, 140, 30, 0.35);
 }
 
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
   }
-
-  .debtCard {
-    grid-column: 1 / -1;
-  }
 }
 
-/* ── Stats ── */
-.statsRow {
-  display: flex;
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-}
-
-.statBlock {
+.heroMain {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-sm);
 }
 
-.statNum {
-  font-size: var(--font-size-xxl);
+.heroBadge {
+  width: fit-content;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
   font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
   color: var(--color-text-primary);
-  letter-spacing: -0.03em;
+}
+
+.heroSubtitle {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 14%, var(--color-border));
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.heroChipSecondary {
+  color: var(--color-text-secondary);
+}
+
+/* ── Hero Card (amber variant) ── */
+.heroCard {
+  gap: var(--spacing-sm);
+  background: linear-gradient(
+    180deg,
+    var(--color-accent) 0%,
+    color-mix(in srgb, var(--color-accent) 82%, #3a2800) 100%
+  );
+  color: white;
+  border: none;
+  box-shadow: 0 24px 45px -28px rgba(180, 140, 30, 0.55);
+}
+
+.heroCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.heroCardLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.heroCardValue {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.heroCardBody {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* ── Quick Stats ── */
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 480px) {
+  .quickStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--border-radius-lg);
 }
 
 .statLabel {
@@ -85,18 +180,29 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  font-weight: 700;
 }
 
-.statCompleted .statNum {
+.statValue {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.statSuccess {
   color: var(--color-success);
 }
 
-.statRemaining .statNum {
+.statAccent {
   color: var(--color-accent);
 }
 
-.progressSection {
-  margin-bottom: var(--spacing-md);
+/* ── Progress Card ── */
+.progressCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 .completedMsg {
@@ -111,7 +217,25 @@
   border-radius: var(--border-radius-md);
 }
 
-.projectionMsg {
+.toggleRemaining {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.toggleRemaining:hover {
+  opacity: 0.8;
+}
+
+.remainingDetail {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -121,12 +245,36 @@
   background-color: var(--color-accent-alpha-5);
   border-radius: var(--border-radius-md);
   border-inline-start: 3px solid var(--color-accent);
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* ── Guidance ── */
-.loggerCard {
-  /* full width on desktop when paired with debtCard */
+/* ── Encouragement ── */
+.encouragement {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-accent-alpha-5);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 14%, var(--color-border));
+  border-radius: var(--border-radius-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  line-height: 1.6;
 }
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Logger & Guidance ── */
+/* loggerCard — no extra styles needed, Card handles its own padding */
 
 .guidanceCard {
   grid-column: 1 / -1;
@@ -158,5 +306,5 @@
   color: var(--color-text-muted);
   font-style: italic;
   padding: var(--spacing-sm) var(--spacing-md);
-  border-inline-start: 3px solid var(--color-primary-light);
+  border-inline-start: 3px solid var(--color-accent);
 }

@@ -67,6 +67,68 @@
   --transition-normal: 0.3s ease;
 }
 
+/* ── Dark Mode ──
+   Applied when: system preference is dark AND user hasn't locked to light,
+   OR user has explicitly chosen dark via the toggle ([data-theme="dark"]).  */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-primary: #26a69a;
+    --color-primary-light: #4db6ac;
+    --color-primary-dark: #00796b;
+    --color-secondary: #4db6ac;
+    --color-accent: #e6c349;
+    --color-accent-hover: #d4af37;
+    --color-background: #121212;
+    --color-surface: #1e1e1e;
+    --color-border: #2e2e2e;
+    --color-divider: #2a2a2a;
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #b0b0b0;
+    --color-text-muted: #808080;
+    --color-text-on-primary: #ffffff;
+    --color-success: #66bb6a;
+    --color-warning: #ffa726;
+    --color-error: #ef5350;
+    --color-info: #29b6f6;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
+    --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
+    --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+    --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+  }
+}
+
+/* JS-driven explicit dark mode (overrides system preference) */
+:root[data-theme='dark'] {
+  --color-primary: #26a69a;
+  --color-primary-light: #4db6ac;
+  --color-primary-dark: #00796b;
+  --color-secondary: #4db6ac;
+  --color-accent: #e6c349;
+  --color-accent-hover: #d4af37;
+  --color-background: #121212;
+  --color-surface: #1e1e1e;
+  --color-border: #2e2e2e;
+  --color-divider: #2a2a2a;
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #b0b0b0;
+  --color-text-muted: #808080;
+  --color-text-on-primary: #ffffff;
+  --color-success: #66bb6a;
+  --color-warning: #ffa726;
+  --color-error: #ef5350;
+  --color-info: #29b6f6;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
+  --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
+  --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+  --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+}
+
 /* Global animation keyframes — reference these in CSS modules without redefining */
 @keyframes fadeIn {
   from {
@@ -132,4 +194,20 @@ ol {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Global focus-visible ring — keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 2px;
 }

@@ -1,29 +1,65 @@
 .dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
   animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 24rem;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
 }
 
-.header {
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 380px);
+  gap: var(--spacing-lg);
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  border-radius: calc(var(--border-radius-xl) + 4px);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 12%, white) 0%,
+      white 58%,
+      color-mix(in srgb, var(--color-primary) 5%, white) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  box-shadow: 0 28px 60px -48px rgba(0, 77, 64, 0.45);
+}
+
+.heroMain {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xxl);
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.heroBadge {
+  width: fit-content;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .title {
-  font-size: var(--font-size-xxl);
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: var(--color-text-primary);
 }
 
 .name {
@@ -31,40 +67,454 @@
 }
 
 .subtitle {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-md);
+  margin: 0;
+  max-width: 42rem;
+  color: var(--color-text-secondary);
+  font-size: 1.02rem;
+  line-height: 1.75;
 }
 
-.dateInfo {
+.heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.heroChipSecondary {
+  color: var(--color-text-secondary);
+}
+
+.heroCard {
+  gap: var(--spacing-sm);
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 88%, #0f3f37) 100%
+  );
+  color: var(--color-text-on-primary);
+  border: none;
+  box-shadow: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
+}
+
+.heroCardHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.heroCardKicker {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.heroCardValue {
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.heroCardLabel {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: var(--font-size-sm);
+}
+
+.heroCardBody {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.7;
+}
+
+.heroCardStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.heroCardStat {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.heroCardStat strong {
+  font-size: 1.2rem;
+  color: white;
+}
+
+.heroCardStat span {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.snapshotGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.snapshotCard {
+  gap: var(--spacing-sm);
+  min-height: 10rem;
+}
+
+.snapshotCardWide {
+  grid-column: span 2;
+}
+
+.snapshotHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-sm);
 }
 
-.sparkle {
-  color: var(--color-accent);
+.snapshotLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.snapshotIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 8%, white);
+  color: var(--color-primary);
+}
+
+.snapshotValue {
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.snapshotDetail {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--spacing-lg);
 }
 
-.debtCard {
-  grid-column: span 12;
+.surfaceCard {
+  gap: var(--spacing-md);
 }
 
-.todayCard {
-  grid-column: span 12;
-}
-
-.sawmCard {
-  grid-column: span 12;
-}
-
+.debtCard,
+.todayCard,
+.sawmCard,
 .statCard {
   grid-column: span 12;
+}
+
+.cardSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.statLead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLeadValue {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.statLeadLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  min-width: min(100%, 18rem);
+}
+
+.quickStat {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-primary) 5%, white);
+}
+
+.quickStat strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+}
+
+.quickStat span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.encouragement {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-accent) 11%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, var(--color-border));
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.projection {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* ── Rate calculator ──────────────────────────────────────────── */
+
+.rateCalc {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.rateLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.rateStepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  border-radius: 999px;
+  padding: 2px 3px;
+}
+
+.rateBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.rateBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.rateBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rateVal {
+  min-width: 22px;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rateUnit {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.toggleRemaining {
+  width: fit-content;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 6%, white);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.toggleRemaining:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+}
+
+.remainingDetail {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.remainingProjection {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-muted);
+}
+
+.perPrayerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-block-start: var(--spacing-sm);
+}
+
+.perPrayerChip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--border-radius-full, 999px);
+  background-color: var(--color-primary-alpha-10);
+  font-size: var(--font-size-xs);
+}
+
+.perPrayerChipName {
+  color: var(--color-text-muted);
+}
+
+.perPrayerChipCount {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.streakHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.streakBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 7%, white);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.streakMilestone {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.streakNone {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.recordStreakList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--border-radius-md);
+  background: color-mix(in srgb, var(--color-primary) 5%, white);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--color-border));
+}
+
+.recordStreakRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.recordStreakIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.clearedBanner {
+  padding: var(--spacing-xl);
+  border-radius: calc(var(--border-radius-lg) + 4px);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 8%, white),
+    color-mix(in srgb, var(--color-accent) 8%, white)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  text-align: center;
+}
+
+.clearedTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+.clearedBody {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.clearedHint {
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 @media (min-width: 768px) {
@@ -76,191 +526,42 @@
     grid-column: span 4;
   }
 
-  .sawmCard {
-    grid-column: span 6;
-  }
-
+  .sawmCard,
   .statCard {
     grid-column: span 6;
   }
 }
 
-.debtContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-md) 0;
-}
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
 
-@media (min-width: 480px) {
-  .debtContent {
-    flex-direction: row;
-    align-items: center;
+  .snapshotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.gaugePlaceholder {
-  flex-shrink: 0;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 12px solid var(--color-divider);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
+@media (max-width: 640px) {
+  .dashboard {
+    gap: var(--spacing-md);
+  }
 
-.gaugePlaceholder::after {
-  content: '';
-  position: absolute;
-  top: -12px;
-  inset-inline-start: -12px;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 12px solid var(--color-primary);
-  border-bottom-color: transparent;
-  border-inline-start-color: transparent;
-  transform: rotate(45deg);
-}
+  .hero,
+  .clearedBanner {
+    padding: var(--spacing-lg);
+  }
 
-.mainStat {
-  text-align: center;
-}
+  .snapshotGrid {
+    grid-template-columns: 1fr;
+  }
 
-.count {
-  display: block;
-  font-size: var(--font-size-xxl);
-  font-weight: 800;
-  color: var(--color-text-primary);
-}
+  .snapshotCardWide {
+    grid-column: span 1;
+  }
 
-.label {
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-text-muted);
-}
-
-.progressSection {
-  flex: 1;
-}
-
-.encouragement {
-  margin-top: var(--spacing-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-style: italic;
-  border-inline-start: 3px solid var(--color-accent);
-  padding-inline-start: var(--spacing-sm);
-}
-
-.prayerList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.prayerItem {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  background-color: var(--color-background);
-}
-
-.prayerCircle {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--color-divider);
-}
-
-.prayerName {
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.nextInfo {
-  margin-top: var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-primary);
-  background-color: rgba(0, 77, 64, 0.05);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-}
-
-.sawmContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.sawmStat {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-}
-
-.sunIcon {
-  color: var(--color-accent);
-}
-
-.sawmCount {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-}
-
-.sawmLabel {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.chartPlaceholder {
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-divider);
-}
-
-.chartIcon {
-  margin-bottom: var(--spacing-sm);
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 400px;
-  font-size: var(--font-size-lg);
-  color: var(--color-text-muted);
-}
-
-.sawmStatInfo {
-  display: flex;
-  margin-bottom: var(--spacing-md);
-}
-
-.statMini {
-  display: flex;
-  flex-direction: column;
-}
-
-.statVal {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.statLab {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
+  .heroCardStats,
+  .quickStats {
+    grid-template-columns: 1fr;
+  }
 }

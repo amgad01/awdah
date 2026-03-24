@@ -13,13 +13,47 @@
   }
 }
 
-/* ── Header ── */
-.header {
+/* ── Hero ── */
+.hero {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-xl);
   gap: var(--spacing-md);
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  border-radius: calc(var(--border-radius-xl) + 4px);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--color-accent) 14%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) 0%,
+      var(--color-surface) 58%,
+      color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  margin-bottom: var(--spacing-xl);
+}
+
+.heroMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.heroBadge {
+  width: fit-content;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-xs);
 }
 
 .title {
@@ -240,6 +274,17 @@
   border-bottom: 1px solid var(--color-divider);
 }
 
+.dayLabelSec {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text-muted);
+  opacity: 0.75;
+  padding-top: 1px;
+}
+
 .dayEntries {
   display: flex;
   flex-direction: column;
@@ -318,4 +363,86 @@
 .badgeFast {
   background-color: rgba(212, 175, 55, 0.15);
   color: var(--color-accent);
+}
+
+.entryIconPeriod {
+  background-color: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: var(--color-info);
+}
+
+.entryIconCovered {
+  background-color: rgba(2, 136, 209, 0.12);
+  color: var(--color-info);
+}
+
+.badgePeriod {
+  background-color: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: var(--color-info);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badgeCovered {
+  background-color: rgba(2, 136, 209, 0.12);
+  color: var(--color-info);
+}
+
+.entryPeriod {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.entryCovered {
+  background-color: color-mix(in srgb, var(--color-info) 4%, var(--color-surface));
+}
+
+.loadMoreSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+.loadMoreHint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  max-width: 32rem;
+}
+
+.loadMoreButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-width: 10rem;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-divider));
+  border-radius: var(--border-radius-md);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 10%, white),
+    color-mix(in srgb, var(--color-surface) 88%, white)
+  );
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  transition: var(--transition-fast);
+}
+
+.loadMoreButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--color-primary) 38%, var(--color-divider));
+  box-shadow: var(--shadow-sm);
+}
+
+.loadMoreButton:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }

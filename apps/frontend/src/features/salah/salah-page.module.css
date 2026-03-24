@@ -1,5 +1,19 @@
 .page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
   animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loading {
@@ -10,74 +24,155 @@
   color: var(--color-text-muted);
 }
 
-/* ── Header ── */
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xxl);
-}
-
-.headerIcon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--border-radius-lg);
-  background-color: var(--color-primary-alpha-10);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: var(--font-size-xxl);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-
-.subtitle {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin-top: 2px;
-}
-
-/* ── Grid ── */
-.grid {
+/* ── Hero ── */
+.hero {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 340px);
   gap: var(--spacing-lg);
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  border-radius: calc(var(--border-radius-xl) + 4px);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)) 0%,
+      var(--color-surface) 58%,
+      color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  box-shadow: 0 28px 60px -48px rgba(0, 77, 64, 0.45);
 }
 
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
   }
-
-  .debtCard {
-    grid-column: 1 / -1;
-  }
 }
 
-/* ── Debt Card ── */
-.statsRow {
-  display: flex;
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-}
-
-.statBlock {
+.heroMain {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-sm);
 }
 
-.statNum {
-  font-size: var(--font-size-xxl);
+.heroBadge {
+  width: fit-content;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
   font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
   color: var(--color-text-primary);
-  letter-spacing: -0.03em;
+}
+
+.heroSubtitle {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.heroChipSecondary {
+  color: var(--color-text-secondary);
+}
+
+/* ── Hero Card (teal variant) ── */
+.heroCard {
+  gap: var(--spacing-sm);
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 88%, #0f3f37) 100%
+  );
+  color: var(--color-text-on-primary);
+  border: none;
+  box-shadow: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
+}
+
+.heroCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.heroCardLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.heroCardValue {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.heroCardBody {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* ── Quick Stats ── */
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 480px) {
+  .quickStats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--border-radius-lg);
 }
 
 .statLabel {
@@ -85,18 +180,29 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  font-weight: 700;
 }
 
-.statCompleted .statNum {
+.statValue {
+  font-size: var(--font-size-xxl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.statSuccess {
   color: var(--color-success);
 }
 
-.statRemaining .statNum {
+.statPrimary {
   color: var(--color-primary);
 }
 
-.progressSection {
-  margin-bottom: var(--spacing-md);
+/* ── Progress Card ── */
+.progressCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 .completedMsg {
@@ -111,7 +217,32 @@
   border-radius: var(--border-radius-md);
 }
 
-.projectionMsg {
+.toggleRemaining {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.toggleRemaining:hover {
+  opacity: 0.8;
+}
+
+.remainingSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.remainingDetail {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -123,11 +254,78 @@
   border-inline-start: 3px solid var(--color-primary-light);
 }
 
-/* ── Guidance Card ── */
-.loggerCard {
-  /* full width on desktop when paired with debtCard */
+/* ── Per-prayer breakdown ── */
+.perPrayerBreakdown {
+  padding-block-start: var(--spacing-md);
+  border-block-start: 1px solid var(--color-divider);
 }
 
+.perPrayerTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-block-end: var(--spacing-sm);
+}
+
+.perPrayerGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.perPrayerItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-surface-alt, var(--color-surface));
+}
+
+.perPrayerName {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.perPrayerCount {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 480px) {
+  .perPrayerGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Encouragement ── */
+.encouragement {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-primary-alpha-5);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
+  border-radius: var(--border-radius-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Guidance ── */
 .guidanceCard {
   grid-column: 1 / -1;
 }

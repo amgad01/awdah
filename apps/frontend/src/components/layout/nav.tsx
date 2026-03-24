@@ -1,9 +1,10 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Moon, Sun, Settings, LogOut, History } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Moon, Sun, Settings, LogOut, History, BookOpen } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
 import styles from './nav.module.css';
 
 export const Nav: React.FC = () => {
@@ -18,9 +19,11 @@ export const Nav: React.FC = () => {
 
   return (
     <nav className={styles.nav}>
-      <div className={styles.logo}>
-        <span className={styles.logoText}>Awdah</span>
-      </div>
+      <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
+        <span className={styles.logoEn}>Awdah</span>
+        <span className={styles.logoDivider}>·</span>
+        <span className={styles.logoAr}>عودة</span>
+      </Link>
 
       <div className={styles.links}>
         <NavLink
@@ -55,10 +58,19 @@ export const Nav: React.FC = () => {
           <History size={20} />
           <span>{t('nav.history')}</span>
         </NavLink>
+
+        <NavLink
+          to="/learn"
+          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+        >
+          <BookOpen size={20} />
+          <span>{t('nav.learn')}</span>
+        </NavLink>
       </div>
 
       <div className={styles.footer}>
-        <LanguageSwitcher />
+        <LanguageSwitcher tone="inverse" />
+        <ThemeToggle />
         <NavLink
           to="/settings"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}

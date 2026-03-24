@@ -1,0 +1,336 @@
+/* ── Banner ─────────────────────────────────────────────────── */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background:
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, #f59e0b 18%, transparent) 0%,
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #f59e0b 10%, var(--color-surface)),
+      color-mix(in srgb, #f59e0b 6%, var(--color-surface))
+    );
+  border: 1px solid color-mix(in srgb, #f59e0b 24%, var(--color-border));
+  border-radius: calc(var(--border-radius-lg) + 2px);
+  box-shadow: 0 18px 34px -28px rgba(146, 64, 14, 0.4);
+}
+
+@media (max-width: 600px) {
+  .banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  color: #92400e;
+}
+
+@media (prefers-color-scheme: dark) {
+  .title {
+    color: #fcd34d;
+  }
+}
+
+:root[data-theme='dark'] .title {
+  color: #fcd34d;
+}
+
+.body {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ── Banner buttons ─────────────────────────────────────────── */
+
+/* Primary CTA — amber filled */
+.quickAddBtn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.quickAddBtn:hover {
+  background: #d97706;
+}
+
+/* Secondary — outline */
+.updateBtn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid color-mix(in srgb, #f59e0b 50%, var(--color-border));
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.updateBtn:hover {
+  background: color-mix(in srgb, #f59e0b 10%, var(--color-surface));
+}
+
+/* Tertiary — ghost */
+.stillGoingBtn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stillGoingBtn:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.quickAddBtn:focus-visible,
+.updateBtn:focus-visible,
+.stillGoingBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Modal overlay ──────────────────────────────────────────── */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+.dialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg, 14px);
+  padding: var(--spacing-lg);
+  width: 100%;
+  max-width: 420px;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Dialog header ──────────────────────────────────────────── */
+
+.dialogHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.dialogTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.dialogSub {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── Prayer counter rows ────────────────────────────────────── */
+
+.prayerGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.prayerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius, 8px);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color 0.15s;
+}
+
+.prayerRow:has(.counterVal:not(:empty)) {
+  /* Subtle highlight when a count > 0 — browsers that support :has() */
+}
+
+.prayerName {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.counterBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.counterBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.counterBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.counterBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.counterVal {
+  min-width: 28px;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dialog footer ──────────────────────────────────────────── */
+
+.dialogFooter {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+  padding-block-start: var(--spacing-md);
+}
+
+.cancelBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius, 8px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius, 8px);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground, #fff);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: filter 0.12s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelBtn:focus-visible,
+.submitBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Status messages ────────────────────────────────────────── */
+
+.doneMsg {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success, #16a34a);
+  text-align: center;
+}
+
+.errorMsg {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger, #dc2626);
+  text-align: center;
+}
