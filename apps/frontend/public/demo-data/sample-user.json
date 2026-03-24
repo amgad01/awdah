@@ -7,7 +7,12 @@
     "story": {
       "en": "Maryam represents a fully used account: she has tracked daily worship, logged qadaa consistently, added practicing periods, and relies on history and privacy tools to stay organised.",
       "ar": "يعرض هذا المثال مريم كحساب مستخدَم فعلياً: تسجّل عباداتها اليومية، وتقضي ما فاتها باستمرار، وتضيف فترات الالتزام، وتراجع السجل وأدوات الخصوصية لتنظيم رحلتها."
-    }
+    },
+    "bestPrayerStreak": {
+      "name": "fajr",
+      "count": 21
+    },
+    "monThuStreak": 4
   },
   "profile": {
     "dateOfBirth": "1421-06-15",
@@ -22,20 +27,56 @@
     "streakDays": 11,
     "qadaaLoggedToday": 7,
     "todayPrayers": [
-      { "name": "fajr", "status": "done" },
-      { "name": "dhuhr", "status": "done" },
-      { "name": "asr", "status": "done" },
-      { "name": "maghrib", "status": "pending" },
-      { "name": "isha", "status": "pending" }
+      {
+        "name": "fajr",
+        "status": "done"
+      },
+      {
+        "name": "dhuhr",
+        "status": "done"
+      },
+      {
+        "name": "asr",
+        "status": "done"
+      },
+      {
+        "name": "maghrib",
+        "status": "pending"
+      },
+      {
+        "name": "isha",
+        "status": "pending"
+      }
     ],
     "weeklyCompletion": [
-      { "dayKey": "demo.weekday_sat", "value": 5 },
-      { "dayKey": "demo.weekday_sun", "value": 4 },
-      { "dayKey": "demo.weekday_mon", "value": 6 },
-      { "dayKey": "demo.weekday_tue", "value": 3 },
-      { "dayKey": "demo.weekday_wed", "value": 5 },
-      { "dayKey": "demo.weekday_thu", "value": 7 },
-      { "dayKey": "demo.weekday_fri", "value": 4 }
+      {
+        "dayKey": "demo.weekday_sat",
+        "value": 5
+      },
+      {
+        "dayKey": "demo.weekday_sun",
+        "value": 4
+      },
+      {
+        "dayKey": "demo.weekday_mon",
+        "value": 6
+      },
+      {
+        "dayKey": "demo.weekday_tue",
+        "value": 3
+      },
+      {
+        "dayKey": "demo.weekday_wed",
+        "value": 5
+      },
+      {
+        "dayKey": "demo.weekday_thu",
+        "value": 7
+      },
+      {
+        "dayKey": "demo.weekday_fri",
+        "value": 4
+      }
     ]
   },
   "sawm": {
