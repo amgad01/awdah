@@ -339,6 +339,34 @@
     "load_more_empty_hint": "No matching entries are visible yet. Load older pages to keep searching within this range.",
     "range_limit_error": "Please keep the selected history range within one year so the app stays fast and affordable to run."
   },
+  "marketing": {
+    "badge": "Built for a realistic qadaa journey",
+    "title": "Awdah helps you return to Salah and Sawm with clarity and peace of mind.",
+    "subtitle": "Track missed prayers and Ramadan fasts, calculate qadaa from your bulugh date and practicing periods, within a bilingual, Hijri-first experience.",
+    "primary_cta": "Create Account",
+    "secondary_cta": "Login",
+    "demo_cta": "View Demo",
+    "learn_cta": "Learn how it works",
+    "stat_bilingual": "English & Arabic",
+    "stat_hijri": "Hijri-first experience",
+    "stat_privacy": "Privacy by design",
+    "feature_1_title": "Precise qadaa logic",
+    "feature_1_body": "Qadaa is calculated from bulugh, gaps, practicing periods, and real Hijri dates, not from rough estimates.",
+    "feature_2_title": "Clear daily flow",
+    "feature_2_body": "The app separates daily prayers from historical qadaa logs so usage remains logical and simple.",
+    "feature_3_title": "Trusted personal record",
+    "feature_3_body": "Export your data, adjust your profile securely, and review a history that reflects both logs and covered practicing days.",
+    "panel_kicker": "Continue your journey",
+    "panel_text": "Sign in to your account or create a new one to begin your setup.",
+    "learn_panel_title": "Review the logic before signing in",
+    "learn_panel_body": "Browse the scholarly notes, glossary, and privacy guidelines first, then create an account when you are ready to begin your journey."
+  },
+  "about": {
+    "nav_link": "About Awdah",
+    "project_badge": "Open Source Project",
+    "project_title": "The story behind Awdah",
+    "project_subtitle": "Why this project was built and the architecture that powers it."
+  },
   "not_found": {
     "title": "Page not found",
     "message": "The page you are looking for does not exist.",
@@ -533,7 +561,7 @@
     "title": "Sample user walkthrough",
     "subtitle": "A believable, fully populated account showing how Awdah feels when someone is actively tracking profile details, practicing periods, prayers, fasts, history, and privacy tools.",
     "public_title": "See how Awdah looks for a realistic sample user.",
-    "public_subtitle": "This public route is powered by bundled JSON data, so it works for portfolios, demos, and non-AWS hosting without exposing any live account.",
+    "public_subtitle": "This public route is powered by bundled JSON data, so it runs without a live account, Cognito, or any AWS infrastructure.",
     "public_panel_title": "Need a no-login walkthrough?",
     "public_panel_body": "This page loads a sample account from a bundled JSON asset instead of AWS-backed user data, making it safe to host anywhere while still showing the full product story.",
     "static_badge": "No AWS required",
