@@ -45,7 +45,7 @@
       "body": "مصادر مختارة لفهم الأحكام الشرعية والحكم من قضاء العبادات."
     }
   ],
-  "team_title": "المطور",
+  "team_title": "المؤسس",
   "team": [
     {
       "id": "amgad01",
@@ -73,15 +73,15 @@
       ],
       "tech_title": "التقنيات المستخدمة",
       "tech": [
+        "Node.js",
         "TypeScript",
         "Python",
         "Angular",
         "React",
-        "Node.js",
         "IaC (AWS CDK, CDK for Terraform)",
         "NoSQL (DynamoDB)",
-        "Serverless (Lambda, API Gateway)",
         "Auth (Cognito)",
+        "Serverless Architecture",
         "Clean Architecture",
         "DDD"
       ]

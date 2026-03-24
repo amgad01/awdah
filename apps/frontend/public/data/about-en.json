@@ -45,7 +45,7 @@
       "body": "Curated resources to understand the religious rulings and wisdom behind Qada'a."
     }
   ],
-  "team_title": "The Architect",
+  "team_title": "The Founder",
   "team": [
     {
       "id": "amgad01",
@@ -73,13 +73,15 @@
       ],
       "tech_title": "Tech Stack",
       "tech": [
-        "TypeScript",
-        "React",
         "Node.js",
-        "AWS CDK",
-        "DynamoDB",
-        "Lambda",
-        "Cognito",
+        "TypeScript",
+        "Python",
+        "Angular",
+        "React",
+        "IaC (AWS CDK, CDK for Terraform)",
+        "NoSQL (DynamoDB)",
+        "Auth (Cognito)",
+        "Serverless Architecture",
         "Clean Architecture",
         "DDD"
       ]
