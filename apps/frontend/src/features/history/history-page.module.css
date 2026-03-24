@@ -426,8 +426,8 @@
   border-radius: var(--border-radius-md);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--color-primary) 10%, white),
-    color-mix(in srgb, var(--color-surface) 88%, white)
+    color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)),
+    color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))
   );
   color: var(--color-primary);
   cursor: pointer;
