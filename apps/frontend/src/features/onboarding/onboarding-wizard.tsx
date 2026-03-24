@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_DAILY_INTENTION } from '@/lib/constants';
+import { estimateSalahDebt } from '@/lib/practicing-periods';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUpdateProfile } from '@/hooks/use-profile';
 import { api } from '@/lib/api';
@@ -22,6 +23,7 @@ interface OnboardingData {
   dateOfBirthHijri: string;
   gender: 'male' | 'female' | '';
   bulughDateHijri: string;
+  revertDateHijri?: string;
   periods: LocalPeriod[];
   dailyIntention: number;
 }
@@ -30,20 +32,41 @@ interface OnboardingWizardProps {
   onComplete: () => void;
 }
 
+const DRAFT_KEY = 'awdah_onboarding_draft';
+
+function loadDraft(): { step: number; data: OnboardingData } | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { step: number; data: OnboardingData };
+  } catch {
+    return null;
+  }
+}
+
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
 
-  const [step, setStep] = useState(1);
-  const [data, setData] = useState<OnboardingData>({
-    consentData: false,
-    consentPolicy: false,
-    dateOfBirthHijri: '',
-    gender: '',
-    bulughDateHijri: '',
-    periods: [],
-    dailyIntention: DEFAULT_DAILY_INTENTION,
+  const [step, setStep] = useState(() => {
+    const draft = loadDraft();
+    // Never restore to the final result step — re-run the save
+    return draft && draft.step < 6 ? draft.step : 1;
+  });
+  const [data, setData] = useState<OnboardingData>(() => {
+    const draft = loadDraft();
+    return draft
+      ? draft.data
+      : {
+          consentData: false,
+          consentPolicy: false,
+          dateOfBirthHijri: '',
+          gender: '',
+          bulughDateHijri: '',
+          periods: [],
+          dailyIntention: DEFAULT_DAILY_INTENTION,
+        };
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -57,6 +80,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
     [],
   );
 
+  // Persist draft after every step/data change so the user can resume
+  useEffect(() => {
+    if (step >= TOTAL_STEPS) return; // don't persist once on result step
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, data }));
+    } catch {
+      // localStorage may be unavailable (private mode, storage full) — fail silently
+    }
+  }, [step, data]);
+
   // Determine if the current step's required data is filled
   const canProceed = (): boolean => {
     switch (step) {
@@ -65,7 +98,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
       case 2:
         return !!data.gender;
       case 3:
-        return !!data.bulughDateHijri;
+        return !!data.bulughDateHijri || !!data.revertDateHijri;
       case 4:
         return true; // Periods are optional
       case 5:
@@ -92,6 +125,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
         bulughDate: data.bulughDateHijri,
         gender: data.gender as 'male' | 'female',
         dateOfBirth: data.dateOfBirthHijri || undefined,
+        revertDate: data.revertDateHijri || undefined,
       });
 
       // 2. Save practicing periods sequentially
@@ -117,6 +151,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
         salahDebt: salahResult?.remainingPrayers ?? null,
         sawmDebt: sawmResult?.remainingDays ?? null,
       });
+      // Clear the onboarding draft — wizard completed successfully
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* ignore */
+      }
     } catch {
       setSaveError(true);
     } finally {
@@ -138,6 +178,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
   ];
 
   const progressPct = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
+  const estimatedSalahDebt = useMemo(() => {
+    if (!data.bulughDateHijri) {
+      return 0;
+    }
+
+    return estimateSalahDebt(data.bulughDateHijri, data.periods);
+  }, [data.bulughDateHijri, data.periods]);
 
   return (
     <div className={styles.wizard}>
@@ -187,6 +234,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
           <BulughStep
             dateOfBirthHijri={data.dateOfBirthHijri}
             bulughDateHijri={data.bulughDateHijri}
+            revertDateHijri={data.revertDateHijri}
             onChange={(updates) => merge(updates)}
           />
         )}
@@ -200,7 +248,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
         {step === 5 && (
           <IntentionStep
             dailyIntention={data.dailyIntention}
-            salahDebt={0} // Preview only — real debt not yet calculated
+            salahDebt={estimatedSalahDebt}
             onChange={(dailyIntention) => merge({ dailyIntention })}
           />
         )}

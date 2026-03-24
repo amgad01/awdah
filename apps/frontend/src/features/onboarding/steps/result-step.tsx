@@ -52,20 +52,30 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 
   return (
     <div className={styles.resultStep}>
-      <div className={styles.resultEmoji}>✨</div>
+      <div className={styles.resultEmoji}>{isZeroDebt ? '🌿' : '✨'}</div>
 
       <div className={styles.resultTitles}>
-        <h1 className={styles.resultTitle}>{t('onboarding.result_title')}</h1>
-        <p className={styles.resultArabicSubtitle}>{t('onboarding.result_subtitle')}</p>
+        <h1 className={styles.resultTitle}>
+          {isZeroDebt ? t('onboarding.result_zero_title') : t('onboarding.result_title')}
+        </h1>
+        <p className={styles.resultArabicSubtitle}>
+          {isZeroDebt ? t('onboarding.result_zero_subtitle') : t('onboarding.result_subtitle')}
+        </p>
       </div>
 
       {isZeroDebt ? (
         <div className={styles.zeroDebtCard}>
           <p className={styles.zeroDebtTitle}>{t('onboarding.result_zero_debt')}</p>
           <p className={styles.zeroDebtHint}>{t('onboarding.result_zero_hint')}</p>
+          <p className={styles.resultEncouragement}>{t('onboarding.result_zero_continue')}</p>
         </div>
       ) : (
         <>
+          <div className={styles.resultContext}>
+            <p className={styles.resultContextEyebrow}>{t('onboarding.result_estimate_label')}</p>
+            <p className={styles.resultContextBody}>{t('onboarding.result_estimate_note')}</p>
+          </div>
+
           <div className={styles.debtCards}>
             <div className={styles.debtCard}>
               <span className={styles.debtCardValue}>{fmtNumber(salahDebt ?? 0)}</span>
@@ -77,6 +87,9 @@ export const ResultStep: React.FC<ResultStepProps> = ({
             </div>
           </div>
 
+          <p className={styles.resultEncouragement}>{t('onboarding.result_encouragement')}</p>
+          <p className={styles.resultScholarNote}>{t('onboarding.result_scholar_note')}</p>
+
           {yearsToComplete && (
             <div className={styles.resultProjection}>
               {t('onboarding.result_projection', {
@@ -87,9 +100,6 @@ export const ResultStep: React.FC<ResultStepProps> = ({
           )}
         </>
       )}
-
-      <p className={styles.resultEncouragement}>{t('onboarding.result_encouragement')}</p>
-      <p className={styles.resultScholarNote}>{t('onboarding.result_scholar_note')}</p>
 
       <button
         className={styles.beginBtn}

@@ -326,6 +326,51 @@
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
 }
 
+/* Age-based bulugh input */
+.ageInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.ageInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ageInput {
+  width: 80px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-md, 8px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ageInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.ageInputSuffix {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.ageComputedDate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-radius: 8px;
+}
+
 /* Calculated bulugh note */
 .calculatedDate {
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
@@ -347,6 +392,16 @@
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
+}
+
+.hadithNote {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  border-inline-start: 2px solid var(--color-primary);
+  padding-inline-start: var(--spacing-sm);
+  margin-block-start: var(--spacing-xs);
+  line-height: 1.5;
+  font-style: italic;
 }
 
 /* Validation error */
@@ -662,6 +717,30 @@
   font-size: 1rem;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.resultContext {
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  text-align: center;
+}
+
+.resultContextEyebrow {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+.resultContextBody {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 
 .debtCards {
