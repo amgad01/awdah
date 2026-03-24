@@ -30,3 +30,25 @@ export const PROFILE_STALE_TIME_MS = 5 * 60 * 1000;
 
 /** Default history date range in days */
 export const DEFAULT_HISTORY_RANGE_DAYS = 30;
+
+/** Number of log records to fetch per history page */
+export const HISTORY_PAGE_SIZE = 100;
+
+/** The five obligatory daily prayers, in order */
+export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
+
+/** i18n keys for the 12 Hijri months, in order (index 0 = Muharram) */
+export const HIJRI_MONTH_KEYS = [
+  'hijri_months.muharram',
+  'hijri_months.safar',
+  'hijri_months.rabi_al_awwal',
+  'hijri_months.rabi_al_thani',
+  'hijri_months.jumada_al_awwal',
+  'hijri_months.jumada_al_thani',
+  'hijri_months.rajab',
+  'hijri_months.shaban',
+  'hijri_months.ramadan',
+  'hijri_months.shawwal',
+  'hijri_months.dhu_al_qidah',
+  'hijri_months.dhu_al_hijjah',
+] as const;
