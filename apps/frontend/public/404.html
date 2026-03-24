@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Awdah</title>
+    <!--
+      GitHub Pages SPA routing — redirects all 404s back to index.html
+      while preserving the requested path as a query parameter.
+
+      The index.html script reads this back and restores the path with
+      window.history.replaceState before React Router initialises.
+
+      Path segments to keep: 1 (the repo name segment /awdah/)
+      Based on https://github.com/rafgraph/spa-github-pages (MIT)
+    -->
+    <script>
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      l.replace(
+        l.protocol +
+          '//' +
+          l.host +
+          l.pathname
+            .split('/')
+            .slice(0, 1 + pathSegmentsToKeep)
+            .join('/') +
+          '/?/' +
+          l.pathname
+            .slice(1)
+            .split('/')
+            .slice(pathSegmentsToKeep)
+            .join('/')
+            .replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash,
+      );
+    </script>
+  </head>
+  <body></body>
+</html>

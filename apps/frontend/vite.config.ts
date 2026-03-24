@@ -2,8 +2,17 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+const apiTarget =
+  process.env.VITE_API_BASE_URL || process.env.VITE_API_URL || 'http://localhost:3000';
+
+// VITE_BASE_PATH controls the deployment base.
+//   /       → CloudFront / same-origin (default)
+//   /awdah/ → GitHub Pages (repo name must match)
+const basePath = process.env.VITE_BASE_PATH || '/';
+
 // https://vite.dev/config/
 export default defineConfig({
+  base: basePath,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plugins: [react() as any],
   resolve: {
@@ -14,11 +23,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3000',
+      '/v1': {
+        target: apiTarget,
         changeOrigin: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        rewrite: (path: any) => path.replace(/^\/api/, ''),
+      },
+      '/health': {
+        target: apiTarget,
+        changeOrigin: true,
       },
     },
     headers: {

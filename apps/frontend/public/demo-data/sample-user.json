@@ -1,0 +1,119 @@
+{
+  "user": {
+    "name": "Maryam A.",
+    "joinedAt": "1446-08-10",
+    "todayHijri": "1447-09-14",
+    "dailyIntention": 8,
+    "story": {
+      "en": "Maryam represents a fully used account: she has tracked daily worship, logged qadaa consistently, added practicing periods, and relies on history and privacy tools to stay organised.",
+      "ar": "يعرض هذا المثال مريم كحساب مستخدَم فعلياً: تسجّل عباداتها اليومية، وتقضي ما فاتها باستمرار، وتضيف فترات الالتزام، وتراجع السجل وأدوات الخصوصية لتنظيم رحلتها."
+    }
+  },
+  "profile": {
+    "dateOfBirth": "1421-06-15",
+    "bulughDate": "1434-01-10",
+    "gender": "female",
+    "languages": ["en", "ar"]
+  },
+  "salah": {
+    "remaining": 1840,
+    "completed": 3265,
+    "total": 5105,
+    "streakDays": 11,
+    "qadaaLoggedToday": 7,
+    "todayPrayers": [
+      { "name": "fajr", "status": "done" },
+      { "name": "dhuhr", "status": "done" },
+      { "name": "asr", "status": "done" },
+      { "name": "maghrib", "status": "pending" },
+      { "name": "isha", "status": "pending" }
+    ],
+    "weeklyCompletion": [
+      { "dayKey": "demo.weekday_sat", "value": 5 },
+      { "dayKey": "demo.weekday_sun", "value": 4 },
+      { "dayKey": "demo.weekday_mon", "value": 6 },
+      { "dayKey": "demo.weekday_tue", "value": 3 },
+      { "dayKey": "demo.weekday_wed", "value": 5 },
+      { "dayKey": "demo.weekday_thu", "value": 7 },
+      { "dayKey": "demo.weekday_fri", "value": 4 }
+    ]
+  },
+  "sawm": {
+    "remaining": 18,
+    "completed": 73,
+    "total": 91,
+    "todayStatus": "logged",
+    "currentMode": "qadaa",
+    "ramadansRecovered": 3
+  },
+  "practicingPeriods": [
+    {
+      "id": "period-1",
+      "type": "both",
+      "startDate": "1441-09-01",
+      "endDate": "1442-04-18"
+    },
+    {
+      "id": "period-2",
+      "type": "salah",
+      "startDate": "1444-01-01",
+      "endDate": "1444-08-22"
+    },
+    {
+      "id": "period-3",
+      "type": "both",
+      "startDate": "1446-05-10",
+      "endDate": null
+    }
+  ],
+  "history": [
+    {
+      "id": "history-1",
+      "date": "1447-09-14",
+      "kind": "prayer",
+      "prayerName": "fajr",
+      "logType": "qadaa"
+    },
+    {
+      "id": "history-2",
+      "date": "1447-09-14",
+      "kind": "prayer",
+      "prayerName": "dhuhr",
+      "logType": "daily"
+    },
+    {
+      "id": "history-3",
+      "date": "1447-09-13",
+      "kind": "fast",
+      "logType": "qadaa"
+    },
+    {
+      "id": "history-4",
+      "date": "1447-09-12",
+      "kind": "covered",
+      "periodKind": "both"
+    },
+    {
+      "id": "history-5",
+      "date": "1446-05-10",
+      "kind": "period",
+      "periodKind": "both",
+      "periodEventKind": "start"
+    },
+    {
+      "id": "history-6",
+      "date": "1444-08-22",
+      "kind": "period",
+      "periodKind": "salah",
+      "periodEventKind": "end"
+    }
+  ],
+  "settings": {
+    "exportReady": true,
+    "resetPrayersEnabled": true,
+    "resetFastsEnabled": true,
+    "deleteAccountEnabled": true,
+    "privacyModel": "aws_encrypted",
+    "authCompatibility": "cognito_or_local"
+  }
+}

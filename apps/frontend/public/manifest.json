@@ -1,0 +1,23 @@
+{
+  "name": "Awdah — عودة",
+  "short_name": "Awdah",
+  "description": "Track and fulfil your missed Salah and Sawm obligations",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1B1B2F",
+  "theme_color": "#1B1B2F",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "auto",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "utilities"],
+  "prefer_related_applications": false
+}

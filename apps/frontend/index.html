@@ -2,9 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Awdah</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1B1B2F" />
+
+    <!-- Primary meta -->
+    <title>Awdah — عودة</title>
+    <meta
+      name="description"
+      content="Track and fulfil your missed Salah and Sawm obligations. A bilingual, Hijri-first qadaa tracker built for privacy."
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Awdah — عودة" />
+    <meta
+      property="og:description"
+      content="Track and fulfil your missed Salah and Sawm obligations. A bilingual, Hijri-first qadaa tracker built for privacy."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://amgad01.github.io/awdah/" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:locale:alternate" content="ar_SA" />
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Awdah — عودة" />
+    <meta
+      name="twitter:description"
+      content="Track and fulfil your missed Salah and Sawm obligations."
+    />
+
+    <!-- GitHub Pages SPA routing: restore the path encoded by 404.html -->
+    <script>
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&');
+            })
+            .join('?');
+          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      })(window.location);
+    </script>
   </head>
   <body>
     <div id="root"></div>
