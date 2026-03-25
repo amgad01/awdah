@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   useProfile,
@@ -11,7 +11,13 @@ import { HijriDate } from '@awdah/shared';
 import { rangesOverlap } from '@/lib/practicing-periods';
 import { BookOpen, Pencil, Plus, X } from 'lucide-react';
 import { SettingsSection, SectionNotice, PeriodForm } from '../components';
-import { buildDebtPreview, formatHijriDisplay, getErrorMessage } from '../helpers';
+import {
+  buildDebtPreview,
+  formatHijriDisplay,
+  formatGregorianDisplay,
+  getErrorMessage,
+} from '../helpers';
+import { ApiRequestError } from '@/lib/api';
 import type { FeedbackState, PeriodLike, DebtPreview } from '../types';
 import styles from '../settings-page.module.css';
 
@@ -39,12 +45,16 @@ export const PeriodsSection: React.FC = () => {
   const [editOngoing, setEditOngoing] = useState(false);
   const [editType, setEditType] = useState<'both' | 'salah' | 'sawm'>('both');
   const [periodFeedback, setPeriodFeedback] = useState<FeedbackState | null>(null);
+  const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
 
   const persistedBulughDate = profile?.bulughDate;
+  const persistedDobDate = profile?.dateOfBirth;
   const persistedPeriods = useMemo(() => (periods ?? []) as PeriodLike[], [periods]);
 
   const fmtHijri = (hijriStr: string, invert = false) =>
     formatHijriDisplay(hijriStr, language, t, fmtNumber, invert);
+
+  const fmtGreg = (hijriStr: string) => formatGregorianDisplay(hijriStr, language);
 
   const describeDebtPreview = (preview: DebtPreview) => {
     if (preview.delta < 0)
@@ -54,22 +64,114 @@ export const PeriodsSection: React.FC = () => {
     return t('settings.debt_preview_unchanged');
   };
 
-  const formatPreviewSummary = (preview: DebtPreview) =>
-    t('settings.confirm_profile_change_preview', {
-      current: fmtNumber(preview.current),
-      next: fmtNumber(preview.next),
+  const validatePeriodForm = useCallback(
+    ({
+      startDate,
+      endDate,
+      excludePeriodId,
+      setStartError,
+      setEndError,
+      silent = false,
+    }: {
+      startDate: string;
+      endDate?: string;
+      excludePeriodId?: string;
+      setStartError: (msg: string) => void;
+      setEndError: (msg: string) => void;
+      silent?: boolean;
+    }): boolean => {
+      if (!silent) {
+        setStartError('');
+        setEndError('');
+        setPeriodFeedback(null);
+      }
+      if (!startDate) return false;
+
+      if (endDate) {
+        try {
+          if (HijriDate.fromString(endDate).isBefore(HijriDate.fromString(startDate))) {
+            const msg = t('onboarding.period_error_end_before_start');
+            if (!silent) {
+              setEndError(msg);
+              setPeriodFeedback({ tone: 'error', message: msg });
+            }
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      }
+
+      if (!silent) {
+        for (const existing of persistedPeriods) {
+          if (existing.periodId === excludePeriodId) continue;
+          if (rangesOverlap(startDate, endDate, existing.startDate, existing.endDate)) {
+            setPeriodFeedback({ tone: 'warning', message: t('onboarding.period_error_overlap') });
+            break; // warn but allow saving
+          }
+        }
+      }
+      return true;
+    },
+    [persistedPeriods, t],
+  );
+
+  const isAddValid = useMemo(() => {
+    return validatePeriodForm({
+      startDate: periodStart,
+      endDate: periodOngoing ? undefined : periodEnd || undefined,
+      setStartError: setPeriodStartError,
+      setEndError: setPeriodEndError,
+      silent: true,
     });
+  }, [
+    validatePeriodForm,
+    periodStart,
+    periodEnd,
+    periodOngoing,
+    setPeriodStartError,
+    setPeriodEndError,
+  ]);
 
   const addPeriodPreview = useMemo(() => {
+    if (!isAddValid || !periodStart) return null;
     const nextEndDate = periodOngoing ? undefined : periodEnd || undefined;
     return buildDebtPreview(persistedBulughDate, persistedBulughDate, persistedPeriods, [
       ...persistedPeriods,
       { startDate: periodStart, endDate: nextEndDate, type: periodType },
     ]);
-  }, [persistedBulughDate, persistedPeriods, periodStart, periodEnd, periodOngoing, periodType]);
+  }, [
+    isAddValid,
+    persistedBulughDate,
+    persistedPeriods,
+    periodStart,
+    periodEnd,
+    periodOngoing,
+    periodType,
+  ]);
+
+  const isEditValid = useMemo(() => {
+    if (!editingPeriodId) return false;
+    return validatePeriodForm({
+      startDate: editStart,
+      endDate: editOngoing ? undefined : editEnd || undefined,
+      excludePeriodId: editingPeriodId,
+      setStartError: setEditStartError,
+      setEndError: setEditEndError,
+      silent: true,
+    });
+  }, [
+    validatePeriodForm,
+    editingPeriodId,
+    editStart,
+    editEnd,
+    editOngoing,
+    setEditStartError,
+    setEditEndError,
+  ]);
 
   const editPeriodPreview = useMemo(() => {
-    if (!editingPeriodId) return null;
+    if (!editingPeriodId || !isEditValid) return null;
     const nextEndDate = editOngoing ? undefined : editEnd || undefined;
     return buildDebtPreview(
       persistedBulughDate,
@@ -82,78 +184,63 @@ export const PeriodsSection: React.FC = () => {
       ),
     );
   }, [
+    isEditValid,
+    editingPeriodId,
     persistedBulughDate,
     persistedPeriods,
-    editingPeriodId,
     editStart,
     editEnd,
     editOngoing,
     editType,
   ]);
 
-  const getDeletePeriodPreview = (periodId: string) =>
-    buildDebtPreview(
-      persistedBulughDate,
-      persistedBulughDate,
-      persistedPeriods,
-      persistedPeriods.filter((p) => p.periodId !== periodId),
-    );
+  const getDeletePeriodPreview = useCallback(
+    (periodId: string) =>
+      buildDebtPreview(
+        persistedBulughDate,
+        persistedBulughDate,
+        persistedPeriods,
+        persistedPeriods.filter((p) => p.periodId !== periodId),
+      ),
+    [persistedBulughDate, persistedPeriods],
+  );
 
-  const validatePeriodForm = ({
-    startDate,
-    endDate,
-    excludePeriodId,
-    setStartError,
-    setEndError,
-  }: {
-    startDate: string;
-    endDate?: string;
-    excludePeriodId?: string;
-    setStartError: (msg: string) => void;
-    setEndError: (msg: string) => void;
-  }): boolean => {
-    setStartError('');
-    setEndError('');
-    setPeriodFeedback(null);
-    if (!startDate) return false;
+  useEffect(() => {
+    if (!showAddPeriod) return;
+    validatePeriodForm({
+      startDate: periodStart,
+      endDate: periodOngoing ? undefined : periodEnd || undefined,
+      setStartError: setPeriodStartError,
+      setEndError: setPeriodEndError,
+    });
+  }, [
+    showAddPeriod,
+    periodStart,
+    periodEnd,
+    periodOngoing,
+    setPeriodStartError,
+    setPeriodEndError,
+    validatePeriodForm,
+  ]);
 
-    if (profile?.dateOfBirth) {
-      try {
-        if (HijriDate.fromString(startDate).isBefore(HijriDate.fromString(profile.dateOfBirth))) {
-          const msg = t('onboarding.period_error_before_dob');
-          setStartError(msg);
-          setPeriodFeedback({ tone: 'error', message: msg });
-          return false;
-        }
-      } catch {
-        /* picker covers malformed dates */
-      }
-    }
-
-    if (endDate) {
-      try {
-        if (HijriDate.fromString(endDate).isBefore(HijriDate.fromString(startDate))) {
-          const msg = t('onboarding.period_error_end_before_start');
-          setEndError(msg);
-          setPeriodFeedback({ tone: 'error', message: msg });
-          return false;
-        }
-      } catch {
-        /* picker covers malformed dates */
-      }
-    }
-
-    for (const existing of periods ?? []) {
-      if (existing.periodId === excludePeriodId) continue;
-      if (rangesOverlap(startDate, endDate, existing.startDate, existing.endDate)) {
-        const msg = t('onboarding.period_error_overlap');
-        setStartError(msg);
-        setPeriodFeedback({ tone: 'error', message: msg });
-        return false;
-      }
-    }
-    return true;
-  };
+  useEffect(() => {
+    if (!editingPeriodId) return;
+    validatePeriodForm({
+      startDate: editStart,
+      endDate: editOngoing ? undefined : editEnd || undefined,
+      excludePeriodId: editingPeriodId,
+      setStartError: setEditStartError,
+      setEndError: setEditEndError,
+    });
+  }, [
+    editingPeriodId,
+    editStart,
+    editEnd,
+    editOngoing,
+    setEditStartError,
+    setEditEndError,
+    validatePeriodForm,
+  ]);
 
   const handleAddPeriod = async () => {
     if (!periodStart) return;
@@ -186,7 +273,11 @@ export const PeriodsSection: React.FC = () => {
           : t('settings.period_added'),
       });
     } catch (error) {
-      setPeriodFeedback({ tone: 'error', message: getErrorMessage(error, t('common.error')) });
+      const msg =
+        error instanceof ApiRequestError && error.status === 409
+          ? t('onboarding.period_error_overlap')
+          : getErrorMessage(error, t('common.error'));
+      setPeriodFeedback({ tone: 'error', message: msg });
     }
   };
 
@@ -200,7 +291,7 @@ export const PeriodsSection: React.FC = () => {
     setEditStart(p.startDate);
     setEditEnd(p.endDate ?? '');
     setEditOngoing(!p.endDate);
-    setEditType(p.type);
+    setEditType(p.type ?? 'both');
     setEditStartError('');
     setEditEndError('');
   };
@@ -242,16 +333,21 @@ export const PeriodsSection: React.FC = () => {
           : t('settings.period_saved'),
       });
     } catch (error) {
-      setPeriodFeedback({ tone: 'error', message: getErrorMessage(error, t('common.error')) });
+      const msg =
+        error instanceof ApiRequestError && error.status === 409
+          ? t('onboarding.period_error_overlap')
+          : getErrorMessage(error, t('common.error'));
+      setPeriodFeedback({ tone: 'error', message: msg });
     }
   };
 
-  const handleDeletePeriod = async (periodId: string) => {
+  const handleDeletePeriod = (periodId: string) => {
+    setDeletingPeriodId(periodId);
+  };
+
+  const handleConfirmDelete = async (periodId: string) => {
     const preview = getDeletePeriodPreview(periodId);
-    const confirmMessage = preview
-      ? `${t('settings.period_delete_confirm')}\n\n${formatPreviewSummary(preview)}\n${describeDebtPreview(preview)}`
-      : t('settings.period_delete_confirm');
-    if (!window.confirm(confirmMessage)) return;
+    setDeletingPeriodId(null);
     setPeriodFeedback(null);
     try {
       await deletePeriod.mutateAsync(periodId);
@@ -276,6 +372,9 @@ export const PeriodsSection: React.FC = () => {
   return (
     <SettingsSection icon={<BookOpen size={18} />} title={t('settings.practicing_periods')}>
       <p className={styles.privacyText}>{t('settings.periods_hint')}</p>
+      {persistedDobDate && (
+        <p className={styles.periodsBulughHint}>{t('settings.periods_bulugh_hint')}</p>
+      )}
       {periodFeedback ? <SectionNotice feedback={periodFeedback} /> : null}
 
       {/* Existing Periods */}
@@ -301,6 +400,7 @@ export const PeriodsSection: React.FC = () => {
                 endError={editEndError}
                 preview={editPeriodPreview}
                 isPending={updatePeriod.isPending}
+                minDate={persistedDobDate ?? ''}
                 onStartChange={setEditStart}
                 onEndChange={setEditEnd}
                 onOngoingChange={setEditOngoing}
@@ -310,6 +410,38 @@ export const PeriodsSection: React.FC = () => {
                 onSubmit={() => handleSaveEdit(p.periodId)}
                 onCancel={handleCancelEdit}
               />
+            ) : deletingPeriodId === p.periodId ? (
+              <div key={p.periodId} className={styles.periodDeleteConfirm}>
+                <p className={styles.periodDeleteConfirmMsg}>
+                  {t('settings.period_delete_confirm')}
+                </p>
+                {(() => {
+                  const preview = getDeletePeriodPreview(p.periodId);
+                  return preview ? (
+                    <p className={styles.periodDeleteConfirmPreview}>
+                      {describeDebtPreview(preview)}
+                    </p>
+                  ) : null;
+                })()}
+                <div className={styles.periodDeleteConfirmActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelAddBtn}
+                    onClick={() => setDeletingPeriodId(null)}
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.periodDeleteConfirmBtn}
+                    onClick={() => void handleConfirmDelete(p.periodId)}
+                    disabled={deletePeriod.isPending}
+                  >
+                    <X size={14} />
+                    {t('settings.period_delete')}
+                  </button>
+                </div>
+              </div>
             ) : (
               <div key={p.periodId} className={styles.periodRow}>
                 <div className={styles.periodInfo}>
@@ -319,8 +451,8 @@ export const PeriodsSection: React.FC = () => {
                       {p.endDate ? fmtHijri(p.endDate) : t('settings.period_ongoing')}
                     </span>
                     <span className={styles.periodDatesSecondary}>
-                      {fmtHijri(p.startDate, true)} {t('onboarding.period_to')}{' '}
-                      {p.endDate ? fmtHijri(p.endDate, true) : t('settings.period_ongoing')}
+                      {fmtGreg(p.startDate)} {t('onboarding.period_to')}{' '}
+                      {p.endDate ? fmtGreg(p.endDate) : t('settings.period_ongoing')}
                     </span>
                   </div>
                   <span className={styles.periodType}>{t(`onboarding.period_type_${p.type}`)}</span>
@@ -363,6 +495,7 @@ export const PeriodsSection: React.FC = () => {
           endError={periodEndError}
           preview={addPeriodPreview}
           isPending={addPeriod.isPending}
+          minDate={persistedDobDate ?? ''}
           onStartChange={setPeriodStart}
           onEndChange={setPeriodEnd}
           onOngoingChange={setPeriodOngoing}

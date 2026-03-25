@@ -7,7 +7,7 @@ export type ProfileFormState = {
 };
 
 export type FeedbackState = {
-  tone: 'success' | 'error';
+  tone: 'success' | 'error' | 'warning';
   message: string;
 };
 

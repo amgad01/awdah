@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useExportData, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
@@ -22,29 +22,44 @@ export const SettingsPage: React.FC = () => {
   const resetPrayerLogs = useResetPrayerLogs();
   const resetFastLogs = useResetFastLogs();
 
+  const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
+  const [resetFeedback, setResetFeedback] = useState<{
+    type: 'prayers' | 'fasts';
+    tone: 'success' | 'error';
+    message: string;
+  } | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const handleExportData = async () => {
+    setExportError(null);
     try {
       await exportData.mutateAsync();
     } catch (error) {
-      window.alert(getErrorMessage(error, t('common.error')));
+      setExportError(getErrorMessage(error, t('common.error')));
     }
   };
 
-  const handleResetPrayerData = async () => {
-    if (!window.confirm(t('settings.reset_confirm_prayers'))) return;
-    try {
-      await resetPrayerLogs.mutateAsync();
-    } catch (error) {
-      window.alert(getErrorMessage(error, t('common.error')));
-    }
+  const handleResetPrayerData = () => {
+    setResetFeedback(null);
+    setConfirmReset('prayers');
   };
 
-  const handleResetFastData = async () => {
-    if (!window.confirm(t('settings.reset_confirm_fasts'))) return;
+  const handleResetFastData = () => {
+    setResetFeedback(null);
+    setConfirmReset('fasts');
+  };
+
+  const executeReset = async (type: 'prayers' | 'fasts') => {
+    setConfirmReset(null);
     try {
-      await resetFastLogs.mutateAsync();
+      if (type === 'prayers') {
+        await resetPrayerLogs.mutateAsync();
+      } else {
+        await resetFastLogs.mutateAsync();
+      }
+      setResetFeedback({ type, tone: 'success', message: t('settings.reset_done') });
     } catch (error) {
-      window.alert(getErrorMessage(error, t('common.error')));
+      setResetFeedback({ type, tone: 'error', message: getErrorMessage(error, t('common.error')) });
     }
   };
 
@@ -89,12 +104,17 @@ export const SettingsPage: React.FC = () => {
         <p className={styles.privacyText}>{t('settings.privacy_note')}</p>
         <button
           className={styles.exportBtn}
-          onClick={handleExportData}
+          onClick={() => void handleExportData()}
           disabled={exportData.isPending}
         >
           <Download size={16} />
           {exportData.isPending ? t('settings.exporting') : t('settings.export_data')}
         </button>
+        {exportError && (
+          <p className={styles.sectionError} role="alert">
+            {exportError}
+          </p>
+        )}
       </SettingsSection>
 
       {/* About */}
@@ -119,31 +139,95 @@ export const SettingsPage: React.FC = () => {
             <div className={styles.resetItemInfo}>
               <span className={styles.resetItemLabel}>{t('settings.reset_prayers')}</span>
               <span className={styles.resetItemHint}>{t('settings.reset_prayers_hint')}</span>
+              {resetFeedback?.type === 'prayers' && (
+                <p
+                  className={
+                    resetFeedback.tone === 'success'
+                      ? styles.resetFeedbackSuccess
+                      : styles.sectionError
+                  }
+                  role="alert"
+                >
+                  {resetFeedback.message}
+                </p>
+              )}
             </div>
-            <button
-              className={styles.resetBtn}
-              onClick={handleResetPrayerData}
-              disabled={resetPrayerLogs.isPending}
-              aria-label={t('settings.reset_prayers')}
-            >
-              <RotateCcw size={14} />
-              {resetPrayerLogs.isPending ? t('settings.resetting') : t('settings.reset_prayers')}
-            </button>
+            {confirmReset === 'prayers' ? (
+              <div className={styles.resetConfirmBtns}>
+                <button
+                  type="button"
+                  className={styles.cancelAddBtn}
+                  onClick={() => setConfirmReset(null)}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.resetConfirmBtn}
+                  onClick={() => void executeReset('prayers')}
+                  disabled={resetPrayerLogs.isPending}
+                >
+                  {resetPrayerLogs.isPending ? t('settings.resetting') : t('common.confirm')}
+                </button>
+              </div>
+            ) : (
+              <button
+                className={styles.resetBtn}
+                onClick={handleResetPrayerData}
+                disabled={resetPrayerLogs.isPending}
+                aria-label={t('settings.reset_prayers')}
+              >
+                <RotateCcw size={14} />
+                {resetPrayerLogs.isPending ? t('settings.resetting') : t('settings.reset_prayers')}
+              </button>
+            )}
           </div>
           <div className={styles.resetItem}>
             <div className={styles.resetItemInfo}>
               <span className={styles.resetItemLabel}>{t('settings.reset_fasts')}</span>
               <span className={styles.resetItemHint}>{t('settings.reset_fasts_hint')}</span>
+              {resetFeedback?.type === 'fasts' && (
+                <p
+                  className={
+                    resetFeedback.tone === 'success'
+                      ? styles.resetFeedbackSuccess
+                      : styles.sectionError
+                  }
+                  role="alert"
+                >
+                  {resetFeedback.message}
+                </p>
+              )}
             </div>
-            <button
-              className={styles.resetBtn}
-              onClick={handleResetFastData}
-              disabled={resetFastLogs.isPending}
-              aria-label={t('settings.reset_fasts')}
-            >
-              <RotateCcw size={14} />
-              {resetFastLogs.isPending ? t('settings.resetting') : t('settings.reset_fasts')}
-            </button>
+            {confirmReset === 'fasts' ? (
+              <div className={styles.resetConfirmBtns}>
+                <button
+                  type="button"
+                  className={styles.cancelAddBtn}
+                  onClick={() => setConfirmReset(null)}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.resetConfirmBtn}
+                  onClick={() => void executeReset('fasts')}
+                  disabled={resetFastLogs.isPending}
+                >
+                  {resetFastLogs.isPending ? t('settings.resetting') : t('common.confirm')}
+                </button>
+              </div>
+            ) : (
+              <button
+                className={styles.resetBtn}
+                onClick={handleResetFastData}
+                disabled={resetFastLogs.isPending}
+                aria-label={t('settings.reset_fasts')}
+              >
+                <RotateCcw size={14} />
+                {resetFastLogs.isPending ? t('settings.resetting') : t('settings.reset_fasts')}
+              </button>
+            )}
           </div>
         </div>
       </SettingsSection>

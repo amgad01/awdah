@@ -21,6 +21,7 @@ interface HijriDatePickerProps {
   label: string;
   validate?: (date: HijriDate) => string | null;
   initialHijriParts?: { year: string; month: string; day: string };
+  minDate?: string;
 }
 
 export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
@@ -30,6 +31,7 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
   label,
   validate,
   initialHijriParts,
+  minDate,
 }) => {
   const { t, language, fmtNumber } = useLanguage();
   const [calendarMode, setCalendarMode] = useState<CalendarMode>('gregorian');
@@ -130,6 +132,24 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
   const currentYear = new Date().getFullYear();
   const minYear = currentYear - DOB_MAX_YEARS_AGO;
 
+  const minGregYear = useMemo(() => {
+    if (!minDate) return minYear;
+    try {
+      return HijriDate.fromString(minDate).toGregorian().getFullYear();
+    } catch {
+      return minYear;
+    }
+  }, [minDate, minYear]);
+
+  const minHijriYear = useMemo(() => {
+    if (!minDate) return HIJRI_YEAR_MIN;
+    try {
+      return HijriDate.fromString(minDate).year;
+    } catch {
+      return HIJRI_YEAR_MIN;
+    }
+  }, [minDate]);
+
   return (
     <div className={styles.picker}>
       <div className={styles.calendarToggle}>
@@ -160,16 +180,22 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
           }}
           onMonthChange={(v) => {
             setGregMonth(v);
-            handleGregorianParts(gregDay, v, gregYear);
+            const days = gregYear && v ? new Date(Number(gregYear), Number(v), 0).getDate() : 31;
+            const day = gregDay && Number(gregDay) > days ? '' : gregDay;
+            if (day !== gregDay) setGregDay('');
+            handleGregorianParts(day, v, gregYear);
           }}
           onYearChange={(v) => {
             setGregYear(v);
-            handleGregorianParts(gregDay, gregMonth, v);
+            const days = v && gregMonth ? new Date(Number(v), Number(gregMonth), 0).getDate() : 31;
+            const day = gregDay && Number(gregDay) > days ? '' : gregDay;
+            if (day !== gregDay) setGregDay('');
+            handleGregorianParts(day, gregMonth, v);
           }}
           gregorianMonthNames={gregorianMonthNames}
           fmtNumber={fmtNumber}
           currentYear={currentYear}
-          minYear={minYear}
+          minYear={minGregYear}
           ariaLabelYear={label}
           t={t}
         />
@@ -190,7 +216,7 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
             setHijriDay(v);
             handleHijriChange(hijriYear, hijriMonth, v);
           }}
-          hijriYearMin={HIJRI_YEAR_MIN}
+          hijriYearMin={minHijriYear}
           hijriYearMax={HIJRI_YEAR_MAX}
           hijriMonthsCount={HIJRI_MONTHS_COUNT}
           maxHijriDaysPerMonth={MAX_HIJRI_DAYS_PER_MONTH}

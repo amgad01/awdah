@@ -30,52 +30,57 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
   minYear,
   ariaLabelYear,
   t,
-}) => (
-  <div className={styles.hijriRow}>
-    <select
-      className={styles.select}
-      value={gregMonth}
-      onChange={(e) => onMonthChange(e.target.value)}
-      aria-label={t('onboarding.select_month')}
-    >
-      <option value="">{t('onboarding.select_month')}</option>
-      {gregorianMonthNames.map((name, i) => (
-        <option key={i + 1} value={String(i + 1)}>
-          {name}
-        </option>
-      ))}
-    </select>
-    <select
-      className={styles.select}
-      value={gregDay}
-      onChange={(e) => onDayChange(e.target.value)}
-      aria-label={t('onboarding.select_day')}
-    >
-      <option value="">{t('onboarding.select_day')}</option>
-      {Array.from({ length: 31 }, (_, i) => (
-        <option key={i + 1} value={String(i + 1)}>
-          {fmtNumber(i + 1)}
-        </option>
-      ))}
-    </select>
-    <select
-      className={styles.select}
-      value={gregYear}
-      onChange={(e) => onYearChange(e.target.value)}
-      aria-label={ariaLabelYear}
-    >
-      <option value="">{t('onboarding.greg_year_placeholder')}</option>
-      {Array.from({ length: currentYear - minYear + 1 }, (_, i) => {
-        const y = currentYear - i;
-        return (
-          <option key={y} value={String(y)}>
-            {fmtNumber(y)}
+}) => {
+  const daysInMonth =
+    gregYear && gregMonth ? new Date(Number(gregYear), Number(gregMonth), 0).getDate() : 31;
+
+  return (
+    <div className={styles.hijriRow}>
+      <select
+        className={styles.select}
+        value={gregYear}
+        onChange={(e) => onYearChange(e.target.value)}
+        aria-label={ariaLabelYear}
+      >
+        <option value="">{t('onboarding.greg_year_placeholder')}</option>
+        {Array.from({ length: currentYear - minYear + 1 }, (_, i) => {
+          const y = currentYear - i;
+          return (
+            <option key={y} value={String(y)}>
+              {fmtNumber(y)}
+            </option>
+          );
+        })}
+      </select>
+      <select
+        className={styles.select}
+        value={gregMonth}
+        onChange={(e) => onMonthChange(e.target.value)}
+        aria-label={t('onboarding.select_month')}
+      >
+        <option value="">{t('onboarding.select_month')}</option>
+        {gregorianMonthNames.map((name, i) => (
+          <option key={i + 1} value={String(i + 1)}>
+            {name}
           </option>
-        );
-      })}
-    </select>
-  </div>
-);
+        ))}
+      </select>
+      <select
+        className={styles.select}
+        value={gregDay}
+        onChange={(e) => onDayChange(e.target.value)}
+        aria-label={t('onboarding.select_day')}
+      >
+        <option value="">{t('onboarding.select_day')}</option>
+        {Array.from({ length: daysInMonth }, (_, i) => (
+          <option key={i + 1} value={String(i + 1)}>
+            {fmtNumber(i + 1)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
 
 interface HijriDateInputsProps {
   hijriYear: string;
@@ -111,6 +116,22 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
   <div className={styles.hijriRow}>
     <select
       className={styles.select}
+      value={hijriYear}
+      onChange={(e) => onYearChange(e.target.value)}
+      aria-label={t('onboarding.hijri_year_placeholder')}
+    >
+      <option value="">{t('onboarding.hijri_year_placeholder')}</option>
+      {Array.from({ length: hijriYearMax - hijriYearMin + 1 }, (_, i) => {
+        const y = hijriYearMax - i;
+        return (
+          <option key={y} value={String(y)}>
+            {fmtNumber(y)}
+          </option>
+        );
+      })}
+    </select>
+    <select
+      className={styles.select}
       value={hijriMonth}
       onChange={(e) => onMonthChange(e.target.value)}
       aria-label={t('onboarding.select_month')}
@@ -134,22 +155,6 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
           {fmtNumber(i + 1)}
         </option>
       ))}
-    </select>
-    <select
-      className={styles.select}
-      value={hijriYear}
-      onChange={(e) => onYearChange(e.target.value)}
-      aria-label={t('onboarding.hijri_year_placeholder')}
-    >
-      <option value="">{t('onboarding.hijri_year_placeholder')}</option>
-      {Array.from({ length: hijriYearMax - hijriYearMin + 1 }, (_, i) => {
-        const y = hijriYearMax - i;
-        return (
-          <option key={y} value={String(y)}>
-            {fmtNumber(y)}
-          </option>
-        );
-      })}
     </select>
   </div>
 );

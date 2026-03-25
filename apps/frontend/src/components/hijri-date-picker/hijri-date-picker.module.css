@@ -50,9 +50,8 @@
 
 .hijriRow {
   display: grid;
-  /* Month gets most space; day and year share the rest equally.
-     year column has a minimum so it never collapses below a readable width. */
-  grid-template-columns: 2fr 1fr minmax(80px, 1fr);
+  /* Order: year (narrow — 4 digits), month (wide — long names), day (narrow — 1–31). */
+  grid-template-columns: minmax(80px, 1fr) 2fr 1fr;
   gap: var(--spacing-sm);
 }
 

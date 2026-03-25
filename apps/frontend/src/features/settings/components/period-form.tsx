@@ -16,6 +16,7 @@ interface PeriodFormProps {
   preview: DebtPreview | null;
   isPending: boolean;
   mode: 'add' | 'edit';
+  minDate?: string;
 
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
@@ -37,6 +38,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
   preview,
   isPending,
   mode,
+  minDate,
   onStartChange,
   onEndChange,
   onOngoingChange,
@@ -58,6 +60,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
             onChange={onStartChange}
             onError={onStartError}
             label={t('onboarding.period_start')}
+            minDate={minDate}
           />
           {startError && <p className={styles.fieldError}>{startError}</p>}
         </div>
@@ -70,6 +73,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
               onChange={onEndChange}
               onError={onEndError}
               label={t('onboarding.period_end')}
+              minDate={startDate || minDate}
             />
             {endError && <p className={styles.fieldError}>{endError}</p>}
           </div>
@@ -101,13 +105,16 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
       {preview ? <DebtImpactPreview preview={preview} /> : null}
 
       <div className={styles.addPeriodActions}>
-        <button className={styles.cancelAddBtn} onClick={onCancel}>
+        <button type="button" className={styles.cancelAddBtn} onClick={onCancel}>
           {t('common.cancel')}
         </button>
         <button
+          type="button"
           className={styles.confirmAddBtn}
           onClick={onSubmit}
-          disabled={!startDate || isPending}
+          disabled={
+            !startDate || (!isOngoing && !endDate) || !!startError || !!endError || isPending
+          }
         >
           {mode === 'add' ? <Plus size={14} /> : <Save size={14} />}
           {isPending

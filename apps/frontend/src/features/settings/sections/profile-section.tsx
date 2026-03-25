@@ -38,6 +38,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   );
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<FeedbackState | null>(null);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const activeProfileForm =
     profileForm.sourceKey === profileKey
@@ -103,12 +104,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     return t('settings.debt_preview_unchanged');
   };
 
-  const formatPreviewSummary = (preview: DebtPreview) =>
-    t('settings.confirm_profile_change_preview', {
-      current: fmtNumber(preview.current),
-      next: fmtNumber(preview.next),
-    });
-
   const profileDebtPreview = useMemo(
     () =>
       persistedBulughDate === activeProfileForm.bulughDate
@@ -141,15 +136,18 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     return true;
   };
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = () => {
     if (!validateProfileForm()) return;
-    const previewSummary = profileDebtPreview
-      ? `\n\n${formatPreviewSummary(profileDebtPreview)}\n${describeDebtPreview(profileDebtPreview)}`
-      : '';
-    const confirmed = window.confirm(
-      `${t('settings.confirm_profile_change_title')}\n\n${t('settings.confirm_profile_change_body')}${previewSummary}`,
-    );
-    if (!confirmed) return;
+    // If bulugh date is changing, show inline confirmation first
+    if (profileDebtPreview) {
+      setShowSaveConfirm(true);
+    } else {
+      void executeProfileSave();
+    }
+  };
+
+  const executeProfileSave = async () => {
+    setShowSaveConfirm(false);
     setProfileSaved(false);
     try {
       await updateProfile.mutateAsync({
@@ -316,18 +314,45 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
 
       {profileDebtPreview ? <DebtImpactPreview preview={profileDebtPreview} /> : null}
 
-      <button
-        className={styles.saveProfileBtn}
-        onClick={handleSaveProfile}
-        disabled={updateProfile.isPending || !activeProfileForm.bulughDate || !profileHasChanges}
-      >
-        <Save size={16} />
-        {updateProfile.isPending
-          ? t('settings.saving_profile')
-          : profileSaved
-            ? t('settings.profile_saved')
-            : t('settings.save_profile')}
-      </button>
+      {showSaveConfirm ? (
+        <div className={styles.inlineConfirm} role="alert">
+          <p className={styles.inlineConfirmMsg}>{t('settings.confirm_profile_change_body')}</p>
+          {profileDebtPreview && (
+            <p className={styles.inlineConfirmPreview}>{describeDebtPreview(profileDebtPreview)}</p>
+          )}
+          <div className={styles.inlineConfirmActions}>
+            <button
+              type="button"
+              className={styles.cancelAddBtn}
+              onClick={() => setShowSaveConfirm(false)}
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              className={styles.saveProfileBtn}
+              onClick={() => void executeProfileSave()}
+              disabled={updateProfile.isPending}
+            >
+              <Save size={14} />
+              {updateProfile.isPending ? t('settings.saving_profile') : t('common.confirm')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          className={styles.saveProfileBtn}
+          onClick={handleSaveProfile}
+          disabled={updateProfile.isPending || !activeProfileForm.bulughDate || !profileHasChanges}
+        >
+          <Save size={16} />
+          {updateProfile.isPending
+            ? t('settings.saving_profile')
+            : profileSaved
+              ? t('settings.profile_saved')
+              : t('settings.save_profile')}
+        </button>
+      )}
     </SettingsSection>
   );
 };

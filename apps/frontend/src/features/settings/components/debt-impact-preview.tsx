@@ -19,7 +19,7 @@ export const DebtImpactPreview: React.FC<DebtImpactPreviewProps> = ({ preview })
 
   const deltaLabel =
     preview.delta < 0
-      ? `-${fmtNumber(Math.abs(preview.delta))}`
+      ? `\u2212${fmtNumber(Math.abs(preview.delta))}`
       : preview.delta > 0
         ? `+${fmtNumber(preview.delta)}`
         : fmtNumber(0);

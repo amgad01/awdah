@@ -58,6 +58,21 @@ export function formatHijriDisplay(
   }
 }
 
+export function formatGregorianDisplay(hijriStr: string, language: string): string {
+  if (!hijriStr) return '\u2014';
+  try {
+    const d = HijriDate.fromString(hijriStr);
+    const greg = d.toGregorian();
+    return greg.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return hijriStr;
+  }
+}
+
 export function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
