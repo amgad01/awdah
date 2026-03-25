@@ -2,9 +2,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: true,
-    environment: 'node',
-    include: ['**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+    projects: [
+      'apps/backend/vitest.config.ts',
+      'apps/frontend/vitest.config.ts',
+      'packages/shared/vitest.config.ts',
+    ],
   },
 });
