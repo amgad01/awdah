@@ -1,0 +1,101 @@
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
+import { api, type PrayerLogResponse, type HistoryPageResponse } from '@/lib/api';
+import { QUERY_KEYS } from '@/lib/query-keys';
+import { HISTORY_PAGE_SIZE } from '@/lib/constants';
+
+export function invalidateSalahQueries(queryClient: QueryClient, date?: string) {
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahHistoryPrefix });
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combinedHistoryPrefix });
+  if (date) queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDailyLogs(date) });
+}
+
+export async function fetchPrayerHistoryPage(
+  startDate: string,
+  endDate: string,
+  cursor?: string,
+): Promise<HistoryPageResponse<PrayerLogResponse>> {
+  return (
+    (await api.salah.getHistoryPage({
+      startDate,
+      endDate,
+      limit: HISTORY_PAGE_SIZE,
+      cursor,
+    })) ?? { items: [], hasMore: false }
+  );
+}
+
+export const useSalahDebt = () => {
+  return useQuery({
+    queryKey: QUERY_KEYS.salahDebt,
+    queryFn: () => api.salah.getDebt(),
+  });
+};
+
+export const useLogPrayer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.salah.logPrayer,
+    onSuccess: (_data, variables) => {
+      invalidateSalahQueries(queryClient, variables.date);
+    },
+  });
+};
+
+export const useDeletePrayer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.salah.deleteLog,
+    onSuccess: (_data, variables) => {
+      invalidateSalahQueries(queryClient, variables.date);
+    },
+  });
+};
+
+export const useDailyPrayerLogs = (date: string) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.salahDailyLogs(date),
+    queryFn: () => api.salah.getHistory({ startDate: date, endDate: date }),
+  });
+};
+
+export const useSalahHistory = (startDate: string, endDate: string) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.salahHistory(startDate, endDate),
+    queryFn: () => api.salah.getHistory({ startDate, endDate }),
+    enabled: !!startDate && !!endDate,
+  });
+};
+
+export const useInfiniteSalahHistory = (startDate: string, endDate: string, enabled = true) => {
+  return useInfiniteQuery<
+    HistoryPageResponse<PrayerLogResponse>,
+    Error,
+    InfiniteData<HistoryPageResponse<PrayerLogResponse>, string | undefined>,
+    ReturnType<typeof QUERY_KEYS.salahHistoryPage>,
+    string | undefined
+  >({
+    queryKey: QUERY_KEYS.salahHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
+    queryFn: ({ pageParam }) => fetchPrayerHistoryPage(startDate, endDate, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: enabled && !!startDate && !!endDate,
+  });
+};
+
+export const useResetPrayerLogs = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.salah.resetLogs,
+    onSuccess: () => {
+      invalidateSalahQueries(queryClient);
+    },
+  });
+};

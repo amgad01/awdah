@@ -1,13 +1,12 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Plus, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLogPrayer, useSalahHistory } from '@/hooks/use-worship';
 import { useDualDate } from '@/hooks/use-dual-date';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
+import { PracticeCheckInModal } from './practice-check-in-modal';
 import styles from './practice-check-in.module.css';
 
 const DISMISS_KEY = 'awdah_practice_checkin_dismissed_until';
@@ -61,7 +60,6 @@ export const PracticeCheckIn: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [submitError, setSubmitError] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   const today = useMemo(() => todayHijriDate(), []);
   const lookbackStart = useMemo(() => addHijriDays(today, -30), [today]);
@@ -97,11 +95,6 @@ export const PracticeCheckIn: React.FC = () => {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [showModal, submitting]);
-
-  // Move focus into dialog when it opens
-  useEffect(() => {
-    if (showModal) dialogRef.current?.focus();
-  }, [showModal]);
 
   if (dismissed || !hasOldOngoingPeriod) return null;
 
@@ -176,102 +169,22 @@ export const PracticeCheckIn: React.FC = () => {
         </div>
       </div>
 
-      {showModal &&
-        ReactDOM.createPortal(
-          <div className={styles.backdrop} onClick={handleClose} aria-hidden="true">
-            <div
-              ref={dialogRef}
-              className={styles.dialog}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="checkin-dialog-title"
-              tabIndex={-1}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <header className={styles.dialogHeader}>
-                <h2 id="checkin-dialog-title" className={styles.dialogTitle}>
-                  {t('dashboard.check_in_modal_title')}
-                </h2>
-                <p className={styles.dialogSub}>
-                  {lastEntryLabel
-                    ? t('dashboard.check_in_since', { date: lastEntryLabel })
-                    : t('dashboard.check_in_no_prior')}
-                </p>
-              </header>
-
-              <div
-                className={styles.prayerGrid}
-                role="group"
-                aria-label={t('dashboard.check_in_modal_title')}
-              >
-                {PRAYERS.map((prayer) => (
-                  <div key={prayer} className={styles.prayerRow}>
-                    <span className={styles.prayerName}>{t(`prayers.${prayer}`)}</span>
-                    <div className={styles.counter}>
-                      <button
-                        type="button"
-                        className={styles.counterBtn}
-                        onClick={() => decrement(prayer)}
-                        disabled={counts[prayer] === 0 || submitting}
-                        aria-label={`− ${t(`prayers.${prayer}`)}`}
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className={styles.counterVal} aria-live="polite">
-                        {fmtNumber(counts[prayer])}
-                      </span>
-                      <button
-                        type="button"
-                        className={styles.counterBtn}
-                        onClick={() => increment(prayer)}
-                        disabled={submitting}
-                        aria-label={`+ ${t(`prayers.${prayer}`)}`}
-                      >
-                        <Plus size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {submitError && (
-                <p className={styles.errorMsg} role="alert">
-                  {t('common.error')}
-                </p>
-              )}
-
-              {done && (
-                <p className={styles.doneMsg} role="status">
-                  {t('dashboard.check_in_done')}
-                </p>
-              )}
-
-              <footer className={styles.dialogFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={handleClose}
-                  disabled={submitting}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.submitBtn}
-                  onClick={handleSubmit}
-                  disabled={totalToLog === 0 || submitting || done}
-                >
-                  {submitting ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    t('dashboard.check_in_log_btn', { n: fmtNumber(totalToLog) })
-                  )}
-                </button>
-              </footer>
-            </div>
-          </div>,
-          document.body,
-        )}
+      {showModal && (
+        <PracticeCheckInModal
+          counts={counts}
+          submitting={submitting}
+          done={done}
+          submitError={submitError}
+          totalToLog={totalToLog}
+          lastEntryLabel={lastEntryLabel}
+          onClose={handleClose}
+          onIncrement={increment}
+          onDecrement={decrement}
+          onSubmit={handleSubmit}
+          fmtNumber={fmtNumber}
+          t={t}
+        />
+      )}
     </>
   );
 };
