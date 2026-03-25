@@ -1,6 +1,16 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Moon, Sun, Settings, LogOut, History, BookOpen } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Moon,
+  Sun,
+  Settings,
+  LogOut,
+  History,
+  BookOpen,
+  PlayCircle,
+  Info,
+} from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
@@ -65,6 +75,22 @@ export const Nav: React.FC = () => {
         >
           <BookOpen size={20} />
           <span>{t('nav.learn')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/demo"
+          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+        >
+          <PlayCircle size={20} />
+          <span>{t('nav.demo')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/about"
+          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+        >
+          <Info size={20} />
+          <span>{t('nav.about')}</span>
         </NavLink>
       </div>
 
