@@ -240,7 +240,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
         )}
         {step === 4 && (
           <PeriodsStep
-            bulughDateHijri={data.bulughDateHijri}
+            dateOfBirthHijri={data.dateOfBirthHijri}
             periods={data.periods}
             onChange={(periods) => merge({ periods })}
           />

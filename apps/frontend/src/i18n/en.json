@@ -24,7 +24,11 @@
     "confirm_uncheck": "Remove",
     "confirm": "Confirm",
     "prev_month": "Previous month",
-    "next_month": "Next month"
+    "next_month": "Next month",
+    "all": "All",
+    "delete": "Delete",
+    "no_data": "No data",
+    "success": "Done"
   },
   "language_switcher": {
     "switch_to_english": "Switch to English",
@@ -146,6 +150,8 @@
     "save_profile": "Save Profile",
     "saving_profile": "Saving...",
     "profile_saved": "Profile saved",
+    "bulugh_computed_age": "Age at bulugh: {{n}} Hijri years",
+    "bulugh_late_warning": "This is more than 15 years after your date of birth. The scholarly default is 15 years — please verify this date is correct.",
     "confirm_profile_change_title": "Update your profile?",
     "confirm_profile_change_body": "Saving these changes will recalculate your qadaa debt. Your prayer and fasting logs will not be affected.",
     "confirm_profile_change_preview": "Estimated salah qadaa: {{current}} -> {{next}}.",
@@ -211,6 +217,7 @@
     "sawm": "Sawm (Fasting)",
     "history": "History",
     "demo": "Demo",
+    "about": "About",
     "learn": "Learn",
     "settings": "Settings",
     "logout": "Logout"
@@ -470,7 +477,7 @@
     "period_type_salah": "Salah only",
     "period_type_sawm": "Sawm only",
     "period_error_overlap": "This period overlaps with an existing one",
-    "period_error_before_bulugh": "Practicing period cannot start before your bulugh date",
+    "period_error_before_dob": "Practicing period cannot start before your date of birth",
     "period_error_end_before_start": "End date cannot be before start date",
     "period_from": "from",
     "period_to": "to",

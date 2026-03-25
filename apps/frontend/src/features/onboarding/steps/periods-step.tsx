@@ -12,12 +12,16 @@ export interface LocalPeriod {
 }
 
 interface PeriodsStepProps {
-  bulughDateHijri: string;
+  dateOfBirthHijri?: string;
   periods: LocalPeriod[];
   onChange: (periods: LocalPeriod[]) => void;
 }
 
-export const PeriodsStep: React.FC<PeriodsStepProps> = ({ bulughDateHijri, periods, onChange }) => {
+export const PeriodsStep: React.FC<PeriodsStepProps> = ({
+  dateOfBirthHijri,
+  periods,
+  onChange,
+}) => {
   const { t } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [startGreg, setStartGreg] = useState('');
@@ -43,17 +47,17 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({ bulughDateHijri, perio
       return;
     }
 
-    // Validate: start cannot be before bulugh
-    if (bulughDateHijri) {
+    // Validate: cannot be before birth
+    if (dateOfBirthHijri) {
       try {
-        const bulugh = HijriDate.fromString(bulughDateHijri);
+        const dob = HijriDate.fromString(dateOfBirthHijri);
         const start = HijriDate.fromString(startHijri);
-        if (start.isBefore(bulugh)) {
-          setFormError(t('onboarding.period_error_before_bulugh'));
+        if (start.isBefore(dob)) {
+          setFormError(t('onboarding.period_error_before_dob'));
           return;
         }
       } catch {
-        /* ignore parse error; server will validate */
+        /* ignore */
       }
     }
 

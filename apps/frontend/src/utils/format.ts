@@ -4,11 +4,8 @@
  * Arabic-Indic digits are shown automatically when lang = 'ar'.
  */
 
-const EN_FORMATTER = new Intl.NumberFormat('en-GB');
-const AR_FORMATTER = new Intl.NumberFormat('ar-EG'); // Arabic-Indic digits (٠١٢…)
-
 export function formatNumber(n: number, language: string): string {
-  return language === 'ar' ? AR_FORMATTER.format(n) : EN_FORMATTER.format(n);
+  return language === 'ar' ? n.toLocaleString('ar-EG', { useGrouping: false }) : n.toString();
 }
 
 export function formatPercent(n: number, language: string): string {
