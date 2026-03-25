@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { HijriDate } from '@awdah/shared';
 import {
-  type CombinedHistoryItem,
   useInfiniteCombinedHistory,
   useInfiniteSalahHistory,
   useInfiniteSawmHistory,
@@ -11,64 +9,25 @@ import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLanguage } from '@/hooks/use-language';
 import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
-import { DateFilterPicker } from '@/components/ui/date-filter-picker/date-filter-picker';
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import { getCoveredPracticingDays, periodCoversContext } from '@/lib/practicing-periods';
 import { QUERY_KEYS } from '@/lib/query-keys';
-import { Moon, Sun, Filter, Loader2, Inbox, BookOpen } from 'lucide-react';
-import { Card } from '@/components/ui/card/card';
-import { addHijriDays, hijriToGregorianDate, todayHijriDate } from '@/utils/date-utils';
-import { PRAYERS } from '@/lib/constants';
+import { Loader2, Inbox } from 'lucide-react';
+import { addHijriDays, todayHijriDate } from '@/utils/date-utils';
+import {
+  type HistoryEntry,
+  isPrayerItem,
+  isFastItem,
+  hijriBoundaryIso,
+  isWithinHistoryRange,
+  MAX_HISTORY_RANGE_DAYS,
+} from './history-helpers';
+import { HistoryFilterToggle, HistoryFilterPanel, HistorySummaryStrip } from './history-filters';
+import { HistoryDayGroup } from './history-timeline';
 import styles from './history-page.module.css';
-
-type EntryType = 'prayer' | 'fast' | 'period' | 'covered';
-const MAX_HISTORY_RANGE_DAYS = 365;
-
-interface HistoryEntry {
-  eventId: string;
-  date: string;
-  type: EntryType;
-  prayerName?: string;
-  logType: string;
-  loggedAt: string;
-  periodEventKind?: 'start' | 'end';
-  periodKind?: string;
-}
-
-function isPrayerItem(
-  item: CombinedHistoryItem,
-): item is Extract<CombinedHistoryItem, { kind: 'prayer' }> {
-  return item.kind === 'prayer';
-}
-
-function isFastItem(
-  item: CombinedHistoryItem,
-): item is Extract<CombinedHistoryItem, { kind: 'fast' }> {
-  return item.kind === 'fast';
-}
 
 function defaultStartDate(): string {
   return addHijriDays(todayHijriDate(), -29);
-}
-
-function hijriBoundaryIso(dateStr: string, endOfDay = false): string {
-  const date = hijriToGregorianDate(dateStr);
-  if (endOfDay) {
-    date.setUTCHours(23, 59, 59, 999);
-  } else {
-    date.setUTCHours(0, 0, 0, 0);
-  }
-  return date.toISOString();
-}
-
-function formatTime(isoStr: string, locale: string): string {
-  return new Date(isoStr).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-}
-
-function isWithinHistoryRange(startDate: string, endDate: string, maxDays: number): boolean {
-  const start = HijriDate.fromString(startDate).toGregorian().getTime();
-  const end = HijriDate.fromString(endDate).toGregorian().getTime();
-  return Math.floor((end - start) / 86_400_000) <= maxDays;
 }
 
 export const HistoryPage: React.FC = () => {
@@ -118,7 +77,6 @@ export const HistoryPage: React.FC = () => {
         page.items.filter(isPrayerItem).map(({ kind: _kind, ...log }) => log),
       );
     }
-
     return (salahHistory.data?.pages ?? []).flatMap((page) => page.items);
   }, [combinedHistory.data?.pages, isAllFilter, salahHistory.data?.pages]);
 
@@ -128,7 +86,6 @@ export const HistoryPage: React.FC = () => {
         page.items.filter(isFastItem).map(({ kind: _kind, ...log }) => log),
       );
     }
-
     return (sawmHistory.data?.pages ?? []).flatMap((page) => page.items);
   }, [combinedHistory.data?.pages, isAllFilter, sawmHistory.data?.pages]);
 
@@ -170,7 +127,6 @@ export const HistoryPage: React.FC = () => {
       }
     }
 
-    // Include practicing period boundary events that fall in the date range
     if (periods) {
       for (const p of periods) {
         const visibleForFilter =
@@ -178,9 +134,7 @@ export const HistoryPage: React.FC = () => {
           (typeFilter === 'prayers' && periodCoversContext(p.type, 'salah')) ||
           (typeFilter === 'fasting' && periodCoversContext(p.type, 'sawm'));
 
-        if (!visibleForFilter) {
-          continue;
-        }
+        if (!visibleForFilter) continue;
 
         if (p.startDate >= startDate && p.startDate <= endDate) {
           result.push({
@@ -235,7 +189,6 @@ export const HistoryPage: React.FC = () => {
     typeFilter,
   ]);
 
-  // Group entries by date for timeline display
   const grouped = useMemo(() => {
     const map = new Map<string, HistoryEntry[]>();
     for (const entry of entries) {
@@ -260,126 +213,39 @@ export const HistoryPage: React.FC = () => {
             <GlossaryText>{t('history.subtitle')}</GlossaryText>
           </p>
         </div>
-        <button
-          className={`${styles.filterToggle} ${showFilters ? styles.filterToggleActive : ''}`}
-          onClick={() => setShowFilters((v) => !v)}
-          aria-expanded={showFilters}
-          aria-controls="history-filters"
-        >
-          <Filter size={16} />
-          {t('history.filters')}
-        </button>
+        <HistoryFilterToggle
+          showFilters={showFilters}
+          onToggle={() => setShowFilters((v) => !v)}
+          t={t}
+        />
       </section>
 
-      {showFilters && (
-        <Card className={styles.filterCard} id="history-filters">
-          <div className={styles.filterGrid}>
-            {/* Date Range */}
-            <DateFilterPicker
-              id="history-start-date"
-              label={t('history.date_from')}
-              value={startDate}
-              max={endDate}
-              onChange={setStartDate}
-            />
-            <DateFilterPicker
-              id="history-end-date"
-              label={t('history.date_to')}
-              value={endDate}
-              min={startDate}
-              max={today}
-              onChange={setEndDate}
-            />
+      <HistoryFilterPanel
+        showFilters={showFilters}
+        startDate={startDate}
+        endDate={endDate}
+        today={today}
+        typeFilter={typeFilter}
+        logTypeFilter={logTypeFilter}
+        prayerFilter={prayerFilter}
+        onToggleFilters={() => setShowFilters((v) => !v)}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onTypeFilterChange={setTypeFilter}
+        onLogTypeFilterChange={setLogTypeFilter}
+        onPrayerFilterChange={setPrayerFilter}
+        t={t}
+      />
 
-            {/* Type Filter */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>{t('history.filter_type')}</label>
-              <div className={styles.segmented}>
-                {(['all', 'prayers', 'fasting'] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    className={`${styles.segBtn} ${typeFilter === opt ? styles.segBtnActive : ''}`}
-                    aria-pressed={typeFilter === opt}
-                    onClick={() => {
-                      setTypeFilter(opt);
-                      if (opt === 'fasting') setPrayerFilter('all');
-                    }}
-                  >
-                    {t(`history.filter_${opt}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <HistorySummaryStrip
+        totalCount={totalCount}
+        prayerCount={prayerCount}
+        fastCount={fastCount}
+        typeFilter={typeFilter}
+        fmtNumber={fmtNumber}
+        t={t}
+      />
 
-            {/* Prayer Filter (only when showing prayers) */}
-            {typeFilter !== 'fasting' && (
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>{t('history.filter_prayer')}</label>
-                <div className={styles.segmented}>
-                  <button
-                    className={`${styles.segBtn} ${prayerFilter === 'all' ? styles.segBtnActive : ''}`}
-                    aria-pressed={prayerFilter === 'all'}
-                    onClick={() => setPrayerFilter('all')}
-                  >
-                    {t('history.filter_all')}
-                  </button>
-                  {PRAYERS.map((p) => (
-                    <button
-                      key={p}
-                      className={`${styles.segBtn} ${prayerFilter === p ? styles.segBtnActive : ''}`}
-                      aria-pressed={prayerFilter === p}
-                      onClick={() => setPrayerFilter(p)}
-                    >
-                      {t(`prayers.${p}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Log type filter (Qadaa / Obligatory) */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>{t('history.filter_log_type')}</label>
-              <div className={styles.segmented}>
-                {(['all', 'qadaa', 'obligatory'] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    className={`${styles.segBtn} ${logTypeFilter === opt ? styles.segBtnActive : ''}`}
-                    aria-pressed={logTypeFilter === opt}
-                    onClick={() => setLogTypeFilter(opt)}
-                  >
-                    {t(`history.filter_log_type_${opt}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Summary strip */}
-      <div className={styles.summary}>
-        <div className={styles.summaryChip}>
-          <span className={styles.summaryNum}>{fmtNumber(totalCount)}</span>
-          <span className={styles.summaryLbl}>{t('history.total_entries')}</span>
-        </div>
-        {typeFilter !== 'fasting' && (
-          <div className={`${styles.summaryChip} ${styles.summaryPrayer}`}>
-            <Moon size={14} />
-            <span className={styles.summaryNum}>{fmtNumber(prayerCount)}</span>
-            <span className={styles.summaryLbl}>{t('history.prayers_label')}</span>
-          </div>
-        )}
-        {typeFilter !== 'prayers' && (
-          <div className={`${styles.summaryChip} ${styles.summaryFast}`}>
-            <Sun size={14} />
-            <span className={styles.summaryNum}>{fmtNumber(fastCount)}</span>
-            <span className={styles.summaryLbl}>{t('history.fasts_label')}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Timeline */}
       {isLoading ? (
         <div className={styles.loadingState}>
           <Loader2 className="animate-spin" size={32} />
@@ -404,94 +270,14 @@ export const HistoryPage: React.FC = () => {
       ) : (
         <div className={styles.timeline}>
           {grouped.map(([date, dayEntries]) => (
-            <div key={date} className={styles.dayGroup}>
-              <div className={styles.dayLabel}>
-                {(() => {
-                  const d = formatDual(date, { weekday: 'long', includeGregorianYear: true });
-                  return (
-                    <>
-                      {d.primary}
-                      <span className={styles.dayLabelSec}>{d.secondary}</span>
-                    </>
-                  );
-                })()}
-              </div>
-              <div className={styles.dayEntries}>
-                {dayEntries.map((entry) => (
-                  <div
-                    key={entry.eventId}
-                    className={`${styles.entry} ${
-                      entry.type === 'period'
-                        ? styles.entryPeriod
-                        : entry.type === 'covered'
-                          ? styles.entryCovered
-                          : ''
-                    }`}
-                  >
-                    <div
-                      className={`${styles.entryIcon} ${
-                        entry.type === 'prayer'
-                          ? styles.entryIconPrayer
-                          : entry.type === 'fast'
-                            ? styles.entryIconFast
-                            : entry.type === 'covered'
-                              ? styles.entryIconCovered
-                              : styles.entryIconPeriod
-                      }`}
-                    >
-                      {entry.type === 'prayer' ? (
-                        <Moon size={14} />
-                      ) : entry.type === 'fast' ? (
-                        <Sun size={14} />
-                      ) : entry.type === 'covered' ? (
-                        <BookOpen size={14} />
-                      ) : (
-                        <BookOpen size={14} />
-                      )}
-                    </div>
-                    <div className={styles.entryBody}>
-                      <span className={styles.entryTitle}>
-                        {entry.type === 'prayer'
-                          ? t(`prayers.${entry.prayerName}`)
-                          : entry.type === 'fast'
-                            ? t('sawm.fast_logged')
-                            : entry.type === 'covered'
-                              ? t('history.period_active_event')
-                              : entry.periodEventKind === 'start'
-                                ? t('history.period_start_event')
-                                : t('history.period_end_event')}
-                      </span>
-                      <span className={styles.entryMeta}>
-                        {entry.type === 'period'
-                          ? t(`onboarding.period_type_${entry.periodKind}`)
-                          : entry.type === 'covered'
-                            ? `${t('history.covered_by_period')} · ${t(`onboarding.period_type_${entry.periodKind}`)}`
-                            : `${t('history.action_marked')} · ${entry.logType === 'qadaa' ? t('history.type_qadaa') : t('history.type_obligatory')} · ${formatDual(entry.date).hijri} · ${formatDual(entry.date).gregorian} · ${formatTime(entry.loggedAt, locale)}`}
-                      </span>
-                    </div>
-                    <div
-                      className={`${styles.entryBadge} ${
-                        entry.type === 'prayer'
-                          ? styles.badgePrayer
-                          : entry.type === 'fast'
-                            ? styles.badgeFast
-                            : entry.type === 'covered'
-                              ? styles.badgeCovered
-                              : styles.badgePeriod
-                      }`}
-                    >
-                      {entry.type === 'prayer'
-                        ? t('history.prayer_badge')
-                        : entry.type === 'fast'
-                          ? t('history.fast_badge')
-                          : entry.type === 'covered'
-                            ? t('history.covered_badge')
-                            : t('history.period_badge')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <HistoryDayGroup
+              key={date}
+              date={date}
+              entries={dayEntries}
+              locale={locale}
+              formatDual={formatDual}
+              t={t}
+            />
           ))}
         </div>
       )}
