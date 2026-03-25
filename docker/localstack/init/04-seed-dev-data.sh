@@ -40,6 +40,7 @@ aws dynamodb put-item \
     \"periodId\": {\"S\": \"01JDEV00000PRACTICEPERIOD1\"},
     \"startDate\": {\"S\": \"1440-01-01\"},
     \"endDate\": {\"S\": \"1444-01-01\"},
+    \"type\": {\"S\": \"both\"},
     \"createdAt\": {\"S\": \"${NOW}\"}
   }" \
   --endpoint-url "$ENDPOINT" \

@@ -50,7 +50,7 @@ export class DynamoDBPracticingPeriodRepository
       periodId: item.periodId as string,
       startDate: HijriDate.fromString(item.startDate as string),
       endDate: item.endDate ? HijriDate.fromString(item.endDate as string) : undefined,
-      type: item.type as 'salah' | 'sawm' | 'both',
+      type: (item.type as 'salah' | 'sawm' | 'both') ?? 'both',
     });
   }
 }

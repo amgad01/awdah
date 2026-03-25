@@ -9,7 +9,7 @@ import {
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, NotFoundError, ValidationError, ConflictError } from '@awdah/shared';
+import { HijriDate, NotFoundError, ConflictError } from '@awdah/shared';
 
 const BULUGH_DATE = '1440-01-01';
 
@@ -77,7 +77,7 @@ describe('AddPracticingPeriodUseCase', () => {
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 
-  it('throws ValidationError if start date is before bulugh date', async () => {
+  it('successfully adds a period starting before bulugh date', async () => {
     const earlyCommand: AddPracticingPeriodCommand = {
       ...command,
       startDate: '1439-06-01', // before BULUGH_DATE 1440-01-01
@@ -85,8 +85,9 @@ describe('AddPracticingPeriodUseCase', () => {
 
     vi.mocked(mockRepo.findByUser).mockResolvedValue([]);
 
-    await expect(useCase.execute(earlyCommand)).rejects.toThrow(ValidationError);
-    expect(mockRepo.save).not.toHaveBeenCalled();
+    const result = await useCase.execute(earlyCommand);
+    expect(result).toBeDefined();
+    expect(mockRepo.save).toHaveBeenCalled();
   });
 
   it('throws NotFoundError if user settings are not found', async () => {
