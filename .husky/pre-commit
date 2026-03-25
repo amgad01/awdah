@@ -1,7 +1,70 @@
 #!/bin/sh
+# Scoped pre-commit: only processes staged files so the hook is fast on every
+# commit regardless of total codebase size.
+set -e
 
-npx eslint . --max-warnings=0
-npx prettier --check .
-npm run format
-npm run typecheck --workspaces --if-present
-npm run test --workspaces --if-present -- --changed
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT"
+
+# ── Collect staged file lists ─────────────────────────────────────────────────
+STAGED=$(git diff --name-only --cached --diff-filter=ACMR 2>/dev/null || true)
+[ -z "$STAGED" ] && exit 0   # nothing staged → nothing to check
+
+STAGED_FMT=$(printf '%s\n' "$STAGED" | grep -E '\.(ts|tsx|js|jsx|json|css|md)$' || true)
+STAGED_TS=$(printf '%s\n' "$STAGED" | grep -E '\.(ts|tsx)$' || true)
+
+# ── 1. Format staged files in-place then re-stage ────────────────────────────
+if [ -n "$STAGED_FMT" ]; then
+  printf '%s\n' "$STAGED_FMT" | xargs npx prettier --write --log-level warn
+  printf '%s\n' "$STAGED_FMT" | xargs git add
+fi
+
+# ── 2. Lint only staged TS/TSX files (cache keeps this fast) ─────────────────
+if [ -n "$STAGED_TS" ]; then
+  FRONTEND_TS=$(printf '%s\n' "$STAGED_TS" | grep "^apps/frontend/" || true)
+  OTHER_TS=$(printf '%s\n' "$STAGED_TS"    | grep -v "^apps/frontend/" || true)
+  PIDS=""
+  FAILED=0
+
+  if [ -n "$OTHER_TS" ]; then
+    printf '%s\n' "$OTHER_TS" | xargs npx eslint --max-warnings=0 \
+      --cache --cache-location "$ROOT/.eslintcache" &
+    PIDS="$PIDS $!"
+  fi
+  if [ -n "$FRONTEND_TS" ]; then
+    printf '%s\n' "$FRONTEND_TS" | xargs npx eslint --max-warnings=0 \
+      --cache --cache-location "$ROOT/apps/frontend/.eslintcache" \
+      -c "$ROOT/apps/frontend/eslint.config.js" &
+    PIDS="$PIDS $!"
+  fi
+
+  for pid in $PIDS; do wait "$pid" || FAILED=1; done
+  [ "$FAILED" -ne 0 ] && exit 1
+fi
+
+# ── 3. Typecheck only workspaces that have staged changes (in parallel) ───────
+if [ -n "$STAGED_TS" ]; then
+  PIDS=""
+  FAILED=0
+
+  printf '%s\n' "$STAGED_TS" | grep -q "^apps/frontend/" && {
+    npm run typecheck --workspace=apps/frontend &
+    PIDS="$PIDS $!"
+  }
+  printf '%s\n' "$STAGED_TS" | grep -q "^apps/backend/" && {
+    npm run typecheck --workspace=apps/backend &
+    PIDS="$PIDS $!"
+  }
+  printf '%s\n' "$STAGED_TS" | grep -q "^packages/" && {
+    npm run typecheck --workspace=packages/shared &
+    PIDS="$PIDS $!"
+  }
+  # Root-level TS changes (infra or standalone files)
+  printf '%s\n' "$STAGED_TS" | grep -qvE "^apps/|^packages/" && {
+    npm run typecheck &
+    PIDS="$PIDS $!"
+  }
+
+  for pid in $PIDS; do wait "$pid" || FAILED=1; done
+  [ "$FAILED" -ne 0 ] && exit 1
+fi

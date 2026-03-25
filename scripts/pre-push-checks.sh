@@ -5,10 +5,12 @@
 # before reaching GitHub Actions. Run this manually or via the Husky pre-push
 # hook. All checks must pass for the script to exit cleanly.
 #
+# Independent steps within each phase run in parallel to reduce wall-clock time.
+#
 # Usage:
-#   ./scripts/pre-push-checks.sh           # run all checks
-#   SKIP_TESTS=1 ./scripts/pre-push-checks.sh   # skip tests (faster, use sparingly)
-
+#   ./scripts/pre-push-checks.sh                    # run all checks
+#   SKIP_TESTS=1 ./scripts/pre-push-checks.sh       # skip tests
+#   SKIP_BUILDS=1 ./scripts/pre-push-checks.sh      # skip app builds (lint/typecheck/test only)
 set -e
 
 BOLD='\033[1m'
@@ -29,67 +31,103 @@ warn() {
   printf "${YELLOW}⚠ %s${RESET}\n" "$1"
 }
 
+fail() {
+  printf "${RED}✘ %s${RESET}\n" "$1"
+}
+
+# Run commands in parallel, fail if any exit non-zero.
+# Usage: run_parallel "label1" "cmd1" "label2" "cmd2" ...
+run_parallel() {
+  _pids=""
+  _labels=""
+  _tmpdir=$(mktemp -d)
+  _i=0
+
+  while [ $# -ge 2 ]; do
+    _label="$1"; shift
+    _cmd="$1"; shift
+    _i=$((_i + 1))
+
+    ( eval "$_cmd" > "$_tmpdir/$_i.out" 2>&1 ) &
+    _pids="$_pids $!"
+    _labels="$_labels|$_label"
+  done
+
+  _failed=0
+  _j=0
+  for _pid in $_pids; do
+    _j=$((_j + 1))
+    _lbl=$(echo "$_labels" | cut -d'|' -f$((_j + 1)))
+    if wait "$_pid"; then
+      success "$_lbl"
+    else
+      fail "$_lbl"
+      cat "$_tmpdir/$_j.out"
+      _failed=1
+    fi
+  done
+
+  rm -rf "$_tmpdir"
+  if [ "$_failed" -ne 0 ]; then
+    printf "\n${RED}${BOLD}One or more parallel checks failed.${RESET}\n"
+    exit 1
+  fi
+}
+
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 
-step "1/14 — Build shared package (required by backend & infra)"
+# ── Phase 1: Build shared package (dependency for later phases) ──────────────
+step "Phase 1/4 — Build shared package"
 npm run build --workspace=packages/shared
 success "Shared package built"
 
-step "2/14 — ESLint (all workspaces)"
-npm run lint
-success "ESLint clean"
+# ── Phase 2: Lint, format & TypeScript (all independent — run together) ──────
+# Root ESLint covers backend/infra/packages; frontend ESLint uses its own config.
+step "Phase 2/4 — Lint, format & TypeScript (parallel)"
+run_parallel \
+  "ESLint: backend / infra / packages" \
+    "npm run lint -- --cache --cache-location .eslintcache" \
+  "ESLint: frontend" \
+    "npm run lint --workspace=apps/frontend -- --cache --cache-location apps/frontend/.eslintcache" \
+  "Prettier format check" \
+    "npm run format:check" \
+  "TypeScript: root" \
+    "npm run typecheck" \
+  "TypeScript: backend" \
+    "npm run typecheck --workspace=apps/backend" \
+  "TypeScript: shared" \
+    "npm run typecheck --workspace=packages/shared" \
+  "TypeScript: frontend" \
+    "npm run typecheck --workspace=apps/frontend"
 
-step "3/14 — ESLint (frontend)"
-npm run lint --workspace=apps/frontend
-success "Frontend ESLint clean"
-
-step "4/14 — Prettier format check"
-npm run format:check
-success "Formatting clean"
-
-step "5/14 — TypeScript: root"
-npm run typecheck
-success "Root typecheck passed"
-
-step "6/14 — TypeScript: backend"
-npm run typecheck --workspace=apps/backend
-success "Backend typecheck passed"
-
-step "7/14 — TypeScript: shared"
-npm run typecheck --workspace=packages/shared
-success "Shared typecheck passed"
-
-step "8/14 — TypeScript: frontend"
-npm run typecheck --workspace=apps/frontend
-success "Frontend typecheck passed"
-
-step "9/14 — Build: backend"
-npm run build --workspace=apps/backend
-success "Backend build passed"
-
-step "10/14 — Build: frontend"
-npm run build --workspace=apps/frontend
-success "Frontend build passed"
-
-step "11/14 — Build: infra"
-npm run build --workspace=infra
-success "Infra build passed"
-
+# ── Phase 3: Tests ────────────────────────────────────────────────────────────
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
-  warn "SKIP_TESTS=1 — skipping test steps 12–13 (do not push without running tests first)"
+  warn "SKIP_TESTS=1 — skipping tests (do not push without running tests first)"
 else
-  step "12/14 — Tests: backend (with coverage)"
-  npm run test:coverage --workspace=apps/backend
-  success "Backend tests passed"
-
-  step "13/14 — Tests: shared"
-  npm run test --workspace=packages/shared --if-present
-  success "Shared tests passed"
+  step "Phase 3/4 — Tests (parallel)"
+  run_parallel \
+    "Tests: backend" \
+      "npm run test --workspace=apps/backend" \
+    "Tests: shared" \
+      "npm run test --workspace=packages/shared --if-present" \
+    "Tests: frontend" \
+      "npm run test --workspace=apps/frontend --if-present"
 fi
 
-step "14/14 — Security audit (high severity)"
-npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra
-success "Security audit passed"
+# ── Phase 4: Builds + security audit ─────────────────────────────────────────
+if [ "${SKIP_BUILDS:-0}" = "1" ]; then
+  warn "SKIP_BUILDS=1 — skipping app builds"
+  step "Phase 4/4 — Security audit"
+  npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra
+  success "Security audit passed"
+else
+  step "Phase 4/4 — Builds & audit (parallel)"
+  run_parallel \
+    "Build: backend"  "npm run build --workspace=apps/backend" \
+    "Build: frontend" "npm run build --workspace=apps/frontend" \
+    "Build: infra"    "npm run build --workspace=infra" \
+    "Security audit"  "npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra"
+fi
 
 printf "\n${GREEN}${BOLD}All checks passed. Safe to push.${RESET}\n\n"

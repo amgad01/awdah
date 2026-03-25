@@ -29,4 +29,11 @@ export default defineConfig([
       ],
     },
   },
+  // Relax some rules for test files — `any` casts are acceptable in mock setup.
+  {
+    files: ['**/*.{test,spec}.{ts,tsx}', '**/test/**/*.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 ]);
