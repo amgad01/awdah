@@ -1,3 +1,4 @@
+/* ── Page Layout ── */
 .page {
   max-width: 640px;
   margin: 0 auto;
@@ -65,8 +66,7 @@
   margin-top: var(--spacing-xs);
 }
 
-/* section — no extra styles needed, Card handles its own padding */
-
+/* ── Section Header (SettingsSection) ── */
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@
   width: 34px;
   height: 34px;
   border-radius: var(--border-radius-md);
-  background-color: rgba(0, 77, 64, 0.08);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
   color: var(--color-primary);
   display: flex;
   align-items: center;
@@ -127,17 +127,10 @@
 
 .accountEmail {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
-/* ── Privacy & Data ── */
-.privacyText {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.5;
-  margin: 0;
-}
-
+/* ── Section Notice (SectionNotice) ── */
 .sectionNotice {
   margin-top: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
@@ -158,6 +151,7 @@
   color: var(--color-success);
 }
 
+/* ── Debt Impact Preview (DebtImpactPreview) ── */
 .impactPreview {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
@@ -213,7 +207,7 @@
   gap: 0.2rem;
   padding: var(--spacing-sm);
   border-radius: var(--border-radius-md);
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
 }
 
 .impactPreviewStat span {
@@ -230,6 +224,352 @@
 
 .impactPreviewBody {
   margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Profile Fields (ProfileSection) ── */
+.profileFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-block-end: var(--spacing-md);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.fieldCurrent {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-block-end: var(--spacing-xs);
+}
+
+.fieldCurrentVal {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  margin: 0;
+}
+
+.fieldWarning {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning, #d97706);
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-warning, #d97706) 20%, var(--color-border));
+  border-inline-start-width: 3px;
+}
+
+.ageInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.ageInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ageInput {
+  width: 72px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ageInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.ageInputSuffix {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.genderBtns {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.genderBtn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.genderBtn:hover {
+  border-color: var(--color-primary-light);
+}
+
+.genderActive {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.saveProfileBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.saveProfileBtn:hover:not(:disabled) {
+  background: var(--color-primary-dark, #00695c);
+}
+
+.saveProfileBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Practicing Periods (PeriodsSection) ── */
+.periodsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-block: var(--spacing-sm) var(--spacing-md);
+}
+
+.periodRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-inner, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  gap: var(--spacing-sm);
+}
+
+.periodInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.periodRowTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.periodDates {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.periodDatesSecondary {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.periodType {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.periodActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.periodEditBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.periodEditBtn:hover {
+  color: var(--color-primary);
+}
+
+.periodDeleteBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.periodDeleteBtn:hover {
+  color: var(--color-error);
+}
+
+.addPeriodBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-block-start: var(--spacing-sm);
+  width: 100%;
+  justify-content: center;
+}
+
+.addPeriodBtn:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.periodsEmpty {
+  padding: var(--spacing-lg);
+  text-align: center;
+  border: 1px dashed var(--color-divider);
+  border-radius: var(--border-radius-md);
+  margin-block: var(--spacing-md);
+}
+
+.periodsEmptyText {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-block-end: var(--spacing-xs);
+}
+
+.periodsEmptyHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── Period Form (PeriodForm) ── */
+.addPeriodForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-block-start: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-inner, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
+.periodFormRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+.ongoingLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.typeSelect {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  width: 100%;
+}
+
+.addPeriodActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.cancelAddBtn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.confirmAddBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmAddBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Privacy & Export ── */
+.privacyText {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: 1.6;
@@ -260,6 +600,34 @@
 .exportBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── About ── */
+.aboutInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.aboutRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.aboutRow:last-child {
+  border-bottom: none;
+}
+
+.aboutKey {
+  color: var(--color-text-muted);
+}
+
+.aboutVal {
+  font-weight: 600;
+  color: var(--color-text-secondary);
 }
 
 /* ── Data Management ── */
@@ -333,187 +701,14 @@
   cursor: not-allowed;
 }
 
-/* ── About ── */
-.aboutInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.aboutRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 1px solid var(--color-border-faint);
-}
-
-.aboutKey {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.aboutVal {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-/* ── Actions ── */
-.signOutBtn {
-  margin-top: var(--spacing-md);
-  width: 100%;
-  padding: var(--spacing-md);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  transition: all 0.2s;
-}
-
-.signOutBtn:hover:not(:disabled) {
-  background: var(--color-border-hover);
-  border-color: var(--color-text-muted);
-}
-
-.signOutBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Danger Zone ── */
-.dangerZone {
-  border: 1px solid rgba(220, 38, 38, 0.2);
-  background-color: rgba(220, 38, 38, 0.02);
-}
-
-.dangerIcon {
-  background-color: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
-
-.deleteBtn {
-  margin-top: var(--spacing-md);
-  width: 100%;
-  padding: var(--spacing-md);
-  background: white;
-  border: 1px solid #fee2e2;
-  border-radius: var(--border-radius-lg);
-  color: #dc2626;
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  transition: all 0.2s;
-}
-
-.deleteBtn:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
-}
-
-.deleteConfirm {
-  margin-top: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.deleteConfirmText {
-  font-size: var(--font-size-sm);
-  color: #dc2626;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.deletePasswordInput {
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background: var(--color-bg-inner);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-md);
-}
-
-.deletePasswordInput:focus {
-  outline: none;
-  border-color: #dc2626;
-  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
-}
-
-.deleteErrorText {
-  font-size: var(--font-size-xs);
-  color: #dc2626;
-  font-weight: 600;
-}
-
-.deleteConfirmBtns {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.deleteConfirmBtn {
-  padding: var(--spacing-md);
-  background: #dc2626;
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-weight: 700;
-  font-size: var(--font-size-md);
-  cursor: pointer;
-}
-
-.deleteConfirmBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.deleteCancelBtn {
-  padding: var(--spacing-md);
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  font-weight: 600;
-  font-size: var(--font-size-md);
-  cursor: pointer;
-}
-
+/* ── Coming Soon ── */
 .comingSoon {
   font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
   font-style: italic;
-  color: var(--color-text-muted);
 }
 
-.accountEmail {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-/* ── Row Button (language etc) ── */
+/* ── Row Button (language etc.) ── */
 .rowBtn {
   display: flex;
   align-items: center;
@@ -530,7 +725,7 @@
 
 .rowBtn:hover {
   border-color: var(--color-primary-light);
-  background-color: rgba(0, 121, 107, 0.04);
+  background-color: color-mix(in srgb, var(--color-primary) 4%, transparent);
 }
 
 .rowLeft {
@@ -555,49 +750,16 @@
   flex-shrink: 0;
 }
 
-/* ── Coming Soon ── */
-.comingSoon {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-style: italic;
+/* ── Danger Zone (DangerZoneSection) ── */
+.dangerZone {
+  border-color: color-mix(in srgb, var(--color-error) 30%, var(--color-border));
 }
 
-/* ── Privacy ── */
-.privacyText {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
+.dangerIcon {
+  background: color-mix(in srgb, var(--color-error) 12%, var(--color-surface));
+  color: var(--color-error);
 }
 
-/* ── About ── */
-.aboutInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.aboutRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--font-size-sm);
-  padding: var(--spacing-xs) 0;
-  border-bottom: 1px solid var(--color-divider);
-}
-
-.aboutRow:last-child {
-  border-bottom: none;
-}
-
-.aboutKey {
-  color: var(--color-text-muted);
-}
-
-.aboutVal {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-/* ── Sign Out Button ── */
 .signOutBtn {
   display: flex;
   align-items: center;
@@ -623,16 +785,6 @@
 .signOutBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* ─── Danger zone ─────────────────────────── */
-.dangerZone {
-  border-color: color-mix(in srgb, var(--color-error) 30%, var(--color-border)) !important;
-}
-
-.dangerIcon {
-  background: color-mix(in srgb, var(--color-error) 12%, var(--color-surface)) !important;
-  color: var(--color-error) !important;
 }
 
 .deleteBtn {
@@ -661,14 +813,14 @@
   gap: var(--spacing-sm);
   margin-block-start: var(--spacing-sm);
   padding: var(--spacing-md);
-  background: color-mix(in srgb, var(--color-error) 5%, var(--color-bg));
+  background: color-mix(in srgb, var(--color-error) 5%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-error) 25%, transparent);
   border-radius: var(--border-radius-md);
 }
 
 .deleteConfirmText {
   font-size: var(--font-size-sm);
-  color: var(--color-text);
+  color: var(--color-text-primary);
   line-height: 1.5;
 }
 
@@ -677,7 +829,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   width: 100%;
   box-sizing: border-box;
@@ -723,322 +875,4 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   cursor: pointer;
-}
-
-/* ── Profile & Practicing Periods ── */
-.profileFields {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-block-end: var(--spacing-md);
-}
-
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.fieldLabel {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.fieldCurrent {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  margin-block-end: var(--spacing-xs);
-}
-
-.fieldCurrentVal {
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.fieldError {
-  font-size: var(--font-size-xs);
-  color: var(--color-error);
-  margin: 0;
-}
-
-/* Age-based bulugh input */
-.ageInputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.ageInputRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.ageInput {
-  width: 72px;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--border-radius-md, 8px);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.ageInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.ageInputSuffix {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.genderBtns {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.genderBtn {
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.genderBtn:hover {
-  border-color: var(--color-primary-light);
-}
-
-.genderActive {
-  border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  color: var(--color-primary);
-}
-
-.saveProfileBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary);
-  border: none;
-  border-radius: var(--border-radius-md);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: fit-content;
-}
-
-.saveProfileBtn:hover:not(:disabled) {
-  background: var(--color-primary-dark, #00695c);
-}
-
-.saveProfileBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Practicing Periods List ── */
-.periodsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  margin-block: var(--spacing-sm) var(--spacing-md);
-}
-
-.periodRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-bg-inner, var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  gap: var(--spacing-sm);
-}
-
-.periodInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.periodDates {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.periodType {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  text-transform: capitalize;
-}
-
-.periodDeleteBtn {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--border-radius-sm);
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
-
-.periodDeleteBtn:hover {
-  color: var(--color-error);
-}
-
-.periodActions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.periodEditBtn {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--border-radius-sm);
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
-
-.periodEditBtn:hover {
-  color: var(--color-primary);
-}
-
-.addPeriodBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: none;
-  border: 1.5px dashed var(--color-border);
-  border-radius: var(--border-radius-md);
-  color: var(--color-primary);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-block-start: var(--spacing-sm);
-  width: 100%;
-  justify-content: center;
-}
-
-.addPeriodBtn:hover {
-  border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
-}
-
-.addPeriodForm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-block-start: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-bg-inner, var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-}
-
-.periodFormRow {
-  display: grid;
-  /* Stack pickers vertically — each picker needs full card width so the year
-     column never collapses to an unreadable width. */
-  grid-template-columns: 1fr;
-  gap: var(--spacing-md);
-}
-
-.ongoingLabel {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.typeSelect {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
-  width: 100%;
-}
-
-.addPeriodActions {
-  display: flex;
-  gap: var(--spacing-sm);
-  justify-content: flex-end;
-}
-
-.cancelAddBtn {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.confirmAddBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary);
-  border: none;
-  border-radius: var(--border-radius-md);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.confirmAddBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.periodsEmpty {
-  padding: var(--spacing-lg);
-  text-align: center;
-  border: 1px dashed var(--color-divider);
-  border-radius: var(--border-radius-md);
-  margin-block: var(--spacing-md);
-}
-
-.periodsEmptyText {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-block-end: var(--spacing-xs);
-}
-
-.periodsEmptyHint {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
 }
