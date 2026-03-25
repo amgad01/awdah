@@ -57,8 +57,7 @@ export const AboutPage: React.FC = () => {
         setData(json);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error('Failed to load about data:', err);
+      .catch(() => {
         setLoading(false);
       });
   }, [language]);

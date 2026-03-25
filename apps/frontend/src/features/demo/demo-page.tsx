@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Icons from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { useLanguage } from '@/hooks/use-language';
 import { useDualDate, type DualDateParts } from '@/hooks/use-dual-date';
 import { Card } from '@/components/ui/card/card';
@@ -191,7 +200,10 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
   const joined = format(data.user.joinedAt, { includeGregorianYear: true });
   const dob = format(data.profile.dateOfBirth, { includeGregorianYear: true });
   const bulugh = format(data.profile.bulughDate, { includeGregorianYear: true });
-  const maxWeeklyValue = Math.max(...data.salah.weeklyCompletion.map((entry) => entry.value), 1);
+  const weeklyChartData = data.salah.weeklyCompletion.map((entry) => ({
+    day: t(entry.dayKey),
+    value: entry.value,
+  }));
   const primaryCalendarLabel =
     language === 'ar' ? t('onboarding.hijri_input') : t('onboarding.gregorian_input');
   const secondaryCalendarLabel =
@@ -445,19 +457,49 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             <h3>{t('demo.weekly_title')}</h3>
           </div>
           <div className={styles.weeklyChart}>
-            {data.salah.weeklyCompletion.map((entry) => {
-              const height = Math.max((entry.value / maxWeeklyValue) * 100, 18);
-
-              return (
-                <div key={entry.dayKey} className={styles.weeklyBarCol}>
-                  <div className={styles.weeklyBarTrack}>
-                    <div className={styles.weeklyBar} style={{ height: `${height}%` }} />
-                  </div>
-                  <span className={styles.weeklyValue}>{fmtNumber(entry.value)}</span>
-                  <span className={styles.weeklyLabel}>{t(entry.dayKey)}</span>
-                </div>
-              );
-            })}
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={weeklyChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="var(--color-divider, rgba(0,0,0,0.08))"
+                />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={[0, 'dataMax']}
+                  allowDecimals={false}
+                  tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => fmtNumber(v)}
+                />
+                <Tooltip
+                  cursor={{ stroke: 'var(--color-text-muted)', strokeDasharray: '3 3' }}
+                  formatter={(value) => [fmtNumber(value as number)]}
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 8,
+                    border: '1px solid var(--color-border)',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  name={t('salah.tab_daily')}
+                  stroke="var(--color-primary)"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: 'var(--color-primary)' }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </Card>
 
