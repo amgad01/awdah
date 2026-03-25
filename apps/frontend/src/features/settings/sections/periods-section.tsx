@@ -207,12 +207,13 @@ export const PeriodsSection: React.FC = () => {
 
   useEffect(() => {
     if (!showAddPeriod) return;
-    validatePeriodForm({
+    const isValid = validatePeriodForm({
       startDate: periodStart,
       endDate: periodOngoing ? undefined : periodEnd || undefined,
       setStartError: setPeriodStartError,
       setEndError: setPeriodEndError,
     });
+    setIsAddValid(isValid);
   }, [
     showAddPeriod,
     periodStart,
@@ -225,13 +226,14 @@ export const PeriodsSection: React.FC = () => {
 
   useEffect(() => {
     if (!editingPeriodId) return;
-    validatePeriodForm({
+    const isValid = validatePeriodForm({
       startDate: editStart,
       endDate: editOngoing ? undefined : editEnd || undefined,
       excludePeriodId: editingPeriodId,
       setStartError: setEditStartError,
       setEndError: setEditEndError,
     });
+    setIsEditValid(isValid);
   }, [
     editingPeriodId,
     editStart,
