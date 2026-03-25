@@ -9,6 +9,7 @@ import {
   DOB_MAX_YEARS_AGO,
   HIJRI_MONTH_KEYS,
 } from '@/lib/constants';
+import { GregorianDateInputs, HijriDateInputs, DualDatePreview } from './hijri-date-picker-parts';
 import styles from './hijri-date-picker.module.css';
 
 type CalendarMode = 'gregorian' | 'hijri';
@@ -33,17 +34,14 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
   const { t, language, fmtNumber } = useLanguage();
   const [calendarMode, setCalendarMode] = useState<CalendarMode>('gregorian');
 
-  // Gregorian fields — stored as separate day/month/year for full i18n control
   const [gregDay, setGregDay] = useState('');
-  const [gregMonth, setGregMonth] = useState(''); // "1"–"12"
+  const [gregMonth, setGregMonth] = useState('');
   const [gregYear, setGregYear] = useState('');
 
-  // Hijri fields
   const [hijriYear, setHijriYear] = useState(initialHijriParts?.year ?? '');
   const [hijriMonth, setHijriMonth] = useState(initialHijriParts?.month ?? '');
   const [hijriDay, setHijriDay] = useState(initialHijriParts?.day ?? '');
 
-  // Localised Gregorian month names using Intl — updates automatically on language change
   const gregorianMonthNames = useMemo(
     () =>
       Array.from({ length: 12 }, (_, i) =>
@@ -54,7 +52,6 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
     [language],
   );
 
-  // Initialise both Hijri and Gregorian fields from the stored value when editing
   React.useEffect(() => {
     if (!value) return;
     const sep = value.includes('/') ? '/' : '-';
@@ -153,152 +150,63 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
       </div>
 
       {calendarMode === 'gregorian' ? (
-        <div className={styles.hijriRow}>
-          {/* Month */}
-          <select
-            className={styles.select}
-            value={gregMonth}
-            onChange={(e) => {
-              const v = e.target.value;
-              setGregMonth(v);
-              handleGregorianParts(gregDay, v, gregYear);
-            }}
-            aria-label={t('onboarding.select_month')}
-          >
-            <option value="">{t('onboarding.select_month')}</option>
-            {gregorianMonthNames.map((name, i) => (
-              <option key={i + 1} value={String(i + 1)}>
-                {name}
-              </option>
-            ))}
-          </select>
-          {/* Day */}
-          <select
-            className={styles.select}
-            value={gregDay}
-            onChange={(e) => {
-              const v = e.target.value;
-              setGregDay(v);
-              handleGregorianParts(v, gregMonth, gregYear);
-            }}
-            aria-label={t('onboarding.select_day')}
-          >
-            <option value="">{t('onboarding.select_day')}</option>
-            {Array.from({ length: 31 }, (_, i) => (
-              <option key={i + 1} value={String(i + 1)}>
-                {fmtNumber(i + 1)}
-              </option>
-            ))}
-          </select>
-          {/* Year */}
-          <select
-            className={styles.select}
-            value={gregYear}
-            onChange={(e) => {
-              const v = e.target.value;
-              setGregYear(v);
-              handleGregorianParts(gregDay, gregMonth, v);
-            }}
-            aria-label={label}
-          >
-            <option value="">{t('onboarding.greg_year_placeholder')}</option>
-            {Array.from({ length: currentYear - minYear + 1 }, (_, i) => {
-              const y = currentYear - i;
-              return (
-                <option key={y} value={String(y)}>
-                  {fmtNumber(y)}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+        <GregorianDateInputs
+          gregDay={gregDay}
+          gregMonth={gregMonth}
+          gregYear={gregYear}
+          onDayChange={(v) => {
+            setGregDay(v);
+            handleGregorianParts(v, gregMonth, gregYear);
+          }}
+          onMonthChange={(v) => {
+            setGregMonth(v);
+            handleGregorianParts(gregDay, v, gregYear);
+          }}
+          onYearChange={(v) => {
+            setGregYear(v);
+            handleGregorianParts(gregDay, gregMonth, v);
+          }}
+          gregorianMonthNames={gregorianMonthNames}
+          fmtNumber={fmtNumber}
+          currentYear={currentYear}
+          minYear={minYear}
+          ariaLabelYear={label}
+          t={t}
+        />
       ) : (
-        <div className={styles.hijriRow}>
-          <select
-            className={styles.select}
-            value={hijriMonth}
-            onChange={(e) => {
-              const v = e.target.value;
-              setHijriMonth(v);
-              handleHijriChange(hijriYear, v, hijriDay);
-            }}
-            aria-label={t('onboarding.select_month')}
-          >
-            <option value="">{t('onboarding.select_month')}</option>
-            {Array.from({ length: HIJRI_MONTHS_COUNT }, (_, i) => (
-              <option key={i + 1} value={String(i + 1)}>
-                {fmtNumber(i + 1)}. {t(HIJRI_MONTH_KEYS[i])}
-              </option>
-            ))}
-          </select>
-          <select
-            className={styles.select}
-            value={hijriDay}
-            onChange={(e) => {
-              const v = e.target.value;
-              setHijriDay(v);
-              handleHijriChange(hijriYear, hijriMonth, v);
-            }}
-            aria-label={t('onboarding.select_day')}
-          >
-            <option value="">{t('onboarding.select_day')}</option>
-            {Array.from({ length: MAX_HIJRI_DAYS_PER_MONTH }, (_, i) => (
-              <option key={i + 1} value={String(i + 1)}>
-                {fmtNumber(i + 1)}
-              </option>
-            ))}
-          </select>
-          <select
-            className={styles.select}
-            value={hijriYear}
-            onChange={(e) => {
-              const v = e.target.value;
-              setHijriYear(v);
-              handleHijriChange(v, hijriMonth, hijriDay);
-            }}
-            aria-label={t('onboarding.hijri_year_placeholder')}
-          >
-            <option value="">{t('onboarding.hijri_year_placeholder')}</option>
-            {Array.from({ length: HIJRI_YEAR_MAX - HIJRI_YEAR_MIN + 1 }, (_, i) => {
-              const y = HIJRI_YEAR_MAX - i;
-              return (
-                <option key={y} value={String(y)}>
-                  {fmtNumber(y)}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+        <HijriDateInputs
+          hijriYear={hijriYear}
+          hijriMonth={hijriMonth}
+          hijriDay={hijriDay}
+          onYearChange={(v) => {
+            setHijriYear(v);
+            handleHijriChange(v, hijriMonth, hijriDay);
+          }}
+          onMonthChange={(v) => {
+            setHijriMonth(v);
+            handleHijriChange(hijriYear, v, hijriDay);
+          }}
+          onDayChange={(v) => {
+            setHijriDay(v);
+            handleHijriChange(hijriYear, hijriMonth, v);
+          }}
+          hijriYearMin={HIJRI_YEAR_MIN}
+          hijriYearMax={HIJRI_YEAR_MAX}
+          hijriMonthsCount={HIJRI_MONTHS_COUNT}
+          maxHijriDaysPerMonth={MAX_HIJRI_DAYS_PER_MONTH}
+          hijriMonthKeys={HIJRI_MONTH_KEYS}
+          fmtNumber={fmtNumber}
+          t={t}
+        />
       )}
 
-      {value &&
-        (() => {
-          try {
-            const sep = value.includes('/') ? '/' : '-';
-            const parts = value.split(sep);
-            const hijri = new HijriDate(
-              parseInt(parts[0] ?? '0', 10),
-              parseInt(parts[1] ?? '0', 10),
-              parseInt(parts[2] ?? '0', 10),
-            );
-            const greg = hijri.toGregorian();
-            const hijriStr = `${fmtNumber(hijri.day)} ${t(HIJRI_MONTH_KEYS[hijri.month - 1])} ${fmtNumber(hijri.year)}`;
-            const gregStr = greg.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            });
-            return (
-              <div className={styles.dualPreview}>
-                <span>{hijriStr}</span>
-                <span aria-hidden="true">·</span>
-                <span>{gregStr}</span>
-              </div>
-            );
-          } catch {
-            return null;
-          }
-        })()}
+      <DualDatePreview
+        value={value}
+        hijriMonthKeys={HIJRI_MONTH_KEYS}
+        language={language}
+        fmtNumber={fmtNumber}
+        t={t}
+      />
     </div>
   );
 };

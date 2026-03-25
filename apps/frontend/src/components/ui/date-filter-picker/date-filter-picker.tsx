@@ -4,6 +4,12 @@ import { HijriDate } from '@awdah/shared';
 import { useLanguage } from '@/hooks/use-language';
 import { gregorianIsoToHijri, hijriToGregorianDate } from '@/utils/date-utils';
 import { HIJRI_MONTH_KEYS } from '@/lib/constants';
+import {
+  hijriDaysInMonth,
+  hijriFirstWeekday,
+  gregorianDaysInMonth,
+  gregorianFirstWeekday,
+} from './date-filter-picker-helpers';
 import styles from './date-filter-picker.module.css';
 
 interface DateFilterPickerProps {
@@ -13,29 +19,6 @@ interface DateFilterPickerProps {
   max?: string; // Hijri date string
   label: string;
   id?: string;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function hijriDaysInMonth(year: number, month: number): number {
-  const nextM = month === 12 ? new HijriDate(year + 1, 1, 1) : new HijriDate(year, month + 1, 1);
-  const gregNextM = nextM.toGregorian();
-  const lastGregDay = new Date(gregNextM.getTime() - 86_400_000);
-  return HijriDate.fromGregorian(lastGregDay).day;
-}
-
-function hijriFirstWeekday(year: number, month: number): number {
-  // 0 = Sunday … 6 = Saturday
-  return new HijriDate(year, month, 1).toGregorian().getUTCDay();
-}
-
-function gregorianDaysInMonth(year: number, month: number): number {
-  return new Date(Date.UTC(year, month, 0)).getUTCDate(); // month is 1-based, no -1 trick gives last day
-}
-
-function gregorianFirstWeekday(year: number, month: number): number {
-  // 0 = Sunday … 6 = Saturday
-  return new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
