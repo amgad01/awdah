@@ -157,6 +157,7 @@
     "confirm_profile_change_preview": "Estimated salah qadaa: {{current}} -> {{next}}.",
     "practicing_periods": "Practicing Periods",
     "periods_hint": "Periods when you were consistently practicing. Gaps count toward your qadaa debt.",
+    "periods_bulugh_hint": "Dates are limited to on or after your date of birth. Update your profile to change this range.",
     "periods_empty": "No practicing periods added yet",
     "periods_empty_hint": "Add the periods when you were consistently praying. Gaps between your bulugh date and these periods count toward your debt.",
     "add_period": "Add Period",
