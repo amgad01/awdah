@@ -39,7 +39,7 @@ if [ -n "$STAGED_TS" ]; then
   fi
 
   for pid in $PIDS; do wait "$pid" || FAILED=1; done
-  [ "$FAILED" -ne 0 ] && exit 1
+  if [ "$FAILED" -ne 0 ]; then exit 1; fi
 fi
 
 # ── 3. Typecheck only workspaces that have staged changes (in parallel) ───────
@@ -66,5 +66,7 @@ if [ -n "$STAGED_TS" ]; then
   }
 
   for pid in $PIDS; do wait "$pid" || FAILED=1; done
-  [ "$FAILED" -ne 0 ] && exit 1
+  if [ "$FAILED" -ne 0 ]; then exit 1; fi
 fi
+
+exit 0

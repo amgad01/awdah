@@ -1,2 +1,2 @@
 #!/bin/sh
-./scripts/pre-push-checks.sh
+./scripts/pre-push-quick.sh
