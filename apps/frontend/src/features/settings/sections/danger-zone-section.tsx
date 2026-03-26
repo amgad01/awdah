@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useDeleteAccount } from '@/hooks/use-profile';
-import { Trash2, LogOut } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { SettingsSection } from '../components';
 import styles from '../settings-page.module.css';
 
@@ -10,17 +10,11 @@ export const DangerZoneSection: React.FC = () => {
   const { t } = useLanguage();
   const { user, signIn, signOut } = useAuth();
 
-  const [signingOut, setSigningOut] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteAccount = useDeleteAccount();
-
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    await signOut();
-  };
 
   const handleDeleteAccount = async () => {
     setDeleteError('');
@@ -41,16 +35,6 @@ export const DangerZoneSection: React.FC = () => {
 
   return (
     <SettingsSection icon={<Trash2 size={18} />} title={t('settings.danger_zone')} variant="danger">
-      <button
-        className={styles.signOutBtn}
-        onClick={handleSignOut}
-        disabled={signingOut}
-        aria-label={t('nav.logout')}
-      >
-        <LogOut size={18} />
-        {signingOut ? t('settings.signing_out') : t('nav.logout')}
-      </button>
-
       <p className={styles.privacyText}>{t('settings.delete_account_hint')}</p>
 
       {!showDeleteConfirm ? (

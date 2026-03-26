@@ -6,7 +6,7 @@ import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { User, Bell, Languages, Info, Shield, Download, RotateCcw } from 'lucide-react';
 import { SettingsSection } from './components';
-import { ProfileSection, PeriodsSection, DangerZoneSection } from './sections';
+import { ProfileSection, PeriodsSection, LogoutSection, DangerZoneSection } from './sections';
 import type { PeriodLike } from './types';
 import { getErrorMessage } from './helpers';
 import styles from './settings-page.module.css';
@@ -231,6 +231,9 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
       </SettingsSection>
+
+      {/* Logout */}
+      <LogoutSection />
 
       {/* Danger Zone */}
       <DangerZoneSection />

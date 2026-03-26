@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import {
   useProfile,
@@ -204,45 +204,6 @@ export const PeriodsSection: React.FC = () => {
       ),
     [persistedBulughDate, persistedPeriods],
   );
-
-  useEffect(() => {
-    if (!showAddPeriod) return;
-    const isValid = validatePeriodForm({
-      startDate: periodStart,
-      endDate: periodOngoing ? undefined : periodEnd || undefined,
-      setStartError: setPeriodStartError,
-      setEndError: setPeriodEndError,
-    });
-    setIsAddValid(isValid);
-  }, [
-    showAddPeriod,
-    periodStart,
-    periodEnd,
-    periodOngoing,
-    setPeriodStartError,
-    setPeriodEndError,
-    validatePeriodForm,
-  ]);
-
-  useEffect(() => {
-    if (!editingPeriodId) return;
-    const isValid = validatePeriodForm({
-      startDate: editStart,
-      endDate: editOngoing ? undefined : editEnd || undefined,
-      excludePeriodId: editingPeriodId,
-      setStartError: setEditStartError,
-      setEndError: setEditEndError,
-    });
-    setIsEditValid(isValid);
-  }, [
-    editingPeriodId,
-    editStart,
-    editEnd,
-    editOngoing,
-    setEditStartError,
-    setEditEndError,
-    validatePeriodForm,
-  ]);
 
   const handleAddPeriod = async () => {
     if (!periodStart) return;

@@ -74,7 +74,9 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
               onError={onEndError}
               label={t('onboarding.period_end')}
               minDate={startDate || minDate}
+              disabled={!startDate}
             />
+            {!startDate && <p className={styles.fieldHint}>{t('settings.select_start_first')}</p>}
             {endError && <p className={styles.fieldError}>{endError}</p>}
           </div>
         )}

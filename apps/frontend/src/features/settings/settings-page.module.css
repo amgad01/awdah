@@ -774,9 +774,9 @@
   width: 100%;
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
-  border: 1.5px solid var(--color-error);
+  border: 1.5px solid var(--color-border);
   background: transparent;
-  color: var(--color-error);
+  color: var(--color-text);
   font-weight: 700;
   font-size: var(--font-size-sm);
   cursor: pointer;
@@ -784,8 +784,8 @@
 }
 
 .signOutBtn:hover:not(:disabled) {
-  background-color: var(--color-error);
-  color: var(--color-text-on-primary);
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 .signOutBtn:disabled {
