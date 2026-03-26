@@ -241,24 +241,46 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
             const isPendingThis = pendingUncheck?.prayerName === prayer;
             return (
               <React.Fragment key={prayer}>
-                <button
+                <div
                   className={`${styles.prayerBtn} ${isLogged ? styles.logged : ''} ${isDailyFuture ? styles.disabled : ''}`}
-                  onClick={() => handleDailyToggle(prayer)}
-                  disabled={isPending || isDailyFuture || isBeforeBirth}
+                  role="button"
+                  tabIndex={0}
                   aria-pressed={isLogged}
+                  onClick={() => {
+                    if (isPending || isDailyFuture || isBeforeBirth || isLogged) return;
+                    handleDailyToggle(prayer);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (!isPending && !isDailyFuture && !isBeforeBirth && !isLogged) {
+                        handleDailyToggle(prayer);
+                      }
+                    }
+                  }}
                 >
                   <span className={styles.prayerName}>{t(`prayers.${prayer}`)}</span>
-                  <span
+                  <button
+                    type="button"
                     className={`${styles.checkCircle} ${isLogged ? styles.checkCircleLogged : ''}`}
-                    aria-hidden="true"
+                    aria-label={
+                      isLogged
+                        ? `${t('common.confirm_uncheck')} ${t(`prayers.${prayer}`)}`
+                        : `${t(`prayers.${prayer}`)}`
+                    }
+                    disabled={isPending || isDailyFuture || isBeforeBirth}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDailyToggle(prayer);
+                    }}
                   >
                     {isPending && isPendingThis ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <Check size={14} />
                     )}
-                  </span>
-                </button>
+                  </button>
+                </div>
 
                 {isPendingThis && (
                   <div className={styles.uncheckConfirm} role="alert">

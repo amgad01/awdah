@@ -93,6 +93,14 @@
   color: var(--color-text-muted);
   transition: var(--transition-fast);
   flex-shrink: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.checkCircle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .checkCircleLogged {
