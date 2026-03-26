@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { createProfileFormState, buildDebtPreview, getErrorMessage } from '../helpers';
+import {
+  createProfileFormState,
+  buildDebtPreview,
+  getErrorMessage,
+  computeHijriAge,
+} from '../helpers';
 
 describe('createProfileFormState', () => {
   it('returns defaults when profile is null', () => {
@@ -72,5 +77,40 @@ describe('getErrorMessage', () => {
     expect(getErrorMessage('string error', 'fallback')).toBe('fallback');
     expect(getErrorMessage(42, 'fallback')).toBe('fallback');
     expect(getErrorMessage(null, 'fallback')).toBe('fallback');
+  });
+});
+
+describe('computeHijriAge', () => {
+  it('returns null for empty dob', () => {
+    expect(computeHijriAge('', '1445-01-01')).toBeNull();
+  });
+
+  it('returns null for empty later date', () => {
+    expect(computeHijriAge('1420-01-01', '')).toBeNull();
+  });
+
+  it('computes exact age when later date is full year after dob', () => {
+    expect(computeHijriAge('1420-06-15', '1435-06-15')).toBe(15);
+  });
+
+  it('subtracts one year when month has not been reached', () => {
+    expect(computeHijriAge('1420-06-15', '1435-04-10')).toBe(14);
+  });
+
+  it('subtracts one year when same month but day not reached', () => {
+    expect(computeHijriAge('1420-06-15', '1435-06-10')).toBe(14);
+  });
+
+  it('computes age for revert at 25', () => {
+    expect(computeHijriAge('1400-01-01', '1425-01-01')).toBe(25);
+  });
+
+  it('computes age for revert at 12 (under 15)', () => {
+    expect(computeHijriAge('1430-03-10', '1442-05-10')).toBe(12);
+  });
+
+  it('returns null for invalid date strings', () => {
+    expect(computeHijriAge('invalid', '1445-01-01')).toBeNull();
+    expect(computeHijriAge('1420-01-01', 'bad')).toBeNull();
   });
 });

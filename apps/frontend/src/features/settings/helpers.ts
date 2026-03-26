@@ -76,3 +76,18 @@ export function formatGregorianDisplay(hijriStr: string, language: string): stri
 export function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
+
+export function computeHijriAge(dob: string, laterDate: string): number | null {
+  if (!dob || !laterDate) return null;
+  try {
+    const d = HijriDate.fromString(dob);
+    const l = HijriDate.fromString(laterDate);
+    let age = l.year - d.year;
+    if (l.month < d.month || (l.month === d.month && l.day < d.day)) {
+      age -= 1;
+    }
+    return age;
+  } catch {
+    return null;
+  }
+}

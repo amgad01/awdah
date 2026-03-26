@@ -5,6 +5,7 @@ import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picke
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { HijriDate } from '@awdah/shared';
 import { isBulughBeforeDateOfBirth } from '@/lib/practicing-periods';
+import { BULUGH_DEFAULT_HIJRI_YEARS } from '@/lib/constants';
 import { BookOpen, Save } from 'lucide-react';
 import { SettingsSection, SectionNotice, DebtImpactPreview } from '../components';
 import {
@@ -12,6 +13,7 @@ import {
   buildDebtPreview,
   formatHijriDisplay,
   getErrorMessage,
+  computeHijriAge,
 } from '../helpers';
 import type { ProfileFormState, FeedbackState, PeriodLike, DebtPreview } from '../types';
 import styles from '../settings-page.module.css';
@@ -39,6 +41,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<FeedbackState | null>(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [isRevert, setIsRevert] = useState(() => Boolean(profile?.revertDate));
+  const [revertDateError, setRevertDateError] = useState('');
 
   const activeProfileForm =
     profileForm.sourceKey === profileKey
@@ -59,20 +63,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   const persistedBulughDate = profile?.bulughDate;
   const persistedPeriods = useMemo(() => periods, [periods]);
 
-  const computedBulughAge = useMemo(() => {
-    if (!activeProfileForm.dateOfBirth || !activeProfileForm.bulughDate) return null;
-    try {
-      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
-      const bulugh = HijriDate.fromString(activeProfileForm.bulughDate);
-      let age = bulugh.year - dob.year;
-      if (bulugh.month < dob.month || (bulugh.month === dob.month && bulugh.day < dob.day)) {
-        age -= 1;
-      }
-      return age;
-    } catch {
-      return null;
-    }
-  }, [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate]);
+  const computedBulughAge = useMemo(
+    () => computeHijriAge(activeProfileForm.dateOfBirth, activeProfileForm.bulughDate),
+    [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate],
+  );
 
   const bulughLateWarning = useMemo(() => {
     if (!activeProfileForm.dateOfBirth || !activeProfileForm.bulughDate) return false;
@@ -84,6 +78,38 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
       return false;
     }
   }, [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate]);
+
+  const bulughEarlyWarning = useMemo(() => {
+    if (!activeProfileForm.dateOfBirth || !activeProfileForm.bulughDate) return false;
+    try {
+      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
+      const threshold = new HijriDate(dob.year + 12, dob.month, dob.day);
+      return HijriDate.fromString(activeProfileForm.bulughDate).isBefore(threshold);
+    } catch {
+      return false;
+    }
+  }, [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate]);
+
+  const defaultBulughDate = useMemo(() => {
+    if (!activeProfileForm.dateOfBirth) return null;
+    try {
+      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
+      return new HijriDate(dob.year + BULUGH_DEFAULT_HIJRI_YEARS, dob.month, dob.day).toString();
+    } catch {
+      return null;
+    }
+  }, [activeProfileForm.dateOfBirth]);
+
+  const ageAtRevert = useMemo(
+    () =>
+      isRevert
+        ? computeHijriAge(activeProfileForm.dateOfBirth, activeProfileForm.revertDate)
+        : null,
+    [isRevert, activeProfileForm.dateOfBirth, activeProfileForm.revertDate],
+  );
+
+  const revertHidesBulugh =
+    isRevert && ageAtRevert !== null && ageAtRevert >= BULUGH_DEFAULT_HIJRI_YEARS;
 
   const profileHasChanges = useMemo(
     () =>
@@ -185,6 +211,26 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     }
   };
 
+  const handleRevertToggle = (enabled: boolean) => {
+    setIsRevert(enabled);
+    setRevertDateError('');
+    if (!enabled) {
+      updateProfileForm({ revertDate: '' });
+    } else if (defaultBulughDate && !activeProfileForm.bulughDate) {
+      updateProfileForm({ bulughDate: defaultBulughDate });
+    }
+  };
+
+  const handleRevertDateChange = (value: string) => {
+    updateProfileForm({ revertDate: value });
+    if (value && activeProfileForm.dateOfBirth) {
+      const age = computeHijriAge(activeProfileForm.dateOfBirth, value);
+      if (age !== null && age >= BULUGH_DEFAULT_HIJRI_YEARS && defaultBulughDate) {
+        updateProfileForm({ revertDate: value, bulughDate: defaultBulughDate });
+      }
+    }
+  };
+
   return (
     <SettingsSection icon={<BookOpen size={18} />} title={t('settings.profile_section')}>
       <p className={styles.privacyText}>{t('settings.profile_edit_hint')}</p>
@@ -208,89 +254,150 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
           {dobError && <p className={styles.fieldError}>{dobError}</p>}
         </div>
 
-        {/* Bulugh Date */}
+        {/* Revert Toggle */}
         <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>
-            <TermTooltip termId="bulugh">{t('settings.bulugh_date')}</TermTooltip>
-          </label>
-
+          <label className={styles.fieldLabel}>{t('settings.is_revert_label')}</label>
           <div className={styles.genderBtns}>
             <button
               type="button"
-              className={`${styles.genderBtn} ${bulughInputMode === 'date' ? styles.genderActive : ''}`}
-              onClick={() => setBulughInputMode('date')}
+              className={`${styles.genderBtn} ${isRevert ? styles.genderActive : ''}`}
+              onClick={() => handleRevertToggle(true)}
             >
-              {t('onboarding.bulugh_mode_date')}
+              {t('settings.revert_toggle_on')}
             </button>
             <button
               type="button"
-              className={`${styles.genderBtn} ${bulughInputMode === 'age' ? styles.genderActive : ''}`}
-              onClick={() => setBulughInputMode('age')}
+              className={`${styles.genderBtn} ${!isRevert ? styles.genderActive : ''}`}
+              onClick={() => handleRevertToggle(false)}
             >
-              {t('onboarding.bulugh_mode_age')}
+              {t('settings.revert_toggle_off')}
             </button>
           </div>
-
-          {bulughInputMode === 'date' ? (
-            <>
-              <div className={styles.fieldCurrent}>
-                <span className={styles.fieldCurrentVal}>
-                  {fmtHijri(activeProfileForm.bulughDate)}
-                </span>
-              </div>
-              <HijriDatePicker
-                value={activeProfileForm.bulughDate}
-                onChange={(value) => updateProfileForm({ bulughDate: value })}
-                onError={setBulughError}
-                label={t('settings.bulugh_date')}
-              />
-              {computedBulughAge !== null && (
-                <p className={styles.fieldCurrent}>
-                  {t('settings.bulugh_computed_age', { n: fmtNumber(computedBulughAge) })}
-                </p>
-              )}
-              {bulughLateWarning && (
-                <p className={styles.fieldWarning} role="alert">
-                  {t('settings.bulugh_late_warning')}
-                </p>
-              )}
-            </>
-          ) : (
-            <div className={styles.ageInputGroup}>
-              {!activeProfileForm.dateOfBirth ? (
-                <p className={styles.fieldError}>{t('onboarding.bulugh_no_dob_hint')}</p>
-              ) : (
-                <>
-                  <div className={styles.ageInputRow}>
-                    <input
-                      type="number"
-                      min={1}
-                      max={70}
-                      value={bulughAgeInput}
-                      onChange={(e) => handleBulughAgeChange(e.target.value)}
-                      className={styles.ageInput}
-                      placeholder="15"
-                      aria-label={t('onboarding.bulugh_age_label')}
-                    />
-                    <span className={styles.ageInputSuffix}>
-                      {t('onboarding.bulugh_age_suffix')}
-                    </span>
-                  </div>
-                  {bulughAgeInput && activeProfileForm.bulughDate && (
-                    <p className={styles.fieldCurrent}>
-                      {t('onboarding.bulugh_age_gives')}{' '}
-                      <span className={styles.fieldCurrentVal}>
-                        {fmtHijri(activeProfileForm.bulughDate)}
-                      </span>
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {bulughError && <p className={styles.fieldError}>{bulughError}</p>}
         </div>
+
+        {/* Revert Date */}
+        {isRevert && (
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>{t('settings.revert_date')}</label>
+            <div className={styles.fieldCurrent}>
+              <span className={styles.fieldCurrentVal}>
+                {fmtHijri(activeProfileForm.revertDate)}
+              </span>
+            </div>
+            <HijriDatePicker
+              value={activeProfileForm.revertDate}
+              onChange={handleRevertDateChange}
+              onError={setRevertDateError}
+              label={t('settings.revert_date')}
+            />
+            {revertDateError && <p className={styles.fieldError}>{revertDateError}</p>}
+            {ageAtRevert !== null && (
+              <p className={styles.fieldCurrent}>
+                {t('settings.revert_age_at_revert', { n: fmtNumber(ageAtRevert) })}
+              </p>
+            )}
+            {revertHidesBulugh && (
+              <p className={styles.fieldCurrent}>{t('settings.revert_bulugh_auto')}</p>
+            )}
+            {isRevert && ageAtRevert !== null && ageAtRevert < BULUGH_DEFAULT_HIJRI_YEARS && (
+              <p className={styles.fieldWarning} role="alert">
+                {t('settings.revert_bulugh_required')}
+              </p>
+            )}
+            <p className={styles.fieldCurrent}>{t('onboarding.revert_bulugh_note')}</p>
+          </div>
+        )}
+
+        {/* Bulugh Date — hidden when revert age >= 15 */}
+        {!revertHidesBulugh && (
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel}>
+              <TermTooltip termId="bulugh">{t('settings.bulugh_date')}</TermTooltip>
+            </label>
+
+            <div className={styles.genderBtns}>
+              <button
+                type="button"
+                className={`${styles.genderBtn} ${bulughInputMode === 'date' ? styles.genderActive : ''}`}
+                onClick={() => setBulughInputMode('date')}
+              >
+                {t('onboarding.bulugh_mode_date')}
+              </button>
+              <button
+                type="button"
+                className={`${styles.genderBtn} ${bulughInputMode === 'age' ? styles.genderActive : ''}`}
+                onClick={() => setBulughInputMode('age')}
+              >
+                {t('onboarding.bulugh_mode_age')}
+              </button>
+            </div>
+
+            {bulughInputMode === 'date' ? (
+              <>
+                <div className={styles.fieldCurrent}>
+                  <span className={styles.fieldCurrentVal}>
+                    {fmtHijri(activeProfileForm.bulughDate)}
+                  </span>
+                </div>
+                <HijriDatePicker
+                  value={activeProfileForm.bulughDate}
+                  onChange={(value) => updateProfileForm({ bulughDate: value })}
+                  onError={setBulughError}
+                  label={t('settings.bulugh_date')}
+                />
+                {computedBulughAge !== null && (
+                  <p className={styles.fieldCurrent}>
+                    {t('settings.bulugh_computed_age', { n: fmtNumber(computedBulughAge) })}
+                  </p>
+                )}
+                {bulughLateWarning && (
+                  <p className={styles.fieldWarning} role="alert">
+                    {t('settings.bulugh_late_warning')}
+                  </p>
+                )}
+                {bulughEarlyWarning && (
+                  <p className={styles.fieldWarning} role="alert">
+                    {t('settings.bulugh_early_warning')}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className={styles.ageInputGroup}>
+                {!activeProfileForm.dateOfBirth ? (
+                  <p className={styles.fieldError}>{t('onboarding.bulugh_no_dob_hint')}</p>
+                ) : (
+                  <>
+                    <div className={styles.ageInputRow}>
+                      <input
+                        type="number"
+                        min={1}
+                        max={70}
+                        value={bulughAgeInput}
+                        onChange={(e) => handleBulughAgeChange(e.target.value)}
+                        className={styles.ageInput}
+                        placeholder="15"
+                        aria-label={t('onboarding.bulugh_age_label')}
+                      />
+                      <span className={styles.ageInputSuffix}>
+                        {t('onboarding.bulugh_age_suffix')}
+                      </span>
+                    </div>
+                    {bulughAgeInput && activeProfileForm.bulughDate && (
+                      <p className={styles.fieldCurrent}>
+                        {t('onboarding.bulugh_age_gives')}{' '}
+                        <span className={styles.fieldCurrentVal}>
+                          {fmtHijri(activeProfileForm.bulughDate)}
+                        </span>
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {bulughError && <p className={styles.fieldError}>{bulughError}</p>}
+          </div>
+        )}
 
         {/* Gender */}
         <div className={styles.fieldGroup}>
