@@ -95,8 +95,6 @@ export const Nav: React.FC = () => {
       </div>
 
       <div className={styles.footer}>
-        <LanguageSwitcher tone="inverse" />
-        <ThemeToggle />
         <NavLink
           to="/settings"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
@@ -108,6 +106,8 @@ export const Nav: React.FC = () => {
           <LogOut size={20} />
           <span>{t('nav.logout')}</span>
         </button>
+        <LanguageSwitcher tone="inverse" />
+        <ThemeToggle />
       </div>
     </nav>
   );
