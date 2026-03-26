@@ -89,6 +89,8 @@ describe('Dashboard', () => {
     vi.mocked(useStreakDetails).mockReturnValue({
       bestPrayerStreak: 10,
       monThuStreak: 2,
+      obligatoryStreak: 3,
+      qadaaFastStreak: 1,
     } as any);
   });
 

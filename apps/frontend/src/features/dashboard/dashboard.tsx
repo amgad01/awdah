@@ -26,13 +26,15 @@ export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
   const { salahDebt, sawmDebt, loading, error } = useWorship();
   const { streak, milestone } = useStreak();
-  const { bestPrayerStreak, monThuStreak } = useStreakDetails();
+  const { bestPrayerStreak, monThuStreak, obligatoryStreak, qadaaFastStreak } = useStreakDetails();
 
   const { celebration, dismiss: dismissCelebration } = useCelebration({
     streak,
     milestone,
     bestPrayerStreak,
     monThuStreak,
+    obligatoryStreak,
+    qadaaFastStreak,
     t,
     fmtNumber,
   });
@@ -139,6 +141,8 @@ export const Dashboard: React.FC = () => {
           milestone={milestone}
           bestPrayerStreak={bestPrayerStreak}
           monThuStreak={monThuStreak}
+          obligatoryStreak={obligatoryStreak}
+          qadaaFastStreak={qadaaFastStreak}
           t={t}
           fmtNumber={fmtNumber}
         />
