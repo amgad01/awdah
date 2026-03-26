@@ -77,6 +77,17 @@ export const BulughStep: React.FC<BulughStepProps> = ({
     return null;
   };
 
+  const bulughEarlyWarning = useMemo(() => {
+    if (!dateOfBirthHijri || !bulughDateHijri) return false;
+    try {
+      const dob = HijriDate.fromString(dateOfBirthHijri);
+      const threshold = new HijriDate(dob.year + 12, dob.month, dob.day);
+      return HijriDate.fromString(bulughDateHijri).isBefore(threshold);
+    } catch {
+      return false;
+    }
+  }, [dateOfBirthHijri, bulughDateHijri]);
+
   const handleAgeChange = (val: string) => {
     setAgeInput(val);
     const age = parseInt(val, 10);
@@ -156,6 +167,9 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             validate={validateBulugh}
           />
           {dateError && <p className={styles.error}>{dateError}</p>}
+          {bulughEarlyWarning && !dateError && (
+            <p className={styles.hint}>{t('settings.bulugh_early_warning')}</p>
+          )}
         </div>
       )}
 
@@ -185,6 +199,9 @@ export const BulughStep: React.FC<BulughStepProps> = ({
                   <span className={styles.hint}>{t('onboarding.bulugh_age_gives')}</span>
                   <span className={styles.calculatedDateValue}>{ageBasedBulugh.toString()}</span>
                 </div>
+              )}
+              {bulughEarlyWarning && !ageError && (
+                <p className={styles.hint}>{t('settings.bulugh_early_warning')}</p>
               )}
             </div>
           )}
