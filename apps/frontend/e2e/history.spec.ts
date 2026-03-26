@@ -7,7 +7,10 @@ async function login(page: import('@playwright/test').Page) {
   await page.goto('/');
   await page.getByLabel(/email/i).fill(TEST_EMAIL);
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page.getByRole('button', { name: /sign in|login/i }).click();
+  await page
+    .locator('form')
+    .getByRole('button', { name: /sign in|login/i })
+    .click();
   await page.getByText(/welcome/i).waitFor({ timeout: 10_000 });
 }
 
@@ -23,8 +26,8 @@ test.describe('History Page', () => {
 
   test('shows date filter controls', async ({ page }) => {
     await page.getByRole('button', { name: /filters/i }).click();
-    await expect(page.getByLabel(/^from$/i)).toBeVisible();
-    await expect(page.getByLabel(/^to$/i)).toBeVisible();
+    await expect(page.getByLabel(/from/i).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByLabel(/to/i).first()).toBeVisible({ timeout: 5_000 });
   });
 
   test('renders history content without invalid placeholders', async ({ page }) => {

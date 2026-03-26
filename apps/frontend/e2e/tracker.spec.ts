@@ -7,7 +7,10 @@ async function login(page: import('@playwright/test').Page) {
   await page.goto('/');
   await page.getByLabel(/email/i).fill(TEST_EMAIL);
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page.getByRole('button', { name: /sign in|login/i }).click();
+  await page
+    .locator('form')
+    .getByRole('button', { name: /sign in|login/i })
+    .click();
   await page.getByText(/welcome/i).waitFor({ timeout: 10_000 });
 }
 
@@ -28,22 +31,24 @@ test.describe('Salah Tracker', () => {
   });
 
   test('marks a prayer and shows it as logged', async ({ page }) => {
-    const fajrBtn = page.getByRole('button', { name: /fajr/i });
-    const wasPressed = (await fajrBtn.getAttribute('aria-pressed')) === 'true';
-
-    await fajrBtn.click();
+    const fajrRow = page.getByRole('button', { name: /fajr/i }).first();
+    const wasPressed = (await fajrRow.getAttribute('aria-pressed')) === 'true';
 
     if (wasPressed) {
+      // Click the checkmark button to trigger the uncheck confirmation
+      const checkBtn = page.getByRole('button', { name: 'Remove Fajr', exact: true });
+      await checkBtn.click();
       await expect(page.getByRole('alert')).toBeVisible({ timeout: 5_000 });
     } else {
-      await expect(fajrBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
+      await fajrRow.click();
+      await expect(fajrRow).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
     }
   });
 
   test('navigates to previous day and back', async ({ page }) => {
     await page.getByRole('tab', { name: /qadaa prayers/i }).click();
-    const prevBtn = page.getByLabel(/previous day/i);
-    const nextBtn = page.getByLabel(/next day/i);
+    const prevBtn = page.getByLabel(/previous day/i).first();
+    const nextBtn = page.getByLabel(/next day/i).first();
 
     // Today — next is disabled
     await expect(nextBtn).toBeDisabled();
@@ -88,9 +93,9 @@ test.describe('Sawm Tracker', () => {
   });
 
   test('navigates to previous day', async ({ page }) => {
-    const prevBtn = page.getByLabel(/previous day/i);
+    const prevBtn = page.getByLabel(/previous day/i).first();
     await prevBtn.click();
     // After navigating, the next button should be enabled
-    await expect(page.getByLabel(/next day/i)).toBeEnabled();
+    await expect(page.getByLabel(/next day/i).first()).toBeEnabled();
   });
 });

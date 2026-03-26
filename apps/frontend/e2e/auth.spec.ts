@@ -75,7 +75,7 @@ test.describe('Authentication', () => {
     await page.getByText(/welcome/i).waitFor({ timeout: 10_000 });
 
     await page.getByRole('button', { name: /logout|sign out/i }).click();
-    await expect(page.getByRole('heading', { name: /login|sign in/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /login|sign in/i }).first()).toBeVisible({
       timeout: 5_000,
     });
   });
