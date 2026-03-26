@@ -13,6 +13,8 @@ interface GregorianDateInputsProps {
   fmtNumber: (n: number) => string;
   currentYear: number;
   minYear: number;
+  minMonth?: number;
+  minDay?: number;
   ariaLabelYear: string;
   t: (key: string) => string;
 }
@@ -28,11 +30,17 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
   fmtNumber,
   currentYear,
   minYear,
+  minMonth = 1,
+  minDay = 1,
   ariaLabelYear,
   t,
 }) => {
   const daysInMonth =
     gregYear && gregMonth ? new Date(Number(gregYear), Number(gregMonth), 0).getDate() : 31;
+  const isMinYear = gregYear && Number(gregYear) === minYear;
+  const effectiveMinMonth = isMinYear ? minMonth : 1;
+  const isMinMonth = isMinYear && gregMonth && Number(gregMonth) === minMonth;
+  const effectiveMinDay = isMinMonth ? minDay : 1;
 
   return (
     <div className={styles.hijriRow}>
@@ -59,11 +67,15 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
         aria-label={t('onboarding.select_month')}
       >
         <option value="">{t('onboarding.select_month')}</option>
-        {gregorianMonthNames.map((name, i) => (
-          <option key={i + 1} value={String(i + 1)}>
-            {name}
-          </option>
-        ))}
+        {gregorianMonthNames.map((name, i) => {
+          const monthNum = i + 1;
+          if (monthNum < effectiveMinMonth) return null;
+          return (
+            <option key={monthNum} value={String(monthNum)}>
+              {name}
+            </option>
+          );
+        })}
       </select>
       <select
         className={styles.select}
@@ -72,11 +84,15 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
         aria-label={t('onboarding.select_day')}
       >
         <option value="">{t('onboarding.select_day')}</option>
-        {Array.from({ length: daysInMonth }, (_, i) => (
-          <option key={i + 1} value={String(i + 1)}>
-            {fmtNumber(i + 1)}
-          </option>
-        ))}
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const dayNum = i + 1;
+          if (dayNum < effectiveMinDay) return null;
+          return (
+            <option key={dayNum} value={String(dayNum)}>
+              {fmtNumber(dayNum)}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -92,6 +108,8 @@ interface HijriDateInputsProps {
   hijriYearMin: number;
   hijriYearMax: number;
   hijriMonthsCount: number;
+  hijriMinMonth?: number;
+  hijriMinDay?: number;
   maxHijriDaysPerMonth: number;
   hijriMonthKeys: readonly string[];
   fmtNumber: (n: number) => string;
@@ -108,56 +126,73 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
   hijriYearMin,
   hijriYearMax,
   hijriMonthsCount,
+  hijriMinMonth = 1,
+  hijriMinDay = 1,
   maxHijriDaysPerMonth,
   hijriMonthKeys,
   fmtNumber,
   t,
-}) => (
-  <div className={styles.hijriRow}>
-    <select
-      className={styles.select}
-      value={hijriYear}
-      onChange={(e) => onYearChange(e.target.value)}
-      aria-label={t('onboarding.hijri_year_placeholder')}
-    >
-      <option value="">{t('onboarding.hijri_year_placeholder')}</option>
-      {Array.from({ length: hijriYearMax - hijriYearMin + 1 }, (_, i) => {
-        const y = hijriYearMax - i;
-        return (
-          <option key={y} value={String(y)}>
-            {fmtNumber(y)}
-          </option>
-        );
-      })}
-    </select>
-    <select
-      className={styles.select}
-      value={hijriMonth}
-      onChange={(e) => onMonthChange(e.target.value)}
-      aria-label={t('onboarding.select_month')}
-    >
-      <option value="">{t('onboarding.select_month')}</option>
-      {Array.from({ length: hijriMonthsCount }, (_, i) => (
-        <option key={i + 1} value={String(i + 1)}>
-          {fmtNumber(i + 1)}. {t(hijriMonthKeys[i])}
-        </option>
-      ))}
-    </select>
-    <select
-      className={styles.select}
-      value={hijriDay}
-      onChange={(e) => onDayChange(e.target.value)}
-      aria-label={t('onboarding.select_day')}
-    >
-      <option value="">{t('onboarding.select_day')}</option>
-      {Array.from({ length: maxHijriDaysPerMonth }, (_, i) => (
-        <option key={i + 1} value={String(i + 1)}>
-          {fmtNumber(i + 1)}
-        </option>
-      ))}
-    </select>
-  </div>
-);
+}) => {
+  const isMinYear = hijriYear && parseInt(hijriYear, 10) === hijriYearMin;
+  const effectiveMinMonth = isMinYear ? hijriMinMonth : 1;
+  const isMinMonth = isMinYear && hijriMonth && parseInt(hijriMonth, 10) === hijriMinMonth;
+  const effectiveMinDay = isMinMonth ? hijriMinDay : 1;
+
+  return (
+    <div className={styles.hijriRow}>
+      <select
+        className={styles.select}
+        value={hijriYear}
+        onChange={(e) => onYearChange(e.target.value)}
+        aria-label={t('onboarding.hijri_year_placeholder')}
+      >
+        <option value="">{t('onboarding.hijri_year_placeholder')}</option>
+        {Array.from({ length: hijriYearMax - hijriYearMin + 1 }, (_, i) => {
+          const y = hijriYearMax - i;
+          return (
+            <option key={y} value={String(y)}>
+              {fmtNumber(y)}
+            </option>
+          );
+        })}
+      </select>
+      <select
+        className={styles.select}
+        value={hijriMonth}
+        onChange={(e) => onMonthChange(e.target.value)}
+        aria-label={t('onboarding.select_month')}
+      >
+        <option value="">{t('onboarding.select_month')}</option>
+        {Array.from({ length: hijriMonthsCount }, (_, i) => {
+          const monthNum = i + 1;
+          if (monthNum < effectiveMinMonth) return null;
+          return (
+            <option key={monthNum} value={String(monthNum)}>
+              {fmtNumber(monthNum)}. {t(hijriMonthKeys[i])}
+            </option>
+          );
+        })}
+      </select>
+      <select
+        className={styles.select}
+        value={hijriDay}
+        onChange={(e) => onDayChange(e.target.value)}
+        aria-label={t('onboarding.select_day')}
+      >
+        <option value="">{t('onboarding.select_day')}</option>
+        {Array.from({ length: maxHijriDaysPerMonth }, (_, i) => {
+          const dayNum = i + 1;
+          if (dayNum < effectiveMinDay) return null;
+          return (
+            <option key={dayNum} value={String(dayNum)}>
+              {fmtNumber(dayNum)}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+  );
+};
 
 interface DualDatePreviewProps {
   value: string;

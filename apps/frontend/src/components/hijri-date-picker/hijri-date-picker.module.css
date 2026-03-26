@@ -4,6 +4,11 @@
   gap: var(--spacing-sm);
 }
 
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .calendarToggle {
   display: flex;
   background: var(--color-bg);

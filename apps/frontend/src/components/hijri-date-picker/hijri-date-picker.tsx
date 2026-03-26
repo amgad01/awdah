@@ -22,6 +22,7 @@ interface HijriDatePickerProps {
   validate?: (date: HijriDate) => string | null;
   initialHijriParts?: { year: string; month: string; day: string };
   minDate?: string;
+  disabled?: boolean;
 }
 
 export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
@@ -32,6 +33,7 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
   validate,
   initialHijriParts,
   minDate,
+  disabled = false,
 }) => {
   const { t, language, fmtNumber } = useLanguage();
   const [calendarMode, setCalendarMode] = useState<CalendarMode>('gregorian');
@@ -95,6 +97,13 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
         return;
       }
       const hijri = HijriDate.fromGregorian(gregDate);
+      if (minDate) {
+        const min = HijriDate.fromString(minDate);
+        if (hijri.isBefore(min)) {
+          onError(t('onboarding.error_date_before_min'));
+          return;
+        }
+      }
       if (validate) {
         const err = validate(hijri);
         if (err) {
@@ -116,6 +125,13 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
     }
     try {
       const hijri = new HijriDate(parseInt(y, 10), parseInt(m, 10), parseInt(d, 10));
+      if (minDate) {
+        const min = HijriDate.fromString(minDate);
+        if (hijri.isBefore(min)) {
+          onError(t('onboarding.error_date_before_min'));
+          return;
+        }
+      }
       if (validate) {
         const err = validate(hijri);
         if (err) {
@@ -150,80 +166,130 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
     }
   }, [minDate]);
 
-  return (
-    <div className={styles.picker}>
-      <div className={styles.calendarToggle}>
-        <button
-          type="button"
-          className={`${styles.calendarToggleBtn} ${calendarMode === 'gregorian' ? styles.selected : ''}`}
-          onClick={() => setCalendarMode('gregorian')}
-        >
-          {t('onboarding.gregorian_input')}
-        </button>
-        <button
-          type="button"
-          className={`${styles.calendarToggleBtn} ${calendarMode === 'hijri' ? styles.selected : ''}`}
-          onClick={() => setCalendarMode('hijri')}
-        >
-          {t('onboarding.hijri_input')}
-        </button>
-      </div>
+  const parsedMinDate = useMemo(() => {
+    if (!minDate) return null;
+    try {
+      return HijriDate.fromString(minDate);
+    } catch {
+      return null;
+    }
+  }, [minDate]);
 
-      {calendarMode === 'gregorian' ? (
-        <GregorianDateInputs
-          gregDay={gregDay}
-          gregMonth={gregMonth}
-          gregYear={gregYear}
-          onDayChange={(v) => {
-            setGregDay(v);
-            handleGregorianParts(v, gregMonth, gregYear);
-          }}
-          onMonthChange={(v) => {
-            setGregMonth(v);
-            const days = gregYear && v ? new Date(Number(gregYear), Number(v), 0).getDate() : 31;
-            const day = gregDay && Number(gregDay) > days ? '' : gregDay;
-            if (day !== gregDay) setGregDay('');
-            handleGregorianParts(day, v, gregYear);
-          }}
-          onYearChange={(v) => {
-            setGregYear(v);
-            const days = v && gregMonth ? new Date(Number(v), Number(gregMonth), 0).getDate() : 31;
-            const day = gregDay && Number(gregDay) > days ? '' : gregDay;
-            if (day !== gregDay) setGregDay('');
-            handleGregorianParts(day, gregMonth, v);
-          }}
-          gregorianMonthNames={gregorianMonthNames}
-          fmtNumber={fmtNumber}
-          currentYear={currentYear}
-          minYear={minGregYear}
-          ariaLabelYear={label}
-          t={t}
-        />
-      ) : (
-        <HijriDateInputs
-          hijriYear={hijriYear}
-          hijriMonth={hijriMonth}
-          hijriDay={hijriDay}
-          onYearChange={(v) => {
-            setHijriYear(v);
-            handleHijriChange(v, hijriMonth, hijriDay);
-          }}
-          onMonthChange={(v) => {
-            setHijriMonth(v);
-            handleHijriChange(hijriYear, v, hijriDay);
-          }}
-          onDayChange={(v) => {
-            setHijriDay(v);
-            handleHijriChange(hijriYear, hijriMonth, v);
-          }}
-          hijriYearMin={minHijriYear}
-          hijriYearMax={HIJRI_YEAR_MAX}
-          hijriMonthsCount={HIJRI_MONTHS_COUNT}
-          maxHijriDaysPerMonth={MAX_HIJRI_DAYS_PER_MONTH}
-          hijriMonthKeys={HIJRI_MONTH_KEYS}
-          fmtNumber={fmtNumber}
-          t={t}
-        />
+  const minHijriMonth = useMemo(() => {
+    if (!parsedMinDate || !hijriYear || parseInt(hijriYear, 10) !== parsedMinDate.year) return 1;
+    return parsedMinDate.month;
+  }, [parsedMinDate, hijriYear]);
+
+  const minHijriDay = useMemo(() => {
+    if (!parsedMinDate || !hijriYear || !hijriMonth) return 1;
+    const y = parseInt(hijriYear, 10);
+    const m = parseInt(hijriMonth, 10);
+    if (y === parsedMinDate.year && m === parsedMinDate.month) return parsedMinDate.day;
+    return 1;
+  }, [parsedMinDate, hijriYear, hijriMonth]);
+
+  const minGregMonth = useMemo(() => {
+    if (!parsedMinDate || !gregYear) return 1;
+    const gregMin = parsedMinDate.toGregorian();
+    if (parseInt(gregYear, 10) !== gregMin.getFullYear()) return 1;
+    return gregMin.getMonth() + 1;
+  }, [parsedMinDate, gregYear]);
+
+  const minGregDay = useMemo(() => {
+    if (!parsedMinDate || !gregYear || !gregMonth) return 1;
+    const gregMin = parsedMinDate.toGregorian();
+    if (
+      parseInt(gregYear, 10) === gregMin.getFullYear() &&
+      parseInt(gregMonth, 10) === gregMin.getMonth() + 1
+    )
+      return gregMin.getDate();
+    return 1;
+  }, [parsedMinDate, gregYear, gregMonth]);
+
+  return (
+    <div className={`${styles.picker} ${disabled ? styles.disabled : ''}`}>
+      {disabled ? null : (
+        <>
+          <div className={styles.calendarToggle}>
+            <button
+              type="button"
+              className={`${styles.calendarToggleBtn} ${calendarMode === 'gregorian' ? styles.selected : ''}`}
+              onClick={() => setCalendarMode('gregorian')}
+            >
+              {t('onboarding.gregorian_input')}
+            </button>
+            <button
+              type="button"
+              className={`${styles.calendarToggleBtn} ${calendarMode === 'hijri' ? styles.selected : ''}`}
+              onClick={() => setCalendarMode('hijri')}
+            >
+              {t('onboarding.hijri_input')}
+            </button>
+          </div>
+
+          {calendarMode === 'gregorian' ? (
+            <GregorianDateInputs
+              gregDay={gregDay}
+              gregMonth={gregMonth}
+              gregYear={gregYear}
+              onDayChange={(v) => {
+                setGregDay(v);
+                handleGregorianParts(v, gregMonth, gregYear);
+              }}
+              onMonthChange={(v) => {
+                setGregMonth(v);
+                const days =
+                  gregYear && v ? new Date(Number(gregYear), Number(v), 0).getDate() : 31;
+                const day = gregDay && Number(gregDay) > days ? '' : gregDay;
+                if (day !== gregDay) setGregDay('');
+                handleGregorianParts(day, v, gregYear);
+              }}
+              onYearChange={(v) => {
+                setGregYear(v);
+                const days =
+                  v && gregMonth ? new Date(Number(v), Number(gregMonth), 0).getDate() : 31;
+                const day = gregDay && Number(gregDay) > days ? '' : gregDay;
+                if (day !== gregDay) setGregDay('');
+                handleGregorianParts(day, gregMonth, v);
+              }}
+              gregorianMonthNames={gregorianMonthNames}
+              fmtNumber={fmtNumber}
+              currentYear={currentYear}
+              minYear={minGregYear}
+              minMonth={minGregMonth}
+              minDay={minGregDay}
+              ariaLabelYear={label}
+              t={t}
+            />
+          ) : (
+            <HijriDateInputs
+              hijriYear={hijriYear}
+              hijriMonth={hijriMonth}
+              hijriDay={hijriDay}
+              onYearChange={(v) => {
+                setHijriYear(v);
+                handleHijriChange(v, hijriMonth, hijriDay);
+              }}
+              onMonthChange={(v) => {
+                setHijriMonth(v);
+                handleHijriChange(hijriYear, v, hijriDay);
+              }}
+              onDayChange={(v) => {
+                setHijriDay(v);
+                handleHijriChange(hijriYear, hijriMonth, v);
+              }}
+              hijriYearMin={minHijriYear}
+              hijriYearMax={HIJRI_YEAR_MAX}
+              hijriMonthsCount={HIJRI_MONTHS_COUNT}
+              hijriMinMonth={minHijriMonth}
+              hijriMinDay={minHijriDay}
+              maxHijriDaysPerMonth={MAX_HIJRI_DAYS_PER_MONTH}
+              hijriMonthKeys={HIJRI_MONTH_KEYS}
+              fmtNumber={fmtNumber}
+              t={t}
+            />
+          )}
+        </>
       )}
 
       <DualDatePreview
