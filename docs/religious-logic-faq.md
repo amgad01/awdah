@@ -58,6 +58,22 @@ No scholarly expiry on qadaa is recognised. The obligation remains until it is f
 
 ---
 
+## 3.5. Reverts (Converts to Islam)
+
+### **Q: When does qadaa start for a revert?**
+
+A revert's obligation begins from the date they accepted Islam — not from puberty. If a person reverted at age 25, they have no qadaa debt for the years before their reversion, even though they had reached puberty long before.
+
+### **Q: What if someone reverted before the age of 15?**
+
+If a person reverted before the age of bulugh (puberty), their qadaa obligation starts from the date of bulugh — not the date of reversion. In this case, the user must specify their bulugh date separately. The app uses whichever date is later (revert date or bulugh date) as the effective start of obligations.
+
+### **Q: How does the app determine the start of obligations for reverts?**
+
+The backend compares the revert date and the bulugh date and uses the later of the two as the effective start date for all debt calculations. This ensures that a revert who was already past puberty starts from their revert date, while a revert who had not yet reached puberty starts from their bulugh date.
+
+---
+
 ## 4. Sawm (Fasting) Qadaa
 
 ### **Q: How does the app calculate missed Ramadan fasts?**
