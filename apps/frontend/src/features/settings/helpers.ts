@@ -26,11 +26,18 @@ export function buildDebtPreview(
   nextBulughDate: string | undefined,
   currentPeriods: PeriodLike[],
   nextPeriods: PeriodLike[],
+  currentRevertDate?: string,
+  nextRevertDate?: string,
 ): DebtPreview | null {
   if (!currentBulughDate || !nextBulughDate) return null;
   try {
-    const current = estimateSalahDebt(currentBulughDate, currentPeriods);
-    const next = estimateSalahDebt(nextBulughDate, nextPeriods);
+    const current = estimateSalahDebt(
+      currentBulughDate,
+      currentPeriods,
+      undefined,
+      currentRevertDate,
+    );
+    const next = estimateSalahDebt(nextBulughDate, nextPeriods, undefined, nextRevertDate);
     return { current, next, delta: next - current };
   } catch {
     return null;

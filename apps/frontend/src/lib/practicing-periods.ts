@@ -98,6 +98,7 @@ export function estimateSalahDebt(
   bulughDate: string,
   periods: PeriodRangeLike[],
   todayDate = todayHijriDate(),
+  revertDate?: string,
 ): number {
   const today = HijriDate.fromString(todayDate);
   const sortedPeriods = periods
@@ -106,7 +107,12 @@ export function estimateSalahDebt(
     .sort((a, b) => (a.startDate < b.startDate ? -1 : 1));
 
   let totalDaysMissed = 0;
-  let lastHandledDate = HijriDate.fromString(bulughDate);
+  const bulugh = HijriDate.fromString(bulughDate);
+  const effectiveStart =
+    revertDate && HijriDate.fromString(revertDate).isAfter(bulugh)
+      ? HijriDate.fromString(revertDate)
+      : bulugh;
+  let lastHandledDate = effectiveStart;
 
   for (const period of sortedPeriods) {
     const periodStart = HijriDate.fromString(period.startDate);

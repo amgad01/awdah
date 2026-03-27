@@ -61,6 +61,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     formatHijriDisplay(hijriStr, language, t, fmtNumber, invert);
 
   const persistedBulughDate = profile?.bulughDate;
+  const persistedRevertDate = profile?.revertDate;
   const persistedPeriods = useMemo(() => periods, [periods]);
 
   const computedBulughAge = useMemo(
@@ -130,18 +131,25 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     return t('settings.debt_preview_unchanged');
   };
 
-  const profileDebtPreview = useMemo(
-    () =>
-      persistedBulughDate === activeProfileForm.bulughDate
-        ? null
-        : buildDebtPreview(
-            persistedBulughDate,
-            activeProfileForm.bulughDate,
-            persistedPeriods,
-            persistedPeriods,
-          ),
-    [persistedBulughDate, activeProfileForm.bulughDate, persistedPeriods],
-  );
+  const profileDebtPreview = useMemo(() => {
+    const bulughChanged = persistedBulughDate !== activeProfileForm.bulughDate;
+    const revertChanged = (persistedRevertDate ?? '') !== (activeProfileForm.revertDate ?? '');
+    if (!bulughChanged && !revertChanged) return null;
+    return buildDebtPreview(
+      persistedBulughDate,
+      activeProfileForm.bulughDate,
+      persistedPeriods,
+      persistedPeriods,
+      persistedRevertDate,
+      activeProfileForm.revertDate || undefined,
+    );
+  }, [
+    persistedBulughDate,
+    persistedRevertDate,
+    activeProfileForm.bulughDate,
+    activeProfileForm.revertDate,
+    persistedPeriods,
+  ]);
 
   const validateProfileForm = (): boolean => {
     setDobError('');
@@ -164,7 +172,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
 
   const handleSaveProfile = () => {
     if (!validateProfileForm()) return;
-    // If bulugh date is changing, show inline confirmation first
+    // If debt-affecting fields are changing, show inline confirmation first
     if (profileDebtPreview) {
       setShowSaveConfirm(true);
     } else {
