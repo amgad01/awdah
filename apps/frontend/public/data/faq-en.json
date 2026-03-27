@@ -1,0 +1,118 @@
+[
+  {
+    "id": "hijri",
+    "title": "Hijri Calendar & Date Calculations",
+    "items": [
+      {
+        "id": "hijri_calc",
+        "question": "How are Hijri dates calculated?",
+        "answer": "We use the Umm al-Qura calendar system — the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally."
+      },
+      {
+        "id": "hijri_30days",
+        "question": "Why not assume every month is 30 days?",
+        "answer": "Assuming 30 days per month leads to significant cumulative errors. A real Hijri year is approximately 354–355 days, not 360. Using the Umm al-Qura calendar ensures months are correctly 29 or 30 days, Ramadan is identified accurately, and your qadaa is counted precisely."
+      }
+    ]
+  },
+  {
+    "id": "bulugh",
+    "title": "Puberty (Bulugh) and Qadaa",
+    "items": [
+      {
+        "id": "bulugh_age",
+        "question": "What is the age of Bulugh in the app?",
+        "answer": "If you do not know your exact date of Bulugh, the app offers a default helper that sets it at 15 Hijri years from your date of birth. This is the position of the Hanafi, Shafi'i, and Hanbali schools, based on the hadith in which the Prophet ﷺ accepted Ibn 'Umar before Khandaq at 15 (Sahih al-Bukhari 2664)."
+      },
+      {
+        "id": "missed_days",
+        "question": "How is 'missed days' calculated?",
+        "answer": "Qadaa only covers the 'gaps' in your practicing history. Start point: your date of Bulugh. End point: the current date. Exclusions: any practicing periods you add. Formula: (Total Days from Bulugh to Today) − (Total Days in Practicing Periods)."
+      }
+    ]
+  },
+  {
+    "id": "salah",
+    "title": "Salah (Prayer) Qadaa",
+    "items": [
+      {
+        "id": "salah_included",
+        "question": "Which prayers are included in qadaa?",
+        "answer": "The five daily obligatory (Fard) prayers: Fajr, Dhuhr, Asr, Maghrib, and Isha."
+      },
+      {
+        "id": "witr",
+        "question": "What about Witr?",
+        "answer": "In v1, Witr is not tracked as a separate qadaa obligation. While the Hanafi school considers Witr obligatory (Wajib), the majority view is that it is Sunnah Mu'akkadah. To maintain cross-madhab compatibility in v1, we focus on the five agreed-upon Fard prayers."
+      },
+      {
+        "id": "salah_limit",
+        "question": "Is there a time limit on making up missed prayers?",
+        "answer": "No. The obligation remains until it is fulfilled — scholars across all four major madhabs are in agreement on this. Making up even one prayer per day is valid and valued."
+      }
+    ]
+  },
+  {
+    "id": "sawm",
+    "title": "Sawm (Fasting) Qadaa",
+    "items": [
+      {
+        "id": "sawm_calc",
+        "question": "How does the app calculate missed fasts?",
+        "answer": "The app identifies every Ramadan that occurred during your gap periods and counts the actual days of that Ramadan (29 or 30) using the Umm al-Qura calendar — no hardcoded values."
+      },
+      {
+        "id": "kaffarah",
+        "question": "What about fasts broken intentionally (Kaffarah)?",
+        "answer": "Kaffarah is out of scope in v1. All missed fasts are treated as standard qadaa regardless of why they were missed. Kaffarah calculation will be addressed in a future release."
+      },
+      {
+        "id": "women_exemption",
+        "question": "What about Ramadan exemptions for women?",
+        "answer": "Menstruation exemptions for Sawm are out of scope in v1. The fast count currently does not subtract exempted days. This will be addressed in v2."
+      }
+    ]
+  },
+  {
+    "id": "privacy",
+    "title": "Security and Privacy",
+    "items": [
+      {
+        "id": "data_sensitive",
+        "question": "Is my religious data sensitive?",
+        "answer": "Yes. Religious practice data is considered sensitive personal data. All data is encrypted at rest in AWS DynamoDB. Your logs are private to you — we do not sell or share your data. Authentication is handled by AWS Cognito; we never store raw passwords. Full account deletion is available in Settings."
+      }
+    ]
+  },
+  {
+    "id": "technical",
+    "title": "How the App Calculates",
+    "items": [
+      {
+        "id": "periods_no_autofill",
+        "question": "Why don't practicing periods automatically fill in my prayer logs?",
+        "answer": "When you add a practicing period, Awdah subtracts those days from your qadaa debt mathematically — no rows are created. Auto-generating thousands of entries would embed a false timestamp on every row (all showing the moment onboarding was saved, not when each prayer was actually made), invert the mental model for any prayer you missed inside an otherwise practicing period, and create bulk DynamoDB rows that are slow to query or delete. The debt number is correct without the rows."
+      },
+      {
+        "id": "revert_date_calculation",
+        "question": "How is the revert (convert) date handled in the calculation?",
+        "answer": "For a new Muslim, obligations begin at the moment of shahada — not at puberty. If your revert date is after your bulugh date, Awdah uses your revert date as the start of your qadaa calculation. If your revert date is at or before bulugh (for example, you converted as a child), bulugh remains the start date. The effective start is always: max(bulugh date, revert date)."
+      },
+      {
+        "id": "debt_preview",
+        "question": "Is the 'after change' debt estimate shown before saving accurate?",
+        "answer": "It is a frontend estimate based on your current practicing periods and the proposed new dates. It is calculated using the same formula as the authoritative backend calculation. The backend will recompute the exact figure after you confirm and save, and the dashboard will refresh with the precise number."
+      },
+      {
+        "id": "timezone_handling",
+        "question": "Why does the app use UTC for all date calculations?",
+        "answer": "Using UTC avoids Daylight Saving Time drift. A prayer logged at midnight local time could shift to the previous or next Hijri day if the app used a local timezone. UTC keeps religious dates stable regardless of where you travel or whether DST applies in your region. Gregorian dates shown in the UI are converted to your local timezone for display only."
+      },
+      {
+        "id": "momentum_calculation",
+        "question": "How is the Momentum score calculated?",
+        "answer": "Momentum has two parts. The streak counter walks backwards from today (or yesterday, if you haven't logged anything today yet) and counts every consecutive Hijri day on which at least one qadaa prayer or qadaa fast was logged. It stops as soon as it finds a day with no activity. The activity rate is the percentage of the last 30 Hijri days that had any qadaa activity — it gives a smoother view of your consistency even when a one-day gap breaks the streak. Both values are computed from a rolling 365-day history window, so streaks of up to a year are accurately tracked."
+      }
+    ]
+  }
+]

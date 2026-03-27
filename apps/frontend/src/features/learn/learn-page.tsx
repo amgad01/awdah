@@ -1,21 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card/card';
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import { glossary, resolveGlossaryText } from '@/content/glossary/glossary';
-import faqData from '@/content/faq/faq-data.json';
 import styles from './learn-page.module.css';
 
 interface FaqItem {
   id: string;
-  questionKey: string;
-  answerKey: string;
+  question: string;
+  answer: string;
 }
 
 interface FaqSection {
   id: string;
-  titleKey: string;
+  title: string;
   items: FaqItem[];
 }
 
@@ -61,6 +60,15 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   const { t, language } = useLanguage();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [faqData, setFaqData] = useState<FaqSection[]>([]);
+
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}data/faq-${language}.json`;
+    fetch(url)
+      .then((res) => res.json())
+      .then((json: FaqSection[]) => setFaqData(json))
+      .catch(() => setFaqData([]));
+  }, [language]);
 
   const handleToggle = (key: string) => {
     setOpenKey((prev) => (prev === key ? null : key));
@@ -69,31 +77,18 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   const normalizedQuery = query.trim().toLowerCase();
 
   const sections = useMemo(() => {
-    return (faqData as FaqSection[])
+    return faqData
       .map((section) => {
-        const title = t(section.titleKey);
-        const items = section.items
-          .map((item) => ({
-            ...item,
-            question: t(item.questionKey),
-            answer: t(item.answerKey),
-          }))
-          .filter((item) => {
-            if (!normalizedQuery) return true;
-
-            return [title, item.question, item.answer].some((value) =>
-              value.toLowerCase().includes(normalizedQuery),
-            );
-          });
-
-        return {
-          ...section,
-          title,
-          items,
-        };
+        const items = section.items.filter((item) => {
+          if (!normalizedQuery) return true;
+          return [section.title, item.question, item.answer].some((value) =>
+            value.toLowerCase().includes(normalizedQuery),
+          );
+        });
+        return { ...section, items };
       })
       .filter((section) => section.items.length > 0);
-  }, [normalizedQuery, t]);
+  }, [faqData, normalizedQuery]);
 
   const glossaryEntries = useMemo(() => {
     return Object.entries(glossary)

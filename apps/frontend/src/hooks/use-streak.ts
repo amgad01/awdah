@@ -5,6 +5,8 @@ import { useSalahHistory } from './use-salah-queries';
 import { useSawmHistory } from './use-sawm-queries';
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+const HISTORY_WINDOW_DAYS = 365;
+const ACTIVITY_RATE_WINDOW_DAYS = 30;
 
 export function computeConsecutiveStreak(activeDays: Set<string>): number {
   let checkDay = todayHijriDate();
@@ -20,7 +22,7 @@ export function computeConsecutiveStreak(activeDays: Set<string>): number {
 }
 
 export const useStreak = () => {
-  const startDate = addHijriDays(todayHijriDate(), -120);
+  const startDate = addHijriDays(todayHijriDate(), -HISTORY_WINDOW_DAYS);
   const endDate = todayHijriDate();
   const salah = useSalahHistory(startDate, endDate);
   const sawm = useSawmHistory(startDate, endDate);
@@ -36,10 +38,26 @@ export const useStreak = () => {
     return computeConsecutiveStreak(activeDays);
   }, [salah.data, sawm.data]);
 
+  const activityRate = useMemo(() => {
+    const activeDays = new Set<string>();
+    for (const log of salah.data ?? []) {
+      if (log.type === 'qadaa') activeDays.add(log.date);
+    }
+    for (const log of sawm.data ?? []) {
+      if (log.type === 'qadaa') activeDays.add(log.date);
+    }
+    let active = 0;
+    for (let i = 0; i < ACTIVITY_RATE_WINDOW_DAYS; i++) {
+      if (activeDays.has(addHijriDays(todayHijriDate(), -i))) active++;
+    }
+    return Math.round((active / ACTIVITY_RATE_WINDOW_DAYS) * 100);
+  }, [salah.data, sawm.data]);
+
   const milestone = STREAK_MILESTONES.includes(streak) ? streak : null;
 
   return {
     streak,
+    activityRate,
     milestone,
     loading: salah.isLoading || sawm.isLoading,
   };
@@ -51,7 +69,7 @@ export interface BestPrayerStreak {
 }
 
 export const useStreakDetails = () => {
-  const startDate = addHijriDays(todayHijriDate(), -120);
+  const startDate = addHijriDays(todayHijriDate(), -HISTORY_WINDOW_DAYS);
   const endDate = todayHijriDate();
   const salah = useSalahHistory(startDate, endDate);
   const sawm = useSawmHistory(startDate, endDate);
