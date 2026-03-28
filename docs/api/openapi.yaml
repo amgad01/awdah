@@ -1258,6 +1258,17 @@ components:
               code: NOT_FOUND
               message: 'Resource not found'
 
+    Conflict:
+      description: Request conflicts with current server state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            error:
+              code: CONFLICT
+              message: 'Job has not completed yet'
+
     InternalError:
       description: Unexpected server error
       content:

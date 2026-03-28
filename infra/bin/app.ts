@@ -20,12 +20,16 @@ const frontendOrigin = app.node.tryGetContext('frontendOrigin') as string | unde
 const deployFrontend =
   app.node.tryGetContext('deployFrontend') === true ||
   app.node.tryGetContext('deployFrontend') === 'true';
+const commit = app.node.tryGetContext('commit') as string | undefined;
+const buildId = app.node.tryGetContext('buildId') as string | undefined;
 const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
 cdk.Tags.of(app).add('project', 'Awdah');
 cdk.Tags.of(app).add('env', environment);
 if (ticket) cdk.Tags.of(app).add('ticket', ticket);
 cdk.Tags.of(app).add('owner', 'Amgad Mahmoud');
+if (commit) cdk.Tags.of(app).add('commit', commit);
+if (buildId) cdk.Tags.of(app).add('buildId', buildId);
 
 const dataStack = new DataStack(app, `Awdah-data-stack-${envWithTicket}`, {
   projectEnv: environment,

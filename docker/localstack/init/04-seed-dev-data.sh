@@ -19,6 +19,7 @@ NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 echo "Seeding dev data for userId=${USER_ID}..."
 
 # 1. User settings — bulugh date 1431-09-15, gender: male
+# Use condition-expression so an existing item (with dateOfBirth etc.) is never overwritten.
 aws dynamodb put-item \
   --table-name "Awdah-UserSettings-${ENV}" \
   --item "{
@@ -28,8 +29,9 @@ aws dynamodb put-item \
     \"gender\": {\"S\": \"male\"},
     \"updatedAt\": {\"S\": \"${NOW}\"}
   }" \
+  --condition-expression "attribute_not_exists(userId)" \
   --endpoint-url "$ENDPOINT" \
-  --region "$REGION"
+  --region "$REGION" 2>/dev/null || echo "[skip] user settings already exist"
 echo "[ok] user settings"
 
 # 2. Practicing period — 1440-01-01 to 1444-01-01 (gap period before this is the debt)

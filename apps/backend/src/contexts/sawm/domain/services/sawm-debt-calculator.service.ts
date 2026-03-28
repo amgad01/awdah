@@ -77,7 +77,10 @@ export class SawmDebtCalculator {
     for (let year = start.year; year <= end.year; year++) {
       const ramadanStart = new HijriDate(year, 9, 1);
       const ramadanDays = this.calendarService.getRamadanDays(year);
-      const ramadanExclusiveEnd = new HijriDate(year, 9, ramadanDays).addDays(1);
+      // Derive the exclusive end by advancing from day 1 — avoids constructing
+      // HijriDate(year, 9, ramadanDays) which would fail validation for 29-day months
+      // when the library is mocked or when overflow arithmetic is expected.
+      const ramadanExclusiveEnd = ramadanStart.addDays(ramadanDays);
 
       const overlapStart = this.maxDate(start, ramadanStart);
       const overlapEnd = this.minDate(end, ramadanExclusiveEnd);

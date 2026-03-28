@@ -14,21 +14,50 @@ export async function handler(): Promise<void> {
 
   const datePrefix = new Date().toISOString().split('T')[0];
 
-  for (const tableArn of tableArns) {
-    const tableName = tableArn.split('/').pop() || tableArn;
-    logger.info({ tableName, s3Bucket }, 'Starting DynamoDB export');
+  const results = await Promise.allSettled(
+    tableArns.map(async (tableArn) => {
+      const tableName = tableArn.split('/').pop() || tableArn;
+      logger.info({ tableName, s3Bucket }, 'Starting DynamoDB export');
 
-    await dynamo.send(
-      new ExportTableToPointInTimeCommand({
-        TableArn: tableArn,
-        S3Bucket: s3Bucket,
-        S3Prefix: `exports/${datePrefix}/${tableName}`,
-        ExportFormat: 'DYNAMODB_JSON',
-      }),
-    );
+      const { ExportDescription: desc } = await dynamo.send(
+        new ExportTableToPointInTimeCommand({
+          TableArn: tableArn,
+          S3Bucket: s3Bucket,
+          S3Prefix: `exports/${datePrefix}/${tableName}`,
+          ExportFormat: 'DYNAMODB_JSON',
+        }),
+      );
 
-    logger.info({ tableName }, 'Export initiated');
+      logger.info(
+        { tableName, exportArn: desc?.ExportArn, status: desc?.ExportStatus },
+        'Export initiated',
+      );
+      return { tableName, exportArn: desc?.ExportArn };
+    }),
+  );
+
+  const succeeded = results.filter((r) => r.status === 'fulfilled');
+  const failed = results.filter((r) => r.status === 'rejected');
+
+  if (failed.length > 0) {
+    for (const result of failed) {
+      if (result.status === 'rejected') {
+        logger.error({ reason: result.reason }, 'Export initiation failed for a table');
+      }
+    }
   }
 
-  logger.info({ tableCount: tableArns.length }, 'All exports initiated');
+  logger.info(
+    {
+      tableCount: tableArns.length,
+      succeeded: succeeded.length,
+      failed: failed.length,
+      exportArns: succeeded.map((r) => (r.status === 'fulfilled' ? r.value.exportArn : null)),
+    },
+    'Backup export run complete',
+  );
+
+  if (failed.length > 0) {
+    throw new Error(`${failed.length} of ${tableArns.length} table exports failed to initiate`);
+  }
 }

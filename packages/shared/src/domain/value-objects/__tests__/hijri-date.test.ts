@@ -36,7 +36,7 @@ describe('HijriDate', () => {
   });
 
   it('should check if one date is before another', () => {
-    const d1 = HijriDate.fromString('1445-08-30');
+    const d1 = HijriDate.fromString('1445-08-29');
     const d2 = HijriDate.fromString('1445-09-01');
 
     expect(d1.isBefore(d2)).toBe(true);
@@ -63,7 +63,7 @@ describe('HijriDate', () => {
 
   it('should check if it is Ramadan', () => {
     expect(HijriDate.fromString('1445-09-01').isRamadan()).toBe(true);
-    expect(HijriDate.fromString('1445-08-30').isRamadan()).toBe(false);
+    expect(HijriDate.fromString('1445-08-29').isRamadan()).toBe(false);
   });
 
   it('should add days within the same month', () => {
@@ -130,5 +130,17 @@ describe('HijriDate', () => {
   it('should format date for English locale', () => {
     const d = HijriDate.fromString('1445-09-01');
     expect(d.format('en')).toBe('Ramaḍān 1, 1445');
+  });
+
+  it('should reject day 30 in a 29-day Hijri month', () => {
+    // Ramadan 1446 has 29 days per Umm al-Qura. Day 30 must not be valid.
+    expect(() => new HijriDate(1446, 9, 30)).toThrow(
+      'Day 30 is out of range for Hijri month 9 of year 1446',
+    );
+  });
+
+  it('should accept day 30 in a 30-day Hijri month', () => {
+    // Ramadan 1445 has 30 days per Umm al-Qura. Day 30 must be valid.
+    expect(() => new HijriDate(1445, 9, 30)).not.toThrow();
   });
 });

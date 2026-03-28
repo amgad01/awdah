@@ -243,7 +243,7 @@ describe('API Route Tests', () => {
 
     const response = await invokeApp(
       'GET',
-      '/v1/salah/history/page?startDate=1446-08-01&endDate=1446-08-30&limit=50',
+      '/v1/salah/history/page?startDate=1446-07-01&endDate=1446-07-30&limit=50',
       {
         headers: { 'x-user-id': 'test-user' },
       },
@@ -252,8 +252,8 @@ describe('API Route Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(mockUseCases.getPrayerHistoryPageUseCase.execute).toHaveBeenCalledWith({
       userId: 'test-user',
-      startDate: '1446-08-01',
-      endDate: '1446-08-30',
+      startDate: '1446-07-01',
+      endDate: '1446-07-30',
       limit: 50,
     });
   });
@@ -266,7 +266,7 @@ describe('API Route Tests', () => {
 
     const response = await invokeApp(
       'GET',
-      '/v1/sawm/history/page?startDate=1446-08-01&endDate=1446-08-30&limit=50',
+      '/v1/sawm/history/page?startDate=1446-07-01&endDate=1446-07-30&limit=50',
       {
         headers: { 'x-user-id': 'test-user' },
       },
@@ -275,8 +275,8 @@ describe('API Route Tests', () => {
     expect(response.statusCode).toBe(200);
     expect(mockUseCases.getFastHistoryPageUseCase.execute).toHaveBeenCalledWith({
       userId: 'test-user',
-      startDate: '1446-08-01',
-      endDate: '1446-08-30',
+      startDate: '1446-07-01',
+      endDate: '1446-07-30',
       limit: 50,
     });
   });

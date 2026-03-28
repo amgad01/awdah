@@ -27,6 +27,16 @@ export class HijriDate {
     if (this.day < 1 || this.day > 30) {
       throw new ValidationError('Hijri day must be between 1 and 30');
     }
+    // Round-trip check: convert to Gregorian and back. If the day overflows the actual
+    // month length (e.g. day 30 in a 29-day month), the converter will advance to the
+    // next month — and the round-trip will not match.
+    const { gy, gm, gd } = toGregorian(this.year, this.month, this.day);
+    const { hy, hm, hd } = toHijri(gy, gm, gd);
+    if (hy !== this.year || hm !== this.month || hd !== this.day) {
+      throw new ValidationError(
+        `Day ${this.day} is out of range for Hijri month ${this.month} of year ${this.year}`,
+      );
+    }
   }
 
   isRamadan(): boolean {
