@@ -19,14 +19,14 @@ export class LogPrayerUseCase {
     const date = HijriDate.fromString(command.date);
     const prayerName = new PrayerName(command.prayerName);
     const type = new LogType(command.type);
-    const typeValue = type.getValue();
 
     const prayerLog = new PrayerLog({
       userId: command.userId,
-      eventId: typeValue === 'obligatory' ? typeValue : ulid(),
+      eventId: ulid(),
       date,
       prayerName,
       type,
+      action: 'prayed',
       loggedAt: new Date(),
     });
 

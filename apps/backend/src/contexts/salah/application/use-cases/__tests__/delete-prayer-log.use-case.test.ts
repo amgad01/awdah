@@ -5,7 +5,7 @@ import { IPrayerLogRepository } from '../../../domain/repositories/prayer-log.re
 describe('DeletePrayerLogUseCase', () => {
   let useCase: DeletePrayerLogUseCase;
   const mockRepo = {
-    deleteEntry: vi.fn(),
+    save: vi.fn(),
   } as unknown as IPrayerLogRepository;
 
   beforeEach(() => {
@@ -13,21 +13,27 @@ describe('DeletePrayerLogUseCase', () => {
     useCase = new DeletePrayerLogUseCase(mockRepo);
   });
 
-  it('successfully deletes a prayer log entry', async () => {
+  it('successfully records a deselected action instead of deleting', async () => {
     const command: DeletePrayerLogCommand = {
       userId: 'user-1',
       date: '1445-09-01',
       prayerName: 'fajr',
-      eventId: 'evt-1',
+      type: 'obligatory',
     };
 
     await useCase.execute(command);
 
-    expect(mockRepo.deleteEntry).toHaveBeenCalledWith(
-      command.userId,
-      expect.anything(),
-      command.prayerName,
-      command.eventId,
-    );
+    expect(mockRepo.save).toHaveBeenCalledTimes(1);
+    const savedLog = vi.mocked(mockRepo.save).mock.calls[0]![0] as {
+      userId: string;
+      action: string;
+      type: { getValue(): string };
+      eventId: string;
+    };
+    expect(savedLog.userId).toBe(command.userId);
+    expect(savedLog.action).toBe('deselected');
+    expect(savedLog.type.getValue()).toBe(command.type);
+    expect(savedLog.eventId).toBeDefined();
+    expect(savedLog.eventId).not.toBe('obligatory');
   });
 });

@@ -35,9 +35,10 @@ describe('LogPrayerUseCase', () => {
     expect(savedLog.date.toString()).toBe(command.date);
     expect(savedLog.prayerName.getValue()).toBe(command.prayerName);
     expect(savedLog.type.getValue()).toBe(command.type);
+    expect(savedLog.action).toBe('prayed');
   });
 
-  it('uses a stable event id for obligatory prayers to make repeated writes idempotent', async () => {
+  it('generates a unique event id for every prayer log', async () => {
     await useCase.execute({
       userId: 'user-123',
       date: '1445-09-01',
@@ -46,7 +47,9 @@ describe('LogPrayerUseCase', () => {
     });
 
     const savedLog = vi.mocked(repository.save).mock.calls[0]![0] as PrayerLog;
-    expect(savedLog.eventId).toBe('obligatory');
+    expect(savedLog.eventId).toBeDefined();
+    expect(savedLog.eventId.length).toBeGreaterThan(10); // ULID length
+    expect(savedLog.eventId).not.toBe('obligatory');
   });
 
   it('should throw error if date refers to the future (logic in HijriDate)', () => {
