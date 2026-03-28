@@ -3,7 +3,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
 import { DebtImpactPreview } from './debt-impact-preview';
 import { Plus, Save } from 'lucide-react';
-import type { DebtPreview } from '../types';
+import type { DebtPreview, FeedbackState } from '../types';
+import { SectionNotice } from './section-notice';
 import styles from '../settings-page.module.css';
 
 interface PeriodFormProps {
@@ -14,6 +15,7 @@ interface PeriodFormProps {
   startError: string;
   endError: string;
   preview: DebtPreview | null;
+  feedback?: FeedbackState | null;
   isPending: boolean;
   mode: 'add' | 'edit';
   minDate?: string;
@@ -36,6 +38,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
   startError,
   endError,
   preview,
+  feedback,
   isPending,
   mode,
   minDate,
@@ -105,6 +108,8 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
       </div>
 
       {preview ? <DebtImpactPreview preview={preview} /> : null}
+
+      {feedback ? <SectionNotice feedback={feedback} /> : null}
 
       <div className={styles.addPeriodActions}>
         <button type="button" className={styles.cancelAddBtn} onClick={onCancel}>

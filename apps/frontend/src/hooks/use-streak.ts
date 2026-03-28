@@ -8,8 +8,8 @@ const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
 const HISTORY_WINDOW_DAYS = 365;
 const ACTIVITY_RATE_WINDOW_DAYS = 30;
 
-export function computeConsecutiveStreak(activeDays: Set<string>): number {
-  let checkDay = todayHijriDate();
+export function computeConsecutiveStreak(activeDays: Set<string>, today?: string): number {
+  let checkDay = today ?? todayHijriDate();
   if (!activeDays.has(checkDay)) {
     checkDay = addHijriDays(checkDay, -1);
   }
@@ -28,6 +28,7 @@ export const useStreak = () => {
   const sawm = useSawmHistory(startDate, endDate);
 
   const streak = useMemo(() => {
+    const today = todayHijriDate();
     const activeDays = new Set<string>();
     for (const log of salah.data ?? []) {
       if (log.type === 'qadaa') activeDays.add(log.date);
@@ -35,10 +36,11 @@ export const useStreak = () => {
     for (const log of sawm.data ?? []) {
       if (log.type === 'qadaa') activeDays.add(log.date);
     }
-    return computeConsecutiveStreak(activeDays);
+    return computeConsecutiveStreak(activeDays, today);
   }, [salah.data, sawm.data]);
 
   const activityRate = useMemo(() => {
+    const today = todayHijriDate();
     const activeDays = new Set<string>();
     for (const log of salah.data ?? []) {
       if (log.type === 'qadaa') activeDays.add(log.date);
@@ -48,7 +50,7 @@ export const useStreak = () => {
     }
     let active = 0;
     for (let i = 0; i < ACTIVITY_RATE_WINDOW_DAYS; i++) {
-      if (activeDays.has(addHijriDays(todayHijriDate(), -i))) active++;
+      if (activeDays.has(addHijriDays(today, -i))) active++;
     }
     return Math.round((active / ACTIVITY_RATE_WINDOW_DAYS) * 100);
   }, [salah.data, sawm.data]);
@@ -75,6 +77,7 @@ export const useStreakDetails = () => {
   const sawm = useSawmHistory(startDate, endDate);
 
   const prayerStreaks = useMemo((): Record<string, number> => {
+    const today = todayHijriDate();
     const prayerDays: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
       if (log.type !== 'qadaa') continue;
@@ -84,7 +87,7 @@ export const useStreakDetails = () => {
     }
     const streaks: Record<string, number> = {};
     for (const [name, days] of Object.entries(prayerDays)) {
-      streaks[name] = computeConsecutiveStreak(days);
+      streaks[name] = computeConsecutiveStreak(days, today);
     }
     return streaks;
   }, [salah.data]);
@@ -134,6 +137,7 @@ export const useStreakDetails = () => {
   }, [prayerStreaks]);
 
   const obligatoryStreak = useMemo((): number => {
+    const today = todayHijriDate();
     const dayPrayers: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
       if (log.type !== 'obligatory') continue;
@@ -147,15 +151,16 @@ export const useStreakDetails = () => {
         completeDays.add(day);
       }
     }
-    return computeConsecutiveStreak(completeDays);
+    return computeConsecutiveStreak(completeDays, today);
   }, [salah.data]);
 
   const qadaaFastStreak = useMemo((): number => {
+    const today = todayHijriDate();
     const fastDays = new Set<string>();
     for (const log of sawm.data ?? []) {
       if (log.type === 'qadaa') fastDays.add(log.date);
     }
-    return computeConsecutiveStreak(fastDays);
+    return computeConsecutiveStreak(fastDays, today);
   }, [sawm.data]);
 
   return {

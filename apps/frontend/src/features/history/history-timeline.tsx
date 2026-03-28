@@ -1,12 +1,10 @@
 import React from 'react';
 import { Moon, Sun, BookOpen } from 'lucide-react';
 import type { HistoryEntry } from './history-helpers';
-import { formatTime } from './history-helpers';
 import styles from './history-page.module.css';
 
 interface HistoryTimelineEntryProps {
   entry: HistoryEntry;
-  locale: string;
   formatDual: (
     dateStr: string,
     opts?: Record<string, unknown>,
@@ -16,7 +14,6 @@ interface HistoryTimelineEntryProps {
 
 export const HistoryTimelineEntry: React.FC<HistoryTimelineEntryProps> = ({
   entry,
-  locale,
   formatDual,
   t,
 }) => (
@@ -65,7 +62,7 @@ export const HistoryTimelineEntry: React.FC<HistoryTimelineEntryProps> = ({
           ? t(`onboarding.period_type_${entry.periodKind}`)
           : entry.type === 'covered'
             ? `${t('history.covered_by_period')} · ${t(`onboarding.period_type_${entry.periodKind}`)}`
-            : `${t('history.action_marked')} · ${entry.logType === 'qadaa' ? t('history.type_qadaa') : t('history.type_obligatory')} · ${formatDual(entry.date).hijri} · ${formatDual(entry.date).gregorian} · ${formatTime(entry.loggedAt, locale)}`}
+            : `${t('history.action_marked')} · ${entry.logType === 'qadaa' ? t('history.type_qadaa') : t('history.type_obligatory')} · ${formatDual(entry.date).hijri} · ${formatDual(entry.date).gregorian}`}
       </span>
     </div>
     <div
@@ -93,7 +90,6 @@ export const HistoryTimelineEntry: React.FC<HistoryTimelineEntryProps> = ({
 interface HistoryDayGroupProps {
   date: string;
   entries: HistoryEntry[];
-  locale: string;
   formatDual: (
     dateStr: string,
     opts?: Record<string, unknown>,
@@ -104,7 +100,6 @@ interface HistoryDayGroupProps {
 export const HistoryDayGroup: React.FC<HistoryDayGroupProps> = ({
   date,
   entries,
-  locale,
   formatDual,
   t,
 }) => {
@@ -118,13 +113,7 @@ export const HistoryDayGroup: React.FC<HistoryDayGroupProps> = ({
       </div>
       <div className={styles.dayEntries}>
         {entries.map((entry) => (
-          <HistoryTimelineEntry
-            key={entry.eventId}
-            entry={entry}
-            locale={locale}
-            formatDual={formatDual}
-            t={t}
-          />
+          <HistoryTimelineEntry key={entry.eventId} entry={entry} formatDual={formatDual} t={t} />
         ))}
       </div>
     </div>

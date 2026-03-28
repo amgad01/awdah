@@ -31,9 +31,8 @@ function defaultStartDate(): string {
 }
 
 export const HistoryPage: React.FC = () => {
-  const { t, language, fmtNumber } = useLanguage();
+  const { t, fmtNumber } = useLanguage();
   const queryClient = useQueryClient();
-  const locale = language === 'ar' ? 'ar-SA' : 'en-GB';
   const { format: formatDual } = useDualDate();
   const today = todayHijriDate();
   const [startDate, setStartDate] = useState(defaultStartDate());
@@ -274,7 +273,6 @@ export const HistoryPage: React.FC = () => {
               key={date}
               date={date}
               entries={dayEntries}
-              locale={locale}
               formatDual={formatDual}
               t={t}
             />

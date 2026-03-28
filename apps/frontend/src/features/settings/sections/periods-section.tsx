@@ -338,7 +338,9 @@ export const PeriodsSection: React.FC = () => {
       {persistedDobDate && (
         <p className={styles.periodsBulughHint}>{t('settings.periods_bulugh_hint')}</p>
       )}
-      {periodFeedback ? <SectionNotice feedback={periodFeedback} /> : null}
+      {periodFeedback && !showAddPeriod && !editingPeriodId ? (
+        <SectionNotice feedback={periodFeedback} />
+      ) : null}
 
       {/* Existing Periods */}
       {(periods ?? []).length === 0 && !showAddPeriod && (
@@ -362,6 +364,7 @@ export const PeriodsSection: React.FC = () => {
                 startError={editStartError}
                 endError={editEndError}
                 preview={editPeriodPreview}
+                feedback={periodFeedback}
                 isPending={updatePeriod.isPending}
                 minDate={persistedDobDate ?? ''}
                 onStartChange={setEditStart}
@@ -457,6 +460,7 @@ export const PeriodsSection: React.FC = () => {
           startError={periodStartError}
           endError={periodEndError}
           preview={addPeriodPreview}
+          feedback={periodFeedback}
           isPending={addPeriod.isPending}
           minDate={persistedDobDate ?? ''}
           onStartChange={setPeriodStart}
