@@ -109,4 +109,14 @@ aws dynamodb update-time-to-live \
   --region "$REGION" \
   --time-to-live-specification "Enabled=true, AttributeName=expiresAt" > /dev/null 2>&1 || true
 
+# 6. Deleted Users — PK: userId, SK: deletedAt (permanent tombstone ledger)
+create_table_if_missing "Awdah-DeletedUsers-${ENV}" \
+  --attribute-definitions \
+    AttributeName=userId,AttributeType=S \
+    AttributeName=deletedAt,AttributeType=S \
+  --key-schema \
+    AttributeName=userId,KeyType=HASH \
+    AttributeName=deletedAt,KeyType=RANGE \
+  --billing-mode PAY_PER_REQUEST
+
 echo "DynamoDB tables ready."

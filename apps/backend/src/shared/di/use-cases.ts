@@ -5,6 +5,7 @@ import {
   userRepo,
   userDataLifecycleService,
   userLifecycleJobRepo,
+  deletedUsersRepo,
   salahCalculator,
   sawmCalculator,
   calendarService,
@@ -80,6 +81,7 @@ export const updateUserSettingsUseCase = new UpdateUserSettingsUseCase(userRepo)
 export const processUserLifecycleJobUseCase = new ProcessUserLifecycleJobUseCase(
   userLifecycleJobRepo,
   userDataLifecycleService,
+  deletedUsersRepo,
 );
 const userLifecycleJobDispatcher =
   process.env.LOCALSTACK_ENDPOINT && !process.env.AWS_LAMBDA_FUNCTION_NAME

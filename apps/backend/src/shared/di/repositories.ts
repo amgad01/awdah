@@ -10,6 +10,7 @@ import { DynamoDBPracticingPeriodRepository } from '../infrastructure/persistenc
 import { DynamoDBUserRepository } from '../infrastructure/persistence/dynamodb-user.repository';
 import { DynamoDBUserDataLifecycleService } from '../infrastructure/persistence/dynamodb-user-data-lifecycle.service';
 import { DynamoDBUserLifecycleJobRepository } from '../infrastructure/persistence/dynamodb-user-lifecycle-job.repository';
+import { DynamoDBDeletedUsersRepository } from '../infrastructure/persistence/dynamodb-deleted-users.repository';
 import { createAwsClientConfig } from '../infrastructure/aws/client-config';
 
 // Shared Clients
@@ -31,3 +32,4 @@ export const periodRepo = new DynamoDBPracticingPeriodRepository(dbClient);
 export const userRepo = new DynamoDBUserRepository(dbClient);
 export const userDataLifecycleService = new DynamoDBUserDataLifecycleService(dbClient);
 export const userLifecycleJobRepo = new DynamoDBUserLifecycleJobRepository(dbClient);
+export const deletedUsersRepo = new DynamoDBDeletedUsersRepository(dbClient);

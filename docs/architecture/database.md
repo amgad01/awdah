@@ -45,6 +45,18 @@ Tracks background export and account-deletion work so heavy lifecycle operations
 - **TTL**: `expiresAt` removes old job metadata/export chunks automatically after the retention window.
 - **Stream**: `NEW_IMAGE` stream is enabled so newly created pending jobs can trigger the background worker.
 
+### 6. Deleted Users (`Awdah-DeletedUsers-{env}`)
+
+Permanent tombstone ledger — records every account deletion for use during backup restore sanitization.
+
+- **Partition Key (`PK`)**: `userId` (String).
+- **Sort Key (`SK`)**: `deletedAt` (String — ISO 8601 timestamp of deletion).
+- **TTL**: none — entries are pruned by a daily Lambda (see §2.13 of `docs/technical-decisions.md`).
+- **PITR**: disabled — this table is the sanitization reference; it must not itself be restored from backup.
+- **Backup set**: excluded from the daily S3 export job. It is always live and authoritative.
+
+Entries older than 90 days are removed by the `TombstoneCleanup` Lambda (runs at 03:00 UTC).
+
 ## Resource Isolation
 
 To support parallel development on multiple feature branches, table names are prefixed with the ticket number (e.g., `123-Awdah-...`) when deployed from a feature branch. This ensures isolation and avoids conflicts with existing resources.

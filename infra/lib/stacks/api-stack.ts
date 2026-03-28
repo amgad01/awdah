@@ -112,6 +112,7 @@ export class ApiStack extends BaseStack {
       PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
       USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
       USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
       COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
     };
 
@@ -308,7 +309,11 @@ export class ApiStack extends BaseStack {
         id: 'ProcessUserLifecycleJobFn',
         entryPath: 'shared/infrastructure/handlers/process-user-lifecycle-job.handler.ts',
         context: 'user',
-        writeTables: [props.dataStack.userLifecycleJobsTable, ...userReadTables],
+        writeTables: [
+          props.dataStack.userLifecycleJobsTable,
+          props.dataStack.deletedUsersTable,
+          ...userReadTables,
+        ],
         memorySize: config.heavyOperationMemorySize,
         timeout: config.heavyOperationTimeout,
         reservedConcurrentExecutions: config.adminOperationConcurrency,

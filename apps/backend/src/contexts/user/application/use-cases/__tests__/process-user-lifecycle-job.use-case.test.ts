@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProcessUserLifecycleJobUseCase } from '../process-user-lifecycle-job.use-case';
 import type { IUserDataLifecycleService } from '../../../domain/services/user-data-lifecycle.service.interface';
 import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import type { IDeletedUsersRepository } from '../../../domain/repositories/deleted-users.repository';
 
 describe('ProcessUserLifecycleJobUseCase', () => {
   const mockJobRepository: IUserLifecycleJobRepository = {
@@ -20,7 +21,17 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     exportUserData: vi.fn(),
   };
 
-  const useCase = new ProcessUserLifecycleJobUseCase(mockJobRepository, mockLifecycleService);
+  const mockDeletedUsersRepo: IDeletedUsersRepository = {
+    recordDeletion: vi.fn(),
+    listAll: vi.fn(),
+    deleteOlderThan: vi.fn(),
+  };
+
+  const useCase = new ProcessUserLifecycleJobUseCase(
+    mockJobRepository,
+    mockLifecycleService,
+    mockDeletedUsersRepo,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -72,6 +83,7 @@ describe('ProcessUserLifecycleJobUseCase', () => {
         exportChunkCount: 1,
       }),
     );
+    expect(mockDeletedUsersRepo.recordDeletion).not.toHaveBeenCalled();
     expect(result?.status).toBe('completed');
   });
 
@@ -103,6 +115,7 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     const result = await useCase.execute({ userId: 'user-1', jobId: 'job-1' });
 
     expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith('user-1');
+    expect(mockDeletedUsersRepo.recordDeletion).toHaveBeenCalledWith('user-1', expect.any(String));
     expect(mockJobRepository.markCompleted).toHaveBeenCalledWith(
       'user-1',
       'job-1',

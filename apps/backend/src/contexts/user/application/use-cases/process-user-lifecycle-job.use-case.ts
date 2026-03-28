@@ -3,6 +3,7 @@ import type {
   UserLifecycleJob,
 } from '../../domain/repositories/user-lifecycle-job.repository';
 import type { IUserDataLifecycleService } from '../../domain/services/user-data-lifecycle.service.interface';
+import type { IDeletedUsersRepository } from '../../domain/repositories/deleted-users.repository';
 
 export interface ProcessUserLifecycleJobCommand {
   userId: string;
@@ -13,6 +14,7 @@ export class ProcessUserLifecycleJobUseCase {
   constructor(
     private readonly jobRepository: IUserLifecycleJobRepository,
     private readonly userDataLifecycleService: IUserDataLifecycleService,
+    private readonly deletedUsersRepository: IDeletedUsersRepository,
   ) {}
 
   async execute(command: ProcessUserLifecycleJobCommand): Promise<UserLifecycleJob | null> {
@@ -51,6 +53,7 @@ export class ProcessUserLifecycleJobUseCase {
       }
 
       await this.userDataLifecycleService.deleteUserData(command.userId);
+      await this.deletedUsersRepository.recordDeletion(command.userId, new Date().toISOString());
 
       return this.jobRepository.markCompleted(command.userId, command.jobId, {
         completedAt: new Date().toISOString(),

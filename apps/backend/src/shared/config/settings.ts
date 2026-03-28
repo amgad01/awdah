@@ -27,14 +27,18 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
 
 // Validate all required env vars at module load. In prod/staging this
 // runs at Lambda cold start and reports every missing variable in one error.
-requireEnv([
-  'PRAYER_LOGS_TABLE',
-  'FAST_LOGS_TABLE',
-  'PRACTICING_PERIODS_TABLE',
-  'USER_SETTINGS_TABLE',
-  'USER_LIFECYCLE_JOBS_TABLE',
-  'COGNITO_USER_POOL_ID',
-]);
+// Validate essential env vars at module load if we're not running a background cleanup task.
+// This allows background scripts/Lambdas to load only the subset they actually need.
+if (!process.env.SKIP_ENV_VALIDATION) {
+  requireEnv([
+    'PRAYER_LOGS_TABLE',
+    'FAST_LOGS_TABLE',
+    'PRACTICING_PERIODS_TABLE',
+    'USER_SETTINGS_TABLE',
+    'USER_LIFECYCLE_JOBS_TABLE',
+    'COGNITO_USER_POOL_ID',
+  ]);
+}
 
 export const settings = {
   env: process.env.NODE_ENV || 'dev',
@@ -57,6 +61,10 @@ export const settings = {
     userLifecycleJobs: requireEnv(
       'USER_LIFECYCLE_JOBS_TABLE',
       `Awdah-UserLifecycleJobs-${process.env.NODE_ENV || 'dev'}`,
+    ),
+    deletedUsers: requireEnv(
+      'DELETED_USERS_TABLE',
+      `Awdah-DeletedUsers-${process.env.NODE_ENV || 'dev'}`,
     ),
   },
   logLevel: process.env.LOG_LEVEL || 'info',

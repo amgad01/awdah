@@ -11,6 +11,7 @@ export class DataStack extends BaseStack {
   public readonly practicingPeriodsTable: dynamodb.Table;
   public readonly userSettingsTable: dynamodb.Table;
   public readonly userLifecycleJobsTable: dynamodb.Table;
+  public readonly deletedUsersTable: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props: DataStackProps) {
     super(scope, id, props);
@@ -81,6 +82,16 @@ export class DataStack extends BaseStack {
         stream: dynamodb.StreamViewType.NEW_IMAGE,
         timeToLiveAttribute: 'expiresAt',
       },
+    );
+
+    // 6. Deleted Users Table — permanent tombstone ledger, no PITR, not in backup set
+    this.deletedUsersTable = ProjectResourceFactory.createDynamoDBTable(
+      this,
+      'DeletedUsersTable',
+      this.fullResourceName('DeletedUsers'),
+      { name: 'userId', type: dynamodb.AttributeType.STRING },
+      { name: 'deletedAt', type: dynamodb.AttributeType.STRING },
+      this.removalPolicy,
     );
   }
 }

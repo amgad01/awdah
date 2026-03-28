@@ -121,6 +121,21 @@ awdah/
 | [apps/frontend/README.md](apps/frontend/README.md)             | Frontend setup, scripts, and environment variables         |
 | [apps/backend/README.md](apps/backend/README.md)               | Backend architecture, Lambda handlers, and testing         |
 
+## Infrastructure
+
+6 CDK stacks deployed in dependency order: data → auth → api → backup → alarm → frontend (optional).
+
+| Stack         | Resources                                                 |
+| ------------- | --------------------------------------------------------- |
+| DataStack     | 6 DynamoDB tables (PITR, PAY_PER_REQUEST)                 |
+| AuthStack     | Cognito User Pool + Client                                |
+| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64, X-Ray)      |
+| BackupStack   | S3 backup bucket, EventBridge daily export, DLQ           |
+| AlarmStack    | 20+ CloudWatch alarms, SNS alerts, operations dashboard   |
+| FrontendStack | S3 + CloudFront (optional, for custom domain deployments) |
+
+All resources tagged with `project`, `env`, `owner`, and `context`. See `infra/` for CDK source.
+
 ## API Documentation
 
 The full API reference is in [docs/api/openapi.yaml](docs/api/openapi.yaml) (OpenAPI 3.1.0).
