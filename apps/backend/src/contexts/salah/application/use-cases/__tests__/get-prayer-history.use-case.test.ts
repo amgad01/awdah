@@ -32,6 +32,7 @@ describe('GetPrayerHistoryUseCase', () => {
         date: HijriDate.fromString('1445-09-01'),
         prayerName: new PrayerName('fajr'),
         type: new LogType('obligatory'),
+        action: 'prayed',
         loggedAt,
       }),
     ];
@@ -45,6 +46,7 @@ describe('GetPrayerHistoryUseCase', () => {
         date: '1445-09-01',
         prayerName: 'fajr',
         type: 'obligatory',
+        action: 'prayed',
         loggedAt: loggedAt.toISOString(),
       },
     ]);
