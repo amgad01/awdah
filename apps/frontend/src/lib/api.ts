@@ -24,6 +24,7 @@ export interface PrayerLogResponse {
   date: string;
   prayerName: string;
   type: string;
+  action: 'prayed' | 'deselected';
   loggedAt: string;
 }
 
@@ -31,6 +32,7 @@ export interface FastLogResponse {
   eventId: string;
   date: string;
   type: string;
+  action?: 'prayed' | 'deselected';
   loggedAt: string;
 }
 
@@ -209,7 +211,7 @@ export const api = {
       request<HistoryPageResponse<PrayerLogResponse>>(
         buildPath(`${SALAH_BASE}/history/page`, params),
       ),
-    deleteLog: (params: { date: string; prayerName: string; eventId: string }) =>
+    deleteLog: (params: { date: string; prayerName: string; type: string }) =>
       request(buildPath(`${SALAH_BASE}/log`, params), { method: 'DELETE' }),
     resetLogs: () => request(`${SALAH_BASE}/logs`, { method: 'DELETE' }),
   },

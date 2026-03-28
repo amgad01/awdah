@@ -12,6 +12,7 @@ export interface HistoryEntry {
   prayerName?: string;
   logType: string;
   loggedAt: string;
+  action?: 'prayed' | 'deselected';
   periodEventKind?: 'start' | 'end';
   periodKind?: string;
 }
