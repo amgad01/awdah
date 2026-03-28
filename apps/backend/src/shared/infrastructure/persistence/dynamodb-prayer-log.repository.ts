@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
 import { HijriDate } from '@awdah/shared';
@@ -69,43 +69,43 @@ export class DynamoDBPrayerLogRepository
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
-    return this.countByGSI({
+    const logs = await this.findAllWithIndexPrefix({
       pk: userId,
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
     });
+
+    const effective = new Map<string, string>();
+    for (const log of logs.sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime())) {
+      const key = `${log.date.toString()}#${log.prayerName.getValue()}`;
+      effective.set(key, log.action);
+    }
+
+    return Array.from(effective.values()).filter((action) => action === 'prayed').length;
   }
 
   async countQadaaCompletedByPrayer(userId: string): Promise<Record<string, number>> {
+    const logs = await this.findAllWithIndexPrefix({
+      pk: userId,
+      indexName: 'typeDateIndex',
+      skName: 'typeDate',
+      skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
+    });
+
+    const effective = new Map<string, string>();
+    for (const log of logs.sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime())) {
+      const key = `${log.date.toString()}#${log.prayerName.getValue()}`;
+      effective.set(key, log.action);
+    }
+
     const counts: Record<string, number> = {};
-    let lastKey: Record<string, unknown> | undefined;
-
-    do {
-      const command = new QueryCommand({
-        TableName: this.tableName,
-        IndexName: 'typeDateIndex',
-        KeyConditionExpression: `${this.pkName} = :pk AND begins_with(typeDate, :type)`,
-        ExpressionAttributeValues: {
-          ':pk': userId,
-          ':type': PrayerLogKey.typeDatePrefixForType('qadaa'),
-        },
-        ProjectionExpression: 'sk',
-        ExclusiveStartKey: lastKey,
-      });
-
-      const response = await this.docClient.send(command);
-      for (const item of response.Items ?? []) {
-        try {
-          const { prayer } = PrayerLogKey.decodeSk(item.sk as string);
-          const name = prayer.toLowerCase();
-          counts[name] = (counts[name] ?? 0) + 1;
-        } catch {
-          // Skip items with malformed SK rather than crashing the Lambda
-        }
+    for (const [key, action] of effective.entries()) {
+      if (action === 'prayed') {
+        const prayerName = key.split('#')[1]!.toLowerCase();
+        counts[prayerName] = (counts[prayerName] ?? 0) + 1;
       }
-      lastKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
-    } while (lastKey);
+    }
 
     return counts;
   }
@@ -136,6 +136,7 @@ export class DynamoDBPrayerLogRepository
   protected mapToPersistence(log: PrayerLog): Record<string, unknown> {
     return {
       type: log.type.getValue(),
+      action: log.action,
       loggedAt: log.loggedAt.toISOString(),
       typeDate: PrayerLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
       isVoluntary: log.isVoluntary,
@@ -150,6 +151,7 @@ export class DynamoDBPrayerLogRepository
       prayerName: new PrayerName(prayer.toLowerCase()),
       eventId,
       type: new LogType(item.type as string),
+      action: (item.action as 'prayed' | 'deselected') ?? 'prayed',
       loggedAt: new Date(item.loggedAt as string),
       isVoluntary: item.isVoluntary as boolean,
     });

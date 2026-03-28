@@ -37,6 +37,7 @@ describe('DynamoDBPrayerLogRepository', () => {
       prayerName: new PrayerName('fajr'),
       eventId,
       type: new LogType('obligatory'),
+      action: 'prayed',
       loggedAt: new Date('2024-01-01T12:00:00Z'),
     });
 
@@ -119,6 +120,7 @@ describe('DynamoDBPrayerLogRepository', () => {
       prayerName: new PrayerName('fajr'),
       eventId,
       type: new LogType('obligatory'),
+      action: 'prayed',
       loggedAt: new Date('2024-01-01T12:00:00Z'),
     });
 
