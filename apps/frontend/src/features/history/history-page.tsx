@@ -109,6 +109,7 @@ export const HistoryPage: React.FC = () => {
           prayerName: log.prayerName,
           logType: log.type,
           loggedAt: log.loggedAt,
+          action: log.action,
         });
       }
     }
@@ -122,6 +123,7 @@ export const HistoryPage: React.FC = () => {
           type: 'fast',
           logType: log.type,
           loggedAt: log.loggedAt,
+          action: 'prayed', // Fasts don't have actions yet, default to prayed for visibility
         });
       }
     }

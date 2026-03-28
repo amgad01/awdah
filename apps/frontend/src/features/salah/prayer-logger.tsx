@@ -107,7 +107,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
       const existing = loggedMap[prayerName];
       if (existing) {
         if (isSuppressed()) {
-          deleteMutation.mutate({ date: dailyDate, prayerName, eventId: existing.eventId });
+          deleteMutation.mutate({ date: dailyDate, prayerName, type: existing.type });
         } else {
           setPendingUncheck({ prayerName, log: existing });
           setSuppressChecked(false);
@@ -133,8 +133,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
       if (isPending || isFuture) return;
       const entries = qadaaLogsMap[prayerName];
       if (!entries || entries.length === 0) return;
-      const lastEntry = entries[entries.length - 1];
-      deleteMutation.mutate({ date: selectedDate, prayerName, eventId: lastEntry.eventId });
+      deleteMutation.mutate({ date: selectedDate, prayerName, type: 'qadaa' });
     },
     [isPending, isFuture, selectedDate, qadaaLogsMap, deleteMutation],
   );
@@ -145,7 +144,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
     deleteMutation.mutate({
       date: dailyDate,
       prayerName: pendingUncheck.prayerName,
-      eventId: pendingUncheck.log.eventId,
+      type: 'obligatory',
     });
     setPendingUncheck(null);
   };
