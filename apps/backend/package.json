@@ -12,7 +12,7 @@
     "test:api": "vitest run src/__tests__/api.test.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "^3.1005.0",
+    "@aws-sdk/client-cognito-identity-provider": "3.1019.0",
     "@aws-sdk/client-dynamodb": "3.1005.0",
     "@aws-sdk/client-secrets-manager": "3.1005.0",
     "@aws-sdk/lib-dynamodb": "3.1005.0",
@@ -20,8 +20,8 @@
     "cors": "2.8.6",
     "express": "5.2.1",
     "http-status-codes": "2.3.0",
-    "pino": "9.6.0",
     "path-to-regexp": "8.4.0",
+    "pino": "9.6.0",
     "ulid": "2.3.0",
     "zod": "3.25.67"
   },
@@ -31,7 +31,7 @@
     "@types/express": "5.0.6",
     "@types/supertest": "7.2.0",
     "@vitest/coverage-v8": "3.2.4",
-    "aws-sdk-client-mock": "^4.1.0",
+    "aws-sdk-client-mock": "4.1.0",
     "supertest": "7.2.2",
     "ts-node": "10.9.2",
     "typescript": "5.7.3",

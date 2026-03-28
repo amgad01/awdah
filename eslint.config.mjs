@@ -43,4 +43,11 @@ export default tseslint.config(
       'no-console': 'warn',
     },
   },
+  {
+    files: ['scripts/**/*.mjs', '*.config.*'],
+    rules: {
+      'no-undef': 'off',
+      'no-console': 'off',
+    },
+  },
 );

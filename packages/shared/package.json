@@ -19,13 +19,13 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/coverage-v8": "4.1.0",
     "tsup": "8.5.1",
     "typescript": "5.7.3",
-    "vitest": "^4.1.0"
+    "vitest": "4.1.0"
   },
   "dependencies": {
-    "hijri-converter": "^1.1.1",
+    "hijri-converter": "1.1.1",
     "http-status-codes": "2.3.0"
   }
 }

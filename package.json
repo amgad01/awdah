@@ -34,15 +34,36 @@
     "@rollup/rollup-linux-x64-gnu": "4.59.0",
     "eslint": "9.39.4",
     "eslint-config-prettier": "10.1.8",
+    "flatted": "3.4.2",
+    "graphemer": "1.4.0",
     "husky": "9.1.7",
     "jsdom": "29.0.1",
+    "magic-string": "0.30.21",
+    "nanoid": "5.1.7",
+    "pathe": "2.0.3",
     "prettier": "3.8.1",
+    "strip-literal": "3.1.0",
+    "tinyspy": "4.0.4",
     "typescript": "5.9.3",
     "typescript-eslint": "8.57.0",
-    "vitest": "4.0.18"
+    "vitest": "4.1.2"
   },
   "overrides": {
     "react": "19.2.0",
     "react-dom": "19.2.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "3.1005.0",
+    "@playwright/test": "1.58.2",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@vitest/coverage-v8": "4.1.2",
+    "aws-sdk-client-mock": "4.1.0",
+    "hijri-converter": "1.1.1",
+    "html-parse-stringify": "3.0.1",
+    "recharts": "2.14.1",
+    "use-sync-external-store": "1.6.0"
   }
 }
