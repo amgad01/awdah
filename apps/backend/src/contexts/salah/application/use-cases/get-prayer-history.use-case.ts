@@ -13,6 +13,7 @@ export interface PrayerLogDto {
   date: string;
   prayerName: PrayerNameType;
   type: LogTypeT;
+  action: 'prayed' | 'deselected';
   loggedAt: string;
 }
 
@@ -29,6 +30,7 @@ export class GetPrayerHistoryUseCase {
       date: log.date.toString(),
       prayerName: log.prayerName.getValue(),
       type: log.type.getValue(),
+      action: log.action,
       loggedAt: log.loggedAt.toISOString(),
     }));
   }

@@ -19,6 +19,7 @@ export interface PrayerHistoryPageDto {
     date: string;
     prayerName: PrayerNameType;
     type: LogTypeT;
+    action: 'prayed' | 'deselected';
     loggedAt: string;
   }>;
   nextCursor?: string;
@@ -43,6 +44,7 @@ export class GetPrayerHistoryPageUseCase {
         date: log.date.toString(),
         prayerName: log.prayerName.getValue(),
         type: log.type.getValue(),
+        action: log.action,
         loggedAt: log.loggedAt.toISOString(),
       })),
       nextCursor: page.nextCursor,

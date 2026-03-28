@@ -127,7 +127,7 @@ export const deletePracticingPeriodSchema = z.object({
 export const deletePrayerLogSchema = z.object({
   date: hijriDateString,
   prayerName: z.enum(PRAYER_NAMES),
-  eventId: z.string().min(1),
+  type: z.enum(LOG_TYPES),
 });
 
 export const deleteFastLogSchema = z.object({
