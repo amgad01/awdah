@@ -369,6 +369,30 @@ export abstract class BaseDynamoDBRepository<T> {
   }
 
   /**
+   * Retrieves all items from a GSI where the sort key starts with a specific prefix.
+   */
+  protected async findAllWithIndexPrefix({
+    pk,
+    indexName,
+    skName,
+    skPrefix,
+  }: {
+    pk: string;
+    indexName: string;
+    skName: string;
+    skPrefix: string;
+  }): Promise<T[]> {
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.queryRawInternalPaged(pk, {
+        indexName,
+        skName,
+        skPrefix,
+        exclusiveStartKey,
+      }),
+    );
+  }
+
+  /**
    * Centralized query executor for paged operations.
    * Constructs DynamoDB QueryCommands with support for prefix filters, range filters,
    * limits, and starting keys.
@@ -376,6 +400,7 @@ export abstract class BaseDynamoDBRepository<T> {
   protected async queryRawInternalPaged(
     pkValue: string,
     options?: {
+      skName?: string;
       skPrefix?: string;
       skBetween?: { start: string; end: string };
       indexName?: string;
@@ -384,14 +409,15 @@ export abstract class BaseDynamoDBRepository<T> {
       scanIndexForward?: boolean;
     },
   ): Promise<QueryResult<T>> {
+    const skName = options?.skName ?? this.skName;
     let keyCondition = `${this.pkName} = :pk`;
     const expressionAttributeValues: Record<string, unknown> = { ':pk': pkValue };
 
     if (options?.skPrefix) {
-      keyCondition += ` AND begins_with(${this.skName}, :sk)`;
+      keyCondition += ` AND begins_with(${skName}, :sk)`;
       expressionAttributeValues[':sk'] = options.skPrefix;
     } else if (options?.skBetween) {
-      keyCondition += ` AND ${this.skName} BETWEEN :start AND :end`;
+      keyCondition += ` AND ${skName} BETWEEN :start AND :end`;
       expressionAttributeValues[':start'] = options.skBetween.start;
       expressionAttributeValues[':end'] = options.skBetween.end;
     }
