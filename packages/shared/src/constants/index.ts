@@ -3,6 +3,7 @@ export const PRAYER_NAMES = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const
 export const PRAYERS_PER_DAY = 5;
 
 export const LOG_TYPES = ['obligatory', 'qadaa'] as const;
+export const LOG_ACTIONS = ['prayed', 'deselected'] as const;
 
 export const PRACTICING_PERIOD_TYPES = ['salah', 'sawm', 'both'] as const;
 

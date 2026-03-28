@@ -13,6 +13,7 @@ export {
   PRAYER_NAMES,
   PRAYERS_PER_DAY,
   LOG_TYPES,
+  LOG_ACTIONS,
   PRACTICING_PERIOD_TYPES,
   DEFAULT_BULUGH_AGE_HIJRI_YEARS,
   HIJRI_MONTHS_IN_YEAR,
@@ -26,6 +27,7 @@ export {
 export type {
   PrayerName,
   LogType,
+  LogAction,
   PracticingPeriodType,
   Gender,
   Madhab,

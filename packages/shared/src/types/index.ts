@@ -1,6 +1,7 @@
 import {
   PRAYER_NAMES,
   LOG_TYPES,
+  LOG_ACTIONS,
   PRACTICING_PERIOD_TYPES,
   GENDERS,
   MADHABS,
@@ -12,6 +13,7 @@ import {
 export type PrayerName = (typeof PRAYER_NAMES)[number];
 
 export type LogType = (typeof LOG_TYPES)[number];
+export type LogAction = (typeof LOG_ACTIONS)[number];
 
 export type PracticingPeriodType = (typeof PRACTICING_PERIOD_TYPES)[number];
 
