@@ -24,6 +24,8 @@
     "check": "./scripts/pre-push-checks.sh",
     "check:quick": "./scripts/pre-push-quick.sh",
     "load:burst": "node scripts/load-burst-smoke.mjs",
+    "restore:s3": "ts-node infra/scripts/restore-from-s3.ts",
+    "restore:sanitize": "ts-node infra/scripts/restore-sanitize.ts",
     "prepare": "husky || true"
   },
   "engines": {
