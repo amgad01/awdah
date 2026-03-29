@@ -1,10 +1,10 @@
 export interface DeletedUserRecord {
   userId: string;
   deletedAt: string;
+  expiresAt: number;
 }
 
 export interface IDeletedUsersRepository {
-  recordDeletion(userId: string, deletedAt: string): Promise<void>;
+  recordDeletion(userId: string, deletedAt: string, expiresAt: number): Promise<void>;
   listAll(): Promise<DeletedUserRecord[]>;
-  deleteOlderThan(cutoffIso: string): Promise<number>;
 }

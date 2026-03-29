@@ -53,7 +53,14 @@ export class ProcessUserLifecycleJobUseCase {
       }
 
       await this.userDataLifecycleService.deleteUserData(command.userId);
-      await this.deletedUsersRepository.recordDeletion(command.userId, new Date().toISOString());
+
+      const RETENTION_DAYS = 90;
+      const expiresAt = Math.floor(Date.now() / 1000) + RETENTION_DAYS * 24 * 60 * 60;
+      await this.deletedUsersRepository.recordDeletion(
+        command.userId,
+        new Date().toISOString(),
+        expiresAt,
+      );
 
       return this.jobRepository.markCompleted(command.userId, command.jobId, {
         completedAt: new Date().toISOString(),

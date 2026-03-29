@@ -92,6 +92,7 @@ export class DataStack extends BaseStack {
       { name: 'userId', type: dynamodb.AttributeType.STRING },
       { name: 'deletedAt', type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
+      { timeToLiveAttribute: 'expiresAt' },
     );
   }
 }

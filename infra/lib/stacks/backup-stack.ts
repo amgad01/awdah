@@ -84,32 +84,5 @@ export class BackupStack extends BaseStack {
       schedule: events.Schedule.cron({ hour: '2', minute: '0' }),
       targets: [new targets.LambdaFunction(backupFn)],
     });
-
-    // Tombstone cleanup — prunes deleted-user records older than 90 days.
-    // Runs at 03:00 UTC, one hour after the daily backup export.
-    // The DeletedUsers table is intentionally excluded from the backup set.
-    const cleanupFn = ProjectResourceFactory.createNodejsFunction(this, 'TombstoneCleanupFn', {
-      entry: path.join(
-        __dirname,
-        '../../../apps/backend/src/shared/infrastructure/handlers/tombstone-cleanup.handler.ts',
-      ),
-      timeout: cdk.Duration.seconds(60),
-      deadLetterQueue: this.backupDLQ,
-      retryAttempts: 2,
-      context: 'shared',
-      environment: {
-        DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
-        // Suppress mandatory validation of tables this function doesn't use.
-        SKIP_ENV_VALIDATION: 'true',
-      },
-    });
-
-    props.dataStack.deletedUsersTable.grantReadWriteData(cleanupFn);
-
-    new events.Rule(this, 'TombstoneCleanupRule', {
-      ruleName: this.fullResourceName('TombstoneCleanup'),
-      schedule: events.Schedule.cron({ hour: '3', minute: '0' }),
-      targets: [new targets.LambdaFunction(cleanupFn)],
-    });
   }
 }

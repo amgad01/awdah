@@ -24,7 +24,6 @@ describe('ProcessUserLifecycleJobUseCase', () => {
   const mockDeletedUsersRepo: IDeletedUsersRepository = {
     recordDeletion: vi.fn(),
     listAll: vi.fn(),
-    deleteOlderThan: vi.fn(),
   };
 
   const useCase = new ProcessUserLifecycleJobUseCase(
@@ -115,7 +114,11 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     const result = await useCase.execute({ userId: 'user-1', jobId: 'job-1' });
 
     expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith('user-1');
-    expect(mockDeletedUsersRepo.recordDeletion).toHaveBeenCalledWith('user-1', expect.any(String));
+    expect(mockDeletedUsersRepo.recordDeletion).toHaveBeenCalledWith(
+      'user-1',
+      expect.any(String),
+      expect.any(Number),
+    );
     expect(mockJobRepository.markCompleted).toHaveBeenCalledWith(
       'user-1',
       'job-1',
