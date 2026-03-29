@@ -7,7 +7,10 @@
     "cdk": "cdk",
     "synth": "cdk synth",
     "diff": "cdk diff",
-    "deploy": "cdk deploy"
+    "deploy": "cdk deploy",
+    "deploy:all": "cdk deploy --all --require-approval never",
+    "destroy:all": "cdk destroy --all --force",
+    "bootstrap": "cdk bootstrap"
   },
   "dependencies": {
     "aws-cdk-lib": "2.245.0",

@@ -18,20 +18,34 @@ export class DataStack extends BaseStack {
 
     this.addContextTag('shared');
 
+    // DynamoDB Constants
+    const ATTR = {
+      USER_ID: 'userId',
+      SK: 'sk',
+      TYPE_DATE: 'typeDate',
+      PERIOD_ID: 'periodId',
+      DELETED_AT: 'deletedAt',
+      EXPIRES_AT: 'expiresAt',
+    };
+
+    const INDEX = {
+      TYPE_DATE: 'typeDateIndex',
+    };
+
     // 1. Prayer Logs Table
     this.prayerLogsTable = ProjectResourceFactory.createDynamoDBTable(
       this,
       'PrayerLogsTable',
       this.fullResourceName('PrayerLogs'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.SK, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
     );
 
     this.prayerLogsTable.addGlobalSecondaryIndex({
-      indexName: 'typeDateIndex',
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'typeDate', type: dynamodb.AttributeType.STRING },
+      indexName: INDEX.TYPE_DATE,
+      partitionKey: { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      sortKey: { name: ATTR.TYPE_DATE, type: dynamodb.AttributeType.STRING },
     });
 
     // 2. Fast Logs Table
@@ -39,15 +53,15 @@ export class DataStack extends BaseStack {
       this,
       'FastLogsTable',
       this.fullResourceName('FastLogs'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.SK, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
     );
 
     this.fastLogsTable.addGlobalSecondaryIndex({
-      indexName: 'typeDateIndex',
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'typeDate', type: dynamodb.AttributeType.STRING },
+      indexName: INDEX.TYPE_DATE,
+      partitionKey: { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      sortKey: { name: ATTR.TYPE_DATE, type: dynamodb.AttributeType.STRING },
     });
 
     // 3. Practicing Periods Table
@@ -55,8 +69,8 @@ export class DataStack extends BaseStack {
       this,
       'PracticingPeriodsTable',
       this.fullResourceName('PracticingPeriods'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'periodId', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.PERIOD_ID, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
     );
 
@@ -65,8 +79,8 @@ export class DataStack extends BaseStack {
       this,
       'UserSettingsTable',
       this.fullResourceName('UserSettings'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.SK, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
     );
 
@@ -75,12 +89,12 @@ export class DataStack extends BaseStack {
       this,
       'UserLifecycleJobsTable',
       this.fullResourceName('UserLifecycleJobs'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'sk', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.SK, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
       {
         stream: dynamodb.StreamViewType.NEW_IMAGE,
-        timeToLiveAttribute: 'expiresAt',
+        timeToLiveAttribute: ATTR.EXPIRES_AT,
       },
     );
 
@@ -89,10 +103,10 @@ export class DataStack extends BaseStack {
       this,
       'DeletedUsersTable',
       this.fullResourceName('DeletedUsers'),
-      { name: 'userId', type: dynamodb.AttributeType.STRING },
-      { name: 'deletedAt', type: dynamodb.AttributeType.STRING },
+      { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
+      { name: ATTR.DELETED_AT, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
-      { timeToLiveAttribute: 'expiresAt' },
+      { timeToLiveAttribute: ATTR.EXPIRES_AT },
     );
   }
 }
