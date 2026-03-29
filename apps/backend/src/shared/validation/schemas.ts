@@ -8,7 +8,7 @@ import {
 } from '@awdah/shared';
 
 const hijriDatePattern = /^\d{4}-\d{2}-\d{2}$/;
-const MAX_UNPAGED_HISTORY_RANGE_DAYS = 120;
+const MAX_UNPAGED_HISTORY_RANGE_DAYS = 365;
 const MAX_PAGED_HISTORY_RANGE_DAYS = 365;
 const DEFAULT_HISTORY_PAGE_LIMIT = 100;
 const MAX_HISTORY_PAGE_LIMIT = 200;
@@ -45,6 +45,14 @@ export const addPracticingPeriodSchema = z
   .refine((d) => !d.endDate || d.endDate >= d.startDate, {
     message: 'End date cannot be before start date',
     path: ['endDate'],
+  })
+  .refine((d) => !HijriDate.fromString(d.startDate).isAfter(HijriDate.today()), {
+    message: 'Start date cannot be in the future',
+    path: ['startDate'],
+  })
+  .refine((d) => !d.endDate || !HijriDate.fromString(d.endDate).isAfter(HijriDate.today()), {
+    message: 'End date cannot be in the future',
+    path: ['endDate'],
   });
 
 export const updatePracticingPeriodSchema = z
@@ -56,6 +64,14 @@ export const updatePracticingPeriodSchema = z
   })
   .refine((d) => !d.endDate || d.endDate >= d.startDate, {
     message: 'End date cannot be before start date',
+    path: ['endDate'],
+  })
+  .refine((d) => !HijriDate.fromString(d.startDate).isAfter(HijriDate.today()), {
+    message: 'Start date cannot be in the future',
+    path: ['startDate'],
+  })
+  .refine((d) => !d.endDate || !HijriDate.fromString(d.endDate).isAfter(HijriDate.today()), {
+    message: 'End date cannot be in the future',
     path: ['endDate'],
   });
 
