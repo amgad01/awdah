@@ -43,6 +43,15 @@ The project follows **Clean Architecture** and **Domain-Driven Design (DDD)**. T
 - **Encryption**: All data is encrypted at rest using AWS KMS and in transit via TLS 1.3.
 - **Privacy by Design**: Sensitive user data is isolated, and data exports/deletions are first-class workflows.
 
+### Async Data Lifecycle
+
+All destructive or I/O-heavy user operations (account deletion, data export, prayer/fast log resets) run as **asynchronous lifecycle jobs**. The API returns `202 Accepted` immediately with a job ID; the actual work is processed via DynamoDB Streams. This prevents API timeouts and ensures consistency even for users with thousands of records.
+
+### Fault Tolerance
+
+- **Dead Letter Queue (DLQ)**: Failed lifecycle-job stream events are routed to an SQS DLQ with 14-day retention, ensuring no user request is silently lost.
+- **CloudWatch Alarms**: The `AlarmStack` monitors Lambda errors, DLQ depth, concurrency limits, and database latencies.
+
 ### Operational Excellence
 
 - **Automated Alarms**: The system includes a dedicated `AlarmStack` that monitors Lambda errors, concurrency limits, and database latencies.
