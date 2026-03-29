@@ -32,11 +32,11 @@
   justify-content: center;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
   color: var(--color-primary);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   margin-inline-start: 3px;
   vertical-align: super;
   line-height: 1;
@@ -80,7 +80,7 @@
 
 .arabic {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   direction: rtl;
   text-align: start;

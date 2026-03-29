@@ -13,7 +13,7 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   color: var(--color-primary);
   transition: var(--transition-fast);
   flex-shrink: 0;
@@ -37,7 +37,7 @@
 
 .label {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 

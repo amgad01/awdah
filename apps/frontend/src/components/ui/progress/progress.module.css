@@ -7,7 +7,7 @@
   justify-content: space-between;
   margin-bottom: var(--spacing-xs);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .label {

@@ -6,7 +6,7 @@
   border-radius: var(--border-radius-md);
   border: 1.5px solid var(--color-border);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.05em;
   color: var(--color-text-secondary);
   transition: var(--transition-fast);
@@ -21,15 +21,15 @@
 }
 
 .switcherInverse {
-  border-color: rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-overlay-border);
+  color: var(--color-on-dark-high);
+  background: var(--color-overlay-subtle);
 }
 
 .switcherInverse:hover {
   border-color: rgba(255, 255, 255, 0.32);
   color: white;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-overlay-medium);
 }
 
 .switcherInverse .active {
@@ -54,7 +54,7 @@
 
 .divider {
   color: var(--color-divider);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 /* Compact select — shown when 3+ languages are supported */
@@ -65,7 +65,7 @@
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: var(--transition-fast);
 }
@@ -78,8 +78,8 @@
 }
 
 .selectInverse {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-overlay-border);
+  background: var(--color-overlay-subtle);
   color: white;
 }
 
@@ -87,7 +87,7 @@
 .selectInverse:focus {
   border-color: rgba(255, 255, 255, 0.32);
   color: white;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-overlay-medium);
 }
 
 .selectInverse option {
@@ -129,7 +129,7 @@
 
 .langNative {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   flex: 1;
 }
@@ -142,6 +142,6 @@
 .langCheck {
   font-size: var(--font-size-sm);
   color: var(--color-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   margin-inline-start: auto;
 }

@@ -34,7 +34,7 @@
 .title {
   margin: 0;
   font-size: var(--font-size-lg);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
 }
 
@@ -50,10 +50,10 @@
   gap: var(--spacing-xs);
   margin-top: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: var(--color-primary);
   color: var(--color-text-on-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .compact .title {

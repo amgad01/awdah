@@ -10,7 +10,7 @@
   align-items: center;
   gap: 0.3rem;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
 }
 
@@ -25,7 +25,7 @@
   background: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
     border-color var(--transition-fast),
@@ -98,7 +98,7 @@
   flex: 1;
   text-align: center;
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 
@@ -112,7 +112,7 @@
 .weekDay {
   text-align: center;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-muted);
   padding: 0.25rem 0;
 }
@@ -130,7 +130,7 @@
   justify-content: center;
   aspect-ratio: 1;
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   border-radius: var(--border-radius-sm);
   color: var(--color-text-primary);
   transition:
@@ -146,7 +146,7 @@
 .daySelected {
   background: var(--color-primary) !important;
   color: var(--color-text-on-primary) !important;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .dayDisabled {
