@@ -55,7 +55,7 @@ Any time a table is restored from S3 or PITR:
 
 ### 3.3 Tombstone Pruning
 
-Tombstone records are deleted after **90 days** by a automated cleanup job (`TombstoneCleanupFn`). At this point, the S3 backups containing that user's data have transitioned to Glacier or expired, and the PITR window has closed.
+Tombstone records are automatically deleted by **DynamoDB TTL** after **90 days** (using the `expiresAt` attribute). At this point, the S3 backups containing that user's data have transitioned to Glacier or expired, and the PITR window has closed.
 
 ---
 
