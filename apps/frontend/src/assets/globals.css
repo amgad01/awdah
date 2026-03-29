@@ -55,16 +55,51 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-heavy: 0 24px 60px rgba(0, 0, 0, 0.18);
 
   /* Alpha color tokens (avoid scatter of inline rgba) */
   --color-primary-alpha-10: rgba(0, 77, 64, 0.1);
   --color-primary-alpha-5: rgba(0, 121, 107, 0.05);
   --color-accent-alpha-12: rgba(212, 175, 55, 0.12);
   --color-accent-alpha-5: rgba(212, 175, 55, 0.05);
+  --color-success-alpha-8: rgba(46, 125, 50, 0.08);
+  --color-error-alpha-10: rgba(211, 47, 47, 0.1);
+  --color-error-alpha-20: rgba(211, 47, 47, 0.2);
+
+  /* Glass/Overlay tokens — for elements placed on dark/primary-coloured backgrounds.
+     These do not change between light and dark mode because the backgrounds
+     they sit on are always dark (nav bar, hero panels, auth screen). */
+  --color-surface-glass: rgba(255, 255, 255, 0.96);
+  --color-surface-glass-tint: rgba(255, 255, 255, 0.97);
+  --color-on-accent-dark: #1f1801;
+  --color-overlay-subtle: rgba(255, 255, 255, 0.08);
+  --color-overlay-medium: rgba(255, 255, 255, 0.12);
+  --color-overlay-hover: rgba(255, 255, 255, 0.14);
+  --color-overlay-border: rgba(255, 255, 255, 0.18);
+  --color-overlay-active: rgba(255, 255, 255, 0.2);
+  --color-on-dark-high: rgba(255, 255, 255, 0.92);
+  --color-on-dark-medium: rgba(255, 255, 255, 0.88);
+  --color-on-dark-secondary: rgba(255, 255, 255, 0.84);
+  --color-on-dark-low: rgba(255, 255, 255, 0.8);
+  --color-on-dark-muted: rgba(255, 255, 255, 0.7);
+  --color-backdrop: rgba(0, 0, 0, 0.45);
+
+  /* Typography — font weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Borders */
+  --border-radius-pill: 999px;
+  --border-radius-circle: 50%;
 
   /* Transitions */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
+  --transition-button: transform 0.15s ease, opacity 0.15s ease;
 }
 
 /* ── Dark Mode ──
@@ -97,6 +132,9 @@
     --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
     --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
     --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+    --color-success-alpha-8: rgba(102, 187, 106, 0.1);
+    --color-error-alpha-10: rgba(239, 83, 80, 0.12);
+    --color-error-alpha-20: rgba(239, 83, 80, 0.25);
   }
 }
 
@@ -127,6 +165,9 @@
   --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
   --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
   --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+  --color-success-alpha-8: rgba(102, 187, 106, 0.1);
+  --color-error-alpha-10: rgba(239, 83, 80, 0.12);
+  --color-error-alpha-20: rgba(239, 83, 80, 0.25);
 }
 
 /* Global animation keyframes — reference these in CSS modules without redefining */
@@ -210,4 +251,93 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--color-primary-light);
   outline-offset: 2px;
+}
+
+/* ── Utility Classes ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background-color: var(--color-divider);
+  border-color: var(--color-text-muted);
+}
+
+.btnDanger {
+  background-color: transparent;
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.btnDanger:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-error) 8%, transparent);
+}
+
+.btnWarning {
+  background-color: transparent;
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.btnWarning:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-warning) 8%, transparent);
+}
+
+.inputField {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-light) 15%, transparent);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-divider);
+  margin: var(--spacing-md) 0;
+  border: none;
 }

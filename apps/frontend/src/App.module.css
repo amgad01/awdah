@@ -11,14 +11,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, #004d40 100%);
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
 }
 
 .statusCard {
   width: min(100%, 28rem);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--color-surface-glass);
   border-radius: var(--border-radius-xl);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-heavy);
   padding: var(--spacing-xl);
   text-align: center;
   display: flex;
@@ -33,7 +33,7 @@
 
 .statusTitle {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -50,11 +50,10 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: 999px;
-  border: none;
+  border-radius: var(--border-radius-pill);
   background: var(--color-primary);
   color: var(--color-text-on-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition:
     transform 0.15s ease,
@@ -70,9 +69,9 @@
   min-height: 100vh;
   padding: var(--spacing-lg);
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.22), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(0, 121, 107, 0.18), transparent 28%),
-    linear-gradient(135deg, var(--color-primary-dark) 0%, #004d40 56%, #01261f 100%);
+    radial-gradient(circle at top left, var(--color-accent-alpha-12), transparent 30%),
+    radial-gradient(circle at bottom right, var(--color-primary-alpha-10), transparent 28%),
+    linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 56%, #01261f 100%);
 }
 
 .publicFrame {
@@ -102,7 +101,7 @@
 
 .publicBrandEn {
   font-size: 1.25rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   letter-spacing: -0.03em;
 }
 
@@ -112,7 +111,7 @@
 
 .publicBrandAr {
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   opacity: 0.9;
 }
 
@@ -126,16 +125,16 @@
   display: inline-flex;
   align-items: center;
   padding: 0.55rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius-pill);
+  border: 1px solid var(--color-overlay-hover);
+  background: var(--color-overlay-subtle);
   color: white;
   text-decoration: none;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .publicTopLink:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--color-overlay-hover);
 }
 
 .authShell {
@@ -148,7 +147,7 @@
 
 .authTitle {
   font-size: clamp(2.75rem, 7vw, 5rem);
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   color: white;
   letter-spacing: -0.05em;
   line-height: 0.95;
@@ -156,7 +155,7 @@
 }
 
 .authSubtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-on-dark-low);
   font-size: 1.08rem;
   line-height: 1.7;
   margin: 0;
@@ -180,12 +179,12 @@
 .heroBadge {
   width: fit-content;
   padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-pill);
+  background: var(--color-overlay-hover);
+  border: 1px solid var(--color-overlay-active);
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.04em;
 }
 
@@ -202,8 +201,8 @@
   align-items: center;
   justify-content: center;
   padding: 0.85rem 1.2rem;
-  border-radius: 999px;
-  font-weight: 700;
+  border-radius: var(--border-radius-pill);
+  font-weight: var(--font-weight-bold);
   font-size: 0.96rem;
   text-decoration: none;
   transition:
@@ -214,17 +213,17 @@
 
 .heroPrimary {
   background: var(--color-accent);
-  color: #1f1801;
+  color: var(--color-on-accent-dark);
 }
 
 .heroSecondary {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--color-overlay-border);
 }
 
 .heroTertiary {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--color-on-dark-high);
   background: transparent;
   border: 1px dashed rgba(255, 255, 255, 0.25);
 }
@@ -243,8 +242,8 @@
 
 .statPill {
   padding: 0.55rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius-pill);
+  background: var(--color-overlay-subtle);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.88rem;
@@ -259,7 +258,7 @@
 .featureCard {
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-overlay-subtle);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(14px);
 }
@@ -268,7 +267,7 @@
   margin: 0 0 var(--spacing-xs);
   color: white;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
 }
 
 .featureText {
@@ -285,8 +284,8 @@
   gap: var(--spacing-md);
   padding: clamp(var(--spacing-lg), 4vw, var(--spacing-xl));
   border-radius: calc(var(--border-radius-xl) + 8px);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  background: var(--color-surface-glass);
+  box-shadow: var(--shadow-heavy);
 }
 
 .authBranding {
@@ -299,7 +298,7 @@
   margin: 0;
   color: var(--color-primary);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -307,7 +306,7 @@
 .authPanelTitle {
   margin: 0;
   font-size: 1.8rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   color: var(--color-text-primary);
 }
 
@@ -336,7 +335,7 @@
   margin: 0;
   color: white;
   font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   letter-spacing: -0.04em;
   line-height: 0.96;
 }
@@ -355,7 +354,7 @@
   padding: clamp(var(--spacing-lg), 4vw, var(--spacing-xl));
   border-radius: calc(var(--border-radius-xl) + 4px);
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--color-overlay-hover);
   backdrop-filter: blur(14px);
 }
 
@@ -363,7 +362,7 @@
   margin: 0;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -372,13 +371,13 @@
   margin: 0;
   color: white;
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   line-height: 1.2;
 }
 
 .learnCtaText {
   margin: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-on-dark-low);
   line-height: 1.7;
 }
 
@@ -395,26 +394,26 @@
   align-items: center;
   justify-content: center;
   padding: 0.8rem 1.05rem;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .learnPrimary {
   background: var(--color-accent);
-  color: #1f1801;
+  color: var(--color-on-accent-dark);
 }
 
 .learnSecondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-overlay-subtle);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--color-overlay-border);
 }
 
 .learnSurface {
   border-radius: calc(var(--border-radius-xl) + 8px);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  background: var(--color-surface-glass-tint);
+  box-shadow: var(--shadow-heavy);
   padding: clamp(var(--spacing-lg), 4vw, var(--spacing-xl));
 }
 
