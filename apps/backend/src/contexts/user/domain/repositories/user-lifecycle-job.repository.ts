@@ -1,6 +1,11 @@
 import type { UserDataExport } from '../services/user-data-lifecycle.service.interface';
 
-export const USER_LIFECYCLE_JOB_TYPES = ['export', 'delete-account'] as const;
+export const USER_LIFECYCLE_JOB_TYPES = [
+  'export',
+  'delete-account',
+  'reset-prayers',
+  'reset-fasts',
+] as const;
 export type UserLifecycleJobType = (typeof USER_LIFECYCLE_JOB_TYPES)[number];
 
 export const USER_LIFECYCLE_JOB_STATUSES = [

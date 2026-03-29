@@ -122,10 +122,6 @@ export class DynamoDBPrayerLogRepository
     });
   }
 
-  async clearAll(userId: string): Promise<void> {
-    await this.deleteAll({ pk: userId });
-  }
-
   protected encodeKeys(log: PrayerLog): DomainKeys {
     return {
       pk: log.userId,

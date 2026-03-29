@@ -52,6 +52,20 @@ export class ProcessUserLifecycleJobUseCase {
         });
       }
 
+      if (job.type === 'reset-prayers') {
+        await this.userDataLifecycleService.resetPrayerLogs(command.userId);
+        return this.jobRepository.markCompleted(command.userId, command.jobId, {
+          completedAt: new Date().toISOString(),
+        });
+      }
+
+      if (job.type === 'reset-fasts') {
+        await this.userDataLifecycleService.resetFastLogs(command.userId);
+        return this.jobRepository.markCompleted(command.userId, command.jobId, {
+          completedAt: new Date().toISOString(),
+        });
+      }
+
       await this.userDataLifecycleService.deleteUserData(command.userId);
 
       const RETENTION_DAYS = 90;

@@ -59,7 +59,6 @@ export const deletePracticingPeriodUseCase = new DeletePracticingPeriodUseCase(p
 export const getPrayerHistoryUseCase = new GetPrayerHistoryUseCase(prayerLogRepo);
 export const getPrayerHistoryPageUseCase = new GetPrayerHistoryPageUseCase(prayerLogRepo);
 export const deletePrayerLogUseCase = new DeletePrayerLogUseCase(prayerLogRepo);
-export const resetPrayerLogsUseCase = new ResetPrayerLogsUseCase(prayerLogRepo);
 
 // Sawm Use Cases
 export const logFastUseCase = new LogFastUseCase(fastLogRepo);
@@ -73,7 +72,6 @@ export const getSawmDebtUseCase = new GetSawmDebtUseCase(
 export const getFastHistoryUseCase = new GetFastHistoryUseCase(fastLogRepo);
 export const getFastHistoryPageUseCase = new GetFastHistoryPageUseCase(fastLogRepo);
 export const deleteFastLogUseCase = new DeleteFastLogUseCase(fastLogRepo);
-export const resetFastLogsUseCase = new ResetFastLogsUseCase(fastLogRepo);
 
 // User Use Cases
 export const getUserSettingsUseCase = new GetUserSettingsUseCase(userRepo);
@@ -96,6 +94,14 @@ export const finalizeDeleteAccountUseCase = new FinalizeDeleteAccountUseCase(
   cognitoAdminService,
 );
 export const exportDataUseCase = new ExportDataUseCase(
+  userLifecycleJobRepo,
+  userLifecycleJobDispatcher,
+);
+export const resetPrayerLogsUseCase = new ResetPrayerLogsUseCase(
+  userLifecycleJobRepo,
+  userLifecycleJobDispatcher,
+);
+export const resetFastLogsUseCase = new ResetFastLogsUseCase(
   userLifecycleJobRepo,
   userLifecycleJobDispatcher,
 );

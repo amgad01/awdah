@@ -130,6 +130,34 @@ export class DynamoDBUserDataLifecycleService
     }
   }
 
+  async resetPrayerLogs(userId: string): Promise<void> {
+    await this.resetTableForUser(userId, 'prayerLogs');
+  }
+
+  async resetFastLogs(userId: string): Promise<void> {
+    await this.resetTableForUser(userId, 'fastLogs');
+  }
+
+  private async resetTableForUser(userId: string, tableKey: string): Promise<void> {
+    const table = USER_MANAGED_TABLES.find((t) => t.key === tableKey);
+    if (!table) throw new Error(`Unknown table key: ${tableKey}`);
+
+    await this.forEachManagedTablePage(
+      table,
+      userId,
+      async (items) => {
+        await this.deleteKeysInBatches(
+          table.tableName,
+          items.map((item) => ({
+            [table.pkName]: item[table.pkName],
+            [table.skName]: item[table.skName],
+          })),
+        );
+      },
+      `${table.pkName}, ${table.skName}`,
+    );
+  }
+
   async exportUserData(userId: string): Promise<UserDataExport> {
     const result: UserDataExport = {
       exportedAt: new Date().toISOString(),

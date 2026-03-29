@@ -80,10 +80,6 @@ export class DynamoDBFastLogRepository
     await this.deleteItem({ pk: userId, sk: FastLogKey.encodeSk(date.toString(), eventId) });
   }
 
-  async clearAll(userId: string): Promise<void> {
-    await this.deleteAll({ pk: userId });
-  }
-
   protected encodeKeys(log: FastLog): DomainKeys {
     return {
       pk: log.userId,

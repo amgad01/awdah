@@ -16,11 +16,13 @@ export const MESSAGES = {
     PERIOD_UPDATED: 'Practicing period updated successfully',
     PERIOD_DELETED: 'Practicing period deleted',
     PRAYERS_RESET: 'All prayer logs cleared',
+    PRAYERS_RESET_STARTED: 'Prayer log reset started',
   },
   SAWM: {
     FAST_LOGGED: 'Fast logged successfully',
     FAST_DELETED: 'Fast log deleted',
     FASTS_RESET: 'All fast logs cleared',
+    FASTS_RESET_STARTED: 'Fast log reset started',
   },
   SHARED: {
     OPERATION_SUCCESSFUL: 'Operation successful',
