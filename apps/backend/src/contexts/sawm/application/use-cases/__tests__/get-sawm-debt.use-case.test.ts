@@ -17,7 +17,6 @@ describe('GetSawmDebtUseCase', () => {
     findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
-    clearAll: vi.fn(),
   };
   const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), findById: vi.fn(), delete: vi.fn() };
   const mockCalendar = { daysBetween: vi.fn(), getRamadanDays: vi.fn(), today: vi.fn() };

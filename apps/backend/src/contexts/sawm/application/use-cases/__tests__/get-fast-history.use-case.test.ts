@@ -13,8 +13,7 @@ describe('GetFastHistoryUseCase', () => {
     findByUserAndDateRange: vi.fn(),
     findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
-    clearAll: vi.fn(),
-  };
+  } as unknown as IFastLogRepository;
 
   const useCase = new GetFastHistoryUseCase(mockRepo);
 

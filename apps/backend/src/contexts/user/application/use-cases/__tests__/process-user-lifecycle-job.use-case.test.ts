@@ -19,6 +19,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
   const mockLifecycleService: IUserDataLifecycleService = {
     deleteUserData: vi.fn(),
     exportUserData: vi.fn(),
+    resetPrayerLogs: vi.fn(),
+    resetFastLogs: vi.fn(),
   };
 
   const mockDeletedUsersRepo: IDeletedUsersRepository = {

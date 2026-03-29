@@ -9,7 +9,6 @@ describe('LogFastUseCase', () => {
     findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
-    clearAll: vi.fn(),
   };
 
   const useCase = new LogFastUseCase(mockRepo);
