@@ -26,6 +26,16 @@
     "load:burst": "node scripts/load-burst-smoke.mjs",
     "restore:s3": "ts-node infra/scripts/restore-from-s3.ts",
     "restore:sanitize": "ts-node infra/scripts/restore-sanitize.ts",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:quick": "./scripts/deploy.sh --quick",
+    "deploy:hotswap": "./scripts/deploy.sh --skip-bootstrap --skip-build --hotswap",
+    "deploy:parallel": "./scripts/deploy.sh --skip-bootstrap --skip-build --parallel",
+    "deploy:skip-setup": "./scripts/deploy.sh --skip-bootstrap --skip-build",
+    "deploy:all": "./scripts/deploy-all.sh",
+    "deploy:frontend": "./scripts/deploy-frontend.sh",
+    "deploy:stack": "./scripts/deploy-stack.sh",
+    "destroy": "./scripts/destroy.sh",
+    "destroy:stack": "./scripts/destroy-stack.sh",
     "prepare": "husky || true"
   },
   "engines": {
