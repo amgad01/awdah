@@ -41,26 +41,30 @@
 
 .logoText {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--spacing-xs);
+  line-height: 1;
 }
 
 .logoEn {
   font-weight: var(--font-weight-extrabold);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .logoAr {
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
-  opacity: 0.85;
+  font-size: var(--font-size-md);
+  opacity: 0.8;
+  line-height: 1;
 }
 
 .logoDivider {
-  opacity: 0.35;
-  font-size: var(--font-size-md);
+  opacity: 0.25;
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-regular);
+  line-height: 1;
 }
 
 /* keep .logo for any legacy references */
@@ -121,6 +125,12 @@
     flex-direction: column;
     align-items: flex-start;
     padding: var(--spacing-xl) var(--spacing-md);
+  }
+
+  .logoLink {
+    margin-inline-end: 0;
+    margin-block-end: var(--spacing-xl);
+    width: 100%;
   }
 
   .logo {

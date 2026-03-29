@@ -35,6 +35,11 @@ const DemoPage = lazy(() =>
 const AboutPage = lazy(() =>
   import('@/features/about/about-page').then((module) => ({ default: module.AboutPage })),
 );
+const ContributingPage = lazy(() =>
+  import('@/features/contributing/contributing-page').then((module) => ({
+    default: module.ContributingPage,
+  })),
+);
 const OnboardingWizard = lazy(() =>
   import('@/features/onboarding/onboarding-wizard').then((module) => ({
     default: module.OnboardingWizard,
@@ -100,6 +105,7 @@ export const AuthenticatedApp: React.FC = () => {
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/demo" element={<DemoPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contribute" element={<ContributingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="*" element={<NotFound />} />

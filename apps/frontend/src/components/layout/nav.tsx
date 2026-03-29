@@ -10,6 +10,7 @@ import {
   BookOpen,
   PlayCircle,
   Info,
+  Users,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -96,6 +97,14 @@ export const Nav: React.FC = () => {
         >
           <Info size={20} />
           <span>{t('nav.about')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/contribute"
+          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+        >
+          <Users size={20} />
+          <span>{t('nav.contributing')}</span>
         </NavLink>
       </div>
 

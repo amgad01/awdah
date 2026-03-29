@@ -1,0 +1,316 @@
+{
+  "hero_badge": "Open Source · Free",
+  "hero_title": "Contribute to Awdah",
+  "hero_subtitle": "Awdah is a free, open-source project built with care for the Muslim community. Every contribution — code, translation, or scholarly review — is given voluntarily and makes a real difference.",
+  "oss_note": "Awdah is open source. All contributors give their time freely.",
+  "github_link": "https://github.com/amgad01/awdah/blob/main/CONTRIBUTING.md",
+  "github_link_label": "View contributing guide on GitHub",
+  "contact_link": "https://www.linkedin.com/in/amgad-m/",
+  "contact_label": "Contact on LinkedIn",
+  "sections": [
+    {
+      "id": "scholars",
+      "badge": "Spiritual Accuracy",
+      "badge_variant": "accent",
+      "icon": "BookOpen",
+      "title": "Scholar Review & Fiqh Validation",
+      "body": "Awdah bases its calculation logic on well-known scholarly positions. All rulings have a verified flag — any entry marked verified: false must not be shown to users until a qualified scholar confirms it. If you have Islamic Studies training or access to a qualified teacher, this is the highest-impact area you can contribute to.",
+      "items": [
+        {
+          "id": "validate_references",
+          "title": "Review and verify fiqh references",
+          "description": "Browse the references in the Learn section of the app. Each reference shows a ruling and its source. If you can verify the source is authentic and the ruling is accurately represented, submit a PR marking it verified: true with your citation. If you spot an error, raise a GitHub issue with detail.",
+          "steps": [
+            "Open the Learn section in the app to browse all rulings",
+            "Each ruling displays the scholarly source and madhab — review it against primary or secondary sources",
+            "If correct: clone the repo, set verified: true in the relevant content file under apps/frontend/src/content/, and open a PR describing your verification",
+            "If incorrect or misleading: open a GitHub issue with the rule ID, the source you found, and your suggested correction"
+          ]
+        },
+        {
+          "id": "arabic_terms",
+          "title": "Review Arabic religious terminology",
+          "description": "Technical Islamic terms in the UI should be accurate, culturally appropriate, and grammatically correct in Arabic. If you are a native Arabic speaker with familiarity in fiqh terminology, review the Arabic translation file for any mistranslation or awkward phrasing in religious context.",
+          "steps": [
+            "Open apps/frontend/src/i18n/ar.json",
+            "Review phrasing around prayer names, qadaa/qadha, bulugh, and fasting terms",
+            "Open a PR with changes and a brief explanation of why the new phrasing is more accurate",
+            "Optionally note the reference or madhab your phrasing follows"
+          ]
+        },
+        {
+          "id": "bulugh_ruling",
+          "title": "Validate the bulugh calculation logic",
+          "description": "The app defaults to 15 Hijri years from date of birth when the user does not know their bulugh date. This follows the Hanafi, Shafi'i, and Hanbali positions. If you believe this default should be surfaced differently or that additional madhab nuance is missing, raise an issue or propose a change with scholarly support.",
+          "steps": [
+            "Review the onboarding flow — particularly the bulugh date helper",
+            "Compare the displayed explanation against the positions of the four major madhabs",
+            "Open a GitHub issue with your scholarly reference if you believe a correction or clarification is needed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "frontend",
+      "badge": "v1 Frontend",
+      "badge_variant": "primary",
+      "icon": "Monitor",
+      "title": "Frontend Improvements",
+      "body": "The frontend is built in React 19 with TypeScript, i18next for translations, CSS Modules for scoped styles, and TanStack Query for server state. All logic relating to religious calculations lives in the backend — frontend components are pure display and user interaction.",
+      "items": [
+        {
+          "id": "loading_skeletons",
+          "title": "Add loading skeleton states",
+          "description": "Currently the app shows a simple spinner while data loads. Skeleton screens (placeholder grey block layouts matching the shape of the real content) provide a smoother experience and reduce perceived load time. Each card and section that fetches data is a candidate."
+        },
+        {
+          "id": "accessibility",
+          "title": "Accessibility audit and fixes",
+          "description": "The app targets WCAG 2.1 AA compliance. Run aXe or Lighthouse on each screen and fix any level A or AA violations. Common gaps: focus ring visibility, missing ARIA labels on icon-only buttons, insufficient colour contrast on muted text in dark mode."
+        },
+        {
+          "id": "prayer_logger_ux",
+          "title": "Prayer logger UX improvements",
+          "description": "The daily prayer logger is used every day. Small improvements here have large impact: swipe to mark on mobile, better visual feedback when a prayer is logged, an undo mechanism for accidental taps. Design proposals welcome — open an issue first to discuss before building."
+        },
+        {
+          "id": "responsive_issues",
+          "title": "Fix responsive layout gaps",
+          "description": "Some screens have minor layout issues at 320px viewport width or in landscape orientation on small phones. Test each screen at 320×568px and fix any overflow, truncation, or touch-target-size issues (minimum 44×44px per WCAG)."
+        },
+        {
+          "id": "rtl_polish",
+          "title": "RTL layout polish",
+          "description": "Arabic is a first-class language in Awdah. Run through every screen with the language set to Arabic and check for layout problems: icon alignment, number direction (use fmtNumber() from use-language), flex-direction, animation direction. Logical CSS properties must be used throughout — no margin-left or padding-right."
+        },
+        {
+          "id": "empty_states",
+          "title": "Improve empty state screens",
+          "description": "Every screen that can have no data needs a warm, specific empty state with a call to action. Review the designs in the private-docs/design-vision.md and implement any empty states that are currently generic or missing."
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "badge": "v1 Backend",
+      "badge_variant": "primary",
+      "icon": "Server",
+      "title": "Backend Improvements",
+      "body": "The backend is Node.js with TypeScript, deployed as AWS Lambda functions. It follows Clean Architecture and DDD — domain logic is strictly separated from AWS infrastructure. All religious calculations run exclusively in the backend.",
+      "items": [
+        {
+          "id": "test_coverage",
+          "title": "Expand unit test coverage",
+          "description": "Domain entities and use cases are the highest priority for test coverage. Run npm run test --workspace=apps/backend to see what is currently covered, then add tests for any use case that is missing coverage. Tests live in __tests__/ folders next to the code they test. No snapshot tests — test behaviour, not implementation details."
+        },
+        {
+          "id": "integration_tests",
+          "title": "Add integration tests for Lambda handlers",
+          "description": "Lambda handlers should have integration tests that mock the AWS SDK and test the full request-response cycle including validation, error handling, and correct status codes. Follow the pattern of existing handler tests in apps/backend/src/__tests__/."
+        },
+        {
+          "id": "validation_hardening",
+          "title": "Input validation hardening",
+          "description": "All Lambda handlers validate input at the boundary. Review each handler for edge cases: overlapping practicing periods, practicing periods after today, bulugh dates in the future, Ramadan dates in far-future Hijri years. Each missing validation should be a separate, focused PR."
+        },
+        {
+          "id": "error_messages",
+          "title": "Improve validation error messages",
+          "description": "When the API returns a 400 error, the message should be specific enough for the frontend to surface helpful copy to the user. Review the existing ValidationError messages and improve any that are too vague (e.g. 'Invalid date range' → 'The end date of a practicing period cannot be in the future')."
+        },
+        {
+          "id": "hijri_edge_cases",
+          "title": "Hijri calendar edge case testing",
+          "description": "The Sawm debt calculation depends on accurate Ramadan day counts and correct Hijri date arithmetic. Write unit tests that exercise the calculation across century boundaries, Hijri year 1445–1500, and edge cases like a practicing period starting on the first day of Ramadan."
+        }
+      ]
+    },
+    {
+      "id": "translations",
+      "badge": "Translations",
+      "badge_variant": "success",
+      "icon": "Globe",
+      "title": "Improve Existing Translations",
+      "body": "The app ships in English and Arabic. Both translation files are in apps/frontend/src/i18n/. If you find awkward phrasing, mistranslations, or copy that does not match the app's compassionate, non-judgmental tone — please fix it.",
+      "items": [
+        {
+          "id": "arabic_review",
+          "title": "Full Arabic translation review",
+          "description": "Review ar.json from start to finish. Focus especially on spiritually sensitive screens: the onboarding result screen (where the debt total is first shown), the dashboard encouragement copy, and the guidance cards on the Salah and Sawm pages. The tone must be warm, direct, and non-judgmental.",
+          "steps": [
+            "Open apps/frontend/src/i18n/ar.json",
+            "Run the app in Arabic (switch from the language toggle) and read through every screen",
+            "Note any strings that feel translated rather than native, or that use incorrect Islamic terminology",
+            "Submit a PR with the corrected strings and a brief plain-language explanation of the reason for each change"
+          ]
+        },
+        {
+          "id": "english_tone",
+          "title": "English copy review for tone and clarity",
+          "description": "English copy should be clear, kind, and free of jargon. Review en.json for any text that uses clinical language, sounds transactional, or could feel judgemental to a user who has a large debt. Do not use 'debt outstanding', 'overdue', or 'owe' — use 'remaining', 'on your journey', or equivalent."
+        },
+        {
+          "id": "public_data_files",
+          "title": "Review and improve the public content files",
+          "description": "The About, Contributing, and FAQ pages load their content from JSON files in apps/frontend/public/data/. These are not part of the compiled bundle and can be improved without a code change. Review about-en.json, about-ar.json, contributing-en.json, and contributing-ar.json for accuracy and tone."
+        }
+      ]
+    },
+    {
+      "id": "new_language",
+      "badge": "New Language",
+      "badge_variant": "info",
+      "icon": "Languages",
+      "title": "Add a New Language",
+      "body": "The translation infrastructure is designed so that adding a new language requires only two steps: a translation JSON file and a single entry in the language manifest. No other code changes are needed. The language switcher automatically includes the new language and the entire app renders in it.",
+      "items": [
+        {
+          "id": "add_language_steps",
+          "title": "Step-by-step: adding a new language",
+          "description": "Follow these steps exactly. If you have questions or want to coordinate with others, reach out on LinkedIn: linkedin.com/in/amgad-m/",
+          "steps": [
+            "Fork the repository on GitHub and clone your fork locally",
+            "Copy apps/frontend/src/i18n/en.json and name it with your language code — for example fr.json for French, tr.json for Turkish, ur.json for Urdu",
+            "Translate all string values in the new file. Do not change any keys — only translate the values. Keep {{variable}} placeholders exactly as they are",
+            "Open apps/frontend/src/i18n/languages.json and add an entry for your language. Example for French: { \"code\": \"fr\", \"name\": \"French\", \"nativeName\": \"Français\", \"shortLabel\": \"FR\", \"dir\": \"ltr\" }. For right-to-left languages like Urdu, set dir: \"rtl\"",
+            "Run npm run dev:frontend — the language switcher will automatically show your new language",
+            "Go through the app screen by screen in your new language and fix any translation that looks wrong in context",
+            "Also translate the public content files: copy apps/frontend/public/data/about-en.json to about-fr.json (or your code) and translate all values",
+            "Run the full test suite: npm run test. Fix any failures",
+            "Commit your changes with: git commit -m 'feat: add French translation'",
+            "Open a pull request against the main branch of the original repo. Describe the language you added and note any strings you were unsure about so a reviewer can double-check them"
+          ]
+        },
+        {
+          "id": "rtl_languages",
+          "title": "Notes for right-to-left languages",
+          "description": "If you are adding a RTL language (Arabic script, Urdu, Farsi, Hebrew), set dir: 'rtl' in the SUPPORTED_LANGUAGES entry. The app already uses CSS logical properties throughout (margin-inline-start, padding-inline-end) so layout will flip automatically. Run every screen in RTL and fix any directional issues you find. Do not use margin-left, padding-right, or similar directional properties in any CSS you add."
+        }
+      ]
+    }
+  ],
+  "pr_title": "How to Submit a Pull Request",
+  "pr_intro": "All contributions go through a pull request on GitHub. There is no approval gate before you start — fork the repo and get going. The steps below cover the full workflow.",
+  "pr_steps": [
+    {
+      "step": 1,
+      "title": "Fork and clone the repository",
+      "body": "Go to github.com/amgad01/awdah and click Fork. Then clone your fork: git clone https://github.com/YOUR_USERNAME/awdah.git && cd awdah"
+    },
+    {
+      "step": 2,
+      "title": "Create a feature branch",
+      "body": "Branch from main using the naming convention: git checkout -b feat/your-feature-name or fix/what-you-are-fixing. Use the types feat, fix, chore, docs, refactor, test, or infra."
+    },
+    {
+      "step": 3,
+      "title": "Install dependencies and start the local environment",
+      "body": "Run npm install to install all dependencies. Then start LocalStack for the AWS simulation: docker compose -f docker/docker-compose.yml up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
+    },
+    {
+      "step": 4,
+      "title": "Make your changes",
+      "body": "Follow the conventions in CONTRIBUTING.md — no console.log, no hardcoded display strings (use the translation layer), no directional CSS, no raw any types. For religious content changes, include the scholarly source in your commit message or PR description."
+    },
+    {
+      "step": 5,
+      "title": "Run tests and linting",
+      "body": "Before committing: run npm run lint and npm run test from the root. Both must pass. The pre-commit hook also runs tsc --noEmit — fix any type errors before committing."
+    },
+    {
+      "step": 6,
+      "title": "Commit using Conventional Commits",
+      "body": "Write small, focused commits: git commit -m 'feat: add skeleton loading state to dashboard cards'. Each commit should be one logical change. Do not bundle unrelated changes."
+    },
+    {
+      "step": 7,
+      "title": "Push and open the PR",
+      "body": "Push your branch: git push origin feat/your-feature-name. Then go to GitHub and open a pull request against the main branch of amgad01/awdah. Fill in the PR description — what you changed, why, and how you tested it."
+    },
+    {
+      "step": 8,
+      "title": "Respond to review feedback",
+      "body": "A review may request changes or ask questions. Please respond within a reasonable time. Once approved and all checks pass, the PR will be merged. Your name will be added to the contributors list on the About page."
+    }
+  ],
+  "v2_badge": "Future · v2",
+  "v2_title": "What we are building next",
+  "v2_intro": "These features are intentionally out of scope for v1 — we wanted to ship something focused and complete before expanding. If you want to help design or start prototyping any of them, open an issue on GitHub and let's talk.",
+  "v2_items": [
+    {
+      "id": "dark_dashboard",
+      "icon": "Moon",
+      "title": "Full dark-theme dashboard redesign",
+      "body": "The v2 dashboard is envisioned as a dark-first design with a deep navy background, gold accent navigation, a vertical prayer timeline on the main screen, and circular arc progress rings. Contributions to the design system and component library would be welcome ahead of the v2 frontend build."
+    },
+    {
+      "id": "kaffarah",
+      "icon": "Calculator",
+      "title": "Kaffarah calculation",
+      "body": "Intentionally broken fasts require kaffarah (expiation) beyond simple qadaa. This involves specific rulings that vary between madhabs and require verified scholarly sources before any calculation can be presented to users."
+    },
+    {
+      "id": "menstruation_exemptions",
+      "icon": "BookOpen",
+      "title": "Female menstruation exemptions for Salah",
+      "body": "Calculating Salah debt for female users requires accounting for monthly exemption periods. This is out of scope for v1 but a critical v2 feature for accuracy. Contributions here require both engineering work and verified fiqh rulings."
+    },
+    {
+      "id": "notifications",
+      "icon": "Bell",
+      "title": "Push notifications and reminders",
+      "body": "Daily reminders for logging prayers, qadaa streaks, and Ramadan alerts. Requires additional AWS infrastructure (SNS, mobile push endpoints) and user-controlled notification settings."
+    },
+    {
+      "id": "offline_pwa",
+      "icon": "Wifi",
+      "title": "Full offline PWA with service worker",
+      "body": "Allow prayer logging without an internet connection, syncing when connectivity is restored. The manifest.json is already in place — the service worker and sync logic are the v2 addition."
+    },
+    {
+      "id": "moon_sighting",
+      "icon": "Moon",
+      "title": "Regional moon sighting support",
+      "body": "v1 uses the standard Hijri calendar for Ramadan day counts. v2 could allow users to select their regional moon sighting authority, which affects Ramadan start and end dates and therefore the Sawm debt calculation."
+    },
+    {
+      "id": "data_export",
+      "icon": "Download",
+      "title": "Self-serve data export",
+      "body": "Users can currently delete their account, but a self-serve export of all their data in a readable format (CSV or JSON) is a planned v2 GDPR feature."
+    },
+    {
+      "id": "additional_languages",
+      "icon": "Languages",
+      "title": "Additional language support",
+      "body": "Urdu, Turkish, French, Indonesian, and Malay are the most-requested languages for the Muslim community worldwide. The translation infrastructure is already built for this — we just need translators."
+    },
+    {
+      "id": "wcag_audit",
+      "icon": "CheckSquare",
+      "title": "WCAG 2.1 AA formal audit",
+      "body": "v1 targets accessible-by-default development. v2 will include a formal third-party WCAG 2.1 AA audit and remediation of any gaps found."
+    },
+    {
+      "id": "prayer_times",
+      "icon": "Clock",
+      "title": "Location-based prayer times and reminders",
+      "body": "A real-time 'Next Prayer' countdown powered by the user's location and a prayer times API. This would add browser push notifications for prayer times, require additional AWS infrastructure, and needs careful handling of location permissions and privacy."
+    },
+    {
+      "id": "sunnah_tracker",
+      "icon": "Star",
+      "title": "Sunnah and Witr prayer tracking",
+      "body": "Optional tracking for Rawatib Sunnah prayers (Mu'akkadah and Ghayr Mu'akkadah) and Witr. This is entirely separate from the qadaa obligation system — it is voluntary tracking for those who want to build consistency in their optional worship."
+    },
+    {
+      "id": "quran_khatma",
+      "icon": "BookOpen",
+      "title": "Quran reader and Khatma tracker",
+      "body": "An integrated Quran viewer with Surah, Juz', and Hizb navigation, and a personal Khatma tracker for recording progress through the Quran. This is a significant scope addition that would benefit from a dedicated contributor."
+    }
+  ],
+  "recognition_title": "Contributor Recognition",
+  "recognition_body": "Every contributor who has a merged PR will be listed in the README on GitHub and on the About page of the app with their name, GitHub profile, and a description of what they contributed. Translation contributors and scholar reviewers are credited by name and role.",
+  "recognition_cta": "After your PR is merged, open a small follow-up PR to add yourself to the contributors array in apps/frontend/public/data/about-en.json and about-ar.json — see CONTRIBUTING.md for the exact format."
+}
