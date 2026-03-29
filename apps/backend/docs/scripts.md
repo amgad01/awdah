@@ -4,11 +4,12 @@ This guide covers the technical scripts used for data recovery, GDPR-compliant s
 
 ## Data Recovery (GPDR & Compliance)
 
-When restoring from a backup (PITR or S3), you MUST perform a sanitization pass to remove data belonging to users who deleted their accounts *between* the backup time and the present day.
+When restoring from a backup (PITR or S3), you MUST perform a sanitization pass to remove data belonging to users who deleted their accounts _between_ the backup time and the present day.
 
 These scripts are located in `infra/scripts/` and integrated into the root `package.json`.
 
 ### 1. Restore from S3
+
 Imports a native DynamoDB JSON export from S3 into a fresh DynamoDB table.
 
 ```bash
@@ -20,6 +21,7 @@ npm run restore:s3 -- --bucket <name> --prefix <path> --table <new-table-name> -
 - **Polling**: Since DynamoDB imports are asynchronous, the script polls every 10 seconds until `COMPLETED`.
 
 ### 2. Restore Sanitize
+
 Cross-references the live `DeletedUsers` tombstone table to "clean" a restored table.
 
 ```bash
@@ -27,7 +29,7 @@ Cross-references the live `DeletedUsers` tombstone table to "clean" a restored t
 npm run restore:sanitize -- --restored-tables <table1> <table2> --pk userId --sk sk
 ```
 
-- **Logic**: It reads the *live* `DeletedUsers` table (which is never backed up) and batch-deletes any item in the *restored* table that matches a deleted `userId`.
+- **Logic**: It reads the _live_ `DeletedUsers` table (which is never backed up) and batch-deletes any item in the _restored_ table that matches a deleted `userId`.
 - **Constraint**: Run this against the restored table BEFORE pointing your Lambda environment variables to it.
 
 ---
@@ -35,6 +37,7 @@ npm run restore:sanitize -- --restored-tables <table1> <table2> --pk userId --sk
 ## Background Maintenance
 
 ### Tombstone Cleanup
+
 Automated pruning of the `DeletedUsers` ledger.
 
 - **Threshold**: Records older than 90 days are deleted.
@@ -48,6 +51,7 @@ Automated pruning of the `DeletedUsers` ledger.
 ---
 
 ## Local Dev Utilities
+
 Located in `scripts/`:
 
 - `reset-prayers.sh` / `reset-fasts.sh`: Clear own logs (LocalStack only).
