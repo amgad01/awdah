@@ -73,7 +73,7 @@
 }
 
 .prayerName {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
 }
@@ -85,7 +85,7 @@
 .checkCircle {
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,7 +127,7 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: calc(var(--border-radius-md) - 2px);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   transition: var(--transition-fast);
   white-space: nowrap;
@@ -154,7 +154,7 @@
 }
 
 .dailyDateLabel {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -187,7 +187,7 @@
 
 .uncheckMsg {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -229,7 +229,7 @@
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   background-color: var(--color-error, #d32f2f);
   color: white;
   border: none;
@@ -250,7 +250,7 @@
 }
 
 .dailyDatePrimary {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   line-height: 1.3;
@@ -296,7 +296,7 @@
 .qadaaBtn {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -322,7 +322,7 @@
 .qadaaCount {
   min-width: 28px;
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
 }
@@ -341,7 +341,7 @@
   color: var(--color-text-muted);
   text-align: center;
   padding-block-start: var(--spacing-xs);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .actionError {

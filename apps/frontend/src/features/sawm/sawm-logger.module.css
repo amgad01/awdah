@@ -77,7 +77,7 @@
 }
 
 .text {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
 }
@@ -92,7 +92,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   background-color: var(--color-divider);
   color: var(--color-text-muted);
   transition: var(--transition-fast);
@@ -123,7 +123,7 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: calc(var(--border-radius-md) - 2px);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   transition: var(--transition-fast);
   white-space: nowrap;
@@ -180,7 +180,7 @@
 
 .uncheckMsg {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -222,7 +222,7 @@
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   background-color: var(--color-error, #d32f2f);
   color: white;
   border: none;
@@ -238,9 +238,9 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: 3px var(--spacing-sm);
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   align-self: flex-start;
 }
 

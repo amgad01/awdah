@@ -6,7 +6,7 @@
 
 .title {
   font-size: var(--font-size-xl);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   text-align: center;
   margin-bottom: var(--spacing-sm);
   color: var(--color-primary);
@@ -20,7 +20,7 @@
 }
 
 .errorBanner {
-  background-color: rgba(211, 47, 47, 0.1);
+  background-color: var(--color-error-alpha-10);
   color: var(--color-error);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
@@ -29,7 +29,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   font-size: var(--font-size-sm);
-  border: 1px solid rgba(211, 47, 47, 0.2);
+  border: 1px solid var(--color-error-alpha-20);
 }
 
 .form {
@@ -46,7 +46,7 @@
 
 .inputGroup label {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
 }
 
@@ -85,7 +85,7 @@
   color: white;
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-md);
   transition: var(--transition-fast);
   display: flex;
@@ -117,7 +117,7 @@
 
 .switchBtn {
   color: var(--color-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   margin-inline-start: var(--spacing-xs);
 }
 

@@ -34,7 +34,7 @@
 
 .title {
   font-size: var(--font-size-xxl);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: -0.025em;
 }
 
@@ -54,7 +54,7 @@
 
 .searchLabel {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -84,13 +84,13 @@
   display: inline-flex;
   align-items: center;
   padding: 0.45rem 0.8rem;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
   color: var(--color-primary);
   text-decoration: none;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 /* ── Sections ── */
@@ -106,7 +106,7 @@
 
 .sectionTitle {
   font-size: var(--font-size-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   margin-block-end: var(--spacing-sm);
   padding-block-end: var(--spacing-sm);
@@ -150,7 +150,7 @@
 
 .accordionQuestion {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -189,7 +189,7 @@
 .glossaryTitle {
   margin: 0;
   font-size: var(--font-size-xl);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
 }
 
@@ -218,14 +218,14 @@
 
 .glossaryTerm {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   text-transform: capitalize;
   color: var(--color-text-primary);
 }
 
 .glossaryArabic {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-primary);
 }
 
@@ -250,7 +250,7 @@
 .emptyTitle {
   margin: 0 0 var(--spacing-xs);
   font-size: var(--font-size-lg);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
 }
 
 .emptyText {

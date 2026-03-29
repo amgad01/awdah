@@ -17,7 +17,7 @@
 
 .appName {
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   font-style: italic;
   color: var(--color-primary);
   letter-spacing: -0.03em;
@@ -40,7 +40,7 @@
 .dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   background: var(--color-border);
   transition: background 0.2s ease;
 }
@@ -116,7 +116,7 @@
   border-radius: 8px;
   color: white;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -148,7 +148,7 @@
 
 .stepTitle {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   color: var(--color-text);
   line-height: 1.2;
   margin: 0;
@@ -187,7 +187,7 @@
 
 .label {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -239,7 +239,7 @@
 .calendarToggleBtn.selected {
   background: var(--color-surface);
   color: var(--color-text);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -295,7 +295,7 @@
 
 .radioLabel {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
 }
 
@@ -316,13 +316,13 @@
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .toggleOption.selected {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
 }
 
@@ -347,7 +347,7 @@
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-align: center;
 }
 
@@ -384,7 +384,7 @@
 
 .calculatedDateValue {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-primary);
 }
 
@@ -503,7 +503,7 @@
 
 .periodDatesText {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
 }
 
@@ -539,7 +539,7 @@
   border-radius: 8px;
   color: var(--color-primary);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;
@@ -562,7 +562,7 @@
 
 .periodFormTitle {
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text);
   margin: 0;
 }
@@ -595,7 +595,7 @@
   border-radius: 8px;
   color: white;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
 }
 
@@ -637,7 +637,7 @@
 
 .intentionValue {
   font-size: 2.5rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   color: var(--color-primary);
   text-align: center;
 }
@@ -708,7 +708,7 @@
 
 .resultTitle {
   font-size: 1.8rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   color: var(--color-text);
   margin: 0 0 var(--spacing-xs) 0;
 }
@@ -734,7 +734,7 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
 }
 
 .resultContextBody {
@@ -763,7 +763,7 @@
 
 .debtCardValue {
   font-size: 2rem;
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
   color: var(--color-primary);
 }
 
@@ -811,7 +811,7 @@
   border-radius: 10px;
   color: white;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -830,7 +830,7 @@
 }
 
 .zeroDebtTitle {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-md);
 }
 

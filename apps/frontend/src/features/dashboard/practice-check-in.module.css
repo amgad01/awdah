@@ -38,7 +38,7 @@
 
 .title {
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   color: #92400e;
 }
 
@@ -78,11 +78,11 @@
 .quickAddBtn {
   padding: var(--spacing-xs) var(--spacing-md);
   border: none;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: #f59e0b;
   color: #fff;
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -95,11 +95,11 @@
 .updateBtn {
   padding: var(--spacing-xs) var(--spacing-md);
   border: 1px solid color-mix(in srgb, #f59e0b 50%, var(--color-border));
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -112,7 +112,7 @@
 .stillGoingBtn {
   padding: var(--spacing-xs) var(--spacing-sm);
   border: none;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: transparent;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
@@ -137,7 +137,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--color-backdrop);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -169,7 +169,7 @@
 
 .dialogTitle {
   font-size: var(--font-size-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text);
   margin: 0;
 }
@@ -205,7 +205,7 @@
 
 .prayerName {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
 
@@ -222,7 +222,7 @@
   width: 28px;
   height: 28px;
   border: 1px solid var(--color-border);
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
@@ -252,7 +252,7 @@
   min-width: 28px;
   text-align: center;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
@@ -297,7 +297,7 @@
   background: var(--color-primary);
   color: var(--color-primary-foreground, #fff);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -324,7 +324,7 @@
 
 .doneMsg {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-success, #16a34a);
   text-align: center;
 }

@@ -1,4 +1,3 @@
-/* ── Page Layout ── */
 .page {
   max-width: 640px;
   margin: 0 auto;
@@ -6,17 +5,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ── Hero ── */
@@ -44,11 +32,11 @@
 .heroBadge {
   width: fit-content;
   padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
   color: var(--color-primary);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-bottom: var(--spacing-xs);
@@ -56,7 +44,7 @@
 
 .title {
   font-size: var(--font-size-xxl);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: -0.025em;
 }
 
@@ -88,7 +76,7 @@
 
 .sectionTitle {
   font-size: var(--font-size-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 
@@ -102,10 +90,10 @@
 .avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
@@ -120,7 +108,7 @@
 }
 
 .accountName {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
 }
@@ -178,7 +166,7 @@
 
 .impactPreviewTitle {
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -186,7 +174,7 @@
 
 .impactPreviewDelta {
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
 }
 
 .impactPreviewPositive {
@@ -194,7 +182,7 @@
 }
 
 .impactPreviewNegative {
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
 }
 
 .impactPreviewNeutral {
@@ -251,7 +239,7 @@
 
 .fieldLabel {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
 }
 
@@ -262,7 +250,7 @@
 }
 
 .fieldCurrentVal {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -274,12 +262,12 @@
 
 .fieldWarning {
   font-size: var(--font-size-xs);
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   margin: 0;
   padding: 0.4rem 0.6rem;
   border-radius: var(--border-radius-sm);
-  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-warning, #d97706) 20%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-warning) 20%, var(--color-border));
   border-inline-start-width: 3px;
 }
 
@@ -303,7 +291,7 @@
   background: var(--color-surface);
   color: var(--color-text-primary);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-align: center;
 }
 
@@ -330,7 +318,7 @@
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -355,14 +343,14 @@
   border-radius: var(--border-radius-md);
   color: var(--color-text-on-primary);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all 0.2s;
   width: fit-content;
 }
 
 .saveProfileBtn:hover:not(:disabled) {
-  background: var(--color-primary-dark, #00695c);
+  background: var(--color-secondary);
 }
 
 .saveProfileBtn:disabled {
@@ -404,14 +392,14 @@
 
 .periodDates {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
 .periodDatesSecondary {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .periodType {
@@ -428,8 +416,6 @@
 }
 
 .periodEditBtn {
-  background: none;
-  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   padding: 4px;
@@ -445,8 +431,6 @@
 
 .periodDeleteBtn {
   flex-shrink: 0;
-  background: none;
-  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   padding: 4px;
@@ -470,7 +454,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-primary);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.15s;
   margin-block-start: var(--spacing-sm);
@@ -492,7 +476,7 @@
 }
 
 .periodsEmptyText {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   margin-block-end: var(--spacing-xs);
 }
@@ -565,7 +549,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-text-on-primary);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
 }
 
@@ -589,7 +573,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -632,7 +616,7 @@
 }
 
 .aboutVal {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
 }
 
@@ -671,7 +655,7 @@
 
 .resetItemLabel {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -686,12 +670,11 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: none;
-  border: 1px solid var(--color-warning, #f59e0b);
+  border: 1px solid var(--color-warning);
   border-radius: var(--border-radius-md);
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
@@ -699,7 +682,7 @@
 }
 
 .resetBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 10%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
 }
 
 .resetBtn:disabled {
@@ -741,7 +724,7 @@
 }
 
 .rowLabel {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
 }
@@ -777,7 +760,7 @@
   border: 1.5px solid var(--color-border);
   background: transparent;
   color: var(--color-text);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   cursor: pointer;
   transition: var(--transition-fast);
@@ -793,6 +776,18 @@
   cursor: not-allowed;
 }
 
+.dangerZoneActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.dangerDivider {
+  height: 1px;
+  background: color-mix(in srgb, var(--color-error) 15%, var(--color-divider));
+  margin: var(--spacing-sm) 0;
+}
+
 .deleteBtn {
   display: flex;
   align-items: center;
@@ -803,7 +798,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-error);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s;
   margin-block-start: var(--spacing-sm);
@@ -864,7 +859,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-text-on-primary);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
 }
 
@@ -901,7 +896,7 @@
   color: var(--color-text-primary);
   line-height: 1.5;
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .inlineConfirmPreview {
@@ -932,7 +927,7 @@
 .periodDeleteConfirmMsg {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   margin: 0;
   line-height: 1.5;
 }
@@ -959,7 +954,7 @@
   border-radius: var(--border-radius-md);
   color: var(--color-text-on-primary);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: opacity 0.15s;
 }
@@ -989,12 +984,11 @@
 
 .resetConfirmBtn {
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-warning, #f59e0b);
-  border: none;
+  background: var(--color-warning);
   border-radius: var(--border-radius-md);
   color: #fff;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.15s;

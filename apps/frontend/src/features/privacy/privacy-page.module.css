@@ -10,7 +10,7 @@
 
 .title {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin-block-end: var(--spacing-1);
 }
@@ -26,7 +26,7 @@
 
 .sectionTitle {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin-block-end: var(--spacing-2);
 }

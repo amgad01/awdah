@@ -46,11 +46,11 @@
 .heroBadge {
   width: fit-content;
   padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--border-radius-pill);
   background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
   color: var(--color-primary);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-bottom: var(--spacing-xs);
@@ -58,7 +58,7 @@
 
 .title {
   font-size: var(--font-size-xxl);
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   letter-spacing: -0.025em;
 }
 
@@ -78,7 +78,7 @@
   border: 1.5px solid var(--color-divider);
   background: var(--color-surface);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: var(--transition-fast);
@@ -130,7 +130,7 @@
   align-items: center;
   gap: var(--spacing-xs);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -165,7 +165,7 @@
   border: 1.5px solid var(--color-divider);
   background: var(--color-background);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: var(--transition-fast);
@@ -214,7 +214,7 @@
 }
 
 .summaryNum {
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   font-size: var(--font-size-md);
 }
 
@@ -241,7 +241,7 @@
 
 .emptyTitle {
   font-size: var(--font-size-lg);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-secondary);
 }
 
@@ -266,7 +266,7 @@
 
 .dayLabel {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
@@ -277,7 +277,7 @@
 .dayLabelSec {
   display: block;
   font-size: var(--font-size-xs);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   text-transform: none;
   letter-spacing: normal;
   color: var(--color-text-muted);
@@ -310,7 +310,7 @@
 .entryIcon {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-circle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,7 +336,7 @@
 }
 
 .entryTitle {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
 }
@@ -348,7 +348,7 @@
 
 .entryBadge {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 2px var(--spacing-sm);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
@@ -358,6 +358,16 @@
 .badgePrayer {
   background-color: rgba(0, 77, 64, 0.1);
   color: var(--color-primary);
+}
+
+.badgeObligatory {
+  background-color: rgba(0, 77, 64, 0.1);
+  color: var(--color-primary);
+}
+
+.badgeQadaa {
+  background-color: rgba(212, 175, 55, 0.15);
+  color: color-mix(in srgb, var(--color-accent) 90%, black);
 }
 
 .badgeFast {
@@ -379,7 +389,7 @@
   background-color: color-mix(in srgb, var(--color-info) 12%, transparent);
   color: var(--color-info);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   padding: 2px var(--spacing-sm);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
@@ -432,7 +442,7 @@
   color: var(--color-primary);
   cursor: pointer;
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition: var(--transition-fast);
 }
 
