@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { StatusCodes } from '@awdah/shared';
 
 function createChaosMiddleware(maxFailures: number) {
   let failures = 0;
@@ -11,7 +12,7 @@ function createChaosMiddleware(maxFailures: number) {
       const error = new Error('ProvisionedThroughputExceededException');
       Object.assign(error, {
         name: 'ProvisionedThroughputExceededException',
-        $metadata: { httpStatusCode: 400 },
+        $metadata: { httpStatusCode: StatusCodes.BAD_REQUEST },
       });
       throw error;
     }

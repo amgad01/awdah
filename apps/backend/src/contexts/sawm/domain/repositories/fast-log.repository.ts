@@ -21,5 +21,4 @@ export interface IFastLogRepository {
     },
   ): Promise<FastLogPage>;
   countQadaaCompleted(userId: string): Promise<number>;
-  clearAll(userId: string): Promise<void>;
 }
