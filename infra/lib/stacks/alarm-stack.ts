@@ -70,6 +70,18 @@ export class AlarmStack extends BaseStack {
       1,
     );
 
+    // ── Lifecycle Job DLQ ─────────────────────────────────────────────────────
+    addAlarm(
+      'LifecycleJobDLQAlarm',
+      props.apiStack.lifecycleJobDlq.metricApproximateNumberOfMessagesVisible({
+        period: cdk.Duration.minutes(5),
+        statistic: 'Sum',
+      }),
+      'LifecycleJobDLQ',
+      'User lifecycle job processing failed after retries — manual investigation required',
+      1,
+    );
+
     // ── API Gateway 5xx errors ────────────────────────────────────────────────
     // HTTP API v2 publishes under AWS/ApiGatewayV2 with lowercase metric name.
     addAlarm(
@@ -177,31 +189,13 @@ export class AlarmStack extends BaseStack {
 
     tables.forEach(({ table, label }) => {
       addAlarm(
-        `DDB${label}ReadThrottleAlarm`,
-        table.metricThrottledRequestsForOperations({
-          operations: [cdk.aws_dynamodb.Operation.GET_ITEM, cdk.aws_dynamodb.Operation.QUERY],
+        `DDB${label}ThrottleAlarm`,
+        table.metricThrottledRequestsForOperation(cdk.aws_dynamodb.Operation.GET_ITEM, {
           period: cdk.Duration.minutes(5),
           statistic: 'Sum',
         }),
-        `DDB-${label}-ReadThrottles`,
-        `DynamoDB table ${label} read requests are being throttled`,
-        5,
-        2,
-      );
-
-      addAlarm(
-        `DDB${label}WriteThrottleAlarm`,
-        table.metricThrottledRequestsForOperations({
-          operations: [
-            cdk.aws_dynamodb.Operation.PUT_ITEM,
-            cdk.aws_dynamodb.Operation.UPDATE_ITEM,
-            cdk.aws_dynamodb.Operation.DELETE_ITEM,
-          ],
-          period: cdk.Duration.minutes(5),
-          statistic: 'Sum',
-        }),
-        `DDB-${label}-WriteThrottles`,
-        `DynamoDB table ${label} write requests are being throttled`,
+        `DDB-${label}-Throttles`,
+        `DynamoDB table ${label} requests are being throttled`,
         5,
         2,
       );
@@ -318,29 +312,11 @@ export class AlarmStack extends BaseStack {
 
     operationsDashboard.addWidgets(
       new cloudwatch.GraphWidget({
-        title: 'DynamoDB Read Throttles',
-        width: 12,
+        title: 'DynamoDB Throttles',
+        width: 24,
         height: 6,
         left: tables.map(({ table, label }) =>
-          table.metricThrottledRequestsForOperations({
-            operations: [cdk.aws_dynamodb.Operation.GET_ITEM, cdk.aws_dynamodb.Operation.QUERY],
-            period: cdk.Duration.minutes(5),
-            statistic: 'Sum',
-            label,
-          }),
-        ),
-      }),
-      new cloudwatch.GraphWidget({
-        title: 'DynamoDB Write Throttles',
-        width: 12,
-        height: 6,
-        left: tables.map(({ table, label }) =>
-          table.metricThrottledRequestsForOperations({
-            operations: [
-              cdk.aws_dynamodb.Operation.PUT_ITEM,
-              cdk.aws_dynamodb.Operation.UPDATE_ITEM,
-              cdk.aws_dynamodb.Operation.DELETE_ITEM,
-            ],
+          table.metricThrottledRequestsForOperation(cdk.aws_dynamodb.Operation.GET_ITEM, {
             period: cdk.Duration.minutes(5),
             statistic: 'Sum',
             label,
