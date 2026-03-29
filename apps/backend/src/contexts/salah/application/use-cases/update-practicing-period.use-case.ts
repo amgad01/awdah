@@ -1,7 +1,13 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, NotFoundError, PracticingPeriodType, ConflictError } from '@awdah/shared';
+import {
+  HijriDate,
+  NotFoundError,
+  PracticingPeriodType,
+  ConflictError,
+  ValidationError,
+} from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
 
 export interface UpdatePracticingPeriodCommand {
@@ -31,6 +37,10 @@ export class UpdatePracticingPeriodUseCase {
 
     const startDate = HijriDate.fromString(command.startDate);
     const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
+
+    if (userSettings.dateOfBirth && startDate.isBefore(userSettings.dateOfBirth)) {
+      throw new ValidationError('Practicing period cannot start before your date of birth');
+    }
 
     const updated = new PracticingPeriod({
       userId: command.userId,

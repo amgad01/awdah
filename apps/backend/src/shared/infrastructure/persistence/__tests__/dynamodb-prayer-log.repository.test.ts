@@ -83,7 +83,15 @@ describe('DynamoDBPrayerLogRepository', () => {
 
   it('should count qadaa logs using GSI', async () => {
     ddbMock.on(QueryCommand).resolves({
-      Count: 5,
+      Items: Array(5)
+        .fill(null)
+        .map((_, i) => ({
+          userId,
+          sk: PrayerLogKey.encodeSk(`1445-01-0${i + 1}`, 'fajr', `event-${i}`),
+          type: 'qadaa',
+          action: 'prayed',
+          loggedAt: new Date().toISOString(),
+        })),
     });
 
     const count = await repository.countQadaaCompleted(userId);
@@ -92,8 +100,10 @@ describe('DynamoDBPrayerLogRepository', () => {
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
       IndexName: 'typeDateIndex',
-      Select: 'COUNT',
-      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :type)',
+      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :sk)',
+    });
+    expect(calls[0]!.args[0].input.ExpressionAttributeValues).toMatchObject({
+      ':sk': PrayerLogKey.typeDatePrefixForType('qadaa'),
     });
   });
 
