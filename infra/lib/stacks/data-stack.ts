@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { BaseStack, BaseStackProps } from '../shared/base-stack';
 import { ProjectResourceFactory } from '../shared/resource-factory';
+import { ATTR, INDEX } from '../shared/constants';
 
 export type DataStackProps = BaseStackProps;
 
@@ -17,20 +18,6 @@ export class DataStack extends BaseStack {
     super(scope, id, props);
 
     this.addContextTag('shared');
-
-    // DynamoDB Constants
-    const ATTR = {
-      USER_ID: 'userId',
-      SK: 'sk',
-      TYPE_DATE: 'typeDate',
-      PERIOD_ID: 'periodId',
-      DELETED_AT: 'deletedAt',
-      EXPIRES_AT: 'expiresAt',
-    };
-
-    const INDEX = {
-      TYPE_DATE: 'typeDateIndex',
-    };
 
     // 1. Prayer Logs Table
     this.prayerLogsTable = ProjectResourceFactory.createDynamoDBTable(
