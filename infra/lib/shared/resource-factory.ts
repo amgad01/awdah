@@ -44,7 +44,7 @@ export class ProjectResourceFactory {
     const fn = new lambda_nodejs.NodejsFunction(scope, id, {
       entry: options.entry,
       handler: options.handler ?? 'handler',
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       architecture: lambda.Architecture.ARM_64,
       memorySize: options.memorySize ?? 256,
       timeout: options.timeout ?? config.lambdaTimeout,
@@ -83,6 +83,8 @@ export class ProjectResourceFactory {
       autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
       versioned: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
     });
   }
 

@@ -8,8 +8,8 @@ export interface ProjectConfig {
     readonly rateLimit: number;
     readonly burstLimit: number;
   };
-  readonly protectedMutationConcurrency: number;
-  readonly adminOperationConcurrency: number;
+  readonly protectedMutationConcurrency?: number;
+  readonly adminOperationConcurrency?: number;
   readonly heavyOperationTimeout: cdk.Duration;
   readonly heavyOperationMemorySize: number;
   readonly apiLatencyAlarmMs: number;
@@ -26,8 +26,6 @@ export const CONFIG: Record<string, ProjectConfig> = {
       rateLimit: 250,
       burstLimit: 500,
     },
-    protectedMutationConcurrency: 1,
-    adminOperationConcurrency: 1,
     heavyOperationTimeout: cdk.Duration.seconds(30),
     heavyOperationMemorySize: 512,
     apiLatencyAlarmMs: 3000,
@@ -42,8 +40,6 @@ export const CONFIG: Record<string, ProjectConfig> = {
       rateLimit: 75,
       burstLimit: 150,
     },
-    protectedMutationConcurrency: 1,
-    adminOperationConcurrency: 1,
     heavyOperationTimeout: cdk.Duration.seconds(20),
     heavyOperationMemorySize: 512,
     apiLatencyAlarmMs: 2000,

@@ -32,15 +32,20 @@ if (commit) cdk.Tags.of(app).add('commit', commit);
 if (buildId) cdk.Tags.of(app).add('buildId', buildId);
 
 const dataStack = new DataStack(app, `Awdah-data-stack-${envWithTicket}`, {
+  description:
+    'Awdah Data Stack: DynamoDB tables for prayer logs, fast logs, practicing periods, and user settings.',
   projectEnv: environment,
   ticket,
 });
 const authStack = new AuthStack(app, `Awdah-auth-stack-${envWithTicket}`, {
+  description: 'Awdah Auth Stack: Cognito User Pool and Client for identity/auth.',
   projectEnv: environment,
   ticket,
 });
 
 const apiStack = new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
+  description:
+    'Awdah API Stack: Serverless compute layer with Lambda functions and HTTP API Gateway.',
   projectEnv: environment,
   dataStack,
   authStack,
@@ -49,12 +54,15 @@ const apiStack = new ApiStack(app, `Awdah-api-stack-${envWithTicket}`, {
 });
 
 const backupStack = new BackupStack(app, `Awdah-backup-stack-${envWithTicket}`, {
+  description: 'Awdah Backup Stack: Daily DynamoDB table exports to S3 for disaster recovery.',
   projectEnv: environment,
   dataStack,
   ticket,
 });
 
 new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
+  description:
+    'Awdah Alarm Stack: CloudWatch Dashboard and alarms for observability and health monitoring.',
   projectEnv: environment,
   backupStack,
   apiStack,
