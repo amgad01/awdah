@@ -22,6 +22,7 @@ interface HijriDatePickerProps {
   validate?: (date: HijriDate) => string | null;
   initialHijriParts?: { year: string; month: string; day: string };
   minDate?: string;
+  maxDate?: string;
   disabled?: boolean;
 }
 
@@ -33,6 +34,7 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
   validate,
   initialHijriParts,
   minDate,
+  maxDate,
   disabled = false,
 }) => {
   const { t, language, fmtNumber } = useLanguage();
@@ -104,6 +106,13 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
           return;
         }
       }
+      if (maxDate) {
+        const max = HijriDate.fromString(maxDate);
+        if (hijri.isAfter(max)) {
+          onError(t('onboarding.error_date_after_max'));
+          return;
+        }
+      }
       if (validate) {
         const err = validate(hijri);
         if (err) {
@@ -129,6 +138,13 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
         const min = HijriDate.fromString(minDate);
         if (hijri.isBefore(min)) {
           onError(t('onboarding.error_date_before_min'));
+          return;
+        }
+      }
+      if (maxDate) {
+        const max = HijriDate.fromString(maxDate);
+        if (hijri.isAfter(max)) {
+          onError(t('onboarding.error_date_after_max'));
           return;
         }
       }
@@ -206,6 +222,57 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
     return 1;
   }, [parsedMinDate, gregYear, gregMonth]);
 
+  const parsedMaxDate = useMemo(() => {
+    if (!maxDate) return null;
+    try {
+      return HijriDate.fromString(maxDate);
+    } catch {
+      return null;
+    }
+  }, [maxDate]);
+
+  const maxGregYear = useMemo(() => {
+    if (!parsedMaxDate) return currentYear;
+    return parsedMaxDate.toGregorian().getFullYear();
+  }, [parsedMaxDate, currentYear]);
+
+  const maxHijriYear = useMemo(() => {
+    if (!parsedMaxDate) return HIJRI_YEAR_MAX;
+    return parsedMaxDate.year;
+  }, [parsedMaxDate]);
+
+  const maxHijriMonth = useMemo(() => {
+    if (!parsedMaxDate || !hijriYear || parseInt(hijriYear, 10) !== parsedMaxDate.year)
+      return undefined;
+    return parsedMaxDate.month;
+  }, [parsedMaxDate, hijriYear]);
+
+  const maxHijriDay = useMemo(() => {
+    if (!parsedMaxDate || !hijriYear || !hijriMonth) return undefined;
+    const y = parseInt(hijriYear, 10);
+    const m = parseInt(hijriMonth, 10);
+    if (y === parsedMaxDate.year && m === parsedMaxDate.month) return parsedMaxDate.day;
+    return undefined;
+  }, [parsedMaxDate, hijriYear, hijriMonth]);
+
+  const maxGregMonth = useMemo(() => {
+    if (!parsedMaxDate || !gregYear) return undefined;
+    const gregMax = parsedMaxDate.toGregorian();
+    if (parseInt(gregYear, 10) !== gregMax.getFullYear()) return undefined;
+    return gregMax.getMonth() + 1;
+  }, [parsedMaxDate, gregYear]);
+
+  const maxGregDay = useMemo(() => {
+    if (!parsedMaxDate || !gregYear || !gregMonth) return undefined;
+    const gregMax = parsedMaxDate.toGregorian();
+    if (
+      parseInt(gregYear, 10) === gregMax.getFullYear() &&
+      parseInt(gregMonth, 10) === gregMax.getMonth() + 1
+    )
+      return gregMax.getDate();
+    return undefined;
+  }, [parsedMaxDate, gregYear, gregMonth]);
+
   return (
     <div className={`${styles.picker} ${disabled ? styles.disabled : ''}`}>
       {disabled ? null : (
@@ -258,6 +325,9 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
               minYear={minGregYear}
               minMonth={minGregMonth}
               minDay={minGregDay}
+              maxYear={maxGregYear}
+              maxMonth={maxGregMonth}
+              maxDay={maxGregDay}
               ariaLabelYear={label}
               t={t}
             />
@@ -279,10 +349,12 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
                 handleHijriChange(hijriYear, hijriMonth, v);
               }}
               hijriYearMin={minHijriYear}
-              hijriYearMax={HIJRI_YEAR_MAX}
+              hijriYearMax={maxHijriYear}
               hijriMonthsCount={HIJRI_MONTHS_COUNT}
               hijriMinMonth={minHijriMonth}
               hijriMinDay={minHijriDay}
+              hijriMaxMonth={maxHijriMonth}
+              hijriMaxDay={maxHijriDay}
               maxHijriDaysPerMonth={MAX_HIJRI_DAYS_PER_MONTH}
               hijriMonthKeys={HIJRI_MONTH_KEYS}
               fmtNumber={fmtNumber}

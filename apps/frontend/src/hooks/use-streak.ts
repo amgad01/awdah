@@ -31,10 +31,10 @@ export const useStreak = () => {
     const today = todayHijriDate();
     const activeDays = new Set<string>();
     for (const log of salah.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(log.date);
+      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
     }
     for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(log.date);
+      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
     }
     return computeConsecutiveStreak(activeDays, today);
   }, [salah.data, sawm.data]);
@@ -43,10 +43,10 @@ export const useStreak = () => {
     const today = todayHijriDate();
     const activeDays = new Set<string>();
     for (const log of salah.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(log.date);
+      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
     }
     for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(log.date);
+      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
     }
     let active = 0;
     for (let i = 0; i < ACTIVITY_RATE_WINDOW_DAYS; i++) {
@@ -81,7 +81,7 @@ export const useStreakDetails = () => {
     const prayerDays: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
       if (log.type !== 'qadaa') continue;
-      const day = log.date;
+      const day = gregorianIsoToHijri(log.loggedAt.split('T')[0]);
       if (!prayerDays[log.prayerName]) prayerDays[log.prayerName] = new Set();
       prayerDays[log.prayerName].add(day);
     }
@@ -158,7 +158,7 @@ export const useStreakDetails = () => {
     const today = todayHijriDate();
     const fastDays = new Set<string>();
     for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') fastDays.add(log.date);
+      if (log.type === 'qadaa') fastDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
     }
     return computeConsecutiveStreak(fastDays, today);
   }, [sawm.data]);

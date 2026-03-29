@@ -62,13 +62,15 @@ export const HistoryTimelineEntry: React.FC<HistoryTimelineEntryProps> = ({
           ? t(`onboarding.period_type_${entry.periodKind}`)
           : entry.type === 'covered'
             ? `${t('history.covered_by_period')} · ${t(`onboarding.period_type_${entry.periodKind}`)}`
-            : `${entry.action === 'deselected' ? t('history.action_deselected') : t('history.action_marked')} · ${t('history.prayer_for')} ${entry.logType === 'qadaa' ? t('history.type_qadaa') : t('history.type_obligatory')} · ${formatDual(entry.date).hijri} · ${formatDual(entry.date).gregorian}`}
+            : `${formatDual(entry.date).hijri} · ${formatDual(entry.date).gregorian}`}
       </span>
     </div>
     <div
       className={`${styles.entryBadge} ${
         entry.type === 'prayer'
-          ? styles.badgePrayer
+          ? entry.logType === 'qadaa'
+            ? styles.badgeQadaa
+            : styles.badgeObligatory
           : entry.type === 'fast'
             ? styles.badgeFast
             : entry.type === 'covered'
@@ -77,7 +79,9 @@ export const HistoryTimelineEntry: React.FC<HistoryTimelineEntryProps> = ({
       }`}
     >
       {entry.type === 'prayer'
-        ? t('history.prayer_badge')
+        ? entry.logType === 'qadaa'
+          ? t('history.type_qadaa')
+          : t('history.type_obligatory')
         : entry.type === 'fast'
           ? t('history.fast_badge')
           : entry.type === 'covered'

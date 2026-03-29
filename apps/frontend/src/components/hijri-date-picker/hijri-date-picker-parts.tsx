@@ -15,6 +15,9 @@ interface GregorianDateInputsProps {
   minYear: number;
   minMonth?: number;
   minDay?: number;
+  maxYear?: number;
+  maxMonth?: number;
+  maxDay?: number;
   ariaLabelYear: string;
   t: (key: string) => string;
 }
@@ -32,6 +35,9 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
   minYear,
   minMonth = 1,
   minDay = 1,
+  maxYear,
+  maxMonth,
+  maxDay,
   ariaLabelYear,
   t,
 }) => {
@@ -41,6 +47,12 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
   const effectiveMinMonth = isMinYear ? minMonth : 1;
   const isMinMonth = isMinYear && gregMonth && Number(gregMonth) === minMonth;
   const effectiveMinDay = isMinMonth ? minDay : 1;
+  const effectiveMaxYear = maxYear ?? currentYear;
+  const isMaxYear = gregYear && maxYear !== undefined && Number(gregYear) === maxYear;
+  const effectiveMaxMonth = isMaxYear && maxMonth !== undefined ? maxMonth : 12;
+  const isMaxMonth =
+    isMaxYear && gregMonth && maxMonth !== undefined && Number(gregMonth) === maxMonth;
+  const effectiveMaxDay = isMaxMonth && maxDay !== undefined ? maxDay : daysInMonth;
 
   return (
     <div className={styles.hijriRow}>
@@ -51,8 +63,8 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
         aria-label={ariaLabelYear}
       >
         <option value="">{t('onboarding.greg_year_placeholder')}</option>
-        {Array.from({ length: currentYear - minYear + 1 }, (_, i) => {
-          const y = currentYear - i;
+        {Array.from({ length: effectiveMaxYear - minYear + 1 }, (_, i) => {
+          const y = effectiveMaxYear - i;
           return (
             <option key={y} value={String(y)}>
               {fmtNumber(y)}
@@ -70,6 +82,7 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
         {gregorianMonthNames.map((name, i) => {
           const monthNum = i + 1;
           if (monthNum < effectiveMinMonth) return null;
+          if (monthNum > effectiveMaxMonth) return null;
           return (
             <option key={monthNum} value={String(monthNum)}>
               {name}
@@ -87,6 +100,7 @@ export const GregorianDateInputs: React.FC<GregorianDateInputsProps> = ({
         {Array.from({ length: daysInMonth }, (_, i) => {
           const dayNum = i + 1;
           if (dayNum < effectiveMinDay) return null;
+          if (dayNum > effectiveMaxDay) return null;
           return (
             <option key={dayNum} value={String(dayNum)}>
               {fmtNumber(dayNum)}
@@ -110,6 +124,8 @@ interface HijriDateInputsProps {
   hijriMonthsCount: number;
   hijriMinMonth?: number;
   hijriMinDay?: number;
+  hijriMaxMonth?: number;
+  hijriMaxDay?: number;
   maxHijriDaysPerMonth: number;
   hijriMonthKeys: readonly string[];
   fmtNumber: (n: number) => string;
@@ -128,6 +144,8 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
   hijriMonthsCount,
   hijriMinMonth = 1,
   hijriMinDay = 1,
+  hijriMaxMonth,
+  hijriMaxDay,
   maxHijriDaysPerMonth,
   hijriMonthKeys,
   fmtNumber,
@@ -137,6 +155,16 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
   const effectiveMinMonth = isMinYear ? hijriMinMonth : 1;
   const isMinMonth = isMinYear && hijriMonth && parseInt(hijriMonth, 10) === hijriMinMonth;
   const effectiveMinDay = isMinMonth ? hijriMinDay : 1;
+  const isMaxYear = hijriYear && parseInt(hijriYear, 10) === hijriYearMax;
+  const effectiveMaxMonth =
+    isMaxYear && hijriMaxMonth !== undefined ? hijriMaxMonth : hijriMonthsCount;
+  const isMaxMonth =
+    isMaxYear &&
+    hijriMonth &&
+    hijriMaxMonth !== undefined &&
+    parseInt(hijriMonth, 10) === hijriMaxMonth;
+  const effectiveMaxDay =
+    isMaxMonth && hijriMaxDay !== undefined ? hijriMaxDay : maxHijriDaysPerMonth;
 
   return (
     <div className={styles.hijriRow}>
@@ -166,6 +194,7 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
         {Array.from({ length: hijriMonthsCount }, (_, i) => {
           const monthNum = i + 1;
           if (monthNum < effectiveMinMonth) return null;
+          if (monthNum > effectiveMaxMonth) return null;
           return (
             <option key={monthNum} value={String(monthNum)}>
               {fmtNumber(monthNum)}. {t(hijriMonthKeys[i])}
@@ -183,6 +212,7 @@ export const HijriDateInputs: React.FC<HijriDateInputsProps> = ({
         {Array.from({ length: maxHijriDaysPerMonth }, (_, i) => {
           const dayNum = i + 1;
           if (dayNum < effectiveMinDay) return null;
+          if (dayNum > effectiveMaxDay) return null;
           return (
             <option key={dayNum} value={String(dayNum)}>
               {fmtNumber(dayNum)}

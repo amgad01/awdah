@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useExportData, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
-import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
-import { User, Bell, Languages, Info, Shield, Download, RotateCcw } from 'lucide-react';
+import { User, Bell, Languages, Info, Shield, Download } from 'lucide-react';
 import { SettingsSection } from './components';
 import { ProfileSection, PeriodsSection, LogoutSection, DangerZoneSection } from './sections';
 import type { PeriodLike } from './types';
@@ -19,15 +18,7 @@ export const SettingsPage: React.FC = () => {
   const { data: periods } = usePracticingPeriods();
   const { data: profile } = useProfile();
   const exportData = useExportData();
-  const resetPrayerLogs = useResetPrayerLogs();
-  const resetFastLogs = useResetFastLogs();
 
-  const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
-  const [resetFeedback, setResetFeedback] = useState<{
-    type: 'prayers' | 'fasts';
-    tone: 'success' | 'error';
-    message: string;
-  } | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
   const handleExportData = async () => {
@@ -36,30 +27,6 @@ export const SettingsPage: React.FC = () => {
       await exportData.mutateAsync();
     } catch (error) {
       setExportError(getErrorMessage(error, t('common.error')));
-    }
-  };
-
-  const handleResetPrayerData = () => {
-    setResetFeedback(null);
-    setConfirmReset('prayers');
-  };
-
-  const handleResetFastData = () => {
-    setResetFeedback(null);
-    setConfirmReset('fasts');
-  };
-
-  const executeReset = async (type: 'prayers' | 'fasts') => {
-    setConfirmReset(null);
-    try {
-      if (type === 'prayers') {
-        await resetPrayerLogs.mutateAsync();
-      } else {
-        await resetFastLogs.mutateAsync();
-      }
-      setResetFeedback({ type, tone: 'success', message: t('settings.reset_done') });
-    } catch (error) {
-      setResetFeedback({ type, tone: 'error', message: getErrorMessage(error, t('common.error')) });
     }
   };
 
@@ -82,6 +49,9 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
       </SettingsSection>
+
+      {/* Logout - MOVED UP */}
+      <LogoutSection />
 
       {/* Profile & Qadaa Data */}
       {profile !== undefined && <ProfileSection periods={(periods ?? []) as PeriodLike[]} />}
@@ -131,111 +101,7 @@ export const SettingsPage: React.FC = () => {
         </div>
       </SettingsSection>
 
-      {/* Data Management */}
-      <SettingsSection icon={<RotateCcw size={18} />} title={t('settings.data_management')}>
-        <p className={styles.privacyText}>{t('settings.data_management_hint')}</p>
-        <div className={styles.resetActions}>
-          <div className={styles.resetItem}>
-            <div className={styles.resetItemInfo}>
-              <span className={styles.resetItemLabel}>{t('settings.reset_prayers')}</span>
-              <span className={styles.resetItemHint}>{t('settings.reset_prayers_hint')}</span>
-              {resetFeedback?.type === 'prayers' && (
-                <p
-                  className={
-                    resetFeedback.tone === 'success'
-                      ? styles.resetFeedbackSuccess
-                      : styles.sectionError
-                  }
-                  role="alert"
-                >
-                  {resetFeedback.message}
-                </p>
-              )}
-            </div>
-            {confirmReset === 'prayers' ? (
-              <div className={styles.resetConfirmBtns}>
-                <button
-                  type="button"
-                  className={styles.cancelAddBtn}
-                  onClick={() => setConfirmReset(null)}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.resetConfirmBtn}
-                  onClick={() => void executeReset('prayers')}
-                  disabled={resetPrayerLogs.isPending}
-                >
-                  {resetPrayerLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-                </button>
-              </div>
-            ) : (
-              <button
-                className={styles.resetBtn}
-                onClick={handleResetPrayerData}
-                disabled={resetPrayerLogs.isPending}
-                aria-label={t('settings.reset_prayers')}
-              >
-                <RotateCcw size={14} />
-                {resetPrayerLogs.isPending ? t('settings.resetting') : t('settings.reset_prayers')}
-              </button>
-            )}
-          </div>
-          <div className={styles.resetItem}>
-            <div className={styles.resetItemInfo}>
-              <span className={styles.resetItemLabel}>{t('settings.reset_fasts')}</span>
-              <span className={styles.resetItemHint}>{t('settings.reset_fasts_hint')}</span>
-              {resetFeedback?.type === 'fasts' && (
-                <p
-                  className={
-                    resetFeedback.tone === 'success'
-                      ? styles.resetFeedbackSuccess
-                      : styles.sectionError
-                  }
-                  role="alert"
-                >
-                  {resetFeedback.message}
-                </p>
-              )}
-            </div>
-            {confirmReset === 'fasts' ? (
-              <div className={styles.resetConfirmBtns}>
-                <button
-                  type="button"
-                  className={styles.cancelAddBtn}
-                  onClick={() => setConfirmReset(null)}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.resetConfirmBtn}
-                  onClick={() => void executeReset('fasts')}
-                  disabled={resetFastLogs.isPending}
-                >
-                  {resetFastLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-                </button>
-              </div>
-            ) : (
-              <button
-                className={styles.resetBtn}
-                onClick={handleResetFastData}
-                disabled={resetFastLogs.isPending}
-                aria-label={t('settings.reset_fasts')}
-              >
-                <RotateCcw size={14} />
-                {resetFastLogs.isPending ? t('settings.resetting') : t('settings.reset_fasts')}
-              </button>
-            )}
-          </div>
-        </div>
-      </SettingsSection>
-
-      {/* Logout */}
-      <LogoutSection />
-
-      {/* Danger Zone */}
+      {/* Danger Zone - NOW INCLUDES RESETS */}
       <DangerZoneSection />
     </div>
   );

@@ -30,9 +30,14 @@ export const Nav: React.FC = () => {
   return (
     <nav className={styles.nav}>
       <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
-        <span className={styles.logoEn}>Awdah</span>
-        <span className={styles.logoDivider}>·</span>
-        <span className={styles.logoAr}>عودة</span>
+        <div className={styles.logoWrapper}>
+          <img src="/favicon.svg" alt="" className={styles.logoIcon} />
+          <div className={styles.logoText}>
+            <span className={styles.logoEn}>Awdah</span>
+            <span className={styles.logoDivider}>·</span>
+            <span className={styles.logoAr}>عودة</span>
+          </div>
+        </div>
       </Link>
 
       <div className={styles.links}>

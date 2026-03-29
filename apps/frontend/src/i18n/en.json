@@ -526,7 +526,9 @@
     "result_loading": "Calculating your journey...",
     "result_error": "Could not calculate debt. You can continue and check your dashboard.",
     "error_invalid_date": "Invalid date — please check your input.",
-    "error_date_before_min": "This date is before the earliest allowed date."
+    "error_date_before_min": "This date is before the earliest allowed date.",
+    "error_date_after_max": "This date cannot be in the future.",
+    "period_error_future_date": "Practicing period cannot start in the future."
   },
   "hijri_months": {
     "muharram": "Muharram",
