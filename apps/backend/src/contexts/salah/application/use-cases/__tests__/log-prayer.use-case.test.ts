@@ -13,8 +13,8 @@ describe('LogPrayerUseCase', () => {
       findByUserAndDate: vi.fn(),
       findByUserAndDateRange: vi.fn(),
       countQadaaCompleted: vi.fn(),
+      countQadaaCompletedByPrayer: vi.fn(),
       deleteEntry: vi.fn(),
-      clearAll: vi.fn(),
     } as unknown as IPrayerLogRepository;
     useCase = new LogPrayerUseCase(repository);
   });
