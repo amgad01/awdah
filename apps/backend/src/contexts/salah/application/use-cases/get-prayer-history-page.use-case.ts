@@ -38,8 +38,23 @@ export class GetPrayerHistoryPageUseCase {
       cursor: command.cursor,
     });
 
+    // Per-page deduplication. Results are sorted newest-first, so for any
+    // (date, prayerName, type) slot the deselected entry (newer ULID) always
+    // precedes its prayed counterpart within the same page.
+    // First occurrence of a slot decides the effective action; skip later dupes.
+    const seenSlots = new Set<string>();
+    const effectiveItems: (typeof page.items)[number][] = [];
+    for (const log of page.items) {
+      const key = `${log.date.toString()}#${log.prayerName.getValue()}#${log.type.getValue()}`;
+      if (seenSlots.has(key)) continue;
+      seenSlots.add(key);
+      if (log.action === 'prayed') {
+        effectiveItems.push(log);
+      }
+    }
+
     return {
-      items: page.items.map((log) => ({
+      items: effectiveItems.map((log) => ({
         eventId: log.eventId,
         date: log.date.toString(),
         prayerName: log.prayerName.getValue(),
