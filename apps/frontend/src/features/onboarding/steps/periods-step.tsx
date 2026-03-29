@@ -47,6 +47,16 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
       return;
     }
 
+    // Validate: start cannot be in the future
+    try {
+      if (HijriDate.fromString(startHijri).isAfter(HijriDate.today())) {
+        setFormError(t('onboarding.period_error_future_date'));
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
+
     // Validate: cannot be before birth
     if (dateOfBirthHijri) {
       try {
@@ -179,6 +189,7 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
               type="date"
               className={styles.input}
               value={startGreg}
+              max={new Date().toISOString().split('T')[0]}
               onChange={(e) => setStartGreg(e.target.value)}
               aria-label={t('onboarding.period_start')}
             />
@@ -200,6 +211,7 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
                 type="date"
                 className={styles.input}
                 value={endGreg}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setEndGreg(e.target.value)}
                 aria-label={t('onboarding.period_end')}
               />

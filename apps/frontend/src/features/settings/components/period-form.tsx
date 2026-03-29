@@ -19,6 +19,7 @@ interface PeriodFormProps {
   isPending: boolean;
   mode: 'add' | 'edit';
   minDate?: string;
+  maxDate?: string;
 
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
@@ -42,6 +43,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
   isPending,
   mode,
   minDate,
+  maxDate,
   onStartChange,
   onEndChange,
   onOngoingChange,
@@ -64,6 +66,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
             onError={onStartError}
             label={t('onboarding.period_start')}
             minDate={minDate}
+            maxDate={maxDate}
           />
           {startError && <p className={styles.fieldError}>{startError}</p>}
         </div>
@@ -77,6 +80,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
               onError={onEndError}
               label={t('onboarding.period_end')}
               minDate={startDate || minDate}
+              maxDate={maxDate}
               disabled={!startDate}
             />
             {!startDate && <p className={styles.fieldHint}>{t('settings.select_start_first')}</p>}

@@ -9,6 +9,7 @@ import {
 } from '@/hooks/use-profile';
 import { HijriDate } from '@awdah/shared';
 import { rangesOverlap } from '@/lib/practicing-periods';
+import { todayHijriDate } from '@/utils/date-utils';
 import { BookOpen, Pencil, Plus, X } from 'lucide-react';
 import { SettingsSection, SectionNotice, PeriodForm } from '../components';
 import {
@@ -367,6 +368,7 @@ export const PeriodsSection: React.FC = () => {
                 feedback={periodFeedback}
                 isPending={updatePeriod.isPending}
                 minDate={persistedDobDate ?? ''}
+                maxDate={todayHijriDate()}
                 onStartChange={setEditStart}
                 onEndChange={setEditEnd}
                 onOngoingChange={setEditOngoing}
@@ -463,6 +465,7 @@ export const PeriodsSection: React.FC = () => {
           feedback={periodFeedback}
           isPending={addPeriod.isPending}
           minDate={persistedDobDate ?? ''}
+          maxDate={todayHijriDate()}
           onStartChange={setPeriodStart}
           onEndChange={setPeriodEnd}
           onOngoingChange={setPeriodOngoing}
