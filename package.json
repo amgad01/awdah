@@ -35,6 +35,8 @@
     "deploy:prod": "cd infra && npx cdk deploy --all --context env=prod",
     "outputs:dev": "./scripts/list-outputs.sh dev",
     "outputs:prod": "./scripts/list-outputs.sh prod",
+    "deploy:frontend:dev": "bash scripts/deploy-frontend-cloud.sh dev",
+    "deploy:frontend:prod": "bash scripts/deploy-frontend-cloud.sh prod",
     "deploy": "./scripts/deploy.sh",
     "deploy:quick": "./scripts/deploy.sh --quick",
     "deploy:hotswap": "./scripts/deploy.sh --skip-bootstrap --skip-build --hotswap",
