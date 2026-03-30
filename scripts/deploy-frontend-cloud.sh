@@ -16,7 +16,7 @@ npm run build --workspace=apps/frontend
 # 2. Deploy
 echo "🚀 Deploying FrontendStack via CDK..."
 cd infra
-npx cdk deploy Awdah-frontend-stack-$ENV --context env=$ENV --require-approval never
+npx cdk deploy Awdah-frontend-stack-$ENV --context env=$ENV --context deployFrontend=true --require-approval never
 cd ..
 
 # 3. Get Final URL
