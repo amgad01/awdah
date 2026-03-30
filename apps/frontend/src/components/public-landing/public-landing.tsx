@@ -6,14 +6,22 @@ import styles from '../../App.module.css';
 
 interface PublicLandingProps {
   authNotice: boolean;
-  authView: 'login' | 'signup';
+  authView: 'login' | 'signup' | 'forgot';
   onShowLogin: () => void;
   onShowSignup: () => void;
+  onShowForgot: () => void;
   onAuthSuccess: () => void;
   LoginForm: React.LazyExoticComponent<
-    React.FC<{ onSuccess: () => void; onSwitchToSignup: () => void }>
+    React.FC<{
+      onSuccess: () => void;
+      onSwitchToSignup: () => void;
+      onSwitchToForgotPassword: () => void;
+    }>
   >;
   SignupForm: React.LazyExoticComponent<
+    React.FC<{ onSuccess: () => void; onSwitchToLogin: () => void }>
+  >;
+  ForgotPasswordForm: React.LazyExoticComponent<
     React.FC<{ onSuccess: () => void; onSwitchToLogin: () => void }>
   >;
 }
@@ -23,9 +31,11 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   authView,
   onShowLogin,
   onShowSignup,
+  onShowForgot,
   onAuthSuccess,
   LoginForm,
   SignupForm,
+  ForgotPasswordForm,
 }) => {
   const { t } = useLanguage();
 
@@ -80,9 +90,15 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
             <Suspense fallback={<LoadingFallback />}>
               {authView === 'login' ? (
-                <LoginForm onSuccess={onAuthSuccess} onSwitchToSignup={onShowSignup} />
-              ) : (
+                <LoginForm
+                  onSuccess={onAuthSuccess}
+                  onSwitchToSignup={onShowSignup}
+                  onSwitchToForgotPassword={onShowForgot}
+                />
+              ) : authView === 'signup' ? (
                 <SignupForm onSuccess={onAuthSuccess} onSwitchToLogin={onShowLogin} />
+              ) : (
+                <ForgotPasswordForm onSuccess={onAuthSuccess} onSwitchToLogin={onShowLogin} />
               )}
             </Suspense>
           </section>

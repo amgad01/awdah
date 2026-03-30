@@ -18,6 +18,8 @@ export interface AuthService {
   signIn(email: string, password: string): Promise<UserSession>;
   signUp(email: string, password: string): Promise<{ needsVerification: boolean }>;
   confirmSignUp(email: string, code: string): Promise<void>;
+  forgotPassword(email: string): Promise<void>;
+  confirmPassword(email: string, code: string, newPassword: string): Promise<void>;
   signOut(): Promise<void>;
   getCurrentUser(): UserSession | null;
   getToken(): string | null;

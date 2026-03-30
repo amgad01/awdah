@@ -231,7 +231,15 @@
     "verify_code_placeholder": "123456",
     "verify_btn": "Verify",
     "verify_resend": "Resend Code",
-    "verify_error": "Verification failed. Please check the code and try again."
+    "verify_error": "Verification failed. Please check the code and try again.",
+    "forgot_password": "Forgot Password?",
+    "forgot_password_subtitle": "Enter your email and we’ll send a reset code.",
+    "forgot_password_email_sent": "A reset code has been sent to your email.",
+    "forgot_password_error": "Failed to reset password. Please try again.",
+    "reset_password": "Reset Password",
+    "reset_password_subtitle": "Enter the code from your email and set a new password.",
+    "send_reset_code": "Send reset code",
+    "back_to_login": "Back to Login"
   },
   "nav": {
     "dashboard": "Dashboard",

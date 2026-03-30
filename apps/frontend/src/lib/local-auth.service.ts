@@ -53,6 +53,23 @@ export const localAuthService: AuthService = {
     // No-op for local development
   },
 
+  async forgotPassword(email: string): Promise<void> {
+    const registry = getRegistry();
+    if (!registry[email.toLowerCase()]) {
+      throw new Error('auth.login_error');
+    }
+    // In local mode, we just accept the flow and pretend an email was sent.
+    return Promise.resolve();
+  },
+
+  async confirmPassword(email: string, _code: string, newPassword: string): Promise<void> {
+    const registry = getRegistry();
+    if (!registry[email.toLowerCase()]) {
+      throw new Error('auth.login_error');
+    }
+    saveToRegistry(email, newPassword);
+  },
+
   async signOut(): Promise<void> {
     clearPersistedSession();
   },

@@ -95,6 +95,30 @@ export const cognitoAuthService: AuthService = {
     );
   },
 
+  async forgotPassword(email: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
+      cognitoUser.forgotPassword({
+        onSuccess: () => resolve(),
+        onFailure: (err: Error) => reject(err),
+        inputVerificationCode: () => {
+          // Cognito has sent a verification code to the user email.
+          resolve();
+        },
+      });
+    });
+  },
+
+  async confirmPassword(email: string, code: string, newPassword: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
+      cognitoUser.confirmPassword(code, newPassword, {
+        onSuccess: () => resolve(),
+        onFailure: (err: Error) => reject(err),
+      });
+    });
+  },
+
   async signOut(): Promise<void> {
     const token = typeof window === 'undefined' ? null : window.sessionStorage.getItem(TOKEN_KEY);
     if (token) {

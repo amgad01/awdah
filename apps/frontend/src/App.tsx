@@ -24,6 +24,11 @@ const LoginForm = lazy(() =>
 const SignupForm = lazy(() =>
   import('@/features/auth/signup-form').then((module) => ({ default: module.SignupForm })),
 );
+const ForgotPasswordForm = lazy(() =>
+  import('@/features/auth/forgot-password-form').then((module) => ({
+    default: module.ForgotPasswordForm,
+  })),
+);
 const ContributingPage = lazy(() =>
   import('@/features/contributing/contributing-page').then((module) => ({
     default: module.ContributingPage,
@@ -139,7 +144,7 @@ function PublicContributingPage({
 
 function App() {
   const { isAuthenticated, loading, authNotice, checkUser } = useAuth();
-  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
   useTheme();
 
   if (loading) {
@@ -161,9 +166,11 @@ function App() {
                   authView={authView}
                   onShowLogin={() => setAuthView('login')}
                   onShowSignup={() => setAuthView('signup')}
+                  onShowForgot={() => setAuthView('forgot')}
                   onAuthSuccess={checkUser}
                   LoginForm={LoginForm}
                   SignupForm={SignupForm}
+                  ForgotPasswordForm={ForgotPasswordForm}
                 />
               }
             />

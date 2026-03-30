@@ -9,9 +9,14 @@ import styles from './auth-forms.module.css';
 interface LoginFormProps {
   onSuccess: () => void;
   onSwitchToSignup: () => void;
+  onSwitchToForgotPassword: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignup }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onSuccess,
+  onSwitchToSignup,
+  onSwitchToForgotPassword,
+}) => {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,6 +78,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignu
           {loading ? <span className="animate-spin">...</span> : t('auth.login')}
         </button>
       </form>
+
+      <div className={styles.footer}>
+        <button type="button" onClick={onSwitchToForgotPassword} className={styles.switchBtn}>
+          {t('auth.forgot_password')}
+        </button>
+      </div>
 
       <div className={styles.footer}>
         <span>{t('auth.no_account')}</span>
