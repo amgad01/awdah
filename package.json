@@ -10,8 +10,11 @@
     "infra"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace=apps/frontend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
+    "docker:up": "docker compose up -d localstack",
+    "docker:down": "docker compose down",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -26,6 +29,9 @@
     "load:burst": "node scripts/load-burst-smoke.mjs",
     "restore:s3": "ts-node infra/scripts/restore-from-s3.ts",
     "restore:sanitize": "ts-node infra/scripts/restore-sanitize.ts",
+    "deploy:prod": "cd infra && npx cdk deploy --all --context env=prod",
+    "outputs:prod": "./scripts/list-outputs.sh prod",
+    "outputs:dev": "./scripts/list-outputs.sh dev",
     "deploy": "./scripts/deploy.sh",
     "deploy:quick": "./scripts/deploy.sh --quick",
     "deploy:hotswap": "./scripts/deploy.sh --skip-bootstrap --skip-build --hotswap",
