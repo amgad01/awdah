@@ -30,6 +30,7 @@ describe('AddPracticingPeriodUseCase', () => {
 
   const defaultUserSettings: UserSettings = {
     userId: 'user-1',
+    dateOfBirth: HijriDate.fromString('1425-01-01'),
     bulughDate: HijriDate.fromString(BULUGH_DATE),
     gender: 'male',
   };
@@ -83,7 +84,7 @@ describe('AddPracticingPeriodUseCase', () => {
   it('rejects a period starting before date of birth', async () => {
     const earlyCommand: AddPracticingPeriodCommand = {
       ...command,
-      startDate: '1439-06-01', // before date of birth (implicitly same as bulugh in this mock)
+      startDate: '1420-01-01', // before date of birth (1425)
     };
 
     vi.mocked(mockRepo.findByUser).mockResolvedValue([]);

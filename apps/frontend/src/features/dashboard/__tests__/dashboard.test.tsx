@@ -87,7 +87,8 @@ describe('Dashboard', () => {
     } as any);
 
     vi.mocked(useStreakDetails).mockReturnValue({
-      bestPrayerStreak: 10,
+      bestPrayerStreak: { name: 'Fajr', count: 10 },
+      activePrayerStreaks: [{ name: 'Fajr', count: 10 }],
       monThuStreak: 2,
       obligatoryStreak: 3,
       fastStreak: 1,
