@@ -58,4 +58,6 @@ npm-debug.log*
 
 # ESLint cache
 .eslintcache
-apps/frontend/public/*.zip
+**/*.zip
+infra/*.json
+**/.env.production
