@@ -75,5 +75,27 @@
       "en": "A Muslim who is legally accountable — i.e., has reached bulugh and is of sound mind. Religious obligations only apply to a mukallaf.",
       "ar": "المسلم الذي بلغ سن التكليف وكان عاقلاً. الفرائض الدينية لا تجب إلا على المكلَّف."
     }
+  },
+  "momentum": {
+    "arabic": "الزخم",
+    "synonyms": {
+      "en": "main streak · daily consistency · obligatory streak",
+      "ar": "الاستمرارية · زحم الأداء"
+    },
+    "definition": {
+      "en": "Your main tracker for consecutive days where all 5 obligatory (fara'id) prayers were completed. It represents your consistency in meeting today's duties.",
+      "ar": "المؤشر الرئيسي لتتبع الأيام المتتالية التي أتممت فيها الصلوات الخمس المفروضة لهذا اليوم. يمثل انتظامك في أداء الواجبات اليومية."
+    }
+  },
+  "persistence": {
+    "arabic": "المثابرة",
+    "synonyms": {
+      "en": "inclusive streaks · recovery records · individual prayer streaks",
+      "ar": "سلاسل الإنجاز · سلاسل القضاء"
+    },
+    "definition": {
+      "en": "Streaks shown for individual prayers (like Fajr) or fasting. These are inclusive and count both obligatory acts and make-ups (qadaa), rewarding your steady effort even when the main Momentum is broken.",
+      "ar": "سجلات تظهر لكل صلاة على حدة (كالفجر) أو للصيام. هذه السجلات شاملة، حيث تعدّ الأداء اليومي والقضاء معاً، لتشجيع استمرارك حتى وإن انقطعت سلسلة الزخم العام."
+    }
   }
 }

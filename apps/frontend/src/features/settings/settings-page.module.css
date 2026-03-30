@@ -26,7 +26,8 @@
       var(--color-surface) 58%,
       color-mix(in srgb, var(--color-primary) 4%, var(--color-surface)) 100%
     );
-  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .heroBadge {
@@ -128,20 +129,20 @@
 }
 
 .sectionNoticeError {
-  background: color-mix(in srgb, var(--color-error) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-error) 18%, transparent);
+  background: var(--notice-error-bg);
+  border: 1px solid var(--notice-error-border);
   color: var(--color-error);
 }
 
 .sectionNoticeSuccess {
-  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-success) 18%, transparent);
+  background: var(--notice-success-bg);
+  border: 1px solid var(--notice-success-border);
   color: var(--color-success);
 }
 
 .sectionNoticeWarning {
-  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-warning) 18%, transparent);
+  background: var(--notice-warning-bg);
+  border: 1px solid var(--notice-warning-border);
   color: var(--color-warning);
 }
 
@@ -150,8 +151,8 @@
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-border));
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface-hover);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);

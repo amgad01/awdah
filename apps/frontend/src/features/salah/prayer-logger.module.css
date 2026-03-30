@@ -350,3 +350,16 @@
   color: var(--color-error);
   text-align: center;
 }
+
+.qadaaRestrictionNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  text-align: center;
+  padding: var(--spacing-sm);
+  background-color: var(--color-primary-alpha-5);
+  border-radius: var(--border-radius-md);
+  border: 1px dashed var(--color-primary-light);
+  margin-top: var(--spacing-xs);
+  line-height: 1.4;
+  font-weight: var(--font-weight-medium);
+}

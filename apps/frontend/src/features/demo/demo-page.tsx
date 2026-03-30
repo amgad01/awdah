@@ -330,7 +330,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
           <div className={styles.statRow}>
             <div className={styles.statBox}>
               <strong>{fmtNumber(data.salah.streakDays)}</strong>
-              <span>{t('dashboard.streak_days')}</span>
+              <span>{t('dashboard.streak_days', { count: data.salah.streakDays })}</span>
             </div>
             <div className={styles.statBox}>
               <strong>{fmtNumber(data.salah.qadaaLoggedToday)}</strong>
@@ -347,6 +347,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
                     {t('dashboard.record_prayer_streak', {
                       prayer: t(`prayers.${data.bestPrayerStreak.name}`),
                       n: fmtNumber(data.bestPrayerStreak.count),
+                      count: data.bestPrayerStreak.count,
                     })}
                   </span>
                 </div>
@@ -355,7 +356,10 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
                 <div className={styles.recordStreakRow}>
                   <Icons.Sun size={13} className={styles.recordStreakIcon} />
                   <span>
-                    {t('dashboard.record_mon_thu_streak', { n: fmtNumber(data.monThuStreak) })}
+                    {t('dashboard.record_mon_thu_streak', {
+                      n: fmtNumber(data.monThuStreak),
+                      count: data.monThuStreak,
+                    })}
                   </span>
                 </div>
               )}

@@ -4,10 +4,12 @@
  * To add a new language:
  *   1. Drop `src/i18n/<code>.json` into this folder (matching the translation
  *      structure of en.json).
- *   2. Add an entry to SUPPORTED_LANGUAGES below.
+ *   2. Add an entry to languages.json in this same folder.
  *   No other code changes are needed — Vite discovers the JSON via import.meta.glob
  *   and the language switcher renders from this list automatically.
  */
+
+import languagesData from './languages.json';
 
 export interface LanguageDef {
   code: string;
@@ -17,10 +19,7 @@ export interface LanguageDef {
   dir: 'ltr' | 'rtl';
 }
 
-export const SUPPORTED_LANGUAGES: LanguageDef[] = [
-  { code: 'en', name: 'English', nativeName: 'English', shortLabel: 'EN', dir: 'ltr' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية', shortLabel: 'ع', dir: 'rtl' },
-];
+export const SUPPORTED_LANGUAGES: LanguageDef[] = languagesData as LanguageDef[];
 
 /**
  * Vite discovers non-core JSON files in this folder at build time and creates

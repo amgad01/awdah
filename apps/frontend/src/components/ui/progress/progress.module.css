@@ -47,5 +47,5 @@
   margin-top: var(--spacing-xs);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  text-align: right;
+  text-align: end;
 }

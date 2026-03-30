@@ -18,7 +18,7 @@ interface SnapshotGridProps {
   salahCompleted: string;
   sawmCompleted: string;
   streak: string;
-  t: (key: string) => string;
+  t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
 export const SnapshotGrid: React.FC<SnapshotGridProps> = ({
@@ -59,7 +59,10 @@ export const SnapshotGrid: React.FC<SnapshotGridProps> = ({
       icon: Flame,
       label: t('dashboard.snapshot_streak'),
       value: streak,
-      detail: streakNum > 0 ? t('dashboard.streak_days') : t('dashboard.streak_none'),
+      detail:
+        streakNum > 0
+          ? t('dashboard.streak_days', { count: streakNum })
+          : t('dashboard.streak_none'),
     },
   ];
 

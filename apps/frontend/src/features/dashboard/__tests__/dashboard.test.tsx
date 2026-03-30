@@ -90,7 +90,7 @@ describe('Dashboard', () => {
       bestPrayerStreak: 10,
       monThuStreak: 2,
       obligatoryStreak: 3,
-      qadaaFastStreak: 1,
+      fastStreak: 1,
     } as any);
   });
 
