@@ -2,6 +2,7 @@ import { IFastLogRepository } from '../../domain/repositories/fast-log.repositor
 import { FastLog } from '../../domain/entities/fast-log.entity';
 import { LogType } from '../../../shared/domain/value-objects/log-type';
 import { HijriDate } from '@awdah/shared';
+import { ulid } from 'ulid';
 
 export interface LogFastCommand {
   userId: string;
@@ -18,7 +19,7 @@ export class LogFastUseCase {
 
     const fastLog = new FastLog({
       userId: command.userId,
-      eventId: type.getValue(),
+      eventId: ulid(),
       date,
       type,
       loggedAt: new Date(),

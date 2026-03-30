@@ -25,6 +25,7 @@ describe('UpdateUserSettingsUseCase', () => {
       gender: 'male',
     };
 
+    vi.mocked(mockRepo.findById).mockResolvedValue(null);
     await useCase.execute(command);
 
     expect(mockRepo.save).toHaveBeenCalledTimes(1);

@@ -17,7 +17,7 @@ export class PracticingPeriod {
 
   private validate(): void {
     if (this.props.endDate && this.props.endDate.isBefore(this.props.startDate)) {
-      throw new ValidationError('Practicing period end date cannot be before start date');
+      throw new ValidationError('onboarding.period_error_end_before_start');
     }
   }
 

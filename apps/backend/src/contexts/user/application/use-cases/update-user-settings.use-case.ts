@@ -18,11 +18,11 @@ export class UpdateUserSettingsUseCase {
     const revertDate = command.revertDate ? HijriDate.fromString(command.revertDate) : undefined;
 
     if (dateOfBirth && bulughDate.isBefore(dateOfBirth)) {
-      throw new ValidationError('Bulugh date cannot be before date of birth');
+      throw new ValidationError('onboarding.bulugh_error_before_dob');
     }
 
     if (revertDate && dateOfBirth && revertDate.isBefore(dateOfBirth)) {
-      throw new ValidationError('Revert date cannot be before date of birth');
+      throw new ValidationError('onboarding.revert_error_before_dob');
     }
 
     const settings: UserSettings = {

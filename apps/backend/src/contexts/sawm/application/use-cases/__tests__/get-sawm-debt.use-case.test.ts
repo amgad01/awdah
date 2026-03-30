@@ -18,7 +18,13 @@ describe('GetSawmDebtUseCase', () => {
     countQadaaCompleted: vi.fn(),
     deleteEntry: vi.fn(),
   };
-  const mockPeriodRepo = { save: vi.fn(), findByUser: vi.fn(), findById: vi.fn(), delete: vi.fn() };
+  const mockPeriodRepo = {
+    save: vi.fn(),
+    saveAtomic: vi.fn(),
+    findByUser: vi.fn(),
+    findById: vi.fn(),
+    delete: vi.fn(),
+  };
   const mockCalendar = { daysBetween: vi.fn(), getRamadanDays: vi.fn(), today: vi.fn() };
 
   const calculator = new SawmDebtCalculator(mockCalendar);
@@ -38,7 +44,12 @@ describe('GetSawmDebtUseCase', () => {
     const bulugh = new HijriDate(1440, 1, 1);
     const today = new HijriDate(1445, 1, 1);
 
-    mockUserRepo.findById.mockResolvedValue({ userId: 'u', bulughDate: bulugh, gender: 'male' });
+    mockUserRepo.findById.mockResolvedValue({
+      userId: 'u',
+      bulughDate: bulugh,
+      gender: 'male',
+      version: 1,
+    });
     mockPeriodRepo.findByUser.mockResolvedValue([]);
     mockFastLogRepo.countQadaaCompleted.mockResolvedValue(10);
     mockCalendar.today.mockReturnValue(today);
