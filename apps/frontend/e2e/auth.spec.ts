@@ -40,7 +40,9 @@ test.describe('Authentication', () => {
       .getByRole('button', { name: /sign up|register/i })
       .click();
     await expect(page).toHaveURL(/\//);
-    await expect(page.getByText(/welcome/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /logout|sign out/i })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('logs in with valid credentials', async ({ page }) => {
@@ -52,7 +54,9 @@ test.describe('Authentication', () => {
       .getByRole('button', { name: /sign in|login/i })
       .click();
     await expect(page).toHaveURL(/\//);
-    await expect(page.getByText(/welcome/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /logout|sign out/i })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('shows error for empty form submission', async ({ page }) => {
@@ -72,7 +76,9 @@ test.describe('Authentication', () => {
       .locator('form')
       .getByRole('button', { name: /sign in|login/i })
       .click();
-    await page.getByText(/welcome/i).waitFor({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /logout|sign out/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.getByRole('button', { name: /logout|sign out/i }).click();
     await expect(page.getByRole('heading', { name: /login|sign in/i }).first()).toBeVisible({

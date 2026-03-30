@@ -46,6 +46,7 @@ services:
       - FAST_LOGS_TABLE=Awdah-FastLogs-dev
       - PRACTICING_PERIODS_TABLE=Awdah-PracticingPeriods-dev
       - USER_SETTINGS_TABLE=Awdah-UserSettings-dev
+      - ENABLE_E2E_SEED=true
     depends_on:
       localstack:
         condition: service_healthy

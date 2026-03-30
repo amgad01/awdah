@@ -17,6 +17,13 @@ export function createApp(): Express {
   registerSawmRoutes(app, API_VERSION, runLocalLambdaHandler);
   registerUserRoutes(app, API_VERSION, runLocalLambdaHandler);
 
+  // E2E Support
+  if (process.env.ENABLE_E2E_SEED === 'true') {
+    import('./e2e-seed-routes').then(({ registerE2eSeedRoutes }) => {
+      registerE2eSeedRoutes(app);
+    });
+  }
+
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
   return app;

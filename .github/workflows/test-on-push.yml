@@ -75,6 +75,18 @@ jobs:
             sleep 2
           done
 
+      - name: Seed E2E users
+        run: |
+          curl -fsS -X POST http://localhost:3000/v1/e2e/seed \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "users": [
+                {"email": "history@example.com"},
+                {"email": "settings@example.com"},
+                {"email": "tracker@example.com"}
+              ]
+            }'
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 

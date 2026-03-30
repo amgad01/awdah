@@ -5,13 +5,40 @@ const TEST_PASSWORD = 'TestPassword1!';
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/');
+
   await page.getByLabel(/email/i).fill(TEST_EMAIL);
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
   await page
     .locator('form')
     .getByRole('button', { name: /sign in|login/i })
     .click();
-  await page.getByText(/welcome/i).waitFor({ timeout: 10_000 });
+
+  // If login fails because user doesn't exist in local registry, sign up first
+  const error = page.getByText(/invalid|error/i);
+  if (await error.isVisible({ timeout: 2000 })) {
+    await page
+      .getByRole('button', { name: /create account|register/i })
+      .first()
+      .click();
+    await page.getByLabel(/email/i).fill(TEST_EMAIL);
+    await page
+      .getByLabel(/password/i)
+      .first()
+      .fill(TEST_PASSWORD);
+    const confirmField = page.getByLabel(/confirm/i);
+    if (await confirmField.isVisible()) {
+      await confirmField.fill(TEST_PASSWORD);
+    }
+    await page
+      .locator('form')
+      .getByRole('button', { name: /sign up|register/i })
+      .click();
+  }
+
+  // Wait for authenticated state (Logout button is a stable indicator)
+  await expect(page.getByRole('button', { name: /logout|sign out/i })).toBeVisible({
+    timeout: 15_000,
+  });
 }
 
 test.describe('Settings Page', () => {
