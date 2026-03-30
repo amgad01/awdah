@@ -1,0 +1,89 @@
+name: Test on Push
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint, Typecheck & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
+
+      - name: Root Check (Lint & Typecheck)
+        run: |
+          npm run lint
+          npm run typecheck
+
+      - name: Backend Tests
+        run: npm run test --workspace=apps/backend
+
+      - name: Frontend Tests
+        run: npm run test --workspace=apps/frontend
+
+  e2e-docker:
+    name: Dockerized E2E (Dev Gate)
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Awdah Stack (Docker)
+        run: docker compose up -d localstack backend frontend
+
+      - name: Wait for services
+        run: |
+          # Wait for LocalStack
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:4566/_localstack/health | grep -Eq '"dynamodb"[[:space:]]*:[[:space:]]*"(running|available)"'; then
+              break
+            fi
+            sleep 2
+          done
+          # Wait for Backend
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests
+        run: npx playwright test --project=chromium
+        working-directory: apps/frontend
+        env:
+          E2E_BASE_URL: http://localhost:8080
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
