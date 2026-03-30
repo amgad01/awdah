@@ -106,7 +106,7 @@ export class ApiStack extends BaseStack {
         ? ['https://awdah.app']
         : this.projectEnv === 'staging'
           ? ['https://staging.awdah.app']
-          : ['http://localhost:5173', 'http://localhost:8080'];
+          : ['*'];
 
     return new apigatewayv2.HttpApi(this, 'AwdahApi', {
       apiName: this.fullResourceName('API'),

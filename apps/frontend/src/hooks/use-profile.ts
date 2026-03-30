@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, type UserLifecycleJobResponse, type UserLifecycleJobType } from '@/lib/api';
+import { useAuth } from '@/hooks/use-auth';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
 
@@ -49,9 +50,11 @@ async function waitForLifecycleJob(
 }
 
 export const useProfile = () => {
+  const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: QUERY_KEYS.userProfile,
     queryFn: () => api.user.getProfile(),
+    enabled: isAuthenticated,
     retry: false,
     staleTime: PROFILE_STALE_TIME_MS,
   });
