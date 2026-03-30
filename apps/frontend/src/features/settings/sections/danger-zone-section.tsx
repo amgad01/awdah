@@ -6,6 +6,7 @@ import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { SettingsSection } from '../components';
 import { getErrorMessage } from '../helpers';
+import { useToast } from '@/hooks/use-toast';
 import styles from '../settings-page.module.css';
 
 export const DangerZoneSection: React.FC = () => {
@@ -13,6 +14,7 @@ export const DangerZoneSection: React.FC = () => {
   const { user, signIn, signOut } = useAuth();
   const resetPrayerLogs = useResetPrayerLogs();
   const resetFastLogs = useResetFastLogs();
+  const { toast } = useToast();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -21,11 +23,6 @@ export const DangerZoneSection: React.FC = () => {
   const deleteAccount = useDeleteAccount();
 
   const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
-  const [resetFeedback, setResetFeedback] = useState<{
-    type: 'prayers' | 'fasts';
-    tone: 'success' | 'error';
-    message: string;
-  } | null>(null);
 
   const handleDeleteAccount = async () => {
     setDeleteError('');
@@ -35,7 +32,7 @@ export const DangerZoneSection: React.FC = () => {
       await signIn(email, deletePassword);
       const result = await deleteAccount.mutateAsync();
       if (result && !result.authDeleted) {
-        window.alert(t('settings.delete_partial_cleanup_notice'));
+        toast.info(t('settings.delete_partial_cleanup_notice'), 10000);
       }
       await signOut();
     } catch (err: unknown) {
@@ -45,7 +42,6 @@ export const DangerZoneSection: React.FC = () => {
   };
 
   const handleResetData = (type: 'prayers' | 'fasts') => {
-    setResetFeedback(null);
     setConfirmReset(type);
   };
 
@@ -57,9 +53,9 @@ export const DangerZoneSection: React.FC = () => {
       } else {
         await resetFastLogs.mutateAsync();
       }
-      setResetFeedback({ type, tone: 'success', message: t('settings.reset_done') });
+      toast.success(t('settings.reset_done'));
     } catch (err) {
-      setResetFeedback({ type, tone: 'error', message: getErrorMessage(err, t('common.error')) });
+      toast.error(t(getErrorMessage(err, 'common.error')));
     }
   };
 
@@ -71,18 +67,6 @@ export const DangerZoneSection: React.FC = () => {
           <div className={styles.resetItemInfo}>
             <span className={styles.resetItemLabel}>{t('settings.reset_prayers')}</span>
             <span className={styles.resetItemHint}>{t('settings.reset_prayers_hint')}</span>
-            {resetFeedback?.type === 'prayers' && (
-              <p
-                className={
-                  resetFeedback.tone === 'success'
-                    ? styles.resetFeedbackSuccess
-                    : styles.sectionError
-                }
-                role="alert"
-              >
-                {resetFeedback.message}
-              </p>
-            )}
           </div>
           {confirmReset === 'prayers' ? (
             <div className={styles.resetConfirmBtns}>
@@ -118,18 +102,6 @@ export const DangerZoneSection: React.FC = () => {
           <div className={styles.resetItemInfo}>
             <span className={styles.resetItemLabel}>{t('settings.reset_fasts')}</span>
             <span className={styles.resetItemHint}>{t('settings.reset_fasts_hint')}</span>
-            {resetFeedback?.type === 'fasts' && (
-              <p
-                className={
-                  resetFeedback.tone === 'success'
-                    ? styles.resetFeedbackSuccess
-                    : styles.sectionError
-                }
-                role="alert"
-              >
-                {resetFeedback.message}
-              </p>
-            )}
           </div>
           {confirmReset === 'fasts' ? (
             <div className={styles.resetConfirmBtns}>

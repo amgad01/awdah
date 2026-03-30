@@ -15,6 +15,7 @@ import {
   getErrorMessage,
   computeHijriAge,
 } from '../helpers';
+import { useToast } from '@/hooks/use-toast';
 import type { ProfileFormState, FeedbackState, PeriodLike, DebtPreview } from '../types';
 import styles from '../settings-page.module.css';
 
@@ -26,6 +27,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   const { t, language, fmtNumber } = useLanguage();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { toast } = useToast();
 
   const profileKey = profile
     ? `${profile.dateOfBirth}-${profile.bulughDate}-${profile.gender}`
@@ -190,16 +192,13 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
         dateOfBirth: activeProfileForm.dateOfBirth || undefined,
         revertDate: activeProfileForm.revertDate || undefined,
       });
-      setProfileSaved(true);
-      setProfileFeedback({
-        tone: 'success',
-        message: profileDebtPreview
-          ? `${t('settings.profile_saved')}. ${describeDebtPreview(profileDebtPreview)}`
-          : t('settings.profile_saved'),
-      });
-      setTimeout(() => setProfileSaved(false), 3000);
+
+      const successMsg = profileDebtPreview
+        ? `${t('settings.profile_saved')}. ${describeDebtPreview(profileDebtPreview)}`
+        : t('settings.profile_saved');
+      toast.success(successMsg);
     } catch (error) {
-      setProfileFeedback({ tone: 'error', message: getErrorMessage(error, t('common.error')) });
+      toast.error(t(getErrorMessage(error, 'common.error')));
     }
   };
 

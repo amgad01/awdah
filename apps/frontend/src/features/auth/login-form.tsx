@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import styles from './auth-forms.module.css';
 
 interface LoginFormProps {
@@ -15,19 +16,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignu
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const authService = await getAuthService();
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('auth.login_error'));
+      const message = err instanceof Error ? err.message : 'auth.login_error';
+      toast.error(t(message));
     } finally {
       setLoading(false);
     }
@@ -36,13 +37,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignu
   return (
     <Card variant="glass" className={styles.container}>
       <h2 className={styles.title}>{t('auth.login')}</h2>
-
-      {error && (
-        <div className={styles.errorBanner}>
-          <AlertCircle size={18} />
-          <span>{error}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.inputGroup}>
@@ -76,7 +70,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToSignu
         </div>
 
         <button type="submit" className={styles.submitBtn} disabled={loading}>
-          {loading ? <Loader2 className="animate-spin" size={20} /> : t('auth.login')}
+          {loading ? <span className="animate-spin">...</span> : t('auth.login')}
         </button>
       </form>
 

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
-import { Loader2, Mail, Lock, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import styles from './auth-forms.module.css';
 
 interface SignupFormProps {
@@ -20,15 +21,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   const [verifyCode, setVerifyCode] = useState('');
   const [phase, setPhase] = useState<SignupPhase>('register');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-
+    setLoading(true);
     if (password !== confirmPassword) {
-      setError(t('auth.password_mismatch'));
+      toast.error(t('auth.password_mismatch'));
       setLoading(false);
       return;
     }
@@ -44,7 +44,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         onSuccess();
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('auth.signup_error'));
+      toast.error(err instanceof Error ? err.message : t('auth.signup_error'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const authService = await getAuthService();
@@ -61,19 +60,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('auth.verify_error'));
+      toast.error(err instanceof Error ? err.message : t('auth.verify_error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
-    setError(null);
     try {
       const authService = await getAuthService();
       await authService.signUp(email, password);
+      toast.success(t('auth.verify_resend_done'));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('auth.signup_error'));
+      toast.error(err instanceof Error ? err.message : t('auth.signup_error'));
     }
   };
 
@@ -82,13 +81,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       <Card variant="glass" className={styles.container}>
         <h2 className={styles.title}>{t('auth.verify_title')}</h2>
         <p className={styles.subtitle}>{t('auth.verify_subtitle')}</p>
-
-        {error && (
-          <div className={styles.errorBanner}>
-            <AlertCircle size={18} />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleVerify} className={styles.form}>
           <div className={styles.inputGroup}>
@@ -125,13 +117,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   return (
     <Card variant="glass" className={styles.container}>
       <h2 className={styles.title}>{t('auth.sign_up')}</h2>
-
-      {error && (
-        <div className={styles.errorBanner}>
-          <AlertCircle size={18} />
-          <span>{error}</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.inputGroup}>

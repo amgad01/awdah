@@ -18,7 +18,7 @@ import {
   formatGregorianDisplay,
   getErrorMessage,
 } from '../helpers';
-import { ApiRequestError } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 import type { FeedbackState, PeriodLike, DebtPreview } from '../types';
 import styles from '../settings-page.module.css';
 
@@ -29,6 +29,7 @@ export const PeriodsSection: React.FC = () => {
   const addPeriod = useAddPracticingPeriod();
   const updatePeriod = useUpdatePracticingPeriod();
   const deletePeriod = useDeletePracticingPeriod();
+  const { toast } = useToast();
 
   const [showAddPeriod, setShowAddPeriod] = useState(false);
   const [periodStart, setPeriodStart] = useState('');
@@ -230,18 +231,14 @@ export const PeriodsSection: React.FC = () => {
       setPeriodOngoing(false);
       setPeriodType('both');
       setShowAddPeriod(false);
-      setPeriodFeedback({
-        tone: 'success',
-        message: preview
-          ? `${t('settings.period_added')}. ${describeDebtPreview(preview)}`
-          : t('settings.period_added'),
-      });
+
+      const successMsg = preview
+        ? `${t('settings.period_added')}. ${describeDebtPreview(preview)}`
+        : t('settings.period_added');
+      toast.success(successMsg);
     } catch (error) {
-      const msg =
-        error instanceof ApiRequestError && error.status === 409
-          ? t('onboarding.period_error_overlap')
-          : getErrorMessage(error, t('common.error'));
-      setPeriodFeedback({ tone: 'error', message: msg });
+      const msg = getErrorMessage(error, 'common.error');
+      toast.error(t(msg));
     }
   };
 
@@ -290,18 +287,14 @@ export const PeriodsSection: React.FC = () => {
         type: editType,
       });
       handleCancelEdit();
-      setPeriodFeedback({
-        tone: 'success',
-        message: preview
-          ? `${t('settings.period_saved')}. ${describeDebtPreview(preview)}`
-          : t('settings.period_saved'),
-      });
+
+      const successMsg = preview
+        ? `${t('settings.period_saved')}. ${describeDebtPreview(preview)}`
+        : t('settings.period_saved');
+      toast.success(successMsg);
     } catch (error) {
-      const msg =
-        error instanceof ApiRequestError && error.status === 409
-          ? t('onboarding.period_error_overlap')
-          : getErrorMessage(error, t('common.error'));
-      setPeriodFeedback({ tone: 'error', message: msg });
+      const msg = getErrorMessage(error, 'common.error');
+      toast.error(t(msg));
     }
   };
 
@@ -315,14 +308,12 @@ export const PeriodsSection: React.FC = () => {
     setPeriodFeedback(null);
     try {
       await deletePeriod.mutateAsync(periodId);
-      setPeriodFeedback({
-        tone: 'success',
-        message: preview
-          ? `${t('settings.period_deleted')}. ${describeDebtPreview(preview)}`
-          : t('settings.period_deleted'),
-      });
+      const successMsg = preview
+        ? `${t('settings.period_deleted')}. ${describeDebtPreview(preview)}`
+        : t('settings.period_deleted');
+      toast.success(successMsg);
     } catch (error) {
-      setPeriodFeedback({ tone: 'error', message: getErrorMessage(error, t('common.error')) });
+      toast.error(t(getErrorMessage(error, 'common.error')));
     }
   };
 
