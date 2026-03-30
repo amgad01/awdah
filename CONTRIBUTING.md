@@ -1,142 +1,134 @@
 # Contributing to Awdah
 
-Welcome to Awdah! This guide provides everything a new developer needs to get started with the project, understand our architectural decisions, and follow our development standards.
+Awdah is a free, open-source project. Contributions are welcome — code, translations, scholarly review, or catching a bug.
 
-## Project Vision
-
-Awdah is a serverless application designed to help users track and manage their spiritual goals (Salah and Sawm) with a focus on data durability, privacy, and seamless performance. It serves as a modern template for high-scale, cost-effective serverless architecture on AWS.
+For areas where help is most needed and the v2 roadmap, see the [/contribute](https://amgad01.github.io/awdah/contribute) page in the app — it covers what areas need work, how to submit a PR, and what is planned next.
 
 ---
 
-## 🏗️ Architecture Philosophy
+## Local development
 
-We adhere to **Clean Architecture** and **Domain-Driven Design (DDD)** principles to ensure the codebase remains maintainable, testable, and decoupled from infrastructure.
+### Prerequisites
 
-### 1. Modular Monolith
+- Node.js (version in `.nvmrc`)
+- Docker (for LocalStack)
+- AWS CLI (optional, for direct LocalStack inspection)
 
-While the application is deployed as independent serverless stacks, the codebase is organized as a **Modular Monolith** within a monorepo. This gives us:
-
-- **Simplified Deployment**: One repository, consistent tooling.
-- **Strong Isolation**: Bounded contexts (`salah`, `sawm`, `user`) are logically separated.
-- **Shared Type Safety**: A common `shared` package ensures consistency between backend logic and frontend consumption.
-
-### 2. Hexagonal Architecture (Ports & Adapters)
-
-Dependencies always point inward toward the **Domain**:
-
-- **Domain**: Pure business logic, entities, and value objects. ZERO external dependencies.
-- **Application**: Use Cases that orchestrate domain logic.
-- **Infrastructure**: Concrete implementations (DynamoDB repositories, Lambda handlers, External APIs).
-
----
-
-## 📂 Monorepo Structure
-
-- `apps/frontend`: React (Vite) + TypeScript. Modern UI with absolute focus on aesthetics.
-- `apps/backend`: Node.js + TypeScript. Lambda handlers and serverless compute logic.
-- `packages/shared`: Shared types, constants, and utilities used across the stack.
-- `infra/`: AWS CDK (TypeScript). Infrastructure-as-Code for all resources.
-- `scripts/`: Essential automation for deployment, local checks, and debugging.
-
----
-
-## 🛠️ Local Development Setup
-
-### 1. Prerequisites
-
-- **Node.js**: v20+ (LTS recommended)
-- **Docker**: For running LocalStack (simulates AWS services locally)
-- **AWS CLI**: For infrastructure interaction.
-
-### 2. Installation
+### Setup
 
 ```bash
+# Clone and install
+git clone https://github.com/amgad01/awdah.git
+cd awdah
 npm install
+
+# Start LocalStack (simulates DynamoDB, S3, SQS, Cognito, etc.)
+docker compose up -d
+
+# Start the dev servers
+npm run dev:frontend   # http://localhost:5173
+npm run dev:backend    # Lambda runner on http://localhost:3000
 ```
 
-### 3. Local Cloud Simulation
-
-We use **LocalStack** to develop without incurring AWS costs:
+Copy `.env.example` to `.env.local` — LocalStack doesn't need real credentials:
 
 ```bash
-docker-compose up -d
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+AWS_DEFAULT_REGION=eu-west-1
+LOCALSTACK_ENDPOINT=http://localhost:4566
 ```
 
-### 4. Running the App
-
-- **Backend**: `npm run dev:backend` (simulates Lambda environment locally)
-- **Frontend**: `npm run dev:frontend` (Vite dev server)
-
----
-
-## 🏗️ AWS CDK Stack Organization
-
-We split our infrastructure into logical stacks to isolate changes, speed up deployments, and protect persistent data.
-
-| Stack             | Responsibility                  | Why the split?                                                 |
-| ----------------- | ------------------------------- | -------------------------------------------------------------- |
-| **DataStack**     | DynamoDB Tables, S3 Buckets     | Protects data from accidental deletion during compute updates. |
-| **AuthStack**     | Cognito User Pool & Client      | Centralizes Identity Management.                               |
-| **ApiStack**      | API Gateway & Lambda Functions  | Rapid iteration layer for business logic.                      |
-| **AlarmStack**    | CloudWatch Alarms & Dashboards  | Holistic monitoring of the entire system.                      |
-| **BackupStack**   | Daily S3 Exports & Archival     | Ensures data durability and disaster recovery.                 |
-| **FrontendStack** | S3 Website Hosting & CloudFront | Static asset delivery.                                         |
-
-### 🔍 Where should I add my new resource?
-
-| If you are adding...               | Go to...                               |
-| ---------------------------------- | -------------------------------------- |
-| A new DynamoDB Table or S3 Bucket  | `infra/lib/stacks/data-stack.ts`       |
-| A new API Route or Lambda Function | `infra/lib/stacks/api-stack.ts`        |
-| A new Authentication feature       | `infra/lib/stacks/auth-stack.ts`       |
-| A new system-wide health alarm     | `infra/lib/stacks/alarm-stack.ts`      |
-| A new shared resource default      | `infra/lib/shared/resource-factory.ts` |
-
-### 🔗 Handling Cross-Stack Dependencies
-
-Since our infrastructure is decoupled into multiple stacks, you often need to share resources (e.g., passing an S3 bucket URL from `DataStack` to a Lambda in `ApiStack`).
-
-1.  **Expose the Resource**: In the source stack (e.g., `DataStack`), define the resource as a `public readonly` property.
-2.  **Update Props**: In the consumer stack's `Props` interface (e.g., `ApiStackProps`), add the source stack as a dependency.
-3.  **Inject in App**: In `infra/bin/app.ts`, pass the source stack instance into the consumer stack's constructor.
-4.  **Use it**: Access the property in the consumer stack. CDK automatically handles the `Export/ImportValue` logic for you.
-
-> [!TIP]
-> **Automatic IAM**: If you call `bucket.grantRead(myLambda)`, CDK will automatically export the necessary IAM permissions across the stack boundary.
-
----
-
-## 🚀 Deployment Workflow
-
-We use **AWS CDK** for all infrastructure. To optimize developer experience, we've provided multiple deployment tires:
-
-- **Standard Deployment**: `npm run deploy` (Full synth, bootstrap, and deploy).
-- **Iterative Updates**: `npm run deploy:quick`. **Recommended for daily work.** It skips redundant builds and uses CDK **Hotswap** for near-instant Lambda updates.
-- **Stack Management**: `npm run deploy:stack` or `npm run destroy:stack` (Interactive menu to manage individual stacks).
-
----
-
-## 📏 Code Standards & Workflow
-
-### Branching & Commits
-
-- Follow **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:`).
-- Keep PRs focused on a single responsibility.
-
-### Quality Checks
-
-Before pushing, it is highly recommended to run our pre-push suite:
+### Running checks
 
 ```bash
-npm run check:quick  # Fast lint and unit tests
-npm run check        # Full audit, including typecheck and security (slow)
+npm run check:quick   # Fast: lint + unit tests
+npm run check         # Full: typecheck, audit, all tests
 ```
 
-### Clean Code
-
-- **No Docstrings**: We believe in self-documenting code. Use expressive variable and function names.
-- **Natural Language**: Write code as if you're explaining the logic to a peer. Avoid "academic" or overly clever abstractions that hide intent.
+Pre-commit hooks run lint and a quick typecheck automatically.
 
 ---
 
-Thank you for contributing to Awdah! If you have any questions, feel free to reach out to the core team.
+## How to submit a PR
+
+1. Fork `amgad01/awdah` on GitHub and clone your fork
+2. Create a branch: `git checkout -b feat/your-change` (use `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`, or `infra/`)
+3. Make your changes — see the code standards section below
+4. Run `npm run check:quick` and fix any failures
+5. Commit using Conventional Commits: `git commit -m "feat: add French translation"`
+6. Push and open a PR against `main`
+7. CI runs automatically — the PR needs to be green before merge
+
+For religious content changes, include the scholarly source in your commit message or PR description.
+
+---
+
+## Code standards
+
+- No `console.log` — use the structured logger in the backend
+- No hardcoded display strings in components — all copy goes through the translation layer (`t('key')`)
+- No directional CSS properties (`margin-left`, `padding-right`) — use logical properties only (`margin-inline-start`, `padding-inline-end`)
+- No raw `any` types
+- All API route changes must be reflected in `docs/api/openapi.yaml`
+- All dates are Hijri `YYYY-MM-DD` — Gregorian conversion only at the API boundary
+
+---
+
+## Updating content without code changes
+
+Most of the app's public-facing content lives in JSON files under `apps/frontend/public/data/`. These files are fetched at runtime, so you can update them by editing the JSON, committing, and letting the deploy pipeline run — no TypeScript changes needed.
+
+### Add a contributor to the About page
+
+Edit `apps/frontend/public/data/about-en.json` and `about-ar.json`. Add an entry to the `contributors` array at the end of each file:
+
+```json
+{
+  "id": "github-username",
+  "name": "Your Name",
+  "github": "github-username",
+  "role": "Frontend",
+  "contribution_summary": "What you contributed — one sentence is enough"
+}
+```
+
+Commit the two files and open a PR. Once merged and deployed, your entry appears on the About page.
+
+### Update the FAQ
+
+Edit `apps/frontend/public/data/faq-en.json` and `faq-ar.json`. Each entry in the `items` array has an `id`, `question`, and `answer`. Add to the relevant section or add a new section if needed. The FAQ page fetches the file fresh on each load, so there is no cache to clear.
+
+### Update the Contributing page sections
+
+The Contributing page content (areas of work, PR guide, v2 roadmap) lives in `apps/frontend/public/data/contributing-en.json` and `contributing-ar.json`. Edit the text directly — sections, items, and steps are all plain strings. No component changes are needed.
+
+### Add a new UI language
+
+Adding a new language to the app requires two things — one translation file and one config entry:
+
+1. Copy `apps/frontend/src/i18n/en.json` and name it with your language code (e.g. `fr.json` for French, `tr.json` for Turkish, `ur.json` for Urdu)
+2. Translate all string values in the new file — do not change the keys, and keep `{{variable}}` placeholders exactly as they are
+3. Open `apps/frontend/src/i18n/languages.json` and add an entry for your language:
+   ```json
+   { "code": "fr", "name": "French", "nativeName": "Français", "shortLabel": "FR", "dir": "ltr" }
+   ```
+   For a right-to-left language like Urdu: `"dir": "rtl"`
+4. Also translate the public data files: copy `apps/frontend/public/data/about-en.json` → `about-fr.json` (and similarly for `faq`, `contributing`)
+5. Run `npm run dev:frontend` — the language switcher will show your new language immediately
+6. Go through the app in your new language and fix anything that looks wrong in context
+7. Run `npm run test` and fix any failures, then open a PR
+
+The language switcher and RTL layout both update automatically from the config — no component code changes are needed.
+
+---
+
+## Contributor recognition
+
+Everyone with a merged PR is listed in the README and on the About page with their name, GitHub profile, and a description of what they contributed. Translation contributors and scholar reviewers are credited by name and role.
+
+After your PR is merged, open a second small PR updating `apps/frontend/public/data/about-en.json` and `about-ar.json` to add yourself to the contributors array (see the section above). If you'd prefer not to update it yourself, a maintainer can do it for you — just ask.
+
+---
+
+If you have questions, reach out on [LinkedIn](https://www.linkedin.com/in/amgad-m) or open an issue on GitHub.
