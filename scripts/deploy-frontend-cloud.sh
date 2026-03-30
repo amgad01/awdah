@@ -19,6 +19,16 @@ cd infra
 npx cdk deploy Awdah-frontend-stack-$ENV --context env=$ENV --require-approval never
 cd ..
 
-# 3. Show Final URL
+# 3. Get Final URL
+echo "📋 Fetching final URL..."
+REGION=${AWS_DEFAULT_REGION:-eu-west-1}
+
+FRONTEND_URL=$(aws cloudformation describe-stacks \
+    --stack-name "Awdah-frontend-stack-$ENV" \
+    --region "$REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='FrontendUrl'].OutputValue" \
+    --output text)
+
 echo -e "\n✅ \033[0;32mDeployment Complete!\033[0m"
-./scripts/list-outputs.sh $ENV
+echo -e "🌐 \033[1;36mFrontend URL:\033[0m \033[1;33m$FRONTEND_URL\033[0m"
+echo -e "\n💡 \033[0;90mView all outputs with: npm run outputs:$ENV\033[0m"
