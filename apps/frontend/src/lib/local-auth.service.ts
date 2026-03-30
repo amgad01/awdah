@@ -10,9 +10,28 @@ function localUserId(email: string): string {
   return `local-${safe || 'dev-user'}`;
 }
 
+const USERS_REGISTRY_KEY = 'awdah_local_users_registry';
+
+function getRegistry(): Record<string, string> {
+  const stored = localStorage.getItem(USERS_REGISTRY_KEY);
+  return stored ? JSON.parse(stored) : {};
+}
+
+function saveToRegistry(email: string, password: string): void {
+  const registry = getRegistry();
+  registry[email.toLowerCase()] = password;
+  localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(registry));
+}
+
 export const localAuthService: AuthService = {
   async signIn(email: string, password: string): Promise<UserSession> {
-    void password;
+    const registry = getRegistry();
+    const storedPassword = registry[email.toLowerCase()];
+
+    if (!storedPassword || storedPassword !== password) {
+      throw new Error('auth.login_error');
+    }
+
     const session: UserSession = {
       userId: localUserId(email),
       username: email.split('@')[0] || 'dev',
@@ -22,11 +41,11 @@ export const localAuthService: AuthService = {
     };
 
     persistSession(session);
-
     return session;
   },
 
-  async signUp(_email: string, _password: string): Promise<{ needsVerification: boolean }> {
+  async signUp(email: string, password: string): Promise<{ needsVerification: boolean }> {
+    saveToRegistry(email, password);
     return { needsVerification: false };
   },
 
