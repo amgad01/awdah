@@ -27,7 +27,7 @@ export class UpdatePracticingPeriodUseCase {
   async execute(command: UpdatePracticingPeriodCommand): Promise<void> {
     const existing = await this.repository.findById(command.userId, command.periodId);
     if (!existing) {
-      throw new NotFoundError('Practicing period not found');
+      throw new NotFoundError('onboarding.period_error_not_found');
     }
 
     const userSettings = await this.userRepository.findById(command.userId);
@@ -39,7 +39,7 @@ export class UpdatePracticingPeriodUseCase {
     const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
 
     if (userSettings.dateOfBirth && startDate.isBefore(userSettings.dateOfBirth)) {
-      throw new ValidationError('Practicing period cannot start before your date of birth');
+      throw new ValidationError('onboarding.period_error_before_dob');
     }
 
     const updated = new PracticingPeriod({
@@ -54,7 +54,7 @@ export class UpdatePracticingPeriodUseCase {
     for (const p of allPeriods) {
       if (p.periodId === command.periodId) continue;
       if (p.overlapsWith(updated)) {
-        throw new ConflictError('The updated practicing period overlaps with an existing one');
+        throw new ConflictError('onboarding.period_error_overlap');
       }
     }
 

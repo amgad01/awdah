@@ -34,7 +34,7 @@ export class AddPracticingPeriodUseCase {
     }
 
     if (userSettings.dateOfBirth && startDate.isBefore(userSettings.dateOfBirth)) {
-      throw new ValidationError('Practicing period cannot start before your date of birth');
+      throw new ValidationError('onboarding.period_error_before_dob');
     }
 
     const newPeriod = new PracticingPeriod({
@@ -48,7 +48,7 @@ export class AddPracticingPeriodUseCase {
     const existing = await this.repository.findByUser(command.userId);
     for (const p of existing) {
       if (p.overlapsWith(newPeriod)) {
-        throw new ConflictError('The new practicing period overlaps with an existing one');
+        throw new ConflictError('onboarding.period_error_overlap');
       }
     }
 
