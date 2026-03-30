@@ -25,7 +25,7 @@ if [ -z "$STACK" ]; then
   echo "Stack Descriptions:"
   echo "  - data    : Core persistence (DynamoDB Tables)"
   echo "  - auth    : Identity management (Cognito User Pool)"
-  echo "  - api     : Business logic (Lambda handlers & AppSync API)"
+  echo "  - api     : Business logic (Lambda handlers & HTTP API Gateway)"
   echo "  - backup  : Resilience (S3 Backup & Recovery flows)"
   echo "  - alarm   : Observability (CloudWatch Dashboard & SNS Alarms)"
   echo "  - frontend: User Interface (Web App bundle)"
