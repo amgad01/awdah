@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/frontend",
+    "dev:hybrid": "bash scripts/setup-hybrid-dev.sh dev",
+    "dev:local": "echo \"VITE_AUTH_MODE=local\" > apps/frontend/.env.local",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
     "docker:up": "docker compose up -d localstack",
