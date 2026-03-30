@@ -152,8 +152,8 @@ export const WeeklyPrayerChart: React.FC = () => {
           data={chartData}
           margin={
             isRTL
-              ? { top: 4, right: -24, left: 4, bottom: 0 }
-              : { top: 4, right: 4, left: -24, bottom: 0 }
+              ? { top: 4, right: 16, left: 16, bottom: 4 }
+              : { top: 4, right: 16, left: 16, bottom: 4 }
           }
         >
           <CartesianGrid
