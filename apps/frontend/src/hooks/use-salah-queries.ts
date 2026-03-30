@@ -9,6 +9,8 @@ import {
 import { api, type PrayerLogResponse, type HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 
 export function invalidateSalahQueries(queryClient: QueryClient, date?: string) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
@@ -41,20 +43,34 @@ export const useSalahDebt = () => {
 
 export const useLogPrayer = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.salah.logPrayer,
     onSuccess: (_data, variables) => {
       invalidateSalahQueries(queryClient, variables.date);
+      // Optional: tiny toast for confirmation? User said "where possible"
+      // Maybe not too noisy for individual prayers, but errors definitely need it.
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };
 
 export const useDeletePrayer = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.salah.deleteLog,
     onSuccess: (_data, variables) => {
       invalidateSalahQueries(queryClient, variables.date);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };
@@ -92,10 +108,17 @@ export const useInfiniteSalahHistory = (startDate: string, endDate: string, enab
 
 export const useResetPrayerLogs = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.salah.resetLogs,
     onSuccess: () => {
       invalidateSalahQueries(queryClient);
+      toast.success(t('settings.reset_done'));
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };

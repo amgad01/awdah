@@ -9,6 +9,8 @@ import {
 import { api, type FastLogResponse, type HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 
 export function invalidateSawmQueries(queryClient: QueryClient, date?: string) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
@@ -41,20 +43,32 @@ export const useSawmDebt = () => {
 
 export const useLogFast = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.sawm.logFast,
     onSuccess: (_data, variables) => {
       invalidateSawmQueries(queryClient, variables.date);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };
 
 export const useDeleteFast = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.sawm.deleteLog,
     onSuccess: (_data, variables) => {
       invalidateSawmQueries(queryClient, variables.date);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };
@@ -92,10 +106,17 @@ export const useInfiniteSawmHistory = (startDate: string, endDate: string, enabl
 
 export const useResetFastLogs = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: api.sawm.resetLogs,
     onSuccess: () => {
       invalidateSawmQueries(queryClient);
+      toast.success(t('settings.reset_done'));
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
     },
   });
 };

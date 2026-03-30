@@ -61,7 +61,6 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
   const { data: logs, isLoading, error, isError } = useDailySawmLog(selectedDate);
   const logMutation = useLogFast();
   const deleteMutation = useDeleteFast();
-  const actionError = logMutation.error || deleteMutation.error;
 
   const fastLog = useMemo(() => {
     return (logs ?? []).find((log) => log.type === fastType) ?? null;
@@ -187,12 +186,6 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
           )}
         </>
       )}
-
-      {actionError ? (
-        <p className={styles.actionError} role="alert">
-          {actionError instanceof Error ? actionError.message : t('common.error')}
-        </p>
-      ) : null}
     </div>
   );
 };
