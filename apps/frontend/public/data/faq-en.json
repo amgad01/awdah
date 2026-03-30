@@ -111,7 +111,12 @@
       {
         "id": "momentum_calculation",
         "question": "How is the Momentum score calculated?",
-        "answer": "Momentum has two parts. The streak counter walks backwards from today (or yesterday, if you haven't logged anything today yet) and counts every consecutive Hijri day on which at least one qadaa prayer or qadaa fast was logged. It stops as soon as it finds a day with no activity. The activity rate is the percentage of the last 30 Hijri days that had any qadaa activity — it gives a smoother view of your consistency even when a one-day gap breaks the streak. Both values are computed from a rolling 365-day history window, so streaks of up to a year are accurately tracked."
+        "answer": "Momentum is strictly tied to your daily obligations. The streak walks backwards from today and counts every consecutive Hijri day on which you completed all 5 obligatory prayers. It represents your current 'Momentum' in maintaining your primary duty. If you miss even one obligatory prayer today or yesterday, the Momentum streak resets."
+      },
+      {
+        "id": "persistence_streaks",
+        "question": "How do individual prayer and fasting streaks work?",
+        "answer": "Unlike the main Momentum streak, individual streaks (like your 'Fajr streak' or 'Fasting streak') are inclusive. They count any day you performed that act, whether as a daily obligation, a make-up (qadaa), or during Ramadan. This 'Persistence' model ensures that your effort in recovering missed prayers is always recorded and celebrated, even if your main Momentum is interrupted."
       }
     ]
   }

@@ -24,6 +24,11 @@ const LoginForm = lazy(() =>
 const SignupForm = lazy(() =>
   import('@/features/auth/signup-form').then((module) => ({ default: module.SignupForm })),
 );
+const ContributingPage = lazy(() =>
+  import('@/features/contributing/contributing-page').then((module) => ({
+    default: module.ContributingPage,
+  })),
+);
 const PrivacyPage = lazy(() =>
   import('@/features/privacy/privacy-page').then((module) => ({ default: module.PrivacyPage })),
 );
@@ -108,6 +113,30 @@ function PublicAboutPage({
   );
 }
 
+function PublicContributingPage({
+  onShowLogin,
+  onShowSignup,
+}: {
+  onShowLogin: () => void;
+  onShowSignup: () => void;
+}) {
+  const { t } = useLanguage();
+
+  return (
+    <PublicPageShell
+      badge={t('contributing.project_badge')}
+      title={t('contributing.project_title')}
+      subtitle={t('contributing.project_subtitle')}
+      ctaTitle={t('marketing.learn_panel_title')}
+      ctaText={t('marketing.learn_panel_body')}
+      onShowLogin={onShowLogin}
+      onShowSignup={onShowSignup}
+    >
+      <ContributingPage />
+    </PublicPageShell>
+  );
+}
+
 function App() {
   const { isAuthenticated, loading, authNotice, checkUser } = useAuth();
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
@@ -160,6 +189,15 @@ function App() {
               path="/about"
               element={
                 <PublicAboutPage
+                  onShowLogin={() => setAuthView('login')}
+                  onShowSignup={() => setAuthView('signup')}
+                />
+              }
+            />
+            <Route
+              path="/contribute"
+              element={
+                <PublicContributingPage
                   onShowLogin={() => setAuthView('login')}
                   onShowSignup={() => setAuthView('signup')}
                 />

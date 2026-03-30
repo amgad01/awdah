@@ -83,6 +83,28 @@
   --color-on-dark-low: rgba(255, 255, 255, 0.8);
   --color-on-dark-muted: rgba(255, 255, 255, 0.7);
   --color-backdrop: rgba(0, 0, 0, 0.45);
+  --color-surface-hover: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+
+  /* Glass/Overlay variants */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-blur: 14px;
+
+  /* Card & Section Tokens */
+  --card-padding: clamp(1rem, 3vw, 1.5rem);
+  --card-radius: var(--border-radius-lg);
+  --card-shadow: var(--shadow-md);
+
+  /* Semantic Notice Tokens (used in SectionNotice, toasts, etc.) */
+  --notice-success-bg: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
+  --notice-success-border: color-mix(in srgb, var(--color-success) 18%, transparent);
+  --notice-error-bg: color-mix(in srgb, var(--color-error) 8%, var(--color-surface));
+  --notice-error-border: color-mix(in srgb, var(--color-error) 18%, transparent);
+  --notice-warning-bg: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
+  --notice-warning-border: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  --notice-info-bg: color-mix(in srgb, var(--color-info) 8%, var(--color-surface));
+  --notice-info-border: color-mix(in srgb, var(--color-info) 18%, transparent);
 
   /* Typography — font weights */
   --font-weight-regular: 400;
@@ -135,6 +157,13 @@
     --color-success-alpha-8: rgba(102, 187, 106, 0.1);
     --color-error-alpha-10: rgba(239, 83, 80, 0.12);
     --color-error-alpha-20: rgba(239, 83, 80, 0.25);
+    --color-surface-hover: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+
+    /* Glass/Overlay variants - Dark */
+    --glass-bg: rgba(30, 30, 30, 0.7);
+    --glass-bg-elevated: rgba(40, 40, 40, 0.82);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: 16px;
   }
 }
 
