@@ -29,24 +29,30 @@ export const useStreak = () => {
 
   const streak = useMemo(() => {
     const today = todayHijriDate();
-    const activeDays = new Set<string>();
+    const dayPrayers: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
+      if (log.type !== 'obligatory') continue;
+      const day = log.date;
+      if (!dayPrayers[day]) dayPrayers[day] = new Set();
+      dayPrayers[day].add(log.prayerName);
     }
-    for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
+    const completeDays = new Set<string>();
+    for (const [day, prayers] of Object.entries(dayPrayers)) {
+      if (PRAYERS.every((p) => prayers.has(p))) {
+        completeDays.add(day);
+      }
     }
-    return computeConsecutiveStreak(activeDays, today);
-  }, [salah.data, sawm.data]);
+    return computeConsecutiveStreak(completeDays, today);
+  }, [salah.data]);
 
   const activityRate = useMemo(() => {
     const today = todayHijriDate();
     const activeDays = new Set<string>();
     for (const log of salah.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
+      if (log.type === 'obligatory') activeDays.add(log.date);
     }
     for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') activeDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
+      if (log.type === 'ramadan') activeDays.add(log.date);
     }
     let active = 0;
     for (let i = 0; i < ACTIVITY_RATE_WINDOW_DAYS; i++) {
@@ -58,7 +64,7 @@ export const useStreak = () => {
   const milestone = STREAK_MILESTONES.includes(streak) ? streak : null;
 
   return {
-    streak,
+    streak, // Momentum matches obligatory completion
     activityRate,
     milestone,
     loading: salah.isLoading || sawm.isLoading,
@@ -80,8 +86,7 @@ export const useStreakDetails = () => {
     const today = todayHijriDate();
     const prayerDays: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
-      if (log.type !== 'qadaa') continue;
-      const day = gregorianIsoToHijri(log.loggedAt.split('T')[0]);
+      const day = log.date;
       if (!prayerDays[log.prayerName]) prayerDays[log.prayerName] = new Set();
       prayerDays[log.prayerName].add(day);
     }
@@ -129,18 +134,24 @@ export const useStreakDetails = () => {
   const bestPrayerStreak = useMemo((): BestPrayerStreak | null => {
     let best: BestPrayerStreak | null = null;
     for (const [name, count] of Object.entries(prayerStreaks)) {
-      if (count > 0 && (!best || count > best.count)) {
-        best = { name, count };
+      if (count > 0 && (!best || count > (best.count as number))) {
+        best = { name, count: count as number };
       }
     }
     return best;
+  }, [prayerStreaks]);
+
+  const activePrayerStreaks = useMemo((): BestPrayerStreak[] => {
+    return Object.entries(prayerStreaks)
+      .filter(([, count]) => (count as number) > 0)
+      .map(([name, count]) => ({ name, count: count as number }))
+      .sort((a, b) => b.count - a.count);
   }, [prayerStreaks]);
 
   const obligatoryStreak = useMemo((): number => {
     const today = todayHijriDate();
     const dayPrayers: Record<string, Set<string>> = {};
     for (const log of salah.data ?? []) {
-      if (log.type !== 'obligatory') continue;
       const day = log.date;
       if (!dayPrayers[day]) dayPrayers[day] = new Set();
       dayPrayers[day].add(log.prayerName);
@@ -154,11 +165,11 @@ export const useStreakDetails = () => {
     return computeConsecutiveStreak(completeDays, today);
   }, [salah.data]);
 
-  const qadaaFastStreak = useMemo((): number => {
+  const fastStreak = useMemo((): number => {
     const today = todayHijriDate();
     const fastDays = new Set<string>();
     for (const log of sawm.data ?? []) {
-      if (log.type === 'qadaa') fastDays.add(gregorianIsoToHijri(log.loggedAt.split('T')[0]));
+      fastDays.add(log.date);
     }
     return computeConsecutiveStreak(fastDays, today);
   }, [sawm.data]);
@@ -166,9 +177,10 @@ export const useStreakDetails = () => {
   return {
     prayerStreaks,
     bestPrayerStreak,
+    activePrayerStreaks,
     monThuStreak,
     obligatoryStreak,
-    qadaaFastStreak,
+    fastStreak,
     loading: salah.isLoading || sawm.isLoading,
   };
 };

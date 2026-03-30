@@ -8,10 +8,10 @@ import styles from './dashboard.module.css';
 interface StreakCardProps {
   streak: number;
   milestone: number | null;
-  bestPrayerStreak: BestPrayerStreak | null;
   monThuStreak: number;
   obligatoryStreak: number;
-  qadaaFastStreak: number;
+  fastStreak: number;
+  activePrayerStreaks: BestPrayerStreak[];
   t: (key: string, opts?: Record<string, unknown>) => string;
   fmtNumber: (n: number) => string;
 }
@@ -19,15 +19,15 @@ interface StreakCardProps {
 export const StreakCard: React.FC<StreakCardProps> = ({
   streak,
   milestone,
-  bestPrayerStreak,
   monThuStreak,
   obligatoryStreak,
-  qadaaFastStreak,
+  fastStreak,
+  activePrayerStreaks,
   t,
   fmtNumber,
 }) => {
   const hasAnyRecord =
-    bestPrayerStreak || monThuStreak > 0 || obligatoryStreak > 0 || qadaaFastStreak > 0;
+    activePrayerStreaks.length > 0 || monThuStreak > 0 || obligatoryStreak > 0 || fastStreak > 0;
 
   return (
     <Card
@@ -38,7 +38,9 @@ export const StreakCard: React.FC<StreakCardProps> = ({
       <div className={styles.streakHeader}>
         <div className={styles.statLead}>
           <span className={styles.statLeadValue}>{fmtNumber(streak)}</span>
-          <span className={styles.statLeadLabel}>{t('dashboard.streak_days')}</span>
+          <span className={styles.statLeadLabel}>
+            {t('dashboard.streak_days', { count: streak })}
+          </span>
         </div>
         <div className={styles.streakBadge}>
           <TrendingUp size={16} />
@@ -49,6 +51,7 @@ export const StreakCard: React.FC<StreakCardProps> = ({
       {milestone !== null && (
         <p className={styles.streakMilestone}>
           {t('dashboard.streak_milestone', { n: fmtNumber(milestone) })}
+          {t('dashboard.celebration_suffix')}
         </p>
       )}
       {streak === 0 && <p className={styles.streakNone}>{t('dashboard.streak_none')}</p>}
@@ -59,33 +62,45 @@ export const StreakCard: React.FC<StreakCardProps> = ({
             <div className={styles.recordStreakRow}>
               <CheckCircle size={13} className={styles.recordStreakIcon} />
               <span>
-                {t('dashboard.record_obligatory_streak', { n: fmtNumber(obligatoryStreak) })}
-              </span>
-            </div>
-          )}
-          {bestPrayerStreak && (
-            <div className={styles.recordStreakRow}>
-              <Moon size={13} className={styles.recordStreakIcon} />
-              <span>
-                {t('dashboard.record_prayer_streak', {
-                  prayer: t(`prayers.${bestPrayerStreak.name}`),
-                  n: fmtNumber(bestPrayerStreak.count),
+                {t('dashboard.record_obligatory_streak', {
+                  n: fmtNumber(obligatoryStreak),
+                  count: obligatoryStreak,
                 })}
               </span>
             </div>
           )}
-          {qadaaFastStreak > 0 && (
+          {activePrayerStreaks.map((ps) => (
+            <div key={ps.name} className={styles.recordStreakRow}>
+              <Moon size={13} className={styles.recordStreakIcon} />
+              <span>
+                {t('dashboard.record_prayer_streak', {
+                  prayer: t(`prayers.${ps.name}`),
+                  n: fmtNumber(ps.count),
+                  count: ps.count,
+                })}
+              </span>
+            </div>
+          ))}
+          {fastStreak > 0 && (
             <div className={styles.recordStreakRow}>
               <Utensils size={13} className={styles.recordStreakIcon} />
               <span>
-                {t('dashboard.record_qadaa_fast_streak', { n: fmtNumber(qadaaFastStreak) })}
+                {t('dashboard.record_fast_streak', {
+                  n: fmtNumber(fastStreak),
+                  count: fastStreak,
+                })}
               </span>
             </div>
           )}
           {monThuStreak > 0 && (
             <div className={styles.recordStreakRow}>
               <Sun size={13} className={styles.recordStreakIcon} />
-              <span>{t('dashboard.record_mon_thu_streak', { n: fmtNumber(monThuStreak) })}</span>
+              <span>
+                {t('dashboard.record_mon_thu_streak', {
+                  n: fmtNumber(monThuStreak),
+                  count: monThuStreak,
+                })}
+              </span>
             </div>
           )}
         </div>

@@ -9,7 +9,7 @@ interface UseCelebrationArgs {
   bestPrayerStreak: BestPrayerStreak | null;
   monThuStreak: number;
   obligatoryStreak: number;
-  qadaaFastStreak: number;
+  fastStreak: number;
   t: (key: string, opts?: Record<string, unknown>) => string;
   fmtNumber: (n: number) => string;
 }
@@ -20,7 +20,7 @@ export function useCelebration({
   bestPrayerStreak,
   monThuStreak,
   obligatoryStreak,
-  qadaaFastStreak,
+  fastStreak,
   t,
   fmtNumber,
 }: UseCelebrationArgs) {
@@ -30,7 +30,7 @@ export function useCelebration({
   const prevBestPrayerCount = useRef(bestPrayerStreak?.count ?? 0);
   const prevMonThu = useRef(monThuStreak);
   const prevObligatory = useRef(obligatoryStreak);
-  const prevQadaaFast = useRef(qadaaFastStreak);
+  const prevFast = useRef(fastStreak);
 
   useEffect(() => {
     if (isFirstLoad.current) {
@@ -39,47 +39,51 @@ export function useCelebration({
       prevBestPrayerCount.current = bestPrayerStreak?.count ?? 0;
       prevMonThu.current = monThuStreak;
       prevObligatory.current = obligatoryStreak;
-      prevQadaaFast.current = qadaaFastStreak;
+      prevFast.current = fastStreak;
       return;
     }
 
+    const showCelebration = (key: string, opts?: Record<string, unknown>) => {
+      const msg = t(key, opts);
+      const suffix = t('dashboard.celebration_suffix');
+      setCelebration(`${msg}${suffix}`);
+    };
+
     if (streak > prevStreak.current && milestone !== null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCelebration(t('dashboard.celebration_streak', { n: fmtNumber(streak) }));
+      showCelebration('dashboard.celebration_streak', { n: fmtNumber(streak) });
     } else if (
       obligatoryStreak > prevObligatory.current &&
       PRAYER_CELEBRATION_MILESTONES.includes(obligatoryStreak)
     ) {
-      setCelebration(
-        t('dashboard.celebration_obligatory_streak', { n: fmtNumber(obligatoryStreak) }),
-      );
+      showCelebration('dashboard.celebration_obligatory_streak', {
+        n: fmtNumber(obligatoryStreak),
+      });
     } else if (
       bestPrayerStreak &&
       bestPrayerStreak.count > prevBestPrayerCount.current &&
       PRAYER_CELEBRATION_MILESTONES.includes(bestPrayerStreak.count)
     ) {
-      setCelebration(
-        t('dashboard.celebration_prayer_streak', {
-          prayer: t(`prayers.${bestPrayerStreak.name}`),
-          n: fmtNumber(bestPrayerStreak.count),
-        }),
-      );
+      showCelebration('dashboard.celebration_prayer_streak', {
+        prayer: t(`prayers.${bestPrayerStreak.name}`),
+        n: fmtNumber(bestPrayerStreak.count),
+      });
     } else if (
-      qadaaFastStreak > prevQadaaFast.current &&
-      PRAYER_CELEBRATION_MILESTONES.includes(qadaaFastStreak)
+      fastStreak > prevFast.current &&
+      PRAYER_CELEBRATION_MILESTONES.includes(fastStreak)
     ) {
-      setCelebration(
-        t('dashboard.celebration_qadaa_fast_streak', { n: fmtNumber(qadaaFastStreak) }),
-      );
-    } else if (monThuStreak > prevMonThu.current && monThuStreak > 0 && monThuStreak % 4 === 0) {
-      setCelebration(t('dashboard.celebration_mon_thu', { n: fmtNumber(monThuStreak) }));
+      showCelebration('dashboard.celebration_fast_streak', { n: fmtNumber(fastStreak) });
+    } else if (monThuStreak > prevMonThu.current && monThuStreak > 0) {
+      showCelebration('dashboard.celebration_mon_thu', {
+        count: monThuStreak,
+        n: fmtNumber(monThuStreak),
+      });
     }
 
     prevStreak.current = streak;
     prevBestPrayerCount.current = bestPrayerStreak?.count ?? 0;
     prevMonThu.current = monThuStreak;
     prevObligatory.current = obligatoryStreak;
-    prevQadaaFast.current = qadaaFastStreak;
+    prevFast.current = fastStreak;
   }, [
     streak,
     milestone,
@@ -88,7 +92,7 @@ export function useCelebration({
     bestPrayerStreak?.name,
     monThuStreak,
     obligatoryStreak,
-    qadaaFastStreak,
+    fastStreak,
     t,
     fmtNumber,
   ]);

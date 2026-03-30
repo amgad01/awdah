@@ -26,15 +26,15 @@ export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
   const { salahDebt, sawmDebt, loading, error } = useWorship();
   const { streak, milestone } = useStreak();
-  const { bestPrayerStreak, monThuStreak, obligatoryStreak, qadaaFastStreak } = useStreakDetails();
+  const { activePrayerStreaks, monThuStreak, obligatoryStreak, fastStreak } = useStreakDetails();
 
   const { celebration, dismiss: dismissCelebration } = useCelebration({
     streak,
     milestone,
-    bestPrayerStreak,
+    bestPrayerStreak: activePrayerStreaks[0] || null,
     monThuStreak,
     obligatoryStreak,
-    qadaaFastStreak,
+    fastStreak,
     t,
     fmtNumber,
   });
@@ -139,10 +139,10 @@ export const Dashboard: React.FC = () => {
         <StreakCard
           streak={streak}
           milestone={milestone}
-          bestPrayerStreak={bestPrayerStreak}
+          activePrayerStreaks={activePrayerStreaks}
           monThuStreak={monThuStreak}
           obligatoryStreak={obligatoryStreak}
-          qadaaFastStreak={qadaaFastStreak}
+          fastStreak={fastStreak}
           t={t}
           fmtNumber={fmtNumber}
         />
