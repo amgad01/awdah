@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
-import { HijriDate } from '@awdah/shared';
+import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
+import { formatGregorianDisplay, formatHijriDisplay } from '@/lib/profile-date-utils';
+import { getPracticingPeriodValidationError } from '@/lib/practicing-periods';
+import { todayHijriDate } from '@/utils/date-utils';
 import { Plus, Trash2 } from 'lucide-react';
 import styles from '../onboarding.module.css';
 
@@ -22,110 +25,38 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
   periods,
   onChange,
 }) => {
-  const { t } = useLanguage();
+  const { t, language, fmtNumber } = useLanguage();
   const [showForm, setShowForm] = useState(false);
-  const [startGreg, setStartGreg] = useState('');
-  const [endGreg, setEndGreg] = useState('');
+  const [startHijri, setStartHijri] = useState('');
+  const [endHijri, setEndHijri] = useState('');
   const [isCurrent, setIsCurrent] = useState(false);
   const [periodType, setPeriodType] = useState<'salah' | 'sawm' | 'both'>('both');
   const [formError, setFormError] = useState('');
 
-  const toHijriStr = (gregValue: string): string | null => {
-    if (!gregValue) return null;
-    try {
-      return HijriDate.fromGregorian(new Date(gregValue + 'T12:00:00')).toString();
-    } catch {
-      return null;
-    }
-  };
-
   const handleAddPeriod = () => {
     setFormError('');
-    const startHijri = toHijriStr(startGreg);
-    if (!startHijri) {
-      setFormError(t('onboarding.error_invalid_date'));
+    const nextEndHijri = isCurrent ? undefined : endHijri || undefined;
+    const validationError = getPracticingPeriodValidationError({
+      startDate: startHijri,
+      endDate: nextEndHijri,
+      dateOfBirth: dateOfBirthHijri,
+      existingPeriods: periods,
+    });
+    if (validationError) {
+      setFormError(t(validationError.messageKey));
       return;
-    }
-
-    // Validate: start cannot be in the future
-    try {
-      if (HijriDate.fromString(startHijri).isAfter(HijriDate.today())) {
-        setFormError(t('onboarding.period_error_future_date'));
-        return;
-      }
-    } catch {
-      /* ignore */
-    }
-
-    // Validate: cannot be before birth
-    if (dateOfBirthHijri) {
-      try {
-        const dob = HijriDate.fromString(dateOfBirthHijri);
-        const start = HijriDate.fromString(startHijri);
-        if (start.isBefore(dob)) {
-          setFormError(t('onboarding.period_error_before_dob'));
-          return;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-
-    let endHijri: string | undefined;
-    if (!isCurrent) {
-      endHijri = toHijriStr(endGreg) ?? undefined;
-      if (!endHijri) {
-        setFormError(t('onboarding.error_invalid_date'));
-        return;
-      }
-      // Validate end >= start
-      try {
-        const start = HijriDate.fromString(startHijri);
-        const end = HijriDate.fromString(endHijri);
-        if (end.isBefore(start)) {
-          setFormError(t('onboarding.period_error_end_before_start'));
-          return;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-
-    // Overlap check
-    const newStart = HijriDate.fromString(startHijri);
-    for (const p of periods) {
-      try {
-        const pStart = HijriDate.fromString(p.startHijri);
-        const pEnd = p.endHijri ? HijriDate.fromString(p.endHijri) : null;
-        const newEnd = endHijri ? HijriDate.fromString(endHijri) : null;
-
-        const pEndOrInfinity = pEnd ?? null;
-        const newEndOrInfinity = newEnd ?? null;
-
-        const startBeforeOtherEnd =
-          !pEndOrInfinity || newStart.isBefore(pEndOrInfinity) || newStart.equals(pEndOrInfinity);
-        const endAfterOtherStart =
-          !newEndOrInfinity || newEndOrInfinity.isAfter(pStart) || newEndOrInfinity.equals(pStart);
-
-        if (startBeforeOtherEnd && endAfterOtherStart) {
-          setFormError(t('onboarding.period_error_overlap'));
-          return;
-        }
-      } catch {
-        /* skip */
-      }
     }
 
     const newPeriod: LocalPeriod = {
       id: `${Date.now()}`,
       startHijri,
-      endHijri,
+      endHijri: nextEndHijri,
       type: periodType,
     };
 
     onChange([...periods, newPeriod]);
-    setStartGreg('');
-    setEndGreg('');
+    setStartHijri('');
+    setEndHijri('');
     setIsCurrent(false);
     setPeriodType('both');
     setShowForm(false);
@@ -134,8 +65,6 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
   const handleDelete = (id: string) => {
     onChange(periods.filter((p) => p.id !== id));
   };
-
-  const formatHijri = (hijri: string | undefined, fallback: string) => hijri ?? fallback;
 
   return (
     <div className={styles.step}>
@@ -158,8 +87,18 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
             <div key={p.id} className={styles.periodItem}>
               <div className={styles.periodItemDates}>
                 <span className={styles.periodDatesText}>
-                  {t('onboarding.period_from')} {p.startHijri} {t('onboarding.period_to')}{' '}
-                  {formatHijri(p.endHijri, t('onboarding.period_ongoing'))}
+                  {t('onboarding.period_from')}{' '}
+                  {formatHijriDisplay(p.startHijri, language, t, fmtNumber)}{' '}
+                  {t('onboarding.period_to')}{' '}
+                  {p.endHijri
+                    ? formatHijriDisplay(p.endHijri, language, t, fmtNumber)
+                    : t('onboarding.period_ongoing')}
+                </span>
+                <span className={styles.periodDatesText}>
+                  {formatGregorianDisplay(p.startHijri, language)} {t('onboarding.period_to')}{' '}
+                  {p.endHijri
+                    ? formatGregorianDisplay(p.endHijri, language)
+                    : t('onboarding.period_ongoing')}
                 </span>
                 <span className={styles.periodTypeTag}>
                   {t(`onboarding.period_type_${p.type}`)}
@@ -185,13 +124,16 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
 
           <div className={styles.field}>
             <label className={styles.label}>{t('onboarding.period_start')}</label>
-            <input
-              type="date"
-              className={styles.input}
-              value={startGreg}
-              max={new Date().toISOString().split('T')[0]}
-              onChange={(e) => setStartGreg(e.target.value)}
-              aria-label={t('onboarding.period_start')}
+            <HijriDatePicker
+              value={startHijri}
+              onChange={(value) => {
+                setFormError('');
+                setStartHijri(value);
+              }}
+              onError={(msg) => setFormError(msg ?? '')}
+              label={t('onboarding.period_start')}
+              minDate={dateOfBirthHijri}
+              maxDate={todayHijriDate()}
             />
           </div>
 
@@ -207,13 +149,17 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
           {!isCurrent && (
             <div className={styles.field}>
               <label className={styles.label}>{t('onboarding.period_end')}</label>
-              <input
-                type="date"
-                className={styles.input}
-                value={endGreg}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setEndGreg(e.target.value)}
-                aria-label={t('onboarding.period_end')}
+              <HijriDatePicker
+                value={endHijri}
+                onChange={(value) => {
+                  setFormError('');
+                  setEndHijri(value);
+                }}
+                onError={(msg) => setFormError(msg ?? '')}
+                label={t('onboarding.period_end')}
+                minDate={startHijri || dateOfBirthHijri}
+                maxDate={todayHijriDate()}
+                disabled={!startHijri}
               />
             </div>
           )}
@@ -238,7 +184,7 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
               type="button"
               className={styles.periodSaveBtn}
               onClick={handleAddPeriod}
-              disabled={!startGreg || (!isCurrent && !endGreg)}
+              disabled={!startHijri || (!isCurrent && !endHijri)}
             >
               {t('common.save')}
             </button>

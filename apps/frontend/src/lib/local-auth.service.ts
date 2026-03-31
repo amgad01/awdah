@@ -4,8 +4,12 @@ import { clearPersistedSession, persistSession, readPersistedSession } from './a
 const LOCAL_TOKEN = 'local-dev-token';
 const LOCAL_SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 function localUserId(email: string): string {
-  const normalized = email.trim().toLowerCase();
+  const normalized = normalizeEmail(email);
   const safe = normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return `local-${safe || 'dev-user'}`;
 }
@@ -19,14 +23,21 @@ function getRegistry(): Record<string, string> {
 
 function saveToRegistry(email: string, password: string): void {
   const registry = getRegistry();
-  registry[email.toLowerCase()] = password;
+  registry[normalizeEmail(email)] = password;
+  localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(registry));
+}
+
+export function deleteLocalUser(email: string): void {
+  const registry = getRegistry();
+  delete registry[normalizeEmail(email)];
   localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(registry));
 }
 
 export const localAuthService: AuthService = {
   async signIn(email: string, password: string): Promise<UserSession> {
     const registry = getRegistry();
-    const storedPassword = registry[email.toLowerCase()];
+    const normalizedEmail = normalizeEmail(email);
+    const storedPassword = registry[normalizedEmail];
 
     if (!storedPassword || storedPassword !== password) {
       throw new Error('auth.login_error');
@@ -34,8 +45,8 @@ export const localAuthService: AuthService = {
 
     const session: UserSession = {
       userId: localUserId(email),
-      username: email.split('@')[0] || 'dev',
-      email,
+      username: normalizedEmail.split('@')[0] || 'dev',
+      email: normalizedEmail,
       token: LOCAL_TOKEN,
       expiresAt: Date.now() + LOCAL_SESSION_DURATION_MS,
     };
@@ -55,7 +66,7 @@ export const localAuthService: AuthService = {
 
   async forgotPassword(email: string): Promise<void> {
     const registry = getRegistry();
-    if (!registry[email.toLowerCase()]) {
+    if (!registry[normalizeEmail(email)]) {
       throw new Error('auth.login_error');
     }
     // In local mode, we just accept the flow and pretend an email was sent.
@@ -64,7 +75,7 @@ export const localAuthService: AuthService = {
 
   async confirmPassword(email: string, _code: string, newPassword: string): Promise<void> {
     const registry = getRegistry();
-    if (!registry[email.toLowerCase()]) {
+    if (!registry[normalizeEmail(email)]) {
       throw new Error('auth.login_error');
     }
     saveToRegistry(email, newPassword);

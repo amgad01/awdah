@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import { MIN_DAILY_INTENTION, MAX_DAILY_INTENTION, DAYS_PER_YEAR } from '@/lib/constants';
 import styles from '../onboarding.module.css';
 
@@ -25,10 +26,14 @@ export const IntentionStep: React.FC<IntentionStepProps> = ({
     <div className={styles.step}>
       <div className={styles.stepTitleBlock}>
         <h1 className={styles.stepTitle}>{t('onboarding.intention_title')}</h1>
-        <p className={styles.stepSubtitle}>{t('onboarding.intention_subtitle')}</p>
+        <p className={styles.stepSubtitle}>
+          <GlossaryText>{t('onboarding.intention_subtitle')}</GlossaryText>
+        </p>
       </div>
 
-      <div className={styles.explainer}>{t('onboarding.intention_explainer')}</div>
+      <div className={styles.explainer}>
+        <GlossaryText>{t('onboarding.intention_explainer')}</GlossaryText>
+      </div>
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="intention-input">
@@ -53,14 +58,18 @@ export const IntentionStep: React.FC<IntentionStepProps> = ({
 
       {yearsToComplete !== null && salahDebt > 0 && (
         <div className={styles.projectionPreview}>
-          {t('onboarding.projection_preview', {
-            n: fmtNumber(dailyIntention),
-            years: yearsToComplete,
-          })}
+          <GlossaryText>
+            {t('onboarding.projection_preview', {
+              n: fmtNumber(dailyIntention),
+              years: yearsToComplete,
+            })}
+          </GlossaryText>
         </div>
       )}
 
-      <p className={styles.scholarNote}>{t('onboarding.intention_scholar_note')}</p>
+      <p className={styles.scholarNote}>
+        <GlossaryText>{t('onboarding.intention_scholar_note')}</GlossaryText>
+      </p>
     </div>
   );
 };

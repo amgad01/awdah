@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 import { useQueryClient } from '@tanstack/react-query';
+import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { DEFAULT_DAILY_INTENTION } from '@/lib/constants';
 import { estimateSalahDebt } from '@/lib/practicing-periods';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUpdateProfile } from '@/hooks/use-profile';
 import { api } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { getOnboardingDraftKey } from '@/lib/onboarding-state';
 import { PrivacyStep } from './steps/privacy-step';
 import { ProfileStep } from './steps/profile-step';
 import { BulughStep } from './steps/bulugh-step';
@@ -30,13 +33,12 @@ interface OnboardingData {
 
 interface OnboardingWizardProps {
   onComplete: () => void;
+  onSkip: () => void;
 }
 
-const DRAFT_KEY = 'awdah_onboarding_draft';
-
-function loadDraft(): { step: number; data: OnboardingData } | null {
+function loadDraft(draftKey: string): { step: number; data: OnboardingData } | null {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    const raw = localStorage.getItem(draftKey);
     if (!raw) return null;
     return JSON.parse(raw) as { step: number; data: OnboardingData };
   } catch {
@@ -44,18 +46,20 @@ function loadDraft(): { step: number; data: OnboardingData } | null {
   }
 }
 
-export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
+export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, onSkip }) => {
+  const { user } = useAuth();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
+  const draftKey = useMemo(() => getOnboardingDraftKey(user?.userId), [user?.userId]);
 
   const [step, setStep] = useState(() => {
-    const draft = loadDraft();
+    const draft = loadDraft(draftKey);
     // Never restore to the final result step — re-run the save
     return draft && draft.step < 6 ? draft.step : 1;
   });
   const [data, setData] = useState<OnboardingData>(() => {
-    const draft = loadDraft();
+    const draft = loadDraft(draftKey);
     return draft
       ? draft.data
       : {
@@ -75,6 +79,27 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
     sawmDebt: number | null;
   }>({ salahDebt: null, sawmDebt: null });
 
+  useEffect(() => {
+    const draft = loadDraft(draftKey);
+    setStep(draft && draft.step < TOTAL_STEPS ? draft.step : 1);
+    setData(
+      draft
+        ? draft.data
+        : {
+            consentData: false,
+            consentPolicy: false,
+            dateOfBirthHijri: '',
+            gender: '',
+            bulughDateHijri: '',
+            periods: [],
+            dailyIntention: DEFAULT_DAILY_INTENTION,
+          },
+    );
+    setSaveError(false);
+    setIsSaving(false);
+    setDebtResult({ salahDebt: null, sawmDebt: null });
+  }, [draftKey]);
+
   const merge = useCallback(
     (updates: Partial<OnboardingData>) => setData((d) => ({ ...d, ...updates })),
     [],
@@ -84,11 +109,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
   useEffect(() => {
     if (step >= TOTAL_STEPS) return; // don't persist once on result step
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ step, data }));
+      localStorage.setItem(draftKey, JSON.stringify({ step, data }));
     } catch {
       // localStorage may be unavailable (private mode, storage full) — fail silently
     }
-  }, [step, data]);
+  }, [step, data, draftKey]);
 
   // Determine if the current step's required data is filled
   const canProceed = (): boolean => {
@@ -153,7 +178,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
       });
       // Clear the onboarding draft — wizard completed successfully
       try {
-        localStorage.removeItem(DRAFT_KEY);
+        localStorage.removeItem(draftKey);
       } catch {
         /* ignore */
       }
@@ -208,6 +233,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
         <span className={styles.stepCounter}>
           {t('onboarding.step_indicator', { current: step, total: TOTAL_STEPS })}
         </span>
+        <div className={styles.headerActions}>
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <div className={styles.progressBar}>
@@ -267,19 +295,30 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
       {/* Footer nav — hidden on final step (result has its own CTA) */}
       {step < TOTAL_STEPS && (
         <footer className={styles.footer}>
-          {step > 1 ? (
+          <div className={styles.footerLead}>
+            {step > 1 ? (
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={handleBack}
+                aria-label={t('onboarding.back')}
+              >
+                <ChevronLeft size={16} />
+                {t('onboarding.back')}
+              </button>
+            ) : (
+              <span className={styles.footerSpacer} />
+            )}
+
             <button
               type="button"
-              className={styles.backBtn}
-              onClick={handleBack}
-              aria-label={t('onboarding.back')}
+              className={styles.skipBtn}
+              onClick={onSkip}
+              aria-label={t('onboarding.skip_cta')}
             >
-              <ChevronLeft size={16} />
-              {t('onboarding.back')}
+              {t('onboarding.skip_cta')}
             </button>
-          ) : (
-            <span className={styles.footerSpacer} />
-          )}
+          </div>
 
           <button
             type="button"

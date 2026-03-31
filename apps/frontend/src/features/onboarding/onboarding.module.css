@@ -12,6 +12,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-md);
 }
 
@@ -28,6 +29,10 @@
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+.headerActions {
+  margin-inline-start: auto;
 }
 
 /* Step indicator dots */
@@ -88,6 +93,12 @@
   inset-block-end: 0;
 }
 
+.footerLead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .backBtn {
   display: flex;
   align-items: center;
@@ -132,6 +143,19 @@
 
 .footerSpacer {
   flex: 1;
+}
+
+.skipBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: var(--spacing-xs) 0;
+}
+
+.skipBtn:hover {
+  color: var(--color-primary);
 }
 
 /* ─── Step shared styles ──────────────────────────────── */
@@ -838,4 +862,32 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin-block-start: var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .wizardHeader {
+    align-items: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-inline-start: 0;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  }
+
+  .footerLead {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .nextBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }

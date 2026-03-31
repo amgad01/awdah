@@ -143,7 +143,7 @@ function PublicContributingPage({
 }
 
 function App() {
-  const { isAuthenticated, loading, authNotice, checkUser } = useAuth();
+  const { user, isAuthenticated, loading, authNotice, checkUser } = useAuth();
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
   useTheme();
 
@@ -154,7 +154,7 @@ function App() {
   return (
     <BrowserRouter>
       {isAuthenticated ? (
-        <AuthenticatedApp />
+        <AuthenticatedApp key={user?.userId ?? 'authenticated'} />
       ) : (
         <Suspense fallback={<LoadingScreen />}>
           <Routes>

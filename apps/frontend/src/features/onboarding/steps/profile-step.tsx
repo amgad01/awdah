@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
+import { todayHijriDate } from '@/utils/date-utils';
 import styles from '../onboarding.module.css';
 
 interface ProfileStepProps {
@@ -26,9 +27,13 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({ dateOfBirthHijri, gend
         <p className={styles.hint}>{t('onboarding.dob_skip_hint')}</p>
         <HijriDatePicker
           value={dateOfBirthHijri}
-          onChange={(v) => onChange({ dateOfBirthHijri: v })}
+          onChange={(v) => {
+            setError('');
+            onChange({ dateOfBirthHijri: v });
+          }}
           onError={setError}
           label={t('onboarding.dob_label')}
+          maxDate={todayHijriDate()}
         />
         {error && <p className={styles.error}>{error}</p>}
       </div>
