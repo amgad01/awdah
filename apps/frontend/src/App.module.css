@@ -126,15 +126,20 @@
   align-items: center;
   padding: 0.55rem 0.9rem;
   border-radius: var(--border-radius-pill);
-  border: 1px solid var(--color-overlay-hover);
-  background: var(--color-overlay-subtle);
-  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
   text-decoration: none;
   font-weight: var(--font-weight-bold);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .publicTopLink:hover {
-  background: var(--color-overlay-hover);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .authShell {
@@ -155,7 +160,7 @@
 }
 
 .authSubtitle {
-  color: var(--color-on-dark-low);
+  color: rgba(255, 255, 255, 0.88);
   font-size: 1.08rem;
   line-height: 1.7;
   margin: 0;
@@ -182,7 +187,7 @@
   border-radius: var(--border-radius-pill);
   background: var(--color-overlay-hover);
   border: 1px solid var(--color-overlay-active);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 0.82rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.04em;
@@ -217,15 +222,15 @@
 }
 
 .heroSecondary {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   color: white;
-  border: 1px solid var(--color-overlay-border);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .heroTertiary {
-  color: var(--color-on-dark-high);
-  background: transparent;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
 }
 
 .heroPrimary:hover,
@@ -245,7 +250,7 @@
   border-radius: var(--border-radius-pill);
   background: var(--color-overlay-subtle);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.94);
   font-size: 0.88rem;
 }
 
@@ -258,8 +263,8 @@
 .featureCard {
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
-  background: var(--color-overlay-subtle);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(14px);
 }
 
@@ -272,7 +277,7 @@
 
 .featureText {
   margin: 0;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.86);
   line-height: 1.6;
   font-size: 0.92rem;
 }
@@ -342,7 +347,7 @@
 
 .learnSubtitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.88);
   max-width: 50rem;
   line-height: 1.7;
 }
@@ -377,7 +382,7 @@
 
 .learnCtaText {
   margin: 0;
-  color: var(--color-on-dark-low);
+  color: rgba(255, 255, 255, 0.86);
   line-height: 1.7;
 }
 
@@ -466,16 +471,16 @@
 .publicFooter {
   padding: var(--spacing-4) var(--spacing-6);
   text-align: center;
-  border-block-start: 1px solid var(--color-divider, rgba(255 255 255 / 0.08));
+  border-block-start: 1px solid rgba(255 255 255 / 0.12);
 }
 
 .publicFooterLink {
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
 }
 
 .publicFooterLink:hover {
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.96);
   text-decoration: underline;
 }

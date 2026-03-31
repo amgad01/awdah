@@ -370,3 +370,86 @@ textarea:focus-visible {
   margin: var(--spacing-md) 0;
   border: none;
 }
+
+/* ── Semantic Components ── */
+
+.sectionCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--card-padding);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.iconBox {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+}
+
+.badgePill {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.formLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.formHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.noticeBox {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.noticeError {
+  background: var(--notice-error-bg);
+  border: 1px solid var(--notice-error-border);
+  color: var(--color-error);
+}
+
+.noticeSuccess {
+  background: var(--notice-success-bg);
+  border: 1px solid var(--notice-success-border);
+  color: var(--color-success);
+}
+
+.noticeWarning {
+  background: var(--notice-warning-bg);
+  border: 1px solid var(--notice-warning-border);
+  color: var(--color-warning);
+}
