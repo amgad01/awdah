@@ -9,6 +9,7 @@ import {
 
 export interface UserSettings {
   userId: string;
+  username?: string;
   dateOfBirth?: HijriDate;
   bulughDate: HijriDate;
   revertDate?: HijriDate;

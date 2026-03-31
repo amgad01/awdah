@@ -21,6 +21,7 @@ describe('UpdateUserSettingsUseCase', () => {
   it('saves settings with a parsed HijriDate', async () => {
     const command: UpdateUserSettingsCommand = {
       userId: 'user-123',
+      username: '  Amgad  ',
       bulughDate: '1431-09-15',
       gender: 'male',
     };
@@ -31,6 +32,7 @@ describe('UpdateUserSettingsUseCase', () => {
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
     const saved = vi.mocked(mockRepo.save).mock.calls[0]![0];
     expect(saved.userId).toBe('user-123');
+    expect(saved.username).toBe('Amgad');
     expect(saved.gender).toBe('male');
     expect(saved.bulughDate.toString()).toBe('1431-09-15');
   });

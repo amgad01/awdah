@@ -3,6 +3,7 @@ import { HijriDate, ValidationError, type Gender } from '@awdah/shared';
 
 export interface UpdateUserSettingsCommand {
   userId: string;
+  username?: string;
   bulughDate: string;
   gender: Gender;
   dateOfBirth?: string;
@@ -16,6 +17,7 @@ export class UpdateUserSettingsUseCase {
     const bulughDate = HijriDate.fromString(command.bulughDate);
     const dateOfBirth = command.dateOfBirth ? HijriDate.fromString(command.dateOfBirth) : undefined;
     const revertDate = command.revertDate ? HijriDate.fromString(command.revertDate) : undefined;
+    const username = command.username?.trim() || undefined;
 
     if (dateOfBirth && bulughDate.isBefore(dateOfBirth)) {
       throw new ValidationError('onboarding.bulugh_error_before_dob');
@@ -27,6 +29,7 @@ export class UpdateUserSettingsUseCase {
 
     const settings: UserSettings = {
       userId: command.userId,
+      username,
       bulughDate,
       gender: command.gender,
       dateOfBirth,
