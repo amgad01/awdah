@@ -235,13 +235,13 @@
   ],
   "v2_badge": "Future · v2",
   "v2_title": "What we are building next",
-  "v2_intro": "These features are intentionally out of scope for v1 — we wanted to ship something focused and complete before expanding. If you want to help design or start prototyping any of them, open an issue on GitHub and let's talk.",
+  "v2_intro": "This roadmap focuses on what is still upcoming beyond the current release. Core foundations such as dark mode, RTL support, and self-serve data export are already implemented.",
   "v2_items": [
     {
-      "id": "dark_dashboard",
-      "icon": "Moon",
-      "title": "Full dark-theme dashboard redesign",
-      "body": "The v2 dashboard is envisioned as a dark-first design with a deep navy background, gold accent navigation, a vertical prayer timeline on the main screen, and circular arc progress rings. Contributions to the design system and component library would be welcome ahead of the v2 frontend build."
+      "id": "theme_customization",
+      "icon": "Palette",
+      "title": "Advanced theme customization",
+      "body": "Dark mode is already available. A next step is richer theming: user-selectable accent palettes, high-contrast presets, and optional automatic theme scheduling based on local time."
     },
     {
       "id": "kaffarah",
@@ -273,17 +273,12 @@
       "title": "Regional moon sighting support",
       "body": "v1 uses the standard Hijri calendar for Ramadan day counts. v2 could allow users to select their regional moon sighting authority, which affects Ramadan start and end dates and therefore the Sawm debt calculation."
     },
-    {
-      "id": "data_export",
-      "icon": "Download",
-      "title": "Self-serve data export",
-      "body": "Users can currently delete their account, but a self-serve export of all their data in a readable format (CSV or JSON) is a planned v2 GDPR feature."
-    },
+
     {
       "id": "additional_languages",
       "icon": "Languages",
       "title": "Additional language support",
-      "body": "Urdu, Turkish, French, Indonesian, and Malay are the most-requested languages for the Muslim community worldwide. The translation infrastructure is already built for this — we just need translators."
+      "body": "Urdu, Turkish, French, Indonesian, and Malay are the most-requested languages for the Muslim community worldwide. The infrastructure is already ready; this now depends mainly on high-quality translation and review contributions."
     },
     {
       "id": "wcag_audit",
