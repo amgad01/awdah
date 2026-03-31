@@ -56,9 +56,21 @@ if ! npm run build; then
 fi
 echo ""
 
+if [ "$TARGET" = "cloudfront" ]; then
+  echo "▸ [4.5/6] Building frontend bundle for CloudFront stack deploy..."
+  cd "$ROOT_DIR"
+  if ! SKIP_SHARED_BUILD=1 "$SCRIPT_DIR/build-frontend.sh" "$ENV"; then
+    FAILED=true
+    exit 1
+  fi
+  echo ""
+fi
+
 echo "▸ [4/6] Synthesizing backend stacks..."
+cd "$INFRA_DIR"
 CONTEXT_ARGS=(--context "env=$ENV")
 [ -n "$ALERT_EMAIL" ] && CONTEXT_ARGS+=(--context "alertEmail=$ALERT_EMAIL")
+[ "$TARGET" = "cloudfront" ] && CONTEXT_ARGS+=(--context "deployFrontend=true")
 
 if ! npx cdk synth --all "${CONTEXT_ARGS[@]}"; then
   FAILED=true
@@ -74,9 +86,14 @@ BACKEND_STACKS=(
   "Awdah-alarm-stack-$ENV"
 )
 
-echo "▸ [5/6] Deploying backend stacks..."
+ALL_STACKS=("${BACKEND_STACKS[@]}")
+if [ "$TARGET" = "cloudfront" ]; then
+  ALL_STACKS+=("Awdah-frontend-stack-$ENV")
+fi
+
+echo "▸ [5/6] Deploying stacks..."
 if ! npx cdk deploy \
-  "${BACKEND_STACKS[@]}" \
+  "${ALL_STACKS[@]}" \
   "${CONTEXT_ARGS[@]}" \
   --outputs-file "$INFRA_DIR/outputs.json" \
   --require-approval never; then
@@ -85,12 +102,39 @@ if ! npx cdk deploy \
 fi
 echo ""
 
-echo "▸ [6/6] Deploying frontend..."
-cd "$ROOT_DIR"
-if ! SKIP_SHARED_BUILD=1 SKIP_AWS_SESSION_CHECK=1 "$SCRIPT_DIR/deploy-frontend.sh" "$ENV"; then
-  FAILED=true
-  exit 1
-fi
+echo "▸ [6/6] Finalizing frontend integration..."
+case "$TARGET" in
+  pages)
+    cd "$ROOT_DIR"
+    if ! SKIP_SHARED_BUILD=1 SKIP_AWS_SESSION_CHECK=1 "$SCRIPT_DIR/deploy-frontend.sh" "$ENV"; then
+      FAILED=true
+      exit 1
+    fi
+    ;;
+  cloudfront)
+    cd "$INFRA_DIR"
+    FRONTEND_URL="$(read_stack_output "Awdah-frontend-stack-$ENV" "FrontendUrl" "$AWS_REGION")"
+    if [ -z "$FRONTEND_URL" ]; then
+      FAILED=true
+      echo "✗ Failed to read FrontendUrl from Awdah-frontend-stack-$ENV"
+      exit 1
+    fi
+
+    if ! npx cdk deploy \
+      "Awdah-api-stack-$ENV" \
+      --context "env=$ENV" \
+      --context "frontendOrigin=$FRONTEND_URL" \
+      --require-approval never; then
+      FAILED=true
+      exit 1
+    fi
+    ;;
+  *)
+    FAILED=true
+    echo "✗ Unsupported frontend target '$TARGET'."
+    exit 1
+    ;;
+esac
 echo ""
 
 echo "╔══════════════════════════════════════════╗"
@@ -104,3 +148,5 @@ fi
 echo "║  Run 'npm run deploy:stack -- data' etc  ║"
 echo "║  to redeploy individual stacks.          ║"
 echo "╚══════════════════════════════════════════╝"
+
+exit 0
