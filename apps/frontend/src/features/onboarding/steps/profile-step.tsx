@@ -22,9 +22,9 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({ dateOfBirthHijri, gend
       </div>
 
       {/* Date of birth — optional */}
-      <div className={styles.field}>
-        <label className={styles.label}>{t('onboarding.dob_label')}</label>
-        <p className={styles.hint}>{t('onboarding.dob_skip_hint')}</p>
+      <div className="formGroup">
+        <label className="formLabel">{t('onboarding.dob_label')}</label>
+        <p className="formHint">{t('onboarding.dob_skip_hint')}</p>
         <HijriDatePicker
           value={dateOfBirthHijri}
           onChange={(v) => {
@@ -39,9 +39,9 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({ dateOfBirthHijri, gend
       </div>
 
       {/* Gender */}
-      <div className={styles.field}>
-        <span className={styles.label}>{t('onboarding.gender_label')}</span>
-        <p className={styles.hint}>{t('onboarding.gender_hint')}</p>
+      <div className="formGroup">
+        <span className="formLabel">{t('onboarding.gender_label')}</span>
+        <p className="formHint">{t('onboarding.gender_hint')}</p>
         <div className={styles.radioGroup}>
           {(['male', 'female'] as const).map((g) => (
             <label key={g} className={`${styles.radioCard} ${gender === g ? styles.selected : ''}`}>

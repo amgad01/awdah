@@ -31,12 +31,12 @@ export const IntentionStep: React.FC<IntentionStepProps> = ({
         </p>
       </div>
 
-      <div className={styles.explainer}>
+      <div className="noticeBox noticeInfo">
         <GlossaryText>{t('onboarding.intention_explainer')}</GlossaryText>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="intention-input">
+      <div className="formGroup">
+        <label className="formLabel" htmlFor="intention-input">
           {t('onboarding.intention_label')}
         </label>
         <div className={styles.intentionValue}>{fmtNumber(dailyIntention)}</div>

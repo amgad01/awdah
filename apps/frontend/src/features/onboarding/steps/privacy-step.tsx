@@ -25,8 +25,8 @@ export const PrivacyStep: React.FC<PrivacyStepProps> = ({
         </div>
       </div>
 
-      <div className={styles.field}>
-        <span className={styles.label}>{t('onboarding.privacy_data_title')}</span>
+      <div className="formGroup">
+        <span className="formLabel">{t('onboarding.privacy_data_title')}</span>
         <ul className={styles.privacyDataList}>
           {(
             [
@@ -44,7 +44,7 @@ export const PrivacyStep: React.FC<PrivacyStepProps> = ({
         </ul>
       </div>
 
-      <div className={styles.explainer}>
+      <div className="noticeBox noticeInfo">
         <strong>{t('onboarding.privacy_rights_title')}</strong>
         <br />
         {t('onboarding.privacy_rights_text')}

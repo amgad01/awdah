@@ -190,37 +190,9 @@
   gap: var(--spacing-xs);
 }
 
-/* Explainer box */
-.explainer {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-inline-start: 3px solid var(--color-primary);
-  border-radius: 8px;
-  padding: var(--spacing-md);
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
+/* Explainer box base is in globals.css noticeBox */
 
-/* Form field */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.label {
-  font-size: 0.85rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.hint {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-}
+/* Form field base is in globals.css formGroup/formLabel/formHint */
 
 .input {
   padding: var(--spacing-sm) var(--spacing-md);

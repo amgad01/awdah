@@ -105,9 +105,9 @@ export const BulughStep: React.FC<BulughStepProps> = ({
         <p className={styles.stepSubtitle}>{t('onboarding.bulugh_subtitle')}</p>
       </div>
 
-      <div className={styles.explainer}>{t('onboarding.bulugh_explainer')}</div>
+      <div className="noticeBox noticeWarning">{t('onboarding.bulugh_explainer')}</div>
 
-      <div className={styles.field}>
+      <div className="formGroup">
         <div className={styles.bulughToggle}>
           <button
             type="button"
@@ -143,8 +143,8 @@ export const BulughStep: React.FC<BulughStepProps> = ({
       </div>
 
       {inputMode === 'date' && (
-        <div className={styles.field}>
-          <label className={styles.label}>{t('onboarding.bulugh_date_label')}</label>
+        <div className="formGroup">
+          <label className="formLabel">{t('onboarding.bulugh_date_label')}</label>
           <HijriDatePicker
             value={bulughDateHijri}
             onChange={(v) => {
@@ -158,18 +158,18 @@ export const BulughStep: React.FC<BulughStepProps> = ({
           />
           {dateError && <p className={styles.error}>{dateError}</p>}
           {bulughEarlyWarning && !dateError && (
-            <p className={styles.hint}>{t('settings.bulugh_early_warning')}</p>
+            <p className="formHint">{t('settings.bulugh_early_warning')}</p>
           )}
         </div>
       )}
 
       {inputMode === 'age' && (
-        <div className={styles.field}>
+        <div className="formGroup">
           {!dateOfBirthHijri ? (
-            <p className={styles.hint}>{t('onboarding.bulugh_no_dob_hint')}</p>
+            <p className="formHint">{t('onboarding.bulugh_no_dob_hint')}</p>
           ) : (
             <div className={styles.ageInputGroup}>
-              <label className={styles.label}>{t('onboarding.bulugh_age_label')}</label>
+              <label className="formLabel">{t('onboarding.bulugh_age_label')}</label>
               <div className={styles.ageInputRow}>
                 <input
                   type="number"
@@ -186,14 +186,14 @@ export const BulughStep: React.FC<BulughStepProps> = ({
               {ageError && <p className={styles.error}>{ageError}</p>}
               {ageBasedBulugh && !ageError && (
                 <div className={styles.ageComputedDate}>
-                  <span className={styles.hint}>{t('onboarding.bulugh_age_gives')}</span>
+                  <span className="formHint">{t('onboarding.bulugh_age_gives')}</span>
                   <span className={styles.calculatedDateValue}>
-                    {formatHijriDisplay(ageBasedBulugh, language, t, fmtNumber)}
+                    {formatHijriDisplay(ageBasedBulugh || '', language, t, fmtNumber)}
                   </span>
                 </div>
               )}
               {bulughEarlyWarning && !ageError && (
-                <p className={styles.hint}>{t('settings.bulugh_early_warning')}</p>
+                <p className="formHint">{t('settings.bulugh_early_warning')}</p>
               )}
             </div>
           )}
@@ -202,15 +202,15 @@ export const BulughStep: React.FC<BulughStepProps> = ({
 
       {inputMode === 'default' &&
         (defaultBulugh ? (
-          <div className={styles.calculatedDate}>
-            <p className={styles.hint}>{t('onboarding.bulugh_calculated_note')}</p>
+          <div className={`${styles.calculatedDate} sectionCard`}>
+            <p className="formHint">{t('onboarding.bulugh_calculated_note')}</p>
             <span className={styles.calculatedDateValue}>
               {t('onboarding.bulugh_hijri_label')}{' '}
-              {formatHijriDisplay(defaultBulugh, language, t, fmtNumber)}
+              {formatHijriDisplay(defaultBulugh || '', language, t, fmtNumber)}
             </span>
             <span className={styles.calculatedDateValue}>
               {t('onboarding.bulugh_gregorian_label')}{' '}
-              {formatGregorianDisplay(defaultBulugh, language)}
+              {formatGregorianDisplay(defaultBulugh || '', language)}
             </span>
             <p className={styles.calculatedDateNote}>
               {t('onboarding.bulugh_default_explanation')}
@@ -218,13 +218,15 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             <p className={styles.hadithNote}>{t('onboarding.bulugh_hadith_note')}</p>
           </div>
         ) : (
-          <p className={styles.hint}>{t('onboarding.bulugh_no_dob_hint')}</p>
+          <p className="formHint">{t('onboarding.bulugh_no_dob_hint')}</p>
         ))}
 
       {inputMode === 'revert' && (
-        <div className={styles.field}>
-          <div className={styles.explainer}>{t('onboarding.revert_explainer')}</div>
-          <label className={styles.label}>{t('onboarding.revert_date_label')}</label>
+        <div className="formGroup">
+          <div className="noticeBox noticeInfo" style={{ marginBottom: 'var(--spacing-md)' }}>
+            {t('onboarding.revert_explainer')}
+          </div>
+          <label className="formLabel">{t('onboarding.revert_date_label')}</label>
           <HijriDatePicker
             value={revertDateHijri ?? ''}
             onChange={(v) => {
@@ -242,7 +244,7 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             maxDate={todayHijriDate()}
           />
           {revertDateError && <p className={styles.error}>{revertDateError}</p>}
-          <p className={styles.hint}>{t('onboarding.revert_bulugh_note')}</p>
+          <p className="formHint">{t('onboarding.revert_bulugh_note')}</p>
         </div>
       )}
     </div>

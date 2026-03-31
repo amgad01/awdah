@@ -73,7 +73,7 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
         <p className={styles.stepSubtitle}>{t('onboarding.periods_subtitle')}</p>
       </div>
 
-      <div className={styles.explainer}>{t('onboarding.periods_explainer')}</div>
+      <div className="noticeBox noticeInfo">{t('onboarding.periods_explainer')}</div>
 
       {/* Period list */}
       {periods.length === 0 && !showForm ? (
@@ -122,8 +122,8 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
         <div className={styles.periodForm}>
           <p className={styles.periodFormTitle}>{t('onboarding.periods_add_btn')}</p>
 
-          <div className={styles.field}>
-            <label className={styles.label}>{t('onboarding.period_start')}</label>
+          <div className="formGroup">
+            <label className="formLabel">{t('onboarding.period_start')}</label>
             <HijriDatePicker
               value={startHijri}
               onChange={(value) => {
@@ -147,8 +147,8 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
           </label>
 
           {!isCurrent && (
-            <div className={styles.field}>
-              <label className={styles.label}>{t('onboarding.period_end')}</label>
+            <div className="formGroup">
+              <label className="formLabel">{t('onboarding.period_end')}</label>
               <HijriDatePicker
                 value={endHijri}
                 onChange={(value) => {
@@ -164,8 +164,8 @@ export const PeriodsStep: React.FC<PeriodsStepProps> = ({
             </div>
           )}
 
-          <div className={styles.field}>
-            <label className={styles.label}>{t('onboarding.period_type_label')}</label>
+          <div className="formGroup">
+            <label className="formLabel">{t('onboarding.period_type_label')}</label>
             <select
               className={styles.select}
               value={periodType}
