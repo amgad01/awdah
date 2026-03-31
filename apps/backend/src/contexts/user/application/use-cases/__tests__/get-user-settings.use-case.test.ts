@@ -4,7 +4,8 @@ import {
   IUserRepository,
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, NotFoundError } from '@awdah/shared';
+import { userSettingsNotFound } from '../../../../../shared/errors/messages';
 
 describe('GetUserSettingsUseCase', () => {
   const mockRepo: IUserRepository = {
@@ -32,12 +33,12 @@ describe('GetUserSettingsUseCase', () => {
     expect(result).toBe(expectedSettings);
   });
 
-  it('returns null when user does not exist', async () => {
+  it('throws when user does not exist', async () => {
     vi.mocked(mockRepo.findById).mockResolvedValue(null);
 
-    const result = await useCase.execute('unknown-user');
-
+    await expect(useCase.execute('unknown-user')).rejects.toThrow(
+      new NotFoundError(userSettingsNotFound),
+    );
     expect(mockRepo.findById).toHaveBeenCalledWith('unknown-user');
-    expect(result).toBeNull();
   });
 });
