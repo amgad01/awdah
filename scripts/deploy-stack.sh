@@ -5,17 +5,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
+# shellcheck source=./lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 # ── AWS Session Check ──
 "$SCRIPT_DIR/check-aws-session.sh" || exit 1
 
-# Load .env if present
-if [ -f "$ROOT_DIR/.env" ]; then
-  set -a
-  source "$ROOT_DIR/.env"
-  set +a
-fi
+load_env_defaults "$ROOT_DIR/.env"
 
-ENV="${DEPLOY_ENV:-staging}"
+ENV="${DEPLOY_ENV:-dev}"
 AWS_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
 STACK="${1:-}"
 
@@ -53,6 +51,12 @@ fi
 
 export AWS_DEFAULT_REGION="$AWS_REGION"
 STACK_NAME="Awdah-${STACK}-stack-${ENV}"
+
+if [ "$STACK" = "frontend" ] && [ "$(frontend_target_for_env "$ENV")" = "pages" ]; then
+  echo "✗ The prod frontend is published through GitHub Pages, not the FrontendStack."
+  echo "  Use ./scripts/deploy-frontend.sh $ENV instead."
+  exit 1
+fi
 
 CONTEXT_ARGS=(--context "env=$ENV")
 [ "$STACK" = "frontend" ] && CONTEXT_ARGS+=(--context "deployFrontend=true")

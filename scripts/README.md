@@ -24,7 +24,7 @@ Reads `DEPLOY_ENV` (default: `dev`) and `AWS_DEFAULT_REGION` (default: `eu-west-
 
 ### `deploy-all.sh`
 
-Deploys all CDK stacks and the frontend in a single command. Builds the shared package, synths all stacks, deploys from data → alarm in order, then builds and deploys the frontend S3/CloudFront stack.
+Deploys the backend stacks and then runs the environment-aware frontend flow. In `dev`, the frontend is built and deployed to CloudFront. In `prod`, the frontend is built for GitHub Pages and the API CORS origins are updated for the Pages host.
 
 ```bash
 DEPLOY_ENV=prod ./scripts/deploy-all.sh
@@ -44,7 +44,16 @@ Valid stack names: `data`, `auth`, `api`, `backup`, `alarm`, `frontend`.
 
 ### `deploy-frontend.sh`
 
-Builds the React app and deploys to CloudFront/S3. Use after frontend-only changes to avoid running the full backend deploy pipeline.
+Builds the React app and runs the correct hosting flow for the selected environment. `dev` deploys the bundle to CloudFront. `prod` prepares the bundle for GitHub Pages and updates the API CORS allow-list for the Pages origin.
+
+### `build-frontend.sh`
+
+Builds the frontend bundle without deploying it. The target host is inferred from `DEPLOY_ENV` unless `FRONTEND_DEPLOY_TARGET` is set explicitly.
+
+```bash
+./scripts/build-frontend.sh dev    # CloudFront-compatible build
+./scripts/build-frontend.sh prod   # GitHub Pages-compatible build
+```
 
 ---
 
@@ -78,7 +87,7 @@ Reads CDK outputs from `infra/outputs.json` (produced by a deploy) and writes th
 DEPLOY_ENV=staging ./scripts/generate-frontend-config.sh
 ```
 
-Updates `VITE_API_BASE_URL`, `VITE_COGNITO_USER_POOL_ID`, and `VITE_COGNITO_CLIENT_ID` if the relevant stacks were part of the last deploy. Existing values are preserved if the stack was not redeployed.
+Updates `VITE_API_BASE_URL`, `VITE_BASE_PATH`, `VITE_COGNITO_USER_POOL_ID`, and `VITE_COGNITO_CLIENT_ID` if the relevant stacks were part of the last deploy. Existing values are preserved if the stack was not redeployed.
 
 ### `check-aws-session.sh`
 

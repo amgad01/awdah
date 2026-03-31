@@ -13,9 +13,12 @@ ENV="${1:-${DEPLOY_ENV:-dev}}"
 TARGET="${FRONTEND_DEPLOY_TARGET:-$(frontend_target_for_env "$ENV")}"
 
 if [ "$TARGET" != "cloudfront" ]; then
-  echo "✗ deploy-frontend-cloud.sh only supports CloudFront targets."
-  echo "  Use ./scripts/deploy-frontend.sh $ENV for the environment-aware flow."
+  echo "✗ upload-frontend.sh is only valid for CloudFront environments."
+  echo "  Prod now uses GitHub Pages. Run ./scripts/deploy-frontend.sh $ENV instead."
   exit 1
 fi
 
+echo "▸ Direct bucket uploads are disabled to keep deployments deterministic."
+echo "▸ Reusing the canonical frontend deploy flow instead."
+echo ""
 "$SCRIPT_DIR/deploy-frontend.sh" "$ENV"

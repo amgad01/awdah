@@ -8,8 +8,29 @@ FRONTEND_DIR="$ROOT_DIR/apps/frontend"
 OUTPUT_JSON="$INFRA_DIR/outputs.json"
 ENV_FILE="$FRONTEND_DIR/.env.production"
 
+# shellcheck source=./lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
+load_env_defaults "$ROOT_DIR/.env"
+
 ENV="${DEPLOY_ENV:-dev}"
 AWS_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
+FRONTEND_TARGET="${FRONTEND_DEPLOY_TARGET:-$(frontend_target_for_env "$ENV")}"
+PAGES_BASE_PATH="$(normalize_base_path "${PAGES_BASE_PATH:-/awdah/}")"
+FRONTEND_API_MODE="${FRONTEND_API_MODE:-}"
+
+if [ -z "$FRONTEND_API_MODE" ]; then
+  if [ "$FRONTEND_TARGET" = "pages" ]; then
+    FRONTEND_API_MODE="direct"
+  else
+    FRONTEND_API_MODE="same-origin"
+  fi
+fi
+
+FRONTEND_BASE_PATH="/"
+if [ "$FRONTEND_TARGET" = "pages" ]; then
+  FRONTEND_BASE_PATH="$PAGES_BASE_PATH"
+fi
 
 echo "=> Generating frontend configuration for environment: $ENV"
 
@@ -27,6 +48,9 @@ const outputsPath = '$OUTPUT_JSON';
 const envPath = '$ENV_FILE';
 const env = '$ENV';
 const region = '$AWS_REGION';
+const frontendTarget = '$FRONTEND_TARGET';
+const frontendApiMode = '$FRONTEND_API_MODE';
+const frontendBasePath = '$FRONTEND_BASE_PATH';
 
 /** Parses a .env file into a simple key-value object. */
 function parseEnv(filePath) {
@@ -60,10 +84,16 @@ try {
   const authStack = outputs[\`Awdah-auth-stack-\${env}\`];
   
   const newConfig = { ...currentEnv };
+  newConfig['VITE_BASE_PATH'] = frontendBasePath;
 
   // Only update if the stack outputs were actually part of this deployment
   if (apiStack && apiStack.ApiUrl) {
-    newConfig['VITE_API_BASE_URL'] = apiStack.ApiUrl;
+    if (frontendApiMode === 'direct') {
+      newConfig['VITE_API_BASE_URL'] = apiStack.ApiUrl;
+    } else {
+      // Prefer same-origin in cloud deploys for stability; CloudFront proxies `/v1/*`.
+      newConfig['VITE_API_BASE_URL'] = '';
+    }
   }
   
   if (authStack) {
@@ -78,7 +108,12 @@ try {
   writeEnv(envPath, newConfig);
   
   console.log(\`=> Frontend configuration updated (merge-aware) at: \${envPath}\`);
-  if (apiStack && apiStack.ApiUrl) console.log(\`   - Updated API URL: \${apiStack.ApiUrl}\`);
+  console.log(\`   - Target host: \${frontendTarget}\`);
+  console.log(\`   - Base path: \${frontendBasePath}\`);
+  if (apiStack && apiStack.ApiUrl) {
+    const printed = frontendApiMode === 'direct' ? apiStack.ApiUrl : '<same-origin /v1>';
+    console.log(\`   - Updated API URL: \${printed}\`);
+  }
   if (authStack && authStack.UserPoolId) console.log(\`   - Updated User Pool: \${authStack.UserPoolId}\`);
 } catch (err) {
   console.error('=> [Error] Failed to generate frontend configuration:', err.message);
