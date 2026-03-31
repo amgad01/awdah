@@ -3,6 +3,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useDeleteAccount } from '@/hooks/use-profile';
 import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
+import { deleteLocalUser } from '@/lib/local-auth.service';
+import { clearOnboardingLocalState } from '@/lib/onboarding-state';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { SettingsSection } from '../components';
 import { getErrorMessage } from '../helpers';
@@ -31,7 +33,10 @@ export const DangerZoneSection: React.FC = () => {
       const email = user?.email || user?.username || '';
       await signIn(email, deletePassword);
       const result = await deleteAccount.mutateAsync();
-      if (result && !result.authDeleted) {
+      if (import.meta.env.VITE_AUTH_MODE === 'local' && email) {
+        deleteLocalUser(email);
+        clearOnboardingLocalState(user?.userId);
+      } else if (result && !result.authDeleted) {
         toast.info(t('settings.delete_partial_cleanup_notice'), 10000);
       }
       await signOut();
@@ -53,7 +58,6 @@ export const DangerZoneSection: React.FC = () => {
       } else {
         await resetFastLogs.mutateAsync();
       }
-      toast.success(t('settings.reset_done'));
     } catch (err) {
       toast.error(t(getErrorMessage(err, 'common.error')));
     }

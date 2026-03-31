@@ -7,8 +7,7 @@ import {
   useUpdatePracticingPeriod,
   useDeletePracticingPeriod,
 } from '@/hooks/use-profile';
-import { HijriDate } from '@awdah/shared';
-import { rangesOverlap } from '@/lib/practicing-periods';
+import { getPracticingPeriodValidationError } from '@/lib/practicing-periods';
 import { todayHijriDate } from '@/utils/date-utils';
 import { BookOpen, Pencil, Plus, X } from 'lucide-react';
 import { SettingsSection, SectionNotice, PeriodForm } from '../components';
@@ -87,35 +86,28 @@ export const PeriodsSection: React.FC = () => {
         setEndError('');
         setPeriodFeedback(null);
       }
-      if (!startDate) return false;
+      const validationError = getPracticingPeriodValidationError({
+        startDate,
+        endDate,
+        dateOfBirth: persistedDobDate ?? undefined,
+        existingPeriods: persistedPeriods,
+        excludePeriodId,
+      });
 
-      if (endDate) {
-        try {
-          if (HijriDate.fromString(endDate).isBefore(HijriDate.fromString(startDate))) {
-            const msg = t('onboarding.period_error_end_before_start');
-            if (!silent) {
-              setEndError(msg);
-              setPeriodFeedback({ tone: 'error', message: msg });
-            }
-            return false;
-          }
-        } catch {
-          return false;
+      if (validationError && !silent) {
+        const message = t(validationError.messageKey);
+        if (validationError.field === 'start') {
+          setStartError(message);
         }
+        if (validationError.field === 'end') {
+          setEndError(message);
+        }
+        setPeriodFeedback({ tone: 'error', message });
       }
 
-      if (!silent) {
-        for (const existing of persistedPeriods) {
-          if (existing.periodId === excludePeriodId) continue;
-          if (rangesOverlap(startDate, endDate, existing.startDate, existing.endDate)) {
-            setPeriodFeedback({ tone: 'warning', message: t('onboarding.period_error_overlap') });
-            break; // warn but allow saving
-          }
-        }
-      }
-      return true;
+      return validationError == null;
     },
-    [persistedPeriods, t],
+    [persistedDobDate, persistedPeriods, t],
   );
 
   const isAddValid = useMemo(() => {

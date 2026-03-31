@@ -26,6 +26,11 @@ export interface CoveredPracticingDay {
   type: PracticingPeriodType;
 }
 
+export interface PracticingPeriodValidationError {
+  messageKey: string;
+  field: 'start' | 'end' | 'form';
+}
+
 function daysBetween(start: HijriDate, end: HijriDate): number {
   return Math.round((end.toGregorian().getTime() - start.toGregorian().getTime()) / 86_400_000);
 }
@@ -81,6 +86,83 @@ export function rangesOverlap(
   const endAfterOtherStart = !end || sameOrBefore(otherStart, end);
 
   return startBeforeOtherEnd && endAfterOtherStart;
+}
+
+export function getPracticingPeriodValidationError({
+  startDate,
+  endDate,
+  dateOfBirth,
+  existingPeriods = [],
+  excludePeriodId,
+  todayDate = todayHijriDate(),
+}: {
+  startDate: string;
+  endDate?: string;
+  dateOfBirth?: string;
+  existingPeriods?: PeriodRangeLike[];
+  excludePeriodId?: string;
+  todayDate?: string;
+}): PracticingPeriodValidationError | null {
+  if (!startDate) {
+    return { messageKey: 'onboarding.error_invalid_date', field: 'start' };
+  }
+
+  let parsedStart: HijriDate;
+  try {
+    parsedStart = HijriDate.fromString(startDate);
+  } catch {
+    return { messageKey: 'onboarding.error_invalid_date', field: 'start' };
+  }
+
+  const today = HijriDate.fromString(todayDate);
+  if (parsedStart.isAfter(today)) {
+    return { messageKey: 'onboarding.period_error_future_date', field: 'start' };
+  }
+
+  if (dateOfBirth) {
+    try {
+      const dob = HijriDate.fromString(dateOfBirth);
+      if (parsedStart.isBefore(dob)) {
+        return { messageKey: 'onboarding.period_error_before_dob', field: 'start' };
+      }
+    } catch {
+      // Ignore invalid DOB input here; the DOB field validates independently.
+    }
+  }
+
+  if (endDate) {
+    let parsedEnd: HijriDate;
+    try {
+      parsedEnd = HijriDate.fromString(endDate);
+    } catch {
+      return { messageKey: 'onboarding.error_invalid_date', field: 'end' };
+    }
+
+    if (parsedEnd.isBefore(parsedStart)) {
+      return { messageKey: 'onboarding.period_error_end_before_start', field: 'end' };
+    }
+
+    if (parsedEnd.isAfter(today)) {
+      return { messageKey: 'onboarding.period_error_future_date', field: 'end' };
+    }
+  }
+
+  for (const [index, period] of existingPeriods.entries()) {
+    try {
+      const normalized = normalizePeriod(period, `period-${index}`);
+      if (normalized.id === excludePeriodId) {
+        continue;
+      }
+
+      if (rangesOverlap(startDate, endDate, normalized.startDate, normalized.endDate)) {
+        return { messageKey: 'onboarding.period_error_overlap', field: 'form' };
+      }
+    } catch {
+      // Ignore malformed stored periods so they don't block the current edit.
+    }
+  }
+
+  return null;
 }
 
 export function isBulughBeforeDateOfBirth(

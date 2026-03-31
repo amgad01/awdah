@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  getPracticingPeriodValidationError,
   periodCoversContext,
   rangesOverlap,
   isBulughBeforeDateOfBirth,
@@ -52,6 +53,55 @@ describe('rangesOverlap', () => {
 
   it('handles two ongoing periods', () => {
     expect(rangesOverlap('1445-01-01', undefined, '1445-02-01', undefined)).toBe(true);
+  });
+});
+
+describe('getPracticingPeriodValidationError', () => {
+  it('returns a start-date error when the period starts before the date of birth', () => {
+    expect(
+      getPracticingPeriodValidationError({
+        startDate: '1439-01-01',
+        dateOfBirth: '1440-01-01',
+      }),
+    ).toEqual({
+      messageKey: 'onboarding.period_error_before_dob',
+      field: 'start',
+    });
+  });
+
+  it('returns an end-date error when the end date is before the start date', () => {
+    expect(
+      getPracticingPeriodValidationError({
+        startDate: '1445-05-01',
+        endDate: '1445-04-01',
+      }),
+    ).toEqual({
+      messageKey: 'onboarding.period_error_end_before_start',
+      field: 'end',
+    });
+  });
+
+  it('returns a form error when the new range overlaps an existing period', () => {
+    expect(
+      getPracticingPeriodValidationError({
+        startDate: '1445-03-01',
+        endDate: '1445-05-01',
+        existingPeriods: [{ startDate: '1445-01-01', endDate: '1445-04-01', type: 'both' }],
+      }),
+    ).toEqual({
+      messageKey: 'onboarding.period_error_overlap',
+      field: 'form',
+    });
+  });
+
+  it('returns null for a valid non-overlapping period', () => {
+    expect(
+      getPracticingPeriodValidationError({
+        startDate: '1445-05-01',
+        endDate: '1445-06-01',
+        existingPeriods: [{ startDate: '1445-01-01', endDate: '1445-04-01', type: 'both' }],
+      }),
+    ).toBeNull();
   });
 });
 
