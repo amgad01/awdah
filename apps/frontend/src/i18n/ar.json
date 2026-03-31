@@ -30,7 +30,10 @@
     "confirm_uncheck": "إلغاء التسجيل",
     "prev_month": "الشهر السابق",
     "next_month": "الشهر التالي",
-    "user": "المستخدم"
+    "user": "المستخدم",
+    "maintenance_title": "يتم تحديث التطبيق",
+    "maintenance_message": "من المرجح أننا نقوم ببعض التحسينات الآن. لن يستغرق الأمر سوى لحظات قليلة — يرجى المحاولة مرة أخرى قريباً.",
+    "failed_to_fetch": "فشل الاتصال بالخادم."
   },
   "language_switcher": {
     "switch_to_english": "Switch to English",

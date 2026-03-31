@@ -29,7 +29,10 @@
     "delete": "Delete",
     "no_data": "No data",
     "success": "Done",
-    "user": "User"
+    "user": "User",
+    "maintenance_title": "App Updating",
+    "maintenance_message": "We're likely applying some improvements. This should only take a moment — please try again shortly.",
+    "failed_to_fetch": "Failed to connect to the server."
   },
   "language_switcher": {
     "switch_to_english": "Switch to English",

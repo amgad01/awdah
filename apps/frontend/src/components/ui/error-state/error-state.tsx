@@ -20,12 +20,18 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  const isNetworkError = message.toLowerCase().includes('failed to fetch');
+  const displayTitle = isNetworkError
+    ? t('common.maintenance_title')
+    : (title ?? t('common.error'));
+  const displayMessage = isNetworkError ? t('common.maintenance_message') : message;
+
   return (
     <div className={styles.wrapper} role="alert">
       <div className={`${styles.card} ${compact ? styles.compact : ''}`}>
         <AlertCircle size={compact ? 24 : 32} className={styles.icon} />
-        <h2 className={styles.title}>{title ?? t('common.error')}</h2>
-        <p className={styles.message}>{message}</p>
+        <h2 className={styles.title}>{displayTitle}</h2>
+        <p className={styles.message}>{displayMessage}</p>
         {onRetry ? (
           <button type="button" className={styles.action} onClick={onRetry}>
             <RefreshCw size={16} />
