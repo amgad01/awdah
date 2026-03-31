@@ -3,6 +3,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useExportData, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
+import { getUserDisplayInitial, getUserDisplayName } from '@/lib/user-display';
 import { User, Bell, Languages, Info, Shield, Download } from 'lucide-react';
 import { SettingsSection } from './components';
 import { ProfileSection, PeriodsSection, LogoutSection, DangerZoneSection } from './sections';
@@ -18,6 +19,14 @@ export const SettingsPage: React.FC = () => {
   const { data: periods } = usePracticingPeriods();
   const { data: profile } = useProfile();
   const exportData = useExportData();
+  const displayName = getUserDisplayName({
+    profileUsername: profile?.username,
+    email: user?.email,
+    sessionUsername: user?.username,
+    fallback: t('common.user'),
+  });
+  const avatarInitial = getUserDisplayInitial(displayName);
+  const secondaryIdentity = profile?.username?.trim() && user?.email ? user.email : '';
 
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -42,10 +51,10 @@ export const SettingsPage: React.FC = () => {
       {/* Account */}
       <SettingsSection icon={<User size={18} />} title={t('settings.account')}>
         <div className={styles.accountInfo}>
-          <div className={styles.avatar}>{(user?.username?.[0] ?? 'U').toUpperCase()}</div>
+          <div className={styles.avatar}>{avatarInitial}</div>
           <div className={styles.accountDetails}>
-            <p className={styles.accountName}>{user?.username ?? '—'}</p>
-            <p className={styles.accountEmail}>{user?.email ?? user?.userId ?? ''}</p>
+            <p className={styles.accountName}>{displayName}</p>
+            {secondaryIdentity ? <p className={styles.accountEmail}>{secondaryIdentity}</p> : null}
           </div>
         </div>
       </SettingsSection>

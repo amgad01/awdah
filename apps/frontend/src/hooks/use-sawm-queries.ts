@@ -12,6 +12,7 @@ import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useProfile } from '@/hooks/use-profile';
+import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 
 export function invalidateSawmQueries(queryClient: QueryClient, date?: string) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
@@ -114,7 +115,17 @@ export const useResetFastLogs = () => {
   const { t } = useLanguage();
 
   return useMutation({
-    mutationFn: api.sawm.resetLogs,
+    mutationFn: async () => {
+      const started = await api.sawm.resetLogs();
+      const job = started?.job;
+
+      if (!job) {
+        throw new Error('Fast log reset could not be started.');
+      }
+
+      await waitForLifecycleJob(job.jobId, 'reset-fasts');
+      return job;
+    },
     onSuccess: () => {
       invalidateSawmQueries(queryClient);
       toast.success(t('settings.reset_done'));

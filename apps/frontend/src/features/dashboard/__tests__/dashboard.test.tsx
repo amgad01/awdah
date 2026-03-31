@@ -5,6 +5,7 @@ import { useWorship, useStreak, useStreakDetails } from '@/hooks/use-worship';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useDualDate } from '@/hooks/use-dual-date';
+import { useProfile } from '@/hooks/use-profile';
 
 // Mock all hooks
 vi.mock('@tanstack/react-query', () => ({
@@ -29,6 +30,10 @@ vi.mock('@/hooks/use-worship', () => ({
 
 vi.mock('@/hooks/use-dual-date', () => ({
   useDualDate: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-profile', () => ({
+  useProfile: vi.fn(),
 }));
 
 // Mock sub-components that are complex or have their own logic
@@ -71,7 +76,11 @@ describe('Dashboard', () => {
     } as any);
 
     vi.mocked(useAuth).mockReturnValue({
-      user: { username: 'testuser' },
+      user: { username: 'testuser', email: 'test@example.com' },
+    } as any);
+
+    vi.mocked(useProfile).mockReturnValue({
+      data: { username: 'Amgad' },
     } as any);
 
     vi.mocked(useWorship).mockReturnValue({

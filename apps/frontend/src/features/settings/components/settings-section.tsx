@@ -16,10 +16,8 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   variant = 'default',
 }) => (
   <Card className={`${styles.section} ${variant === 'danger' ? styles.dangerZone : ''}`}>
-    <div className={styles.sectionHeader}>
-      <div className={`${styles.sectionIcon} ${variant === 'danger' ? styles.dangerIcon : ''}`}>
-        {icon}
-      </div>
+    <div className="sectionHeader">
+      <div className={`iconBox ${variant === 'danger' ? styles.dangerIcon : ''}`}>{icon}</div>
       <h2 className={styles.sectionTitle}>{title}</h2>
     </div>
     {children}

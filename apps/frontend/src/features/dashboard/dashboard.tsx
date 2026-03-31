@@ -4,11 +4,13 @@ import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useWorship, useStreak, useStreakDetails } from '@/hooks/use-worship';
 import { useDualDate } from '@/hooks/use-dual-date';
+import { useProfile } from '@/hooks/use-profile';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Card } from '@/components/ui/card/card';
 import { CelebrationToast } from '@/components/ui/celebration-toast/celebration-toast';
 import { PrayerLogger } from '@/features/salah/prayer-logger';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { getUserDisplayName } from '@/lib/user-display';
 import { todayHijriDate } from '@/utils/date-utils';
 import { useCelebration } from './use-celebration';
 import { DashboardHero } from './dashboard-hero';
@@ -23,6 +25,7 @@ export const Dashboard: React.FC = () => {
   const { t, fmtNumber } = useLanguage();
   const { format } = useDualDate();
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const queryClient = useQueryClient();
   const { salahDebt, sawmDebt, loading, error } = useWorship();
   const { streak, milestone } = useStreak();
@@ -54,6 +57,12 @@ export const Dashboard: React.FC = () => {
     includeGregorianYear: true,
     weekday: 'long',
   });
+  const displayName = getUserDisplayName({
+    profileUsername: profile?.username,
+    email: user?.email,
+    sessionUsername: user?.username,
+    fallback: t('common.user'),
+  });
 
   if (loading) {
     return <div className={styles.loading}>{t('common.loading')}</div>;
@@ -76,7 +85,7 @@ export const Dashboard: React.FC = () => {
       {celebration && <CelebrationToast message={celebration} onDismiss={dismissCelebration} />}
 
       <DashboardHero
-        username={user?.username || 'User'}
+        username={displayName}
         todayPrimary={todayDual.primary}
         todaySecondary={todayDual.secondary}
         salahCompleted={fmtNumber(salahCompleted)}

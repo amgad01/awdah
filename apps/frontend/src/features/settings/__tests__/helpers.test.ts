@@ -11,6 +11,7 @@ describe('createProfileFormState', () => {
     const state = createProfileFormState('key', null);
     expect(state).toEqual({
       sourceKey: 'key',
+      username: '',
       dateOfBirth: '',
       bulughDate: '',
       revertDate: '',
@@ -22,6 +23,7 @@ describe('createProfileFormState', () => {
     const state = createProfileFormState('key');
     expect(state).toEqual({
       sourceKey: 'key',
+      username: '',
       dateOfBirth: '',
       bulughDate: '',
       revertDate: '',
@@ -31,11 +33,13 @@ describe('createProfileFormState', () => {
 
   it('populates from a profile object', () => {
     const state = createProfileFormState('p1', {
+      username: 'Amgad',
       dateOfBirth: '1420-05-10',
       bulughDate: '1435-05-10',
       gender: 'female',
       revertDate: '1440-01-01',
     });
+    expect(state.username).toBe('Amgad');
     expect(state.dateOfBirth).toBe('1420-05-10');
     expect(state.bulughDate).toBe('1435-05-10');
     expect(state.gender).toBe('female');

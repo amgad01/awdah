@@ -56,25 +56,6 @@
 }
 
 /* ── Section Header (SettingsSection) ── */
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.sectionIcon {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--border-radius-md);
-  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .sectionTitle {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
@@ -120,31 +101,7 @@
 }
 
 /* ── Section Notice (SectionNotice) ── */
-.sectionNotice {
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
-}
-
-.sectionNoticeError {
-  background: var(--notice-error-bg);
-  border: 1px solid var(--notice-error-border);
-  color: var(--color-error);
-}
-
-.sectionNoticeSuccess {
-  background: var(--notice-success-bg);
-  border: 1px solid var(--notice-success-border);
-  color: var(--color-success);
-}
-
-.sectionNoticeWarning {
-  background: var(--notice-warning-bg);
-  border: 1px solid var(--notice-warning-border);
-  color: var(--color-warning);
-}
+/* noticeBox base classes are in globals.css; specific overrides here if any */
 
 /* ── Debt Impact Preview (DebtImpactPreview) ── */
 .impactPreview {
@@ -232,16 +189,20 @@
   margin-block-end: var(--spacing-md);
 }
 
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+.textInput {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  box-sizing: border-box;
 }
 
-.fieldLabel {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
+.textInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
 .fieldCurrent {

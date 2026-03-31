@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
@@ -36,34 +36,48 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   const { toast } = useToast();
 
   const profileKey = profile
-    ? `${profile.dateOfBirth}-${profile.bulughDate}-${profile.gender}`
+    ? `${profile.username ?? ''}-${profile.dateOfBirth ?? ''}-${profile.bulughDate}-${profile.revertDate ?? ''}-${profile.gender}`
     : '';
 
   const [dobError, setDobError] = useState('');
   const [bulughError, setBulughError] = useState('');
-  const [bulughInputMode, setBulughInputMode] = useState<'date' | 'age'>('date');
-  const [bulughAgeInput, setBulughAgeInput] = useState('');
   const [profileForm, setProfileForm] = useState<ProfileFormState>(() =>
-    createProfileFormState(profileKey, profile),
+    createProfileFormState(
+      profileKey,
+      profile,
+      getDefaultBulughDate(profile?.dateOfBirth || undefined),
+    ),
   );
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState<FeedbackState | null>(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const [isRevert, setIsRevert] = useState(() => Boolean(profile?.revertDate));
   const [revertDateError, setRevertDateError] = useState('');
 
   const activeProfileForm =
     profileForm.sourceKey === profileKey
       ? profileForm
-      : createProfileFormState(profileKey, profile);
+      : createProfileFormState(
+          profileKey,
+          profile,
+          getDefaultBulughDate(profile?.dateOfBirth || undefined),
+        );
 
-  const updateProfileForm = (updates: Partial<Omit<ProfileFormState, 'sourceKey'>>) => {
-    setProfileForm((current) => ({
-      ...(current.sourceKey === profileKey ? current : createProfileFormState(profileKey, profile)),
-      ...updates,
-      sourceKey: profileKey,
-    }));
-  };
+  const updateProfileForm = useCallback(
+    (updates: Partial<Omit<ProfileFormState, 'sourceKey'>>) => {
+      setProfileForm((current) => ({
+        ...(current.sourceKey === profileKey
+          ? current
+          : createProfileFormState(
+              profileKey,
+              profile,
+              getDefaultBulughDate(profile?.dateOfBirth || undefined),
+            )),
+        ...updates,
+        sourceKey: profileKey,
+      }));
+    },
+    [profileKey, profile],
+  );
 
   const fmtHijri = (hijriStr: string, invert = false) =>
     formatHijriDisplay(hijriStr, language, t, fmtNumber, invert);
@@ -94,17 +108,18 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
 
   const ageAtRevert = useMemo(
     () =>
-      isRevert
+      activeProfileForm.isRevert
         ? computeHijriAge(activeProfileForm.dateOfBirth, activeProfileForm.revertDate)
         : null,
-    [isRevert, activeProfileForm.dateOfBirth, activeProfileForm.revertDate],
+    [activeProfileForm.isRevert, activeProfileForm.dateOfBirth, activeProfileForm.revertDate],
   );
 
   const revertHidesBulugh =
-    isRevert && ageAtRevert !== null && ageAtRevert >= BULUGH_DEFAULT_HIJRI_YEARS;
+    activeProfileForm.isRevert && ageAtRevert !== null && ageAtRevert >= BULUGH_DEFAULT_HIJRI_YEARS;
 
   const profileHasChanges = useMemo(
     () =>
+      activeProfileForm.username !== (profile?.username ?? '') ||
       activeProfileForm.bulughDate !== (profile?.bulughDate ?? '') ||
       activeProfileForm.dateOfBirth !== (profile?.dateOfBirth ?? '') ||
       activeProfileForm.gender !== (profile?.gender ?? 'male') ||
@@ -176,6 +191,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     setProfileSaved(false);
     try {
       await updateProfile.mutateAsync({
+        username: activeProfileForm.username.trim() || undefined,
         bulughDate: activeProfileForm.bulughDate,
         gender: activeProfileForm.gender,
         dateOfBirth: activeProfileForm.dateOfBirth || undefined,
@@ -192,32 +208,38 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
   };
 
   const handleBulughAgeChange = (ageStr: string) => {
-    setBulughAgeInput(ageStr);
+    setBulughError('');
     const computedBulughDate = getAgeBasedBulughDate(activeProfileForm.dateOfBirth, ageStr);
     if (!computedBulughDate) {
-      updateProfileForm({ bulughDate: '' });
+      updateProfileForm({ bulughAgeInput: ageStr, bulughDate: '' });
       return;
     }
-    updateProfileForm({ bulughDate: computedBulughDate });
+    updateProfileForm({ bulughAgeInput: ageStr, bulughDate: computedBulughDate });
   };
 
   const handleRevertToggle = (enabled: boolean) => {
-    setIsRevert(enabled);
     setRevertDateError('');
     if (!enabled) {
-      updateProfileForm({ revertDate: '' });
-    } else if (defaultBulughDate && !activeProfileForm.bulughDate) {
-      updateProfileForm({ bulughDate: defaultBulughDate });
+      updateProfileForm({ isRevert: false, revertDate: '' });
+    } else {
+      const updates: Partial<ProfileFormState> = { isRevert: true };
+      if (defaultBulughDate && !activeProfileForm.bulughDate) {
+        updates.bulughDate = defaultBulughDate;
+      }
+      updateProfileForm(updates);
     }
   };
 
   const handleRevertDateChange = (value: string) => {
-    updateProfileForm({ revertDate: value });
-    if (value && activeProfileForm.dateOfBirth) {
-      const age = computeHijriAge(activeProfileForm.dateOfBirth, value);
-      if (age !== null && age >= BULUGH_DEFAULT_HIJRI_YEARS && defaultBulughDate) {
-        updateProfileForm({ revertDate: value, bulughDate: defaultBulughDate });
-      }
+    setRevertDateError('');
+    const age = activeProfileForm.dateOfBirth
+      ? computeHijriAge(activeProfileForm.dateOfBirth, value)
+      : null;
+
+    if (age !== null && age >= BULUGH_DEFAULT_HIJRI_YEARS && defaultBulughDate) {
+      updateProfileForm({ revertDate: value, bulughDate: defaultBulughDate });
+    } else {
+      updateProfileForm({ revertDate: value });
     }
   };
 
@@ -227,9 +249,23 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
       {profileFeedback ? <SectionNotice feedback={profileFeedback} /> : null}
 
       <div className={styles.profileFields}>
+        <div className="formGroup">
+          <label className="formLabel">{t('settings.username_label')}</label>
+          <input
+            type="text"
+            value={activeProfileForm.username}
+            onChange={(e) => updateProfileForm({ username: e.target.value })}
+            className={styles.textInput}
+            placeholder={t('settings.username_placeholder')}
+            maxLength={40}
+            autoComplete="nickname"
+          />
+          <p className="formHint">{t('settings.username_hint')}</p>
+        </div>
+
         {/* Date of Birth */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>{t('settings.dob')}</label>
+        <div className="formGroup">
+          <label className="formLabel">{t('settings.dob')}</label>
           <div className={styles.fieldCurrent}>
             <span className={styles.fieldCurrentVal}>
               {fmtHijri(activeProfileForm.dateOfBirth)}
@@ -237,7 +273,16 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
           </div>
           <HijriDatePicker
             value={activeProfileForm.dateOfBirth}
-            onChange={(value) => updateProfileForm({ dateOfBirth: value })}
+            onChange={(value) => {
+              setDobError('');
+              const newDefault = getDefaultBulughDate(value);
+              const updates: Partial<ProfileFormState> = { dateOfBirth: value };
+
+              if (activeProfileForm.bulughInputMode === 'auto' && newDefault) {
+                updates.bulughDate = newDefault;
+              }
+              updateProfileForm(updates);
+            }}
             onError={setDobError}
             label={t('settings.dob')}
             maxDate={todayHijriDate()}
@@ -246,19 +291,19 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
         </div>
 
         {/* Revert Toggle */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>{t('settings.is_revert_label')}</label>
+        <div className="formGroup">
+          <label className="formLabel">{t('settings.is_revert_label')}</label>
           <div className={styles.genderBtns}>
             <button
               type="button"
-              className={`${styles.genderBtn} ${isRevert ? styles.genderActive : ''}`}
+              className={`${styles.genderBtn} ${activeProfileForm.isRevert ? styles.genderActive : ''}`}
               onClick={() => handleRevertToggle(true)}
             >
               {t('settings.revert_toggle_on')}
             </button>
             <button
               type="button"
-              className={`${styles.genderBtn} ${!isRevert ? styles.genderActive : ''}`}
+              className={`${styles.genderBtn} ${!activeProfileForm.isRevert ? styles.genderActive : ''}`}
               onClick={() => handleRevertToggle(false)}
             >
               {t('settings.revert_toggle_off')}
@@ -267,9 +312,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
         </div>
 
         {/* Revert Date */}
-        {isRevert && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>{t('settings.revert_date')}</label>
+        {activeProfileForm.isRevert && (
+          <div className="formGroup">
+            <label className="formLabel">{t('settings.revert_date')}</label>
             <div className={styles.fieldCurrent}>
               <span className={styles.fieldCurrentVal}>
                 {fmtHijri(activeProfileForm.revertDate)}
@@ -280,6 +325,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
               onChange={handleRevertDateChange}
               onError={setRevertDateError}
               label={t('settings.revert_date')}
+              minDate={activeProfileForm.dateOfBirth || undefined}
               maxDate={todayHijriDate()}
             />
             {revertDateError && <p className={styles.fieldError}>{revertDateError}</p>}
@@ -291,40 +337,85 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
             {revertHidesBulugh && (
               <p className={styles.fieldCurrent}>{t('settings.revert_bulugh_auto')}</p>
             )}
-            {isRevert && ageAtRevert !== null && ageAtRevert < BULUGH_DEFAULT_HIJRI_YEARS && (
-              <p className={styles.fieldWarning} role="alert">
-                {t('settings.revert_bulugh_required')}
-              </p>
-            )}
+            {activeProfileForm.isRevert &&
+              ageAtRevert !== null &&
+              ageAtRevert < BULUGH_DEFAULT_HIJRI_YEARS && (
+                <p className={styles.fieldWarning} role="alert">
+                  {t('settings.revert_bulugh_required')}
+                </p>
+              )}
             <p className={styles.fieldCurrent}>{t('onboarding.revert_bulugh_note')}</p>
           </div>
         )}
 
         {/* Bulugh Date — hidden when revert age >= 15 */}
         {!revertHidesBulugh && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel}>
+          <div className="formGroup">
+            <label className="formLabel">
               <TermTooltip termId="bulugh">{t('settings.bulugh_date')}</TermTooltip>
             </label>
 
             <div className={styles.genderBtns}>
               <button
                 type="button"
-                className={`${styles.genderBtn} ${bulughInputMode === 'date' ? styles.genderActive : ''}`}
-                onClick={() => setBulughInputMode('date')}
+                className={`${styles.genderBtn} ${activeProfileForm.bulughInputMode === 'auto' ? styles.genderActive : ''}`}
+                onClick={() => {
+                  setDobError('');
+                  const updates: Partial<ProfileFormState> = {
+                    bulughInputMode: 'auto',
+                    bulughAgeInput: '',
+                  };
+                  if (defaultBulughDate) {
+                    updates.bulughDate = defaultBulughDate;
+                  }
+                  updateProfileForm(updates);
+                }}
+              >
+                {t('settings.bulugh_mode_auto')}
+              </button>
+              <button
+                type="button"
+                className={`${styles.genderBtn} ${activeProfileForm.bulughInputMode === 'date' ? styles.genderActive : ''}`}
+                onClick={() => {
+                  updateProfileForm({ bulughInputMode: 'date' });
+                }}
               >
                 {t('onboarding.bulugh_mode_date')}
               </button>
               <button
                 type="button"
-                className={`${styles.genderBtn} ${bulughInputMode === 'age' ? styles.genderActive : ''}`}
-                onClick={() => setBulughInputMode('age')}
+                className={`${styles.genderBtn} ${activeProfileForm.bulughInputMode === 'age' ? styles.genderActive : ''}`}
+                onClick={() => {
+                  updateProfileForm({ bulughInputMode: 'age' });
+                }}
               >
                 {t('onboarding.bulugh_mode_age')}
               </button>
             </div>
 
-            {bulughInputMode === 'date' ? (
+            {activeProfileForm.bulughInputMode === 'auto' ? (
+              <div className={styles.ageInputGroup}>
+                {!activeProfileForm.dateOfBirth ? (
+                  <p className={styles.fieldError}>{t('onboarding.bulugh_no_dob_hint')}</p>
+                ) : defaultBulughDate ? (
+                  <>
+                    <p className={styles.fieldCurrent}>{t('settings.bulugh_auto_hint')}</p>
+                    <div className={styles.fieldCurrent}>
+                      <span className={styles.fieldCurrentVal}>{fmtHijri(defaultBulughDate)}</span>
+                    </div>
+                    <p className={styles.fieldCurrent}>
+                      {t('settings.bulugh_auto_caption', {
+                        n: fmtNumber(BULUGH_DEFAULT_HIJRI_YEARS),
+                      })}
+                    </p>
+                  </>
+                ) : (
+                  <p className={styles.fieldWarning} role="alert">
+                    {t('settings.bulugh_auto_unavailable')}
+                  </p>
+                )}
+              </div>
+            ) : activeProfileForm.bulughInputMode === 'date' ? (
               <>
                 <div className={styles.fieldCurrent}>
                   <span className={styles.fieldCurrentVal}>
@@ -333,9 +424,13 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
                 </div>
                 <HijriDatePicker
                   value={activeProfileForm.bulughDate}
-                  onChange={(value) => updateProfileForm({ bulughDate: value })}
+                  onChange={(value) => {
+                    setBulughError('');
+                    updateProfileForm({ bulughDate: value });
+                  }}
                   onError={setBulughError}
                   label={t('settings.bulugh_date')}
+                  minDate={activeProfileForm.dateOfBirth || undefined}
                   maxDate={todayHijriDate()}
                 />
                 {computedBulughAge !== null && (
@@ -365,7 +460,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
                         type="number"
                         min={1}
                         max={70}
-                        value={bulughAgeInput}
+                        value={activeProfileForm.bulughAgeInput}
                         onChange={(e) => handleBulughAgeChange(e.target.value)}
                         className={styles.ageInput}
                         placeholder="15"
@@ -375,7 +470,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
                         {t('onboarding.bulugh_age_suffix')}
                       </span>
                     </div>
-                    {bulughAgeInput && activeProfileForm.bulughDate && (
+                    {activeProfileForm.bulughAgeInput && activeProfileForm.bulughDate && (
                       <p className={styles.fieldCurrent}>
                         {t('onboarding.bulugh_age_gives')}{' '}
                         <span className={styles.fieldCurrentVal}>
@@ -393,8 +488,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
         )}
 
         {/* Gender */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>{t('settings.gender')}</label>
+        <div className="formGroup">
+          <label className="formLabel">{t('settings.gender')}</label>
           <div className={styles.genderBtns}>
             <button
               className={`${styles.genderBtn} ${activeProfileForm.gender === 'male' ? styles.genderActive : ''}`}

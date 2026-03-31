@@ -11,18 +11,30 @@ export { computeHijriAge, formatGregorianDisplay, formatHijriDisplay };
 export function createProfileFormState(
   profileKey: string,
   profile?: {
+    username?: string;
     dateOfBirth?: string;
     bulughDate?: string;
     revertDate?: string;
     gender?: 'male' | 'female';
   } | null,
+  defaultBulughDate?: string | null,
 ): ProfileFormState {
+  const bulughDate = profile?.bulughDate || defaultBulughDate || '';
+  const isAutoBulugh =
+    Boolean(profile?.dateOfBirth) &&
+    Boolean(profile?.bulughDate) &&
+    profile?.bulughDate === defaultBulughDate;
+
   return {
     sourceKey: profileKey,
+    username: profile?.username ?? '',
     dateOfBirth: profile?.dateOfBirth ?? '',
-    bulughDate: profile?.bulughDate ?? '',
+    bulughDate,
     revertDate: profile?.revertDate ?? '',
     gender: profile?.gender ?? 'male',
+    bulughInputMode: isAutoBulugh ? 'auto' : 'date',
+    bulughAgeInput: '',
+    isRevert: Boolean(profile?.revertDate),
   };
 }
 

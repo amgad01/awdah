@@ -1,52 +1,14 @@
 import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { api, type UserLifecycleJobResponse, type UserLifecycleJobType } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
-
-const USER_JOB_POLL_INTERVAL_MS = 1_500;
-const USER_JOB_POLL_TIMEOUT_MS = 90_000;
+import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 
 function invalidatePeriodRelatedQueries(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
-}
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForLifecycleJob(
-  jobId: string,
-  expectedType: UserLifecycleJobType,
-): Promise<UserLifecycleJobResponse> {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < USER_JOB_POLL_TIMEOUT_MS) {
-    const response = await api.user.getJobStatus(jobId);
-    const job = response?.job;
-
-    if (!job) {
-      throw new Error('The background task could not be found.');
-    }
-
-    if (job.type !== expectedType) {
-      throw new Error('The background task returned an unexpected result.');
-    }
-
-    if (job.status === 'completed') {
-      return job;
-    }
-
-    if (job.status === 'failed') {
-      throw new Error(job.errorMessage || 'The background task failed.');
-    }
-
-    await sleep(USER_JOB_POLL_INTERVAL_MS);
-  }
-
-  throw new Error('The background task is taking longer than expected. Please try again shortly.');
 }
 
 export const useProfile = () => {
@@ -76,6 +38,7 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: {
+      username?: string;
       bulughDate: string;
       gender: string;
       dateOfBirth?: string;
