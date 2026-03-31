@@ -10,7 +10,7 @@ COPY packages/shared ./packages/shared
 COPY apps/backend ./apps/backend
 
 # Install dependencies (using workspaces)
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Build shared package first
 RUN npm run build --workspace=packages/shared

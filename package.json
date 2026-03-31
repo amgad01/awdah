@@ -55,6 +55,7 @@
     "deploy:stack": "./scripts/deploy-stack.sh",
     "destroy": "./scripts/destroy.sh",
     "destroy:stack": "./scripts/destroy-stack.sh",
+    "postinstall": "./scripts/patch-bundled-cdk-deps.sh",
     "prepare": "husky || true"
   },
   "engines": {
