@@ -43,14 +43,14 @@ jobs:
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod
         env:
-          # Real Cognito credentials are read from GitHub environment secrets
           VITE_AUTH_MODE: cognito
-          VITE_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
-          VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
+          # AWS creds are used by scripts/build-frontend.sh to resolve Cognito/API
+          # details from CloudFormation stack outputs.
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-          # Full URL of the deployed API Gateway endpoint
-          VITE_API_BASE_URL: ${{ vars.PAGES_API_BASE_URL }}
           VITE_APP_VERSION: ${{ github.sha }}
+          VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
           PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH || '/awdah/' }}
           PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
           PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL || 'https://amgad01.github.io/awdah/' }}

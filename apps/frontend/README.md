@@ -51,6 +51,7 @@ npm run test:e2e:ui      # Playwright interactive UI mode
 | `VITE_COGNITO_CLIENT_ID`    | Cognito Client ID                                                                                                             | Cognito mode |
 | `VITE_AWS_REGION`           | AWS region                                                                                                                    | Cognito mode |
 | `VITE_BASE_PATH`            | Vite `base` path. Set to `/awdah/` for GitHub Pages, leave unset (defaults to `/`) for CloudFront or same-origin deployments. | Optional     |
+| `VITE_APP_EMAIL`            | Support email address for privacy and contact.                                                                                | Optional     |
 
 In local dev mode (`VITE_AUTH_MODE=local`), the Vite dev server proxies `/v1` and `/health` to `http://localhost:3000`. No Cognito is required, but the backend and LocalStack still need to be running for data-backed flows.
 

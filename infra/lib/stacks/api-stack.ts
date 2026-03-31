@@ -12,7 +12,7 @@ import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
 import { BaseStack, BaseStackProps } from '../shared/base-stack';
 import { ProjectResourceFactory } from '../shared/resource-factory';
-import { getConfig, ProjectConfig } from '../shared/config';
+import { getConfig, type ProjectConfig } from '../shared/config';
 import { CONTEXT, PATH } from '../shared/constants';
 
 export interface ApiStackProps extends BaseStackProps {
@@ -101,12 +101,13 @@ export class ApiStack extends BaseStack {
   }
 
   private createHttpApi(props: ApiStackProps): apigatewayv2.HttpApi {
-    const corsAllowedOrigins =
-      this.projectEnv === 'prod'
-        ? ['https://awdah.app']
-        : this.projectEnv === 'staging'
-          ? ['https://staging.awdah.app']
-          : ['*'];
+    const config = getConfig(this);
+    const origins = new Set([
+      // Environment defaults (dev: localhost, prod: GitHub Pages, etc.)
+      ...config.allowedOrigins,
+      // Optional extra origin passed via CDK context for external frontends.
+      ...(props.frontendOrigin ? [props.frontendOrigin] : []),
+    ]);
 
     return new apigatewayv2.HttpApi(this, 'AwdahApi', {
       apiName: this.fullResourceName('API'),
@@ -126,9 +127,9 @@ export class ApiStack extends BaseStack {
           apigatewayv2.CorsHttpMethod.DELETE,
           apigatewayv2.CorsHttpMethod.OPTIONS,
         ],
-        allowOrigins: props.frontendOrigin
-          ? [...corsAllowedOrigins, props.frontendOrigin]
-          : corsAllowedOrigins,
+        // Credentialed CORS for Cognito-issued Bearer tokens.
+        allowCredentials: true,
+        allowOrigins: Array.from(origins),
       },
     });
   }

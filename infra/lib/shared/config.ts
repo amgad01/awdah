@@ -16,6 +16,7 @@ export interface ProjectConfig {
   readonly apiIntegrationLatencyAlarmMs: number;
   readonly defaultLambdaDurationAlarmMs: number;
   readonly heavyLambdaDurationAlarmMs: number;
+  readonly allowedOrigins: string[];
 }
 
 export const CONFIG: Record<string, ProjectConfig> = {
@@ -32,6 +33,7 @@ export const CONFIG: Record<string, ProjectConfig> = {
     apiIntegrationLatencyAlarmMs: 2500,
     defaultLambdaDurationAlarmMs: 8000,
     heavyLambdaDurationAlarmMs: 15000,
+    allowedOrigins: ['http://localhost:5173', 'http://localhost:3000'],
   },
   staging: {
     envName: 'staging',
@@ -46,6 +48,7 @@ export const CONFIG: Record<string, ProjectConfig> = {
     apiIntegrationLatencyAlarmMs: 1500,
     defaultLambdaDurationAlarmMs: 4000,
     heavyLambdaDurationAlarmMs: 10000,
+    allowedOrigins: [],
   },
   prod: {
     envName: 'prod',
@@ -62,6 +65,8 @@ export const CONFIG: Record<string, ProjectConfig> = {
     apiIntegrationLatencyAlarmMs: 1200,
     defaultLambdaDurationAlarmMs: 4000,
     heavyLambdaDurationAlarmMs: 10000,
+    // GitHub Pages host for the SPA in prod. CloudFront is added dynamically via context.
+    allowedOrigins: ['https://amgad01.github.io'],
   },
 };
 

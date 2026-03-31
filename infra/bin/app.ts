@@ -24,6 +24,17 @@ const commit = app.node.tryGetContext('commit') as string | undefined;
 const buildId = app.node.tryGetContext('buildId') as string | undefined;
 const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
+function validateOriginContext(name: string, value: string | undefined): void {
+  if (!value) return;
+  if (!value.startsWith('https://') && !value.startsWith('http://')) {
+    throw new Error(
+      `Invalid ${name} context value "${value}". Origins must start with "https://" or "http://".`,
+    );
+  }
+}
+
+validateOriginContext('frontendOrigin', frontendOrigin);
+
 cdk.Tags.of(app).add('project', 'Awdah');
 cdk.Tags.of(app).add('env', environment);
 if (ticket) cdk.Tags.of(app).add('ticket', ticket);

@@ -76,6 +76,7 @@ services:
         - VITE_AUTH_MODE=local
         - VITE_AWS_REGION=eu-west-1
         - VITE_APP_VERSION=dev
+        - VITE_APP_EMAIL=${VITE_APP_EMAIL:-${ALERT_EMAIL:-}}
     ports:
       - '8080:80'
     depends_on:

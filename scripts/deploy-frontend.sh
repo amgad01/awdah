@@ -44,7 +44,7 @@ case "$TARGET" in
     if ! npx cdk deploy \
       "Awdah-api-stack-$ENV" \
       --context "env=$ENV" \
-      --context "frontendOrigins=$PAGES_ORIGIN" \
+      --context "frontendOrigin=$PAGES_ORIGIN" \
       --require-approval never; then
       FAILED=true
       exit 1
@@ -79,7 +79,7 @@ case "$TARGET" in
     if ! npx cdk deploy \
       "Awdah-api-stack-$ENV" \
       --context "env=$ENV" \
-      --context "frontendOrigins=$FRONTEND_URL" \
+      --context "frontendOrigin=$FRONTEND_URL" \
       --require-approval never; then
       FAILED=true
       exit 1
