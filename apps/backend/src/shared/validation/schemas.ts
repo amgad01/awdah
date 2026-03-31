@@ -77,6 +77,7 @@ export const updatePracticingPeriodSchema = z
 
 export const updateUserSettingsSchema = z
   .object({
+    username: z.string().trim().max(40).optional(),
     bulughDate: hijriDateString,
     gender: z.enum(GENDERS),
     dateOfBirth: hijriDateString.optional(),

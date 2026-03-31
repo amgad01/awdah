@@ -10,6 +10,8 @@ import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.en
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { PrayerName } from '../../../contexts/salah/domain/value-objects/prayer-name';
 
+import { createAwsClientConfig } from '../aws/client-config';
+
 // Local user ID logic matching local-auth.service.ts
 function localUserId(email: string): string {
   const normalized = email.trim().toLowerCase();
@@ -22,11 +24,7 @@ export function registerE2eSeedRoutes(app: express.Express) {
     return;
   }
 
-  const client = new DynamoDBClient({
-    region: process.env.AWS_REGION || 'eu-west-1',
-    endpoint: process.env.DYNAMODB_ENDPOINT || 'http://localhost:4566',
-    credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
-  });
+  const client = new DynamoDBClient(createAwsClientConfig());
   const docClient = DynamoDBDocumentClient.from(client);
 
   const userRepo = new DynamoDBUserRepository(docClient);
@@ -88,6 +86,8 @@ export function registerE2eSeedRoutes(app: express.Express) {
 
       res.status(200).json({ status: 'seeded', count: users.length });
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[E2E Seed Error]:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });

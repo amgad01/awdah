@@ -40,6 +40,7 @@ export class DynamoDBUserRepository
 
   protected mapToPersistence(userSettings: UserSettings): Record<string, unknown> {
     return {
+      username: userSettings.username,
       dateOfBirth: userSettings.dateOfBirth?.toString(),
       bulughDate: userSettings.bulughDate.toString(),
       revertDate: userSettings.revertDate?.toString(),
@@ -55,6 +56,7 @@ export class DynamoDBUserRepository
   protected mapToDomain(item: Record<string, unknown>): UserSettings {
     return {
       userId: item.userId as string,
+      username: item.username as string | undefined,
       dateOfBirth: item.dateOfBirth ? HijriDate.fromString(item.dateOfBirth as string) : undefined,
       bulughDate: HijriDate.fromString(item.bulughDate as string),
       revertDate: item.revertDate ? HijriDate.fromString(item.revertDate as string) : undefined,

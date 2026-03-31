@@ -25,6 +25,7 @@ describe('DynamoDBUserRepository', () => {
       Item: {
         userId,
         sk: UserSettingsSK.SETTINGS,
+        username: 'Amgad',
         bulughDate: '1420-01-01',
         gender: 'male',
       },
@@ -34,6 +35,7 @@ describe('DynamoDBUserRepository', () => {
 
     expect(user).not.toBeNull();
     expect(user!.userId).toBe(userId);
+    expect(user!.username).toBe('Amgad');
     expect(user!.bulughDate.toString()).toBe('1420-01-01');
 
     const calls = ddbMock.commandCalls(GetCommand);
@@ -49,6 +51,7 @@ describe('DynamoDBUserRepository', () => {
   it('should save user settings', async () => {
     const user: UserSettings = {
       userId,
+      username: 'Amgad',
       bulughDate: HijriDate.fromString('1420-01-01'),
       gender: 'male',
     };
@@ -63,6 +66,7 @@ describe('DynamoDBUserRepository', () => {
       Item: {
         userId,
         sk: UserSettingsSK.SETTINGS,
+        username: 'Amgad',
         bulughDate: '1420-01-01',
         gender: 'male',
       },

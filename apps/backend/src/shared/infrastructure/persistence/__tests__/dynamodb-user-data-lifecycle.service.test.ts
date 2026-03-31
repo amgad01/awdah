@@ -25,6 +25,7 @@ describe('DynamoDBUserDataLifecycleService', () => {
           return {
             Items: [
               {
+                username: 'Amgad',
                 dateOfBirth: '1400-01-01',
                 bulughDate: '1420-01-01',
                 gender: 'male',
@@ -76,6 +77,7 @@ describe('DynamoDBUserDataLifecycleService', () => {
       userId,
       settings: [
         {
+          username: 'Amgad',
           dateOfBirth: '1400-01-01',
           bulughDate: '1420-01-01',
           gender: 'male',

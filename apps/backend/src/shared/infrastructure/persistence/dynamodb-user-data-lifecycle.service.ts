@@ -25,12 +25,13 @@ const USER_MANAGED_TABLES: UserManagedTableDescriptor[] = [
     pkName: 'userId',
     skName: 'sk',
     exportProjectionExpression:
-      'dateOfBirth, bulughDate, revertDate, gender, madhab, calculationMethod, moonSightingPreference, #location, updatedAt',
+      'username, dateOfBirth, bulughDate, revertDate, gender, madhab, calculationMethod, moonSightingPreference, #location, updatedAt',
     exportExpressionAttributeNames: {
       '#location': 'location',
     },
     mapExportItem: (item) =>
       omitUndefinedFields({
+        username: item.username,
         dateOfBirth: item.dateOfBirth,
         bulughDate: item.bulughDate,
         revertDate: item.revertDate,
