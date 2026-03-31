@@ -14,6 +14,7 @@ import { getOnboardingDraftKey } from '@/lib/onboarding-state';
 import {
   createEmptyOnboardingData,
   createOnboardingDataFromProfile,
+  getOnboardingDraftSecret,
   loadOnboardingDraft,
   saveOnboardingDraft,
   TOTAL_ONBOARDING_STEPS,
@@ -41,6 +42,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const { data: storedPeriods, isLoading: isPeriodsLoading } = usePracticingPeriods();
   const persistedPeriods = useMemo(() => storedPeriods ?? [], [storedPeriods]);
   const draftKey = useMemo(() => getOnboardingDraftKey(user?.userId), [user?.userId]);
+  const draftSecret = useMemo(() => getOnboardingDraftSecret(user?.userId), [user?.userId]);
   const persistedData = useMemo(
     () => createOnboardingDataFromProfile(profile, persistedPeriods),
     [profile, persistedPeriods],
@@ -77,7 +79,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     }
 
     const init = async () => {
-      const draft = await loadOnboardingDraft(draftKey);
+      const draft = await loadOnboardingDraft(draftKey, draftSecret);
       setStep(draft && draft.step < TOTAL_ONBOARDING_STEPS ? draft.step : 1);
       setData(draft ? draft.data : persistedData);
       setSaveError(false);
@@ -87,7 +89,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     };
 
     init();
-  }, [draftKey, persistedData, persistedDataKey, isProfileLoading, isPeriodsLoading]);
+  }, [draftKey, draftSecret, persistedData, persistedDataKey, isProfileLoading, isPeriodsLoading]);
 
   const merge = useCallback(
     (updates: Partial<OnboardingData>) => setData((current) => ({ ...current, ...updates })),
@@ -97,8 +99,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   useEffect(() => {
     if (!isHydrated || step >= TOTAL_ONBOARDING_STEPS) return;
 
-    saveOnboardingDraft(draftKey, step, data);
-  }, [isHydrated, step, data, draftKey]);
+    void saveOnboardingDraft(draftKey, draftSecret, step, data);
+  }, [isHydrated, step, data, draftKey, draftSecret]);
 
   const canProceed = (): boolean => {
     switch (step) {

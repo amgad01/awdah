@@ -1,9 +1,9 @@
 import type { PracticingPeriodResponse, UserProfileResponse } from '@/lib/api';
 import { DEFAULT_DAILY_INTENTION } from '@/lib/constants';
 import { decrypt, encrypt } from '@/lib/crypto';
+import { readPersistedSession } from '@/lib/auth-service';
 
 export const TOTAL_ONBOARDING_STEPS = 6;
-export const ONBOARDING_DRAFT_SECRET = 'awdah-onboarding-draft-v1'; // Internal secret for draft encryption
 
 export interface OnboardingPeriod {
   id: string;
@@ -63,12 +63,17 @@ export function createOnboardingDataFromProfile(
 
 export async function saveOnboardingDraft(
   draftKey: string,
+  draftSecret: string | null,
   step: number,
   data: OnboardingData,
 ): Promise<void> {
+  if (!draftSecret) {
+    return;
+  }
+
   try {
     const payload = JSON.stringify({ step, data });
-    const encrypted = await encrypt(payload, ONBOARDING_DRAFT_SECRET);
+    const encrypted = await encrypt(payload, draftSecret);
     localStorage.setItem(draftKey, encrypted);
   } catch (error) {
     console.error('Failed to save onboarding draft', error);
@@ -77,32 +82,41 @@ export async function saveOnboardingDraft(
 
 export async function loadOnboardingDraft(
   draftKey: string,
+  draftSecret: string | null,
 ): Promise<{ step: number; data: OnboardingData } | null> {
+  if (!draftSecret) {
+    return null;
+  }
+
   try {
     const raw = localStorage.getItem(draftKey);
     if (!raw) return null;
 
     let decrypted: string;
     try {
-      // Try to decrypt if it's encrypted
-      decrypted = await decrypt(raw, ONBOARDING_DRAFT_SECRET);
+      decrypted = await decrypt(raw, draftSecret);
     } catch {
-      // If decryption fails, it might be an old clear-text draft or invalid data
-      // We check if it's valid JSON (potentially old clear-text)
       try {
         JSON.parse(raw);
-        // It is clear-text, we could return it or ignore it.
-        // For safety/security, we migration or just return null to start fresh.
-        // Let's return null to be safe and clear the old draft.
-        localStorage.removeItem(draftKey);
-        return null;
       } catch {
-        return null;
+        // Old clear-text or unreadable drafts are ignored
       }
+
+      localStorage.removeItem(draftKey);
+      return null;
     }
 
     return JSON.parse(decrypted) as { step: number; data: OnboardingData };
   } catch {
     return null;
   }
+}
+
+export function getOnboardingDraftSecret(userId?: string): string | null {
+  const session = readPersistedSession();
+  if (!userId || !session?.token || session.userId !== userId) {
+    return null;
+  }
+
+  return `awdah-onboarding-draft:${userId}:${session.token}`;
 }
