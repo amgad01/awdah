@@ -3,9 +3,15 @@ import { useLanguage } from '@/hooks/use-language';
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
 import { TermTooltip } from '@/components/ui/term-tooltip';
-import { HijriDate } from '@awdah/shared';
 import { isBulughBeforeDateOfBirth } from '@/lib/practicing-periods';
 import { BULUGH_DEFAULT_HIJRI_YEARS } from '@/lib/constants';
+import { todayHijriDate } from '@/utils/date-utils';
+import {
+  getAgeBasedBulughDate,
+  getDefaultBulughDate,
+  isBulughEarly,
+  isBulughLate,
+} from '@/lib/profile-date-utils';
 import { BookOpen, Save } from 'lucide-react';
 import { SettingsSection, SectionNotice, DebtImpactPreview } from '../components';
 import {
@@ -71,37 +77,20 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate],
   );
 
-  const bulughLateWarning = useMemo(() => {
-    if (!activeProfileForm.dateOfBirth || !activeProfileForm.bulughDate) return false;
-    try {
-      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
-      const threshold = new HijriDate(dob.year + 15, dob.month, dob.day);
-      return HijriDate.fromString(activeProfileForm.bulughDate).isAfter(threshold);
-    } catch {
-      return false;
-    }
-  }, [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate]);
+  const bulughLateWarning = useMemo(
+    () => isBulughLate(activeProfileForm.dateOfBirth, activeProfileForm.bulughDate),
+    [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate],
+  );
 
-  const bulughEarlyWarning = useMemo(() => {
-    if (!activeProfileForm.dateOfBirth || !activeProfileForm.bulughDate) return false;
-    try {
-      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
-      const threshold = new HijriDate(dob.year + 12, dob.month, dob.day);
-      return HijriDate.fromString(activeProfileForm.bulughDate).isBefore(threshold);
-    } catch {
-      return false;
-    }
-  }, [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate]);
+  const bulughEarlyWarning = useMemo(
+    () => isBulughEarly(activeProfileForm.dateOfBirth, activeProfileForm.bulughDate),
+    [activeProfileForm.dateOfBirth, activeProfileForm.bulughDate],
+  );
 
-  const defaultBulughDate = useMemo(() => {
-    if (!activeProfileForm.dateOfBirth) return null;
-    try {
-      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
-      return new HijriDate(dob.year + BULUGH_DEFAULT_HIJRI_YEARS, dob.month, dob.day).toString();
-    } catch {
-      return null;
-    }
-  }, [activeProfileForm.dateOfBirth]);
+  const defaultBulughDate = useMemo(
+    () => getDefaultBulughDate(activeProfileForm.dateOfBirth),
+    [activeProfileForm.dateOfBirth],
+  );
 
   const ageAtRevert = useMemo(
     () =>
@@ -204,18 +193,12 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
 
   const handleBulughAgeChange = (ageStr: string) => {
     setBulughAgeInput(ageStr);
-    const age = parseInt(ageStr, 10);
-    if (!activeProfileForm.dateOfBirth || !ageStr || isNaN(age) || age < 1 || age > 70) {
+    const computedBulughDate = getAgeBasedBulughDate(activeProfileForm.dateOfBirth, ageStr);
+    if (!computedBulughDate) {
       updateProfileForm({ bulughDate: '' });
       return;
     }
-    try {
-      const dob = HijriDate.fromString(activeProfileForm.dateOfBirth);
-      const computed = new HijriDate(dob.year + age, dob.month, dob.day);
-      updateProfileForm({ bulughDate: computed.toString() });
-    } catch {
-      updateProfileForm({ bulughDate: '' });
-    }
+    updateProfileForm({ bulughDate: computedBulughDate });
   };
 
   const handleRevertToggle = (enabled: boolean) => {
@@ -257,6 +240,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
             onChange={(value) => updateProfileForm({ dateOfBirth: value })}
             onError={setDobError}
             label={t('settings.dob')}
+            maxDate={todayHijriDate()}
           />
           {dobError && <p className={styles.fieldError}>{dobError}</p>}
         </div>
@@ -296,6 +280,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
               onChange={handleRevertDateChange}
               onError={setRevertDateError}
               label={t('settings.revert_date')}
+              maxDate={todayHijriDate()}
             />
             {revertDateError && <p className={styles.fieldError}>{revertDateError}</p>}
             {ageAtRevert !== null && (
@@ -351,6 +336,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
                   onChange={(value) => updateProfileForm({ bulughDate: value })}
                   onError={setBulughError}
                   label={t('settings.bulugh_date')}
+                  maxDate={todayHijriDate()}
                 />
                 {computedBulughAge !== null && (
                   <p className={styles.fieldCurrent}>
