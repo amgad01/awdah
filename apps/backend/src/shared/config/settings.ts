@@ -25,6 +25,21 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
   return value;
 }
 
+function getLocalFallbackEnvName(): string {
+  const explicitEnv = process.env.DEPLOY_ENV || process.env.APP_ENV;
+  if (explicitEnv) {
+    return explicitEnv;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    return 'dev';
+  }
+
+  return process.env.NODE_ENV || 'dev';
+}
+
+const localFallbackEnv = getLocalFallbackEnvName();
+
 // Validate all required env vars at module load. In prod/staging this
 // runs at Lambda cold start and reports every missing variable in one error.
 // Validate essential env vars at module load if we're not running a background cleanup task.
@@ -45,27 +60,18 @@ export const settings = {
   region: process.env.AWS_REGION || 'us-east-1',
   cognitoUserPoolId: requireEnv('COGNITO_USER_POOL_ID', 'us-east-1_localdev'),
   tables: {
-    prayerLogs: requireEnv(
-      'PRAYER_LOGS_TABLE',
-      `Awdah-PrayerLogs-${process.env.NODE_ENV || 'dev'}`,
-    ),
-    fastLogs: requireEnv('FAST_LOGS_TABLE', `Awdah-FastLogs-${process.env.NODE_ENV || 'dev'}`),
+    prayerLogs: requireEnv('PRAYER_LOGS_TABLE', `Awdah-PrayerLogs-${localFallbackEnv}`),
+    fastLogs: requireEnv('FAST_LOGS_TABLE', `Awdah-FastLogs-${localFallbackEnv}`),
     practicingPeriods: requireEnv(
       'PRACTICING_PERIODS_TABLE',
-      `Awdah-PracticingPeriods-${process.env.NODE_ENV || 'dev'}`,
+      `Awdah-PracticingPeriods-${localFallbackEnv}`,
     ),
-    userSettings: requireEnv(
-      'USER_SETTINGS_TABLE',
-      `Awdah-UserSettings-${process.env.NODE_ENV || 'dev'}`,
-    ),
+    userSettings: requireEnv('USER_SETTINGS_TABLE', `Awdah-UserSettings-${localFallbackEnv}`),
     userLifecycleJobs: requireEnv(
       'USER_LIFECYCLE_JOBS_TABLE',
-      `Awdah-UserLifecycleJobs-${process.env.NODE_ENV || 'dev'}`,
+      `Awdah-UserLifecycleJobs-${localFallbackEnv}`,
     ),
-    deletedUsers: requireEnv(
-      'DELETED_USERS_TABLE',
-      `Awdah-DeletedUsers-${process.env.NODE_ENV || 'dev'}`,
-    ),
+    deletedUsers: requireEnv('DELETED_USERS_TABLE', `Awdah-DeletedUsers-${localFallbackEnv}`),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
 };
