@@ -38,6 +38,7 @@ interface AboutData {
   features: ProjectFeature[];
   team_title: string;
   team: TeamMember[];
+  privacy_title: string;
 }
 
 export const AboutPage: React.FC = () => {
@@ -156,6 +157,26 @@ export const AboutPage: React.FC = () => {
           </div>
         </section>
       ))}
+
+      {/* ── Privacy/Legal Section ── */}
+      <section className={styles.legalSection}>
+        <div className={styles.legalCard}>
+          <Icons.Shield size={20} className={styles.legalIcon} />
+          <h2 className={styles.sectionTitle}>{data.privacy_title}</h2>
+          <p className={styles.sectionBody}>
+            {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
+          </p>
+          <div className={styles.legalLinks}>
+            <button
+              onClick={() => (window.location.href = '/privacy')}
+              className={styles.legalLink}
+            >
+              <Icons.Shield size={18} />
+              <span>{t('nav.privacy')}</span>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

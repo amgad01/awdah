@@ -95,9 +95,150 @@
   color: var(--color-text-primary);
 }
 
-.accountEmail {
-  font-size: var(--font-size-sm);
+.accountCard {
+  background: color-mix(in srgb, var(--color-surface) 40%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xs);
+}
+
+.accountHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.accountPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accountEmailLabel {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--color-text-muted);
+}
+
+.accountEmailValue {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.accountDivider {
+  height: 1px;
+  background: var(--color-border);
+  opacity: 0.3;
+}
+
+.accountField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fieldLabel {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.editNameBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.editNameBtn:hover {
+  color: var(--color-primary);
+  background-color: var(--color-surface-hover);
+}
+
+.usernameEditGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  animation: slideDownFade 0.2s ease-out;
+}
+
+.usernameInput {
+  flex: 1;
+  padding: 0.35rem 0.6rem;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
+  min-width: 140px;
+  width: 100%;
+}
+
+.usernameInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.editActions {
+  display: flex;
+  gap: 4px;
+}
+
+.editActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius-md);
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.editActionBtn:hover:not(:disabled) {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
+.editActionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 /* ── Section Notice (SectionNotice) ── */

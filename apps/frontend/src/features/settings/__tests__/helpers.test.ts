@@ -16,6 +16,9 @@ describe('createProfileFormState', () => {
       bulughDate: '',
       revertDate: '',
       gender: 'male',
+      bulughInputMode: 'date',
+      bulughAgeInput: '',
+      isRevert: false,
     });
   });
 
@@ -28,6 +31,9 @@ describe('createProfileFormState', () => {
       bulughDate: '',
       revertDate: '',
       gender: 'male',
+      bulughInputMode: 'date',
+      bulughAgeInput: '',
+      isRevert: false,
     });
   });
 
@@ -45,6 +51,7 @@ describe('createProfileFormState', () => {
     expect(state.gender).toBe('female');
     expect(state.revertDate).toBe('1440-01-01');
     expect(state.sourceKey).toBe('p1');
+    expect(state.isRevert).toBe(true);
   });
 });
 

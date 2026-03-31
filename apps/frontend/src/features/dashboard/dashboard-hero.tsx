@@ -35,7 +35,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
     <div className={styles.heroMain}>
       <span className={styles.heroBadge}>{t('dashboard.hero_badge')}</span>
       <h1 className={styles.title}>
-        {t('common.welcome_back')}, <span className={styles.name}>{username || 'User'}</span>
+        {t('common.welcome_back', { name: username || t('common.user') })}
       </h1>
       <p className={styles.subtitle}>
         <GlossaryText>{t('dashboard.slogan')}</GlossaryText>
