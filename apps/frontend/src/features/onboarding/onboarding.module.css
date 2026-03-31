@@ -16,13 +16,11 @@
   gap: var(--spacing-md);
 }
 
-.appName {
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-black);
-  font-style: italic;
-  color: var(--color-primary);
-  letter-spacing: -0.03em;
+.brandLink {
+  display: inline-flex;
+  align-items: center;
   flex: 1;
+  min-width: 12rem;
 }
 
 .stepCounter {
@@ -33,6 +31,24 @@
 
 .headerActions {
   margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.headerActionLink {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-pill);
+}
+
+.headerActionLink:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
 }
 
 /* Step indicator dots */
@@ -78,6 +94,15 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+.loadingState {
+  min-height: 100vh;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
 }
 
 /* Navigation footer */
@@ -841,11 +866,20 @@
     align-items: flex-start;
   }
 
+  .brandLink {
+    min-width: 0;
+    width: 100%;
+  }
+
   .headerActions {
     width: 100%;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-inline-start: 0;
+  }
+
+  .headerActionLink {
+    text-align: center;
   }
 
   .footer {

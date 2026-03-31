@@ -7,10 +7,20 @@ import styles from '../onboarding.module.css';
 interface ProfileStepProps {
   dateOfBirthHijri: string;
   gender: 'male' | 'female' | '';
-  onChange: (updates: { dateOfBirthHijri?: string; gender?: 'male' | 'female' }) => void;
+  username: string;
+  onChange: (updates: {
+    dateOfBirthHijri?: string;
+    gender?: 'male' | 'female';
+    username?: string;
+  }) => void;
 }
 
-export const ProfileStep: React.FC<ProfileStepProps> = ({ dateOfBirthHijri, gender, onChange }) => {
+export const ProfileStep: React.FC<ProfileStepProps> = ({
+  dateOfBirthHijri,
+  gender,
+  username,
+  onChange,
+}) => {
   const { t } = useLanguage();
   const [error, setError] = React.useState('');
 
@@ -19,6 +29,20 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({ dateOfBirthHijri, gend
       <div className={styles.stepTitleBlock}>
         <h1 className={styles.stepTitle}>{t('onboarding.profile_title')}</h1>
         <p className={styles.stepSubtitle}>{t('onboarding.profile_subtitle')}</p>
+      </div>
+
+      {/* Username — optional */}
+      <div className="formGroup">
+        <label className="formLabel">{t('settings.username_label')}</label>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => onChange({ username: e.target.value })}
+          className={styles.textInput}
+          placeholder={t('settings.username_placeholder')}
+          maxLength={40}
+        />
+        <p className="formHint">{t('settings.username_hint')}</p>
       </div>
 
       {/* Date of birth — optional */}

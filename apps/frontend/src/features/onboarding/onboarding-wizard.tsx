@@ -1,49 +1,34 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useQueryClient } from '@tanstack/react-query';
+import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
-import { DEFAULT_DAILY_INTENTION } from '@/lib/constants';
+import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
 import { estimateSalahDebt } from '@/lib/practicing-periods';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useUpdateProfile } from '@/hooks/use-profile';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useUpdateProfile, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
 import { api } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { getOnboardingDraftKey } from '@/lib/onboarding-state';
+import {
+  TOTAL_ONBOARDING_STEPS,
+  createEmptyOnboardingData,
+  createOnboardingDataFromProfile,
+  loadOnboardingDraft,
+  type OnboardingData,
+} from './onboarding-data';
 import { PrivacyStep } from './steps/privacy-step';
 import { ProfileStep } from './steps/profile-step';
 import { BulughStep } from './steps/bulugh-step';
-import { PeriodsStep, type LocalPeriod } from './steps/periods-step';
+import { PeriodsStep } from './steps/periods-step';
 import { IntentionStep } from './steps/intention-step';
 import { ResultStep } from './steps/result-step';
 import styles from './onboarding.module.css';
 
-const TOTAL_STEPS = 6;
-
-interface OnboardingData {
-  consentData: boolean;
-  consentPolicy: boolean;
-  dateOfBirthHijri: string;
-  gender: 'male' | 'female' | '';
-  bulughDateHijri: string;
-  revertDateHijri?: string;
-  periods: LocalPeriod[];
-  dailyIntention: number;
-}
-
 interface OnboardingWizardProps {
   onComplete: () => void;
   onSkip: () => void;
-}
-
-function loadDraft(draftKey: string): { step: number; data: OnboardingData } | null {
-  try {
-    const raw = localStorage.getItem(draftKey);
-    if (!raw) return null;
-    return JSON.parse(raw) as { step: number; data: OnboardingData };
-  } catch {
-    return null;
-  }
 }
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, onSkip }) => {
@@ -51,71 +36,69 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const updateProfile = useUpdateProfile();
+  const { data: profile, isLoading: isProfileLoading } = useProfile();
+  const { data: storedPeriods, isLoading: isPeriodsLoading } = usePracticingPeriods();
+  const persistedPeriods = useMemo(() => storedPeriods ?? [], [storedPeriods]);
   const draftKey = useMemo(() => getOnboardingDraftKey(user?.userId), [user?.userId]);
+  const persistedData = useMemo(
+    () => createOnboardingDataFromProfile(profile, persistedPeriods),
+    [profile, persistedPeriods],
+  );
+  const persistedDataKey = useMemo(
+    () =>
+      JSON.stringify({
+        profile: profile ?? null,
+        periods: persistedPeriods,
+      }),
+    [profile, persistedPeriods],
+  );
 
-  const [step, setStep] = useState(() => {
-    const draft = loadDraft(draftKey);
-    // Never restore to the final result step — re-run the save
-    return draft && draft.step < 6 ? draft.step : 1;
-  });
-  const [data, setData] = useState<OnboardingData>(() => {
-    const draft = loadDraft(draftKey);
-    return draft
-      ? draft.data
-      : {
-          consentData: false,
-          consentPolicy: false,
-          dateOfBirthHijri: '',
-          gender: '',
-          bulughDateHijri: '',
-          periods: [],
-          dailyIntention: DEFAULT_DAILY_INTENTION,
-        };
-  });
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState<OnboardingData>(createEmptyOnboardingData);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const hasCompletedWizardRef = useRef(false);
   const [debtResult, setDebtResult] = useState<{
     salahDebt: number | null;
     sawmDebt: number | null;
   }>({ salahDebt: null, sawmDebt: null });
 
   useEffect(() => {
-    const draft = loadDraft(draftKey);
-    setStep(draft && draft.step < TOTAL_STEPS ? draft.step : 1);
-    setData(
-      draft
-        ? draft.data
-        : {
-            consentData: false,
-            consentPolicy: false,
-            dateOfBirthHijri: '',
-            gender: '',
-            bulughDateHijri: '',
-            periods: [],
-            dailyIntention: DEFAULT_DAILY_INTENTION,
-          },
-    );
+    if (hasCompletedWizardRef.current) {
+      setIsHydrated(true);
+      return;
+    }
+
+    if (isProfileLoading || isPeriodsLoading) {
+      setIsHydrated(false);
+      return;
+    }
+
+    const draft = loadOnboardingDraft(draftKey);
+    setStep(draft && draft.step < TOTAL_ONBOARDING_STEPS ? draft.step : 1);
+    setData(draft ? draft.data : persistedData);
     setSaveError(false);
     setIsSaving(false);
     setDebtResult({ salahDebt: null, sawmDebt: null });
-  }, [draftKey]);
+    setIsHydrated(true);
+  }, [draftKey, persistedData, persistedDataKey, isProfileLoading, isPeriodsLoading]);
 
   const merge = useCallback(
-    (updates: Partial<OnboardingData>) => setData((d) => ({ ...d, ...updates })),
+    (updates: Partial<OnboardingData>) => setData((current) => ({ ...current, ...updates })),
     [],
   );
 
-  // Persist draft after every step/data change so the user can resume
   useEffect(() => {
-    if (step >= TOTAL_STEPS) return; // don't persist once on result step
+    if (!isHydrated || step >= TOTAL_ONBOARDING_STEPS) return;
+
     try {
       localStorage.setItem(draftKey, JSON.stringify({ step, data }));
     } catch {
       // localStorage may be unavailable (private mode, storage full) — fail silently
     }
-  }, [step, data, draftKey]);
+  }, [isHydrated, step, data, draftKey]);
 
-  // Determine if the current step's required data is filled
   const canProceed = (): boolean => {
     switch (step) {
       case 1:
@@ -125,7 +108,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       case 3:
         return !!data.bulughDateHijri || !!data.revertDateHijri;
       case 4:
-        return true; // Periods are optional
+        return true;
       case 5:
         return data.dailyIntention >= 1;
       default:
@@ -134,39 +117,64 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   };
 
   const handleNext = async () => {
-    if (step < TOTAL_STEPS - 1) {
-      setStep((s) => s + 1);
+    if (step < TOTAL_ONBOARDING_STEPS - 1) {
+      setStep((current) => current + 1);
       return;
     }
 
-    // Step 5 → 6: save profile and periods, then fetch debt
     setIsSaving(true);
     setSaveError(false);
-    setStep(TOTAL_STEPS);
+    setStep(TOTAL_ONBOARDING_STEPS);
 
     try {
-      // 1. Save profile
       await updateProfile.mutateAsync({
+        username: data.username.trim() || undefined,
         bulughDate: data.bulughDateHijri,
         gender: data.gender as 'male' | 'female',
         dateOfBirth: data.dateOfBirthHijri || undefined,
         revertDate: data.revertDateHijri || undefined,
       });
 
-      // 2. Save practicing periods sequentially
-      for (const p of data.periods) {
-        await api.salah.addPeriod({
-          startDate: p.startHijri,
-          endDate: p.endHijri,
-          type: p.type,
-        });
+      const persistedById = new Map(persistedPeriods.map((period) => [period.periodId, period]));
+      const nextById = new Map(data.periods.map((period) => [period.id, period]));
+
+      for (const period of persistedPeriods) {
+        if (!nextById.has(period.periodId)) {
+          await api.salah.deletePeriod(period.periodId);
+        }
       }
 
-      // 3. Invalidate debt queries so they refetch
+      for (const period of data.periods) {
+        const existing = persistedById.get(period.id);
+
+        if (!existing) {
+          await api.salah.addPeriod({
+            startDate: period.startHijri,
+            endDate: period.endHijri,
+            type: period.type,
+          });
+          continue;
+        }
+
+        if (
+          existing.startDate !== period.startHijri ||
+          (existing.endDate ?? '') !== (period.endHijri ?? '') ||
+          existing.type !== period.type
+        ) {
+          await api.salah.updatePeriod({
+            periodId: existing.periodId,
+            startDate: period.startHijri,
+            endDate: period.endHijri,
+            type: period.type,
+          });
+        }
+      }
+
+      hasCompletedWizardRef.current = true;
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
 
-      // 4. Fetch the recalculated debt
       const [salahResult, sawmResult] = await Promise.all([
         api.salah.getDebt(),
         api.sawm.getDebt(),
@@ -176,7 +184,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         salahDebt: salahResult?.remainingPrayers ?? null,
         sawmDebt: sawmResult?.remainingDays ?? null,
       });
-      // Clear the onboarding draft — wizard completed successfully
+
       try {
         localStorage.removeItem(draftKey);
       } catch {
@@ -190,7 +198,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   };
 
   const handleBack = () => {
-    if (step > 1) setStep((s) => s - 1);
+    if (step > 1) setStep((current) => current - 1);
   };
 
   const stepLabels = [
@@ -202,39 +210,55 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     t('onboarding.step_result'),
   ];
 
-  const progressPct = ((step - 1) / (TOTAL_STEPS - 1)) * 100;
+  const progressPct = ((step - 1) / (TOTAL_ONBOARDING_STEPS - 1)) * 100;
   const estimatedSalahDebt = useMemo(() => {
     if (!data.bulughDateHijri) {
       return 0;
     }
 
-    return estimateSalahDebt(data.bulughDateHijri, data.periods);
-  }, [data.bulughDateHijri, data.periods]);
+    return estimateSalahDebt(data.bulughDateHijri, data.periods, undefined, data.revertDateHijri);
+  }, [data.bulughDateHijri, data.periods, data.revertDateHijri]);
+
+  if (!isHydrated) {
+    return (
+      <div className={styles.wizard}>
+        <div className={styles.loadingState}>
+          <Loader2 className="animate-spin" size={22} />
+          <span>{t('common.loading')}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wizard}>
-      {/* Header */}
       <header className={styles.wizardHeader}>
-        <span className={styles.appName}>{t('common.app_name')}</span>
+        <div className={styles.brandLink}>
+          <BrandLockup tone="light" />
+        </div>
         <div
           className={styles.stepDots}
           role="progressbar"
           aria-valuenow={step}
-          aria-valuemax={TOTAL_STEPS}
+          aria-valuemax={TOTAL_ONBOARDING_STEPS}
         >
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+          {Array.from({ length: TOTAL_ONBOARDING_STEPS }, (_, index) => (
             <span
-              key={i}
-              className={`${styles.dot} ${i + 1 === step ? styles.active : ''} ${i + 1 < step ? styles.done : ''}`}
-              aria-label={`${stepLabels[i]} ${i + 1 < step ? t('onboarding.step_done') : i + 1 === step ? t('onboarding.step_current') : ''}`}
+              key={index}
+              className={`${styles.dot} ${index + 1 === step ? styles.active : ''} ${index + 1 < step ? styles.done : ''}`}
+              aria-label={`${stepLabels[index]} ${index + 1 < step ? t('onboarding.step_done') : index + 1 === step ? t('onboarding.step_current') : ''}`}
             />
           ))}
         </div>
         <span className={styles.stepCounter}>
-          {t('onboarding.step_indicator', { current: step, total: TOTAL_STEPS })}
+          {t('onboarding.step_indicator', { current: step, total: TOTAL_ONBOARDING_STEPS })}
         </span>
         <div className={styles.headerActions}>
+          <button type="button" className={styles.headerActionLink} onClick={onSkip}>
+            {t('onboarding.skip_cta')}
+          </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
       </header>
 
@@ -242,7 +266,6 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
       </div>
 
-      {/* Step content */}
       <main className={styles.stepContent}>
         {step === 1 && (
           <PrivacyStep
@@ -255,6 +278,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
           <ProfileStep
             dateOfBirthHijri={data.dateOfBirthHijri}
             gender={data.gender}
+            username={data.username}
             onChange={(updates) => merge(updates)}
           />
         )}
@@ -280,7 +304,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             onChange={(dailyIntention) => merge({ dailyIntention })}
           />
         )}
-        {step === TOTAL_STEPS && (
+        {step === TOTAL_ONBOARDING_STEPS && (
           <ResultStep
             salahDebt={debtResult.salahDebt}
             sawmDebt={debtResult.sawmDebt}
@@ -292,8 +316,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         )}
       </main>
 
-      {/* Footer nav — hidden on final step (result has its own CTA) */}
-      {step < TOTAL_STEPS && (
+      {step < TOTAL_ONBOARDING_STEPS && (
         <footer className={styles.footer}>
           <div className={styles.footerLead}>
             {step > 1 ? (
@@ -325,10 +348,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             className={styles.nextBtn}
             onClick={handleNext}
             disabled={!canProceed()}
-            aria-label={step === TOTAL_STEPS - 1 ? t('onboarding.finish') : t('onboarding.next')}
+            aria-label={
+              step === TOTAL_ONBOARDING_STEPS - 1 ? t('onboarding.finish') : t('onboarding.next')
+            }
           >
-            {step === TOTAL_STEPS - 1 ? t('onboarding.finish') : t('onboarding.next')}
-            {step < TOTAL_STEPS - 1 && <ChevronRight size={16} />}
+            {step === TOTAL_ONBOARDING_STEPS - 1 ? t('onboarding.finish') : t('onboarding.next')}
+            {step < TOTAL_ONBOARDING_STEPS - 1 && <ChevronRight size={16} />}
           </button>
         </footer>
       )}

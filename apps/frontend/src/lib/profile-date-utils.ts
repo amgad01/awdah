@@ -6,6 +6,10 @@ function isFutureHijriDate(hijriDate: HijriDate): boolean {
   return hijriDate.isAfter(HijriDate.fromString(todayHijriDate()));
 }
 
+interface BulughDateOptions {
+  allowFuture?: boolean;
+}
+
 export function computeHijriAge(dob: string, laterDate: string): number | null {
   if (!dob || !laterDate) return null;
   try {
@@ -21,19 +25,34 @@ export function computeHijriAge(dob: string, laterDate: string): number | null {
   }
 }
 
-export function getDefaultBulughDate(dateOfBirth?: string): string | null {
+export function getCurrentHijriAge(dateOfBirth?: string): number | null {
+  if (!dateOfBirth) return null;
+  return computeHijriAge(dateOfBirth, todayHijriDate());
+}
+
+export function getDefaultBulughDate(
+  dateOfBirth?: string,
+  options: BulughDateOptions = {},
+): string | null {
   if (!dateOfBirth) return null;
 
   try {
     const dob = HijriDate.fromString(dateOfBirth);
     const candidate = new HijriDate(dob.year + BULUGH_DEFAULT_HIJRI_YEARS, dob.month, dob.day);
-    return isFutureHijriDate(candidate) ? null : candidate.toString();
+    if (!options.allowFuture && isFutureHijriDate(candidate)) {
+      return null;
+    }
+    return candidate.toString();
   } catch {
     return null;
   }
 }
 
-export function getAgeBasedBulughDate(dateOfBirth?: string, ageInput?: string): string | null {
+export function getAgeBasedBulughDate(
+  dateOfBirth?: string,
+  ageInput?: string,
+  options: BulughDateOptions = {},
+): string | null {
   if (!dateOfBirth || !ageInput) return null;
 
   const age = Number.parseInt(ageInput, 10);
@@ -44,7 +63,10 @@ export function getAgeBasedBulughDate(dateOfBirth?: string, ageInput?: string): 
   try {
     const dob = HijriDate.fromString(dateOfBirth);
     const candidate = new HijriDate(dob.year + age, dob.month, dob.day);
-    return isFutureHijriDate(candidate) ? null : candidate.toString();
+    if (!options.allowFuture && isFutureHijriDate(candidate)) {
+      return null;
+    }
+    return candidate.toString();
   } catch {
     return null;
   }

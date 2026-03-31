@@ -5,14 +5,8 @@ import { formatGregorianDisplay, formatHijriDisplay } from '@/lib/profile-date-u
 import { getPracticingPeriodValidationError } from '@/lib/practicing-periods';
 import { todayHijriDate } from '@/utils/date-utils';
 import { Plus, Trash2 } from 'lucide-react';
+import type { OnboardingPeriod as LocalPeriod } from '../onboarding-data';
 import styles from '../onboarding.module.css';
-
-export interface LocalPeriod {
-  id: string;
-  startHijri: string;
-  endHijri?: string;
-  type: 'salah' | 'sawm' | 'both';
-}
 
 interface PeriodsStepProps {
   dateOfBirthHijri?: string;

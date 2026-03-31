@@ -55,7 +55,7 @@ export const PrivacyPage: React.FC = () => {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{t('privacy.contact_title')}</h2>
-        <p>{t('privacy.contact_body')}</p>
+        <p>{t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}</p>
       </section>
     </main>
   );

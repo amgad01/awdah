@@ -100,6 +100,16 @@
   color: white;
 }
 
+.setupLink {
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.setupLink:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: rgba(212, 175, 55, 0.38);
+}
+
 .footer {
   display: flex;
   gap: var(--spacing-sm);

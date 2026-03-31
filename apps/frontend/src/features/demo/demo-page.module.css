@@ -16,10 +16,9 @@
 }
 
 .header {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 360px);
-  gap: var(--spacing-lg);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -233,37 +232,6 @@
 
 .recordStreakIcon {
   color: var(--color-primary);
-}
-
-/* ── Source Card ── */
-.sourceCard {
-  gap: var(--spacing-sm);
-}
-
-.sourceLabel {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.sourceText {
-  margin: 0;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-.sourcePath {
-  display: inline-flex;
-  width: fit-content;
-  padding: 0.45rem 0.7rem;
-  border-radius: var(--border-radius-md);
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
-  border: 1px solid var(--color-border);
-  color: var(--color-primary);
-  font-size: 0.85rem;
 }
 
 .overviewGrid,
@@ -558,33 +526,7 @@
   font-weight: var(--font-weight-bold);
 }
 
-.hostingCallout {
-  margin-top: var(--spacing-md);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
-  display: grid;
-  gap: 0.35rem;
-}
-
-.hostingLabel {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-extrabold);
-  color: #7a6002;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.hostingText {
-  margin: 0;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
 @media (max-width: 900px) {
-  .header,
   .hero,
   .overviewGrid,
   .detailsGrid {

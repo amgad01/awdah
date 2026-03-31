@@ -220,17 +220,10 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             <p className={styles.story}>{localizedStory}</p>
 
             <div className={styles.headerChips}>
-              <span className={styles.heroChip}>{t('demo.static_badge')}</span>
               <span className={styles.heroChip}>{t('marketing.stat_bilingual')}</span>
               <span className={styles.heroChip}>{t('marketing.stat_privacy')}</span>
             </div>
           </div>
-
-          <Card className={styles.sourceCard}>
-            <p className={styles.sourceLabel}>{t('demo.data_source')}</p>
-            <code className={styles.sourcePath}>/demo-data/sample-user.json</code>
-            <p className={styles.sourceText}>{t('demo.data_source_note')}</p>
-          </Card>
         </header>
       ) : null}
 
@@ -633,12 +626,6 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
               </span>
               <strong>{t(`demo.auth_${data.settings.authCompatibility}`)}</strong>
             </div>
-          </div>
-
-          <div className={styles.hostingCallout}>
-            <p className={styles.hostingLabel}>{t('demo.hosting_label')}</p>
-            <p className={styles.hostingText}>{t('demo.hosting_value')}</p>
-            <code className={styles.sourcePath}>{DEMO_DATA_URL}</code>
           </div>
         </Card>
       </section>

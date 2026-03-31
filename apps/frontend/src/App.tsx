@@ -81,11 +81,7 @@ function PublicDemoPage({
 
   return (
     <PublicPageShell
-      badge={t('demo.badge')}
       title={t('demo.public_title')}
-      subtitle={t('demo.public_subtitle')}
-      ctaTitle={t('demo.public_panel_title')}
-      ctaText={t('demo.public_panel_body')}
       onShowLogin={onShowLogin}
       onShowSignup={onShowSignup}
     >

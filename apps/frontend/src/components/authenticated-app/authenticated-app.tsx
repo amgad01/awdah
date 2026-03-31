@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -64,11 +64,15 @@ function LoadingScreen() {
 
 export const AuthenticatedApp: React.FC = () => {
   const { user } = useAuth();
-  const { error, isComplete, isError, isLoading } = useOnboardingStatus();
+  const { data: profile, error, isComplete, isError, isLoading } = useOnboardingStatus();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   useLanguage();
   const initialSkip = useMemo(() => readOnboardingSkipped(user?.userId), [user?.userId]);
   const [isOnboardingSkipped, setIsOnboardingSkipped] = useState(initialSkip);
+  const showOnboardingRoute = location.pathname === '/onboarding';
+  const needsSetup = !profile?.dateOfBirth || !profile?.bulughDate;
 
   useEffect(() => {
     setIsOnboardingSkipped(initialSkip);
@@ -100,17 +104,26 @@ export const AuthenticatedApp: React.FC = () => {
     );
   }
 
-  if (!isComplete && !isOnboardingSkipped) {
+  if ((!isComplete && !isOnboardingSkipped) || showOnboardingRoute) {
     return (
       <Suspense fallback={<LoadingScreen />}>
         <OnboardingWizard
           onComplete={() => {
             writeOnboardingSkipped(user?.userId, false);
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
+            if (showOnboardingRoute) {
+              navigate('/', { replace: true });
+            }
           }}
           onSkip={() => {
-            writeOnboardingSkipped(user?.userId, true);
-            setIsOnboardingSkipped(true);
+            if (!isComplete) {
+              writeOnboardingSkipped(user?.userId, true);
+              setIsOnboardingSkipped(true);
+            }
+            if (showOnboardingRoute) {
+              navigate('/', { replace: true });
+            }
           }}
         />
       </Suspense>
@@ -119,7 +132,7 @@ export const AuthenticatedApp: React.FC = () => {
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <Layout showSetupReminder={!isComplete}>
+      <Layout showSetupReminder={needsSetup}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/salah" element={<SalahPage />} />

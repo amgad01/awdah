@@ -11,9 +11,13 @@ import {
   PlayCircle,
   Info,
   Users,
+  ClipboardList,
+  Shield,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { useProfile } from '@/hooks/use-profile';
+import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
 import styles from './nav.module.css';
@@ -21,8 +25,10 @@ import styles from './nav.module.css';
 export const Nav: React.FC = () => {
   const { t } = useLanguage();
   const { signOut } = useAuth();
+  const { data: profile } = useProfile();
   const navigate = useNavigate();
-  const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
+
+  const needsSetup = !profile?.dateOfBirth || !profile?.bulughDate;
 
   const handleLogout = async () => {
     await signOut();
@@ -32,14 +38,7 @@ export const Nav: React.FC = () => {
   return (
     <nav className={styles.nav}>
       <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
-        <div className={styles.logoWrapper}>
-          <img src={logoUrl} alt="" className={styles.logoIcon} />
-          <div className={styles.logoText}>
-            <span className={styles.logoEn}>Awdah</span>
-            <span className={styles.logoDivider}>·</span>
-            <span className={styles.logoAr}>عودة</span>
-          </div>
-        </div>
+        <BrandLockup tone="dark" />
       </Link>
 
       <div className={styles.links}>
@@ -107,6 +106,18 @@ export const Nav: React.FC = () => {
           <Users size={20} />
           <span>{t('nav.contributing')}</span>
         </NavLink>
+
+        {needsSetup && (
+          <NavLink
+            to="/onboarding"
+            className={({ isActive }) =>
+              `${styles.link} ${styles.setupLink} ${isActive ? styles.active : ''}`
+            }
+          >
+            <ClipboardList size={20} />
+            <span>{t('nav.setup')}</span>
+          </NavLink>
+        )}
       </div>
 
       <div className={styles.footer}>
@@ -121,6 +132,13 @@ export const Nav: React.FC = () => {
           <LogOut size={20} />
           <span>{t('nav.logout')}</span>
         </button>
+        <NavLink
+          to="/privacy"
+          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+        >
+          <Shield size={20} />
+          <span>{t('nav.privacy')}</span>
+        </NavLink>
         <LanguageSwitcher tone="inverse" />
         <ThemeToggle />
       </div>

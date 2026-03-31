@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
+import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { PublicTopBar, LoadingFallback } from '@/components/public-page-shell/public-page-shell';
 import styles from '../../App.module.css';
 
@@ -42,7 +43,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   return (
     <div className={styles.authScreen}>
       <div className={styles.publicFrame}>
-        <PublicTopBar />
+        <PublicTopBar onShowLogin={onShowLogin} />
 
         <div className={styles.authShell}>
           <section className={styles.heroPanel}>
@@ -80,6 +81,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
           <section className={styles.authPanel}>
             <div className={styles.authBranding}>
+              <BrandLockup tone="light" size="sm" className={styles.authPanelBrand} />
               <p className={styles.authKicker}>{t('marketing.panel_kicker')}</p>
               <h2 className={styles.authPanelTitle}>
                 {authView === 'login' ? t('auth.login') : t('auth.sign_up')}

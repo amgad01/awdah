@@ -7,6 +7,7 @@ import {
   formatGregorianDisplay,
   formatHijriDisplay,
   getAgeBasedBulughDate,
+  getCurrentHijriAge,
   getDefaultBulughDate,
   isBulughEarly,
 } from '@/lib/profile-date-utils';
@@ -29,20 +30,28 @@ export const BulughStep: React.FC<BulughStepProps> = ({
   onChange,
 }) => {
   const { t, fmtNumber, language } = useLanguage();
+  const defaultBulugh = useMemo(
+    () => getDefaultBulughDate(dateOfBirthHijri, { allowFuture: true }),
+    [dateOfBirthHijri],
+  );
   const [inputMode, setInputMode] = useState<BulughInputMode>(
-    revertDateHijri ? 'revert' : bulughDateHijri ? 'date' : 'default',
+    revertDateHijri
+      ? 'revert'
+      : bulughDateHijri && bulughDateHijri !== defaultBulugh
+        ? 'date'
+        : 'default',
   );
   const [ageInput, setAgeInput] = useState('');
   const [ageError, setAgeError] = useState('');
   const [dateError, setDateError] = useState('');
   const [revertDateError, setRevertDateError] = useState('');
 
-  const defaultBulugh = useMemo(() => getDefaultBulughDate(dateOfBirthHijri), [dateOfBirthHijri]);
-
   const ageBasedBulugh = useMemo(
-    () => getAgeBasedBulughDate(dateOfBirthHijri, ageInput),
+    () => getAgeBasedBulughDate(dateOfBirthHijri, ageInput, { allowFuture: true }),
     [dateOfBirthHijri, ageInput],
   );
+  const currentHijriAge = useMemo(() => getCurrentHijriAge(dateOfBirthHijri), [dateOfBirthHijri]);
+  const showNoTakliefWarning = currentHijriAge !== null && currentHijriAge < 12;
 
   useEffect(() => {
     if (inputMode === 'default' && defaultBulugh) {
@@ -106,6 +115,10 @@ export const BulughStep: React.FC<BulughStepProps> = ({
       </div>
 
       <div className="noticeBox noticeWarning">{t('onboarding.bulugh_explainer')}</div>
+
+      {showNoTakliefWarning && (
+        <div className="noticeBox noticeInfo">{t('onboarding.bulugh_no_taklief')}</div>
+      )}
 
       <div className="formGroup">
         <div className={styles.bulughToggle}>
@@ -231,13 +244,10 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             value={revertDateHijri ?? ''}
             onChange={(v) => {
               setRevertDateError('');
-              onChange({ revertDateHijri: v });
-              // Set bulugh date to the default if available, otherwise keep existing
-              if (!bulughDateHijri && defaultBulugh) {
-                onChange({ bulughDateHijri: defaultBulugh, revertDateHijri: v });
-              } else {
-                onChange({ revertDateHijri: v });
-              }
+              onChange({
+                bulughDateHijri: bulughDateHijri || defaultBulugh || v,
+                revertDateHijri: v,
+              });
             }}
             onError={setRevertDateError}
             label={t('onboarding.revert_date_label')}

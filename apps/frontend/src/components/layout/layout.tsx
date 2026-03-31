@@ -23,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, showSetupReminder = fa
                 <p className={styles.setupReminderTitle}>{t('settings.setup_reminder_title')}</p>
                 <p className={styles.setupReminderBody}>{t('settings.setup_reminder_body')}</p>
               </div>
-              <Link to="/settings" className={styles.setupReminderCta}>
+              <Link to="/onboarding" className={styles.setupReminderCta}>
                 {t('settings.setup_reminder_cta')}
               </Link>
             </div>

@@ -160,6 +160,8 @@
     --color-surface-hover: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
 
     /* Glass/Overlay variants - Dark */
+    --color-surface-glass: rgba(30, 30, 30, 0.85);
+    --color-surface-glass-tint: rgba(30, 30, 30, 0.88);
     --glass-bg: rgba(30, 30, 30, 0.7);
     --glass-bg-elevated: rgba(40, 40, 40, 0.82);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -197,6 +199,8 @@
   --color-success-alpha-8: rgba(102, 187, 106, 0.1);
   --color-error-alpha-10: rgba(239, 83, 80, 0.12);
   --color-error-alpha-20: rgba(239, 83, 80, 0.25);
+  --color-surface-glass: rgba(30, 30, 30, 0.85);
+  --color-surface-glass-tint: rgba(30, 30, 30, 0.88);
 }
 
 /* Global animation keyframes — reference these in CSS modules without redefining */
