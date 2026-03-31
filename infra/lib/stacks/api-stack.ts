@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -98,6 +99,12 @@ export class ApiStack extends BaseStack {
     }));
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
+
+    new ssm.StringParameter(this, 'ApiUrlParameter', {
+      parameterName: `/awdah/${this.projectEnv}/api/url`,
+      stringValue: api.apiEndpoint,
+      description: `Awdah API Endpoint (${this.projectEnv})`,
+    });
   }
 
   private createHttpApi(props: ApiStackProps): apigatewayv2.HttpApi {

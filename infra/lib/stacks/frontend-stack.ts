@@ -8,12 +8,11 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
-import { ApiStack } from './api-stack';
 import { BaseStack, type BaseStackProps } from '../shared/base-stack';
 
 export interface FrontendStackProps extends BaseStackProps {
-  apiStack: ApiStack;
   domainName?: string;
   hostedZoneId?: string;
   hostedZoneName?: string;
@@ -62,7 +61,13 @@ export class FrontendStack extends BaseStack {
       enforceSSL: true,
     });
 
-    const apiDomainName = cdk.Fn.select(2, cdk.Fn.split('/', props.apiStack.httpApi.apiEndpoint));
+    // Fetch API endpoint from SSM instead of direct reference to break CFN Export/Import link
+    const apiEndpoint = ssm.StringParameter.valueForStringParameter(
+      this,
+      `/awdah/${this.projectEnv}/api/url`,
+    );
+    const apiDomainName = cdk.Fn.select(2, cdk.Fn.split('/', apiEndpoint));
+
     const apiOrigin = new origins.HttpOrigin(apiDomainName, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
     });
@@ -165,5 +170,14 @@ export class FrontendStack extends BaseStack {
         value: props.domainName,
       });
     }
+
+    // Export Frontend URL to SSM for CORS sealing/decoupling
+    new ssm.StringParameter(this, 'FrontendUrlParameter', {
+      parameterName: `/awdah/${this.projectEnv}/frontend/url`,
+      stringValue: props.domainName
+        ? `https://${props.domainName}`
+        : `https://${this.distribution.distributionDomainName}`,
+      description: `Awdah Frontend URL (${this.projectEnv})`,
+    });
   }
 }

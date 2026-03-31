@@ -83,15 +83,16 @@ new AlarmStack(app, `Awdah-alarm-stack-${envWithTicket}`, {
 });
 
 if (deployFrontend) {
-  new FrontendStack(app, `Awdah-frontend-stack-${envWithTicket}`, {
+  const frontendStack = new FrontendStack(app, `Awdah-frontend-stack-${envWithTicket}`, {
     projectEnv: environment,
-    apiStack,
     domainName: frontendDomainName,
     hostedZoneId: frontendHostedZoneId,
     hostedZoneName: frontendHostedZoneName,
     certificateArn: frontendCertificateArn,
     ticket,
   });
+  // Frontend reads API URL from SSM
+  frontendStack.addDependency(apiStack);
 }
 
 app.synth();

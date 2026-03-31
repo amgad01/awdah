@@ -22,7 +22,10 @@
     "destroy:frontend": "../scripts/destroy-stack.sh frontend",
     "destroy:alarms": "../scripts/destroy-stack.sh alarm",
     "destroy:backup": "../scripts/destroy-stack.sh backup",
-    "bootstrap": "cdk bootstrap"
+    "bootstrap": "cdk bootstrap",
+    "get:dev:url": "node -e \"const o=JSON.parse(require('fs').readFileSync('outputs.json', 'utf8')); const api=o['Awdah-api-stack-dev']; const fe=o['Awdah-frontend-stack-dev']; console.log(fe?.CloudFrontUrl || fe?.S3Url || api?.ApiUrl || 'No URL found')\"",
+    "get:prod:url": "node -e \"const o=JSON.parse(require('fs').readFileSync('outputs.json', 'utf8')); const api=o['Awdah-api-stack-prod']; const fe=o['Awdah-frontend-stack-prod']; console.log(fe?.CloudFrontUrl || fe?.S3Url || api?.ApiUrl || 'No URL found')\"",
+    "show:outputs": "../scripts/list-outputs.sh"
   },
   "dependencies": {
     "aws-cdk-lib": "2.245.0",
