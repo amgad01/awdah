@@ -1,10 +1,12 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 import { useOnboardingStatus } from '@/hooks/use-profile';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { QUERY_KEYS } from '@/lib/query-keys';
+import { readOnboardingSkipped, writeOnboardingSkipped } from '@/lib/onboarding-state';
 import { Loader2 } from 'lucide-react';
 import styles from '../../App.module.css';
 
@@ -61,9 +63,25 @@ function LoadingScreen() {
 }
 
 export const AuthenticatedApp: React.FC = () => {
+  const { user } = useAuth();
   const { error, isComplete, isError, isLoading } = useOnboardingStatus();
   const queryClient = useQueryClient();
   useLanguage();
+  const initialSkip = useMemo(() => readOnboardingSkipped(user?.userId), [user?.userId]);
+  const [isOnboardingSkipped, setIsOnboardingSkipped] = useState(initialSkip);
+
+  useEffect(() => {
+    setIsOnboardingSkipped(initialSkip);
+  }, [initialSkip]);
+
+  useEffect(() => {
+    if (!isComplete) {
+      return;
+    }
+
+    writeOnboardingSkipped(user?.userId, false);
+    setIsOnboardingSkipped(false);
+  }, [isComplete, user?.userId]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -82,12 +100,17 @@ export const AuthenticatedApp: React.FC = () => {
     );
   }
 
-  if (!isComplete) {
+  if (!isComplete && !isOnboardingSkipped) {
     return (
       <Suspense fallback={<LoadingScreen />}>
         <OnboardingWizard
           onComplete={() => {
+            writeOnboardingSkipped(user?.userId, false);
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
+          }}
+          onSkip={() => {
+            writeOnboardingSkipped(user?.userId, true);
+            setIsOnboardingSkipped(true);
           }}
         />
       </Suspense>
@@ -96,7 +119,7 @@ export const AuthenticatedApp: React.FC = () => {
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <Layout>
+      <Layout showSetupReminder={!isComplete}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/salah" element={<SalahPage />} />

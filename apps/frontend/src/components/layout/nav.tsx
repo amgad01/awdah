@@ -22,6 +22,7 @@ export const Nav: React.FC = () => {
   const { t } = useLanguage();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const logoUrl = `${import.meta.env.BASE_URL}favicon.svg`;
 
   const handleLogout = async () => {
     await signOut();
@@ -32,7 +33,7 @@ export const Nav: React.FC = () => {
     <nav className={styles.nav}>
       <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
         <div className={styles.logoWrapper}>
-          <img src="/favicon.svg" alt="" className={styles.logoIcon} />
+          <img src={logoUrl} alt="" className={styles.logoIcon} />
           <div className={styles.logoText}>
             <span className={styles.logoEn}>Awdah</span>
             <span className={styles.logoDivider}>·</span>

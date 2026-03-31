@@ -16,6 +16,50 @@
   width: 100%;
 }
 
+.setupReminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 7%, var(--color-surface)),
+    var(--color-surface)
+  );
+}
+
+.setupReminderTitle {
+  margin: 0 0 var(--spacing-2xs);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.setupReminderBody {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.setupReminderCta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+}
+
+.setupReminderCta:hover {
+  opacity: 0.92;
+}
+
 /* Responsive sidebar layout for desktop */
 @media (min-width: 1024px) {
   .wrapper {
@@ -25,5 +69,16 @@
   .main {
     padding-top: 0;
     margin-inline-start: var(--sidebar-width);
+  }
+}
+
+@media (max-width: 768px) {
+  .setupReminder {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .setupReminderCta {
+    width: 100%;
   }
 }
