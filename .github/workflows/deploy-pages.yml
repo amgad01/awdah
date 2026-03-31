@@ -7,6 +7,10 @@ on:
         description: 'Target environment (pages deployments are always public)'
         required: false
         default: 'pages'
+  workflow_run:
+    workflows: ['Deploy Backend']
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -21,6 +25,7 @@ jobs:
   deploy:
     name: Build and deploy to GitHub Pages
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -40,14 +45,16 @@ jobs:
       - name: Build shared package
         run: npm run build --workspace=packages/shared
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod
         env:
           VITE_AUTH_MODE: cognito
-          # AWS creds are used by scripts/build-frontend.sh to resolve Cognito/API
-          # details from CloudFormation stack outputs.
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
           VITE_APP_VERSION: ${{ github.sha }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
