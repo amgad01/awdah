@@ -1,44 +1,17 @@
 import { test, expect } from '@playwright/test';
+import { loginOrSignupLocalUser } from './support/auth';
 
 const TEST_EMAIL = 'tracker@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
 async function login(page: import('@playwright/test').Page) {
-  await page.goto('/');
-
-  await page.getByLabel(/email/i).fill(TEST_EMAIL);
-  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page
-    .locator('form')
-    .getByRole('button', { name: /sign in|login/i })
-    .click();
-
-  // If login fails because user doesn't exist in local registry, sign up first
-  const error = page.getByText(/invalid|error/i);
-  if (await error.isVisible({ timeout: 2000 })) {
-    await page
-      .getByRole('button', { name: /create account|register/i })
-      .first()
-      .click();
-    await page.getByLabel(/email/i).fill(TEST_EMAIL);
-    await page
-      .getByLabel(/password/i)
-      .first()
-      .fill(TEST_PASSWORD);
-    const confirmField = page.getByLabel(/confirm/i);
-    if (await confirmField.isVisible()) {
-      await confirmField.fill(TEST_PASSWORD);
-    }
-    await page
-      .locator('form')
-      .getByRole('button', { name: /sign up|register/i })
-      .click();
-  }
-
-  // Wait for authenticated state (Logout button is a stable indicator)
-  await expect(page.getByRole('button', { name: /logout|sign out/i })).toBeVisible({
-    timeout: 15_000,
+  // Seed the test user to ensure they have a completed profile and practicing periods
+  // This bypasses the Onboarding Wizard and allows tests to reach the dashboard directly.
+  await page.request.post('/v1/e2e/seed', {
+    data: { users: [{ email: TEST_EMAIL }] },
   });
+
+  await loginOrSignupLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
 }
 
 test.describe('Salah Tracker', () => {
@@ -65,7 +38,9 @@ test.describe('Salah Tracker', () => {
       // Click the checkmark button to trigger the uncheck confirmation
       const checkBtn = page.getByRole('button', { name: 'Remove Fajr', exact: true });
       await checkBtn.click();
-      await expect(page.getByRole('alert')).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('alert').filter({ hasText: /remove this entry/i })).toBeVisible({
+        timeout: 5_000,
+      });
     } else {
       await fajrRow.click();
       await expect(fajrRow).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
@@ -113,7 +88,9 @@ test.describe('Sawm Tracker', () => {
     await logBtn.click();
 
     if (wasPressed) {
-      await expect(page.getByRole('alert')).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('alert').filter({ hasText: /remove this entry/i })).toBeVisible({
+        timeout: 5_000,
+      });
     } else {
       await expect(logBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
     }

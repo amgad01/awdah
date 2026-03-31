@@ -74,7 +74,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </div>
         </div>
 
-        <button type="submit" className={styles.submitBtn} disabled={loading}>
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={loading}
+          data-testid="login-submit"
+        >
           {loading ? <span className="animate-spin">...</span> : t('auth.login')}
         </button>
       </form>
@@ -87,7 +92,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       <div className={styles.footer}>
         <span>{t('auth.no_account')}</span>
-        <button type="button" onClick={onSwitchToSignup} className={styles.switchBtn}>
+        <button
+          type="button"
+          onClick={onSwitchToSignup}
+          className={styles.switchBtn}
+          data-testid="switch-to-signup"
+        >
           {t('auth.sign_up')}
         </button>
       </div>

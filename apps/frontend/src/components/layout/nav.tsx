@@ -128,7 +128,12 @@ export const Nav: React.FC = () => {
           <Settings size={20} />
           <span>{t('nav.settings')}</span>
         </NavLink>
-        <button className={styles.logoutBtn} onClick={handleLogout} aria-label={t('nav.logout')}>
+        <button
+          className={styles.logoutBtn}
+          onClick={handleLogout}
+          aria-label={t('nav.logout')}
+          data-testid="logout-button"
+        >
           <LogOut size={20} />
           <span>{t('nav.logout')}</span>
         </button>

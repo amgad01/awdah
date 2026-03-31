@@ -164,14 +164,24 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
           </div>
         </div>
 
-        <button type="submit" className={styles.submitBtn} disabled={loading}>
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={loading}
+          data-testid="signup-submit"
+        >
           {loading ? <Loader2 className="animate-spin" size={20} /> : t('auth.sign_up')}
         </button>
       </form>
 
       <div className={styles.footer}>
         <span>{t('auth.have_account')}</span>
-        <button type="button" onClick={onSwitchToLogin} className={styles.switchBtn}>
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className={styles.switchBtn}
+          data-testid="switch-to-login"
+        >
           {t('auth.login')}
         </button>
       </div>
