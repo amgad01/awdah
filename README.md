@@ -125,12 +125,12 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger      | Purpose                                         |
-| ------------------ | ------------ | ----------------------------------------------- |
-| `ci.yml`           | PRs and main | Lint, typecheck, unit tests, audit              |
-| `e2e.yml`          | Manual       | Playwright tests against the local stack        |
-| `deploy.yml`       | Manual       | Deploy backend infra and frontend to CloudFront |
-| `deploy-pages.yml` | Manual       | Build and deploy to GitHub Pages                |
+| Workflow           | Trigger      | Purpose                                            |
+| ------------------ | ------------ | -------------------------------------------------- |
+| `ci.yml`           | PRs and main | Lint, typecheck, unit tests, audit                 |
+| `e2e.yml`          | Manual       | Playwright tests against the local stack           |
+| `deploy.yml`       | Manual       | Deploy backend infra to AWS                        |
+| `deploy-pages.yml` | Manual       | Build and deploy the prod frontend to GitHub Pages |
 
 ## Contributing
 

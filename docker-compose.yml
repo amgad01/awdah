@@ -31,6 +31,7 @@ services:
       dockerfile: apps/backend/Dockerfile
     environment:
       - NODE_ENV=development
+      - DEPLOY_ENV=dev
       - PORT=3000
       # DEV_AUTH_BYPASS allows the local Express simulator to accept requests
       # without an x-user-id header, falling back to 'local-dev-user'.
@@ -46,6 +47,9 @@ services:
       - FAST_LOGS_TABLE=Awdah-FastLogs-dev
       - PRACTICING_PERIODS_TABLE=Awdah-PracticingPeriods-dev
       - USER_SETTINGS_TABLE=Awdah-UserSettings-dev
+      - USER_LIFECYCLE_JOBS_TABLE=Awdah-UserLifecycleJobs-dev
+      - DELETED_USERS_TABLE=Awdah-DeletedUsers-dev
+      - COGNITO_USER_POOL_ID=eu-west-1_localdev
       - ENABLE_E2E_SEED=true
     depends_on:
       localstack:

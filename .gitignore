@@ -48,6 +48,7 @@ npm-debug.log*
 
 # AI agent config
 .agent/
+.codex
 
 # Codegraph artifacts
 .code-review-graph/

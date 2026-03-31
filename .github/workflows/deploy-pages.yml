@@ -41,10 +41,8 @@ jobs:
         run: npm run build --workspace=packages/shared
 
       - name: Build frontend for GitHub Pages
-        run: npm run build --workspace=apps/frontend
+        run: ./scripts/build-frontend.sh prod
         env:
-          # Base path must match the GitHub repo name
-          VITE_BASE_PATH: /awdah/
           # Real Cognito credentials are read from GitHub environment secrets
           VITE_AUTH_MODE: cognito
           VITE_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
@@ -53,6 +51,11 @@ jobs:
           # Full URL of the deployed API Gateway endpoint
           VITE_API_BASE_URL: ${{ vars.PAGES_API_BASE_URL }}
           VITE_APP_VERSION: ${{ github.sha }}
+          PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH || '/awdah/' }}
+          PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
+          PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL || 'https://amgad01.github.io/awdah/' }}
+          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
+          SKIP_SHARED_BUILD: '1'
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
