@@ -208,7 +208,10 @@
     "reset_confirm_prayers": "This will permanently remove all your prayer logs. Are you sure?",
     "reset_confirm_fasts": "This will permanently remove all your fasting logs. Are you sure?",
     "resetting": "Clearing...",
-    "reset_done": "Cleared successfully"
+    "reset_done": "Cleared successfully",
+    "setup_reminder_title": "Finish your profile for more accurate guidance",
+    "setup_reminder_body": "Add your dates and practice periods in Settings so Awdah can tailor your qadaa estimates, reminders, and history more accurately.",
+    "setup_reminder_cta": "Finish setup"
   },
   "auth": {
     "login": "Login",
@@ -446,6 +449,7 @@
     "step_current": "(current)",
     "back": "Back",
     "next": "Next",
+    "skip_cta": "Explore the app first",
     "finish": "Begin My Journey",
     "privacy_title": "Assalamu Alaikum",
     "privacy_subtitle": "A few things before we start",
@@ -492,6 +496,8 @@
     "bulugh_age_error_invalid": "Please enter a valid age between 1 and 70",
     "bulugh_not_sure": "I'm not sure",
     "bulugh_calculated_note": "Based on your date of birth, the default bulugh age of 15 Hijri years gives:",
+    "bulugh_hijri_label": "Hijri:",
+    "bulugh_gregorian_label": "Gregorian:",
     "bulugh_default_explanation": "This is the ruling of the majority of scholars (Hanafi, Shafi'i, Hanbali): if signs of puberty are not known, age 15 Hijri years is used.",
     "bulugh_hadith_note": "The Prophet صلى الله عليه وسلم accepted Ibn ‘Umar's service at age 15 before the Battle of Khandaq (Sahih al-Bukhari 2664).",
     "bulugh_date_label": "My bulugh date is",

@@ -11,6 +11,7 @@ import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { useProfile } from '@/hooks/use-profile';
 
 export function invalidateSawmQueries(queryClient: QueryClient, date?: string) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
@@ -35,9 +36,12 @@ export async function fetchFastHistoryPage(
 }
 
 export const useSawmDebt = () => {
+  const { data: profile } = useProfile();
+
   return useQuery({
     queryKey: QUERY_KEYS.sawmDebt,
     queryFn: () => api.sawm.getDebt(),
+    enabled: !!profile?.bulughDate,
   });
 };
 

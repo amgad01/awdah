@@ -1,6 +1,12 @@
 import type { ApiErrorResponse } from '@awdah/shared';
-import { clearPersistedSession, getAuthServiceSync, publishAuthNotice } from '@/lib/auth-service';
+import {
+  clearPersistedSession,
+  getAuthServiceSync,
+  publishAuthNotice,
+  readPersistedSession,
+} from '@/lib/auth-service';
 
+const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const SALAH_BASE = '/v1/salah';
 const SAWM_BASE = '/v1/sawm';
@@ -127,7 +133,8 @@ async function request<T>(
   config: RequestConfig = {},
 ): Promise<T | null> {
   const authService = getAuthServiceSync();
-  const token = authService?.getToken() ?? null;
+  const session = authService?.getCurrentUser() ?? readPersistedSession();
+  const token = session?.token ?? null;
 
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
@@ -136,6 +143,10 @@ async function request<T>(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  if (AUTH_MODE === 'local' && session?.userId) {
+    headers['x-user-id'] = session.userId;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {

@@ -11,6 +11,7 @@ import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { useProfile } from '@/hooks/use-profile';
 
 export function invalidateSalahQueries(queryClient: QueryClient, date?: string) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
@@ -35,9 +36,12 @@ export async function fetchPrayerHistoryPage(
 }
 
 export const useSalahDebt = () => {
+  const { data: profile } = useProfile();
+
   return useQuery({
     queryKey: QUERY_KEYS.salahDebt,
     queryFn: () => api.salah.getDebt(),
+    enabled: !!profile?.bulughDate,
   });
 };
 
