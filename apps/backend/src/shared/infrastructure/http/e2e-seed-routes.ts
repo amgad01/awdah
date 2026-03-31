@@ -15,7 +15,10 @@ import { createAwsClientConfig } from '../aws/client-config';
 // Local user ID logic matching local-auth.service.ts
 function localUserId(email: string): string {
   const normalized = email.trim().toLowerCase();
-  const safe = normalized.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const safe = normalized
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .join('-');
   return `local-${safe || 'dev-user'}`;
 }
 
