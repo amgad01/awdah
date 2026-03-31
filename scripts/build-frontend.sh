@@ -19,7 +19,7 @@ PAGES_BASE_PATH="$(normalize_base_path "${PAGES_BASE_PATH:-/awdah/}")"
 PAGES_SITE_URL="${PAGES_SITE_URL:-$(compute_site_url "$PAGES_ORIGIN" "$PAGES_BASE_PATH")}"
 PAGES_CNAME="${PAGES_CNAME:-}"
 AUTH_MODE="${VITE_AUTH_MODE:-cognito}"
-APP_VERSION="${VITE_APP_VERSION:-$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo 'local')}"
+APP_VERSION="${VITE_APP_VERSION:-1}"
 SKIP_SHARED_BUILD="${SKIP_SHARED_BUILD:-0}"
 
 API_MODE="${FRONTEND_API_MODE:-}"
@@ -29,7 +29,7 @@ if [ -z "$API_MODE" ]; then
       API_MODE="direct"
       ;;
     cloudfront)
-      API_MODE="same-origin"
+      API_MODE="direct"
       ;;
     *)
       echo "✗ Unsupported frontend target '$TARGET'."
@@ -89,6 +89,10 @@ fi
 API_BASE_URL="${VITE_API_BASE_URL:-}"
 case "$API_MODE" in
   same-origin)
+    if [ "$TARGET" = "cloudfront" ]; then
+      echo "✗ CloudFront frontend deployments must use FRONTEND_API_MODE=direct."
+      exit 1
+    fi
     API_BASE_URL=""
     ;;
   direct)

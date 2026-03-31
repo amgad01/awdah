@@ -148,7 +148,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       {isAuthenticated ? (
         <AuthenticatedApp key={user?.userId ?? 'authenticated'} />
       ) : (
