@@ -20,11 +20,7 @@ PAGES_BASE_PATH="$(normalize_base_path "${PAGES_BASE_PATH:-/awdah/}")"
 FRONTEND_API_MODE="${FRONTEND_API_MODE:-}"
 
 if [ -z "$FRONTEND_API_MODE" ]; then
-  if [ "$FRONTEND_TARGET" = "pages" ]; then
-    FRONTEND_API_MODE="direct"
-  else
-    FRONTEND_API_MODE="same-origin"
-  fi
+  FRONTEND_API_MODE="direct"
 fi
 
 FRONTEND_BASE_PATH="/"
@@ -91,7 +87,7 @@ try {
     if (frontendApiMode === 'direct') {
       newConfig['VITE_API_BASE_URL'] = apiStack.ApiUrl;
     } else {
-      // Prefer same-origin in cloud deploys for stability; CloudFront proxies `/v1/*`.
+      // Same-origin API routing is only used in local dev and Docker.
       newConfig['VITE_API_BASE_URL'] = '';
     }
   }

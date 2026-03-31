@@ -22,6 +22,7 @@ export interface LambdaOptions {
 export interface DynamoDBTableOptions {
   stream?: dynamodb.StreamViewType;
   timeToLiveAttribute?: string;
+  pointInTimeRecoveryEnabled?: boolean;
 }
 
 /**
@@ -106,7 +107,7 @@ export class ProjectResourceFactory {
       sortKey,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecoverySpecification: {
-        pointInTimeRecoveryEnabled: true,
+        pointInTimeRecoveryEnabled: options.pointInTimeRecoveryEnabled ?? true,
       },
       removalPolicy,
       stream: options.stream,

@@ -85,7 +85,7 @@ export class DataStack extends BaseStack {
       },
     );
 
-    // 6. Deleted Users Table — permanent tombstone ledger, no PITR, not in backup set
+    // 6. Deleted Users Table — short-lived tombstone ledger, not in backup set
     this.deletedUsersTable = ProjectResourceFactory.createDynamoDBTable(
       this,
       'DeletedUsersTable',
@@ -93,7 +93,10 @@ export class DataStack extends BaseStack {
       { name: ATTR.USER_ID, type: dynamodb.AttributeType.STRING },
       { name: ATTR.DELETED_AT, type: dynamodb.AttributeType.STRING },
       this.removalPolicy,
-      { timeToLiveAttribute: ATTR.EXPIRES_AT },
+      {
+        timeToLiveAttribute: ATTR.EXPIRES_AT,
+        pointInTimeRecoveryEnabled: false,
+      },
     );
   }
 }

@@ -62,15 +62,6 @@ export class FrontendStack extends BaseStack {
     });
 
     // Fetch API endpoint from SSM instead of direct reference to break CFN Export/Import link
-    const apiEndpoint = ssm.StringParameter.valueForStringParameter(
-      this,
-      `/awdah/${this.projectEnv}/api/url`,
-    );
-    const apiDomainName = cdk.Fn.select(2, cdk.Fn.split('/', apiEndpoint));
-
-    const apiOrigin = new origins.HttpOrigin(apiDomainName, {
-      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-    });
     const certificate = props.certificateArn
       ? acm.Certificate.fromCertificateArn(this, 'FrontendCertificate', props.certificateArn)
       : undefined;
@@ -86,24 +77,6 @@ export class FrontendStack extends BaseStack {
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
         compress: true,
-      },
-      additionalBehaviors: {
-        'v1/*': {
-          origin: apiOrigin,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          compress: true,
-        },
-        health: {
-          origin: apiOrigin,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          compress: true,
-        },
       },
       errorResponses: [
         {
