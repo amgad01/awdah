@@ -12,10 +12,11 @@ import { api } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { getOnboardingDraftKey } from '@/lib/onboarding-state';
 import {
-  TOTAL_ONBOARDING_STEPS,
   createEmptyOnboardingData,
   createOnboardingDataFromProfile,
   loadOnboardingDraft,
+  saveOnboardingDraft,
+  TOTAL_ONBOARDING_STEPS,
   type OnboardingData,
 } from './onboarding-data';
 import { PrivacyStep } from './steps/privacy-step';
@@ -75,13 +76,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       return;
     }
 
-    const draft = loadOnboardingDraft(draftKey);
-    setStep(draft && draft.step < TOTAL_ONBOARDING_STEPS ? draft.step : 1);
-    setData(draft ? draft.data : persistedData);
-    setSaveError(false);
-    setIsSaving(false);
-    setDebtResult({ salahDebt: null, sawmDebt: null });
-    setIsHydrated(true);
+    const init = async () => {
+      const draft = await loadOnboardingDraft(draftKey);
+      setStep(draft && draft.step < TOTAL_ONBOARDING_STEPS ? draft.step : 1);
+      setData(draft ? draft.data : persistedData);
+      setSaveError(false);
+      setIsSaving(false);
+      setDebtResult({ salahDebt: null, sawmDebt: null });
+      setIsHydrated(true);
+    };
+
+    init();
   }, [draftKey, persistedData, persistedDataKey, isProfileLoading, isPeriodsLoading]);
 
   const merge = useCallback(
@@ -92,11 +97,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   useEffect(() => {
     if (!isHydrated || step >= TOTAL_ONBOARDING_STEPS) return;
 
-    try {
-      localStorage.setItem(draftKey, JSON.stringify({ step, data }));
-    } catch {
-      // localStorage may be unavailable (private mode, storage full) — fail silently
-    }
+    saveOnboardingDraft(draftKey, step, data);
   }, [isHydrated, step, data, draftKey]);
 
   const canProceed = (): boolean => {
