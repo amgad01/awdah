@@ -22,6 +22,13 @@ export class CognitoAdminService implements ICognitoAdminService {
    * resolves it regardless of the pool's alias configuration.
    */
   async deleteUser(userId: string): Promise<void> {
+    if (
+      process.env.LOCALSTACK_ENDPOINT &&
+      (settings.cognitoUserPoolId.endsWith('_localdev') || userId.startsWith('local-'))
+    ) {
+      return;
+    }
+
     try {
       await this.client.send(
         new AdminDeleteUserCommand({
