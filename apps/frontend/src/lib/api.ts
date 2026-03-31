@@ -1,10 +1,10 @@
-import type { ApiErrorResponse } from '@awdah/shared';
 import {
   clearPersistedSession,
   getAuthServiceSync,
   publishAuthNotice,
   readPersistedSession,
 } from '@/lib/auth-service';
+import type { ApiErrorResponse } from '@awdah/shared';
 
 const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -115,6 +115,8 @@ export class ApiRequestError extends Error {
   }
 }
 
+const SESSION_EXPIRED_MESSAGE = 'auth.session_expired';
+
 async function parseJson<T>(response: Response): Promise<T | null> {
   const text = await response.text();
   if (!text) {
@@ -163,7 +165,7 @@ async function request<T>(
     } else {
       clearPersistedSession('session-expired');
     }
-    return null;
+    throw new ApiRequestError(SESSION_EXPIRED_MESSAGE, 401, 'UNAUTHENTICATED');
   }
 
   if (response.status === 404 && config.allow404) {
