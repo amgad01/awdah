@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
 import { Loader2 } from 'lucide-react';
 import styles from '../../App.module.css';
 
@@ -35,6 +36,7 @@ function PublicTopBar() {
           {t('nav.learn')}
         </Link>
         <LanguageSwitcher tone="inverse" />
+        <ThemeToggle />
       </div>
     </header>
   );

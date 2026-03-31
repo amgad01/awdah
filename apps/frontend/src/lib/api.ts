@@ -50,13 +50,14 @@ export interface HistoryPageResponse<T> {
 
 export interface UserProfileResponse {
   userId: string;
+  username?: string;
   dateOfBirth?: string;
   bulughDate: string;
   revertDate?: string;
   gender: 'male' | 'female';
 }
 
-export type UserLifecycleJobType = 'export' | 'delete-account';
+export type UserLifecycleJobType = 'export' | 'delete-account' | 'reset-prayers' | 'reset-fasts';
 export type UserLifecycleJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface UserLifecycleJobResponse {
@@ -224,7 +225,7 @@ export const api = {
       ),
     deleteLog: (params: { date: string; prayerName: string; type: string }) =>
       request(buildPath(`${SALAH_BASE}/log`, params), { method: 'DELETE' }),
-    resetLogs: () => request(`${SALAH_BASE}/logs`, { method: 'DELETE' }),
+    resetLogs: () => request<UserLifecycleJobEnvelope>(`${SALAH_BASE}/logs`, { method: 'DELETE' }),
   },
   sawm: {
     getDebt: () => request<SawmDebtResponse>(`${SAWM_BASE}/debt`),
@@ -241,11 +242,12 @@ export const api = {
       request<HistoryPageResponse<FastLogResponse>>(buildPath(`${SAWM_BASE}/history/page`, params)),
     deleteLog: (params: { date: string; eventId: string }) =>
       request(buildPath(`${SAWM_BASE}/log`, params), { method: 'DELETE' }),
-    resetLogs: () => request(`${SAWM_BASE}/logs`, { method: 'DELETE' }),
+    resetLogs: () => request<UserLifecycleJobEnvelope>(`${SAWM_BASE}/logs`, { method: 'DELETE' }),
   },
   user: {
     getProfile: () => request<UserProfileResponse>(`${USER_BASE}/profile`, {}, { allow404: true }),
     updateProfile: (data: {
+      username?: string;
       bulughDate: string;
       gender: string;
       dateOfBirth?: string;

@@ -45,7 +45,7 @@ function buildSession(cognitoSession: CognitoUserSession): UserSession {
 
   return {
     userId: decoded.sub,
-    username: decoded['cognito:username'] || decoded.email || decoded.sub,
+    username: decoded.email || decoded['cognito:username'] || decoded.sub,
     email: decoded.email,
     token: accessToken,
     expiresAt: accessTokenPayload.exp ? accessTokenPayload.exp * 1000 : Date.now() + 55 * 60_000,
