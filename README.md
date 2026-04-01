@@ -4,15 +4,15 @@
   <img src="docs/assets/logo_new.png" alt="Awdah Logo" width="160"/>
 </p>
 
-**An open-source Islamic ibadah tracker for making up missed prayers and fasts.**
+**An Islamic ibadah tracker for making up missed prayers and fasts.**
 
-**تطبيق مفتوح المصدر لقضاء الصلوات والصيام الفائتة.**
+**تطبيق إسلامي لقضاء الصلوات والصيام الفائتة.**
 
 ---
 
 Awdah helps Muslims track and gradually fulfil their qadaa (makeup worship). The app calculates how many prayers and Ramadan fasts were missed based on practicing periods the user provides, then helps them log daily progress against that debt without judgment or pressure.
 
-Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognito — deployed to GitHub Pages for the frontend and fully simulated locally with LocalStack. The project follows Clean Architecture with two bounded contexts (Salah and Sawm), a CDK-managed infrastructure, and ships bilingual (English + Arabic) with full RTL support from day one.
+Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognito — with GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture with two bounded contexts (Salah and Sawm), a CDK-managed infrastructure, and ships bilingual (English + Arabic) with full RTL support from day one.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -108,14 +108,14 @@ awdah/
 
 6 CDK stacks deployed in order: data → auth → api → backup → alarm → frontend.
 
-| Stack         | Resources                                     |
-| ------------- | --------------------------------------------- |
-| DataStack     | 6 DynamoDB tables (PITR, PAY_PER_REQUEST)     |
-| AuthStack     | Cognito User Pool and Client                  |
-| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64) |
-| BackupStack   | S3 backup bucket, EventBridge daily export    |
-| AlarmStack    | CloudWatch alarms, SNS alerts                 |
-| FrontendStack | S3 + CloudFront (optional, for custom domain) |
+| Stack         | Resources                                                          |
+| ------------- | ------------------------------------------------------------------ |
+| DataStack     | 6 DynamoDB tables (PITR, PAY_PER_REQUEST)                          |
+| AuthStack     | Cognito User Pool and Client                                       |
+| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64)                      |
+| BackupStack   | S3 backup bucket, EventBridge daily export                         |
+| AlarmStack    | CloudWatch alarms, SNS alerts                                      |
+| FrontendStack | S3 + CloudFront for non-Pages hosting, previews, or custom domains |
 
 ## API
 
@@ -125,12 +125,12 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger      | Purpose                                            |
-| ------------------ | ------------ | -------------------------------------------------- |
-| `ci.yml`           | PRs and main | Lint, typecheck, unit tests, audit                 |
-| `e2e.yml`          | Manual       | Playwright tests against the local stack           |
-| `deploy.yml`       | Manual       | Deploy backend infra to AWS                        |
-| `deploy-pages.yml` | Manual       | Build and deploy the prod frontend to GitHub Pages |
+| Workflow           | Trigger                           | Purpose                                            |
+| ------------------ | --------------------------------- | -------------------------------------------------- |
+| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, frontend audit     |
+| `test-on-push.yml` | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack    |
+| `deploy.yml`       | Manual                            | Deploy backend infra to AWS                        |
+| `deploy-pages.yml` | Manual or backend deploy          | Build and deploy the prod frontend to GitHub Pages |
 
 ## Contributing
 

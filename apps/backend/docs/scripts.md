@@ -2,7 +2,7 @@
 
 This guide covers the technical scripts used for data recovery, GDPR-compliant sanitization, and maintenance.
 
-## Data Recovery (GPDR & Compliance)
+## Data Recovery (GDPR & Compliance)
 
 When restoring from a backup (PITR or S3), you MUST perform a sanitization pass to remove data belonging to users who deleted their accounts _between_ the backup time and the present day.
 
@@ -31,22 +31,7 @@ npm run restore:sanitize -- --restored-tables <table1> <table2> --pk userId --sk
 
 - **Logic**: It reads the _live_ `DeletedUsers` table (which is never backed up) and batch-deletes any item in the _restored_ table that matches a deleted `userId`.
 - **Constraint**: Run this against the restored table BEFORE pointing your Lambda environment variables to it.
-
----
-
-## Background Maintenance
-
-### Tombstone Cleanup
-
-Automated pruning of the `DeletedUsers` ledger.
-
-- **Threshold**: Records older than 90 days are deleted.
-- **Workflow**: Automated via EventBridge at 03:00 UTC.
-- **Manual Check**:
-  ```bash
-  SKIP_ENV_VALIDATION=true DELETED_USERS_TABLE=Awdah-DeletedUsers-dev \
-    npx ts-node -e "require('./apps/backend/src/shared/infrastructure/handlers/tombstone-cleanup.handler').handler()"
-  ```
+- **Retention model**: Backup exports expire after 90 days. Deleted-user tombstones are retained longer than the backup window so a restored backup can still be sanitized before it ages out.
 
 ---
 

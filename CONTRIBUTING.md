@@ -1,6 +1,6 @@
 # Contributing to Awdah
 
-Awdah is a free, open-source project. Contributions are welcome — code, translations, scholarly review, or catching a bug.
+Awdah is a public repository. Contributions are welcome — code, translations, scholarly review, or catching a bug — and all collaboration remains subject to the repository license.
 
 For areas where help is most needed and the v2 roadmap, see the [/contribute](https://amgad01.github.io/awdah/contribute) page in the app — it covers what areas need work, how to submit a PR, and what is planned next.
 

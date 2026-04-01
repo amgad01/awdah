@@ -33,32 +33,32 @@ The current state of any prayer slot is determined by the **latest** action for 
 
 ---
 
-## 3. Account Deletion — Tombstone Pattern
+## 3. Account Deletion — Tombstones and Restore Hygiene
 
-When a user deletes their account, we perform a hard delete of all their data. However, backups (PITR or S3) may still contain their data for up to 90 days.
+When a user deletes their account, the live data is removed and a tombstone record is kept in the deletion ledger. Backup media and restored copies may still contain historical user data until they are sanitized or expire according to the configured retention policy.
 
 ### 3.1 The `DeletedUsers` Table
 
-To remain GDPR compliant after a restore, we maintain a small "Tombstone" table:
+The `DeletedUsers` table acts as the restore reference:
 
 - **PK**: `userId`
 - **SK**: `deletedAt`
-- This table is **excluded** from backups. It is always live and authoritative.
+- It is kept separate from the primary data tables and is treated as authoritative during restore hygiene.
 
 ### 3.2 Restore Sanitization
 
-Any time a table is restored from S3 or PITR:
+After restoring a table from S3 or PITR:
 
-1. The `restore-sanitize.ts` script must be run.
-2. It cross-references the live `DeletedUsers` table.
-3. It batch-deletes any data in the restored table belonging to a tombstoned user.
+1. Run `infra/scripts/restore-sanitize.ts` against the restored table set.
+2. Cross-reference the live `DeletedUsers` table.
+3. Batch-delete any data in the restored table belonging to a deleted user before the table is put back into service.
 
 ### 3.3 Tombstone Pruning
 
-Tombstone records are automatically deleted by **DynamoDB TTL** after **90 days** (using the `expiresAt` attribute). At this point, the S3 backups containing that user's data have transitioned to Glacier or expired, and the PITR window has closed.
+Tombstone records are pruned by **DynamoDB TTL** using the `expiresAt` attribute. The retention window is intentionally longer than the backup window so we do not lose the restore reference before backup exports have expired.
 
 ---
 
 ## 4. Environment Validation
 
-To allow specialized background tasks (like `TombstoneCleanupFn`) to run with minimal configuration, we support a `SKIP_ENV_VALIDATION` flag in `settings.ts`. This bypasses the mandatory check for all 6+ DynamoDB table names, allowing a script to run with only the single table it actually needs.
+To allow operational scripts such as restore sanitization to run with minimal configuration, we support a `SKIP_ENV_VALIDATION` flag in `settings.ts`. This bypasses the mandatory check for all DynamoDB table names, allowing a script to run with only the tables it actually needs.

@@ -1,8 +1,8 @@
 {
-  "hero_badge": "Open Source · Free",
+  "hero_badge": "Public Repo · Free",
   "hero_title": "Contribute to Awdah",
-  "hero_subtitle": "Awdah is a free, open-source project built with care for the Muslim community. Every contribution — code, translation, or scholarly review — is given voluntarily and makes a real difference.",
-  "oss_note": "Awdah is open source. All contributors give their time freely.",
+  "hero_subtitle": "Awdah is a public project built with care for the Muslim community. Every contribution — code, translation, or scholarly review — is given voluntarily and makes a real difference.",
+  "oss_note": "Contributions are welcome, and collaboration follows the repository license.",
   "github_link": "https://github.com/amgad01/awdah/blob/main/CONTRIBUTING.md",
   "github_link_label": "View contributing guide on GitHub",
   "contact_link": "https://www.linkedin.com/in/amgad-m/",

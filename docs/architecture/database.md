@@ -47,15 +47,12 @@ Tracks background export and account-deletion work so heavy lifecycle operations
 
 ### 6. Deleted Users (`Awdah-DeletedUsers-{env}`)
 
-Permanent tombstone ledger — records every account deletion for use during backup restore sanitization.
+Tombstone ledger used during backup restore sanitization.
 
 - **Partition Key (`PK`)**: `userId` (String).
 - **Sort Key (`SK`)**: `deletedAt` (String — ISO 8601 timestamp of deletion).
-- **TTL**: none — entries are pruned by a daily Lambda (see §2.13 of `docs/technical-decisions.md`).
-- **PITR**: disabled — this table is the sanitization reference; it must not itself be restored from backup.
-- **Backup set**: excluded from the daily S3 export job. It is always live and authoritative.
-
-Entries older than 90 days are removed by the `TombstoneCleanup` Lambda (runs at 03:00 UTC).
+- **TTL**: `expiresAt` prunes old tombstones automatically after the configured retention window.
+- **Restore flow**: after restoring data tables from PITR or S3, run the restore-sanitization script before the table is used again.
 
 ## Resource Isolation
 

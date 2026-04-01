@@ -55,7 +55,7 @@ npm run test:e2e:ui      # Playwright interactive UI mode
 
 In local dev mode (`VITE_AUTH_MODE=local`), the Vite dev server proxies `/v1` and `/health` to `http://localhost:3000`. No Cognito is required, but the backend and LocalStack still need to be running for data-backed flows.
 
-In deployed environments, the frontend can also leave `VITE_API_BASE_URL` empty when the host serves the SPA and proxies `/v1/*` and `/health` to the API from the same origin.
+In deployed environments, Pages production uses `VITE_BASE_PATH=/awdah/` and a direct API base URL, while CloudFront-style deployments typically keep `VITE_BASE_PATH=/`. The shipped HTML includes a meta CSP/referrer policy for static hosts such as GitHub Pages, while CloudFront or nginx deployments can add stronger response headers at the edge.
 
 ## Static Demo Route
 

@@ -76,11 +76,19 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status]
+                required: [status, timestamp]
                 properties:
                   status:
                     type: string
-                    example: ok
+                    example: UP
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2026-04-01T09:30:00.000Z'
+                  environment:
+                    type: string
+                    nullable: true
+                    example: production
 
   # ---------------------------------------------------------------------------
   # Salah — prayer logs
@@ -92,8 +100,8 @@ paths:
       summary: Log a prayer
       description: |
         Records a single obligatory prayer as either performed on time (`obligatory`)
-        or as a make-up prayer (`qadaa`). The event id is generated server-side using
-        ULID and returned in the response.
+        or as a make-up prayer (`qadaa`). The server records the log and returns a
+        success message; it does not return a log event id for this endpoint.
       requestBody:
         required: true
         content:
@@ -131,7 +139,10 @@ paths:
       operationId: deletePrayerLog
       tags: [salah]
       summary: Delete a prayer log entry
-      description: Removes a specific prayer log event. Requires the exact `eventId` returned when the entry was created.
+      description: |
+        Deletes the matching prayer log entry for the given Hijri date, prayer name,
+        and log type. The implementation records a deselection event rather than
+        hard-deleting the original log row.
       parameters:
         - $ref: '#/components/parameters/date'
         - name: prayerName
@@ -139,13 +150,11 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/PrayerName'
-        - name: eventId
+        - name: type
           in: query
           required: true
           schema:
-            type: string
-            minLength: 1
-            example: '01HTBZ1234ABCDEFGHIJKLMNOP'
+            $ref: '#/components/schemas/LogType'
       responses:
         '200':
           description: Prayer log entry deleted
@@ -173,12 +182,12 @@ paths:
         authenticated user. The user's profile, bulugh date, and practicing periods are
         not affected. Debt is recalculated on the next call to `GET /v1/salah/debt`.
       responses:
-        '200':
-          description: All prayer logs deleted
+        '202':
+          description: Prayer log reset started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '500':
@@ -469,7 +478,7 @@ paths:
       operationId: deleteFastLog
       tags: [sawm]
       summary: Delete a fast log entry
-      description: Removes a specific fast log event.
+      description: Deletes the matching fast log entry for the given Hijri date and event id.
       parameters:
         - $ref: '#/components/parameters/date'
         - name: eventId
@@ -506,12 +515,12 @@ paths:
         profile, bulugh date, and practicing periods are not affected. Debt is
         recalculated on the next call to `GET /v1/sawm/debt`.
       responses:
-        '200':
-          description: All fast logs deleted
+        '202':
+          description: Fast log reset started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MessageResponse'
+                $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '500':
@@ -862,6 +871,42 @@ components:
       type: string
       enum: [male, female]
 
+    Madhab:
+      type: string
+      enum: [hanafi, shafii, maliki, hanbali, jafari]
+
+    CalculationMethod:
+      type: string
+      enum: [MWL, ISNA, Egypt, Makkah, Karachi, Tehran, Jafari]
+
+    MoonSightingPreference:
+      type: string
+      enum: [global, local, calculation]
+
+    LocationCoordinates:
+      type: object
+      required: [lat, lon]
+      additionalProperties: false
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+
+    Location:
+      type: object
+      required: [city, country]
+      additionalProperties: false
+      properties:
+        city:
+          type: string
+        country:
+          type: string
+        coords:
+          allOf:
+            - $ref: '#/components/schemas/LocationCoordinates'
+          nullable: true
+
     # -------------------------------------------------------------------------
     # Requests
     # -------------------------------------------------------------------------
@@ -926,6 +971,11 @@ components:
       required: [bulughDate, gender]
       additionalProperties: false
       properties:
+        username:
+          type: string
+          maxLength: 40
+          nullable: true
+          description: Optional display name stored with the profile
         dateOfBirth:
           allOf:
             - $ref: '#/components/schemas/HijriDate'
@@ -1188,6 +1238,11 @@ components:
           type: string
           description: Cognito sub claim
           example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+        username:
+          type: string
+          nullable: true
+          maxLength: 40
+          description: Optional display name stored with the profile
         dateOfBirth:
           allOf:
             - $ref: '#/components/schemas/HijriDate'
@@ -1202,6 +1257,22 @@ components:
           description: Optional date of reversion to Islam
         gender:
           $ref: '#/components/schemas/Gender'
+        madhab:
+          allOf:
+            - $ref: '#/components/schemas/Madhab'
+          nullable: true
+        calculationMethod:
+          allOf:
+            - $ref: '#/components/schemas/CalculationMethod'
+          nullable: true
+        moonSightingPreference:
+          allOf:
+            - $ref: '#/components/schemas/MoonSightingPreference'
+          nullable: true
+        location:
+          allOf:
+            - $ref: '#/components/schemas/Location'
+          nullable: true
 
     ErrorEnvelope:
       type: object
