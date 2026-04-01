@@ -107,55 +107,6 @@ export const Nav: React.FC = () => {
             )}
           </div>
         </div>
-
-        <div className={styles.section}>
-          <p className={styles.sectionLabel}>{t('nav.project')}</p>
-          <div className={styles.links}>
-            <NavLink
-              to="/demo"
-              className={({ isActive }) =>
-                `${styles.link} ${styles.secondaryLink} ${isActive ? styles.active : ''}`
-              }
-              data-testid="nav-demo"
-            >
-              <PlayCircle size={20} />
-              <span>{t('nav.demo')}</span>
-            </NavLink>
-
-            <NavLink
-              to="/about"
-              className={({ isActive }) =>
-                `${styles.link} ${styles.secondaryLink} ${isActive ? styles.active : ''}`
-              }
-              data-testid="nav-about"
-            >
-              <Info size={20} />
-              <span>{t('nav.about')}</span>
-            </NavLink>
-
-            <NavLink
-              to="/contribute"
-              className={({ isActive }) =>
-                `${styles.link} ${styles.secondaryLink} ${isActive ? styles.active : ''}`
-              }
-              data-testid="nav-contribute"
-            >
-              <Users size={20} />
-              <span>{t('nav.contributing')}</span>
-            </NavLink>
-
-            <NavLink
-              to="/privacy"
-              className={({ isActive }) =>
-                `${styles.link} ${styles.secondaryLink} ${isActive ? styles.active : ''}`
-              }
-              data-testid="nav-privacy"
-            >
-              <Shield size={20} />
-              <span>{t('nav.privacy')}</span>
-            </NavLink>
-          </div>
-        </div>
       </div>
 
       <div className={styles.footer}>
@@ -178,6 +129,52 @@ export const Nav: React.FC = () => {
             <LogOut size={20} />
             <span>{t('nav.logout')}</span>
           </button>
+        </div>
+
+        <div className={styles.footerLinks}>
+          <NavLink
+            to="/demo"
+            className={({ isActive }) =>
+              `${styles.footerLink} ${isActive ? styles.footerLinkActive : ''}`
+            }
+            data-testid="nav-demo"
+          >
+            <PlayCircle size={16} />
+            <span>{t('nav.demo')}</span>
+          </NavLink>
+
+          <NavLink
+            to="/about"
+            className={({ isActive }) =>
+              `${styles.footerLink} ${isActive ? styles.footerLinkActive : ''}`
+            }
+            data-testid="nav-about"
+          >
+            <Info size={16} />
+            <span>{t('nav.about')}</span>
+          </NavLink>
+
+          <NavLink
+            to="/contribute"
+            className={({ isActive }) =>
+              `${styles.footerLink} ${isActive ? styles.footerLinkActive : ''}`
+            }
+            data-testid="nav-contribute"
+          >
+            <Users size={16} />
+            <span>{t('nav.contributing')}</span>
+          </NavLink>
+
+          <NavLink
+            to="/privacy"
+            className={({ isActive }) =>
+              `${styles.footerLink} ${isActive ? styles.footerLinkActive : ''}`
+            }
+            data-testid="nav-privacy"
+          >
+            <Shield size={16} />
+            <span>{t('nav.privacy')}</span>
+          </NavLink>
         </div>
 
         <div className={styles.footerControls}>
