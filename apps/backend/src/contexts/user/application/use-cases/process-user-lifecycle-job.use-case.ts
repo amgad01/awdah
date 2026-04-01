@@ -5,6 +5,8 @@ import type {
 import type { IUserDataLifecycleService } from '../../domain/services/user-data-lifecycle.service.interface';
 import type { IDeletedUsersRepository } from '../../domain/repositories/deleted-users.repository';
 
+const DELETED_USER_TOMBSTONE_RETENTION_DAYS = 120;
+
 export interface ProcessUserLifecycleJobCommand {
   userId: string;
   jobId: string;
@@ -68,8 +70,8 @@ export class ProcessUserLifecycleJobUseCase {
 
       await this.userDataLifecycleService.deleteUserData(command.userId);
 
-      const RETENTION_DAYS = 90;
-      const expiresAt = Math.floor(Date.now() / 1000) + RETENTION_DAYS * 24 * 60 * 60;
+      const expiresAt =
+        Math.floor(Date.now() / 1000) + DELETED_USER_TOMBSTONE_RETENTION_DAYS * 24 * 60 * 60;
       await this.deletedUsersRepository.recordDeletion(
         command.userId,
         new Date().toISOString(),

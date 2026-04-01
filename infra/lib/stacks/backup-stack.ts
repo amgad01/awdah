@@ -14,6 +14,9 @@ export interface BackupStackProps extends BaseStackProps {
   dataStack: DataStack;
 }
 
+const BACKUP_TRANSITION_TO_GLACIER_DAYS = 30;
+const BACKUP_EXPIRATION_DAYS = 90;
+
 export class BackupStack extends BaseStack {
   public readonly backupDLQ: sqs.Queue;
 
@@ -31,13 +34,14 @@ export class BackupStack extends BaseStack {
 
     // Add lifecycle rule manually as factory only handles basic setup
     backupBucket.addLifecycleRule({
-      id: 'TransitionToGlacier',
+      id: 'TransitionAndExpireBackups',
       transitions: [
         {
           storageClass: s3.StorageClass.GLACIER,
-          transitionAfter: cdk.Duration.days(90),
+          transitionAfter: cdk.Duration.days(BACKUP_TRANSITION_TO_GLACIER_DAYS),
         },
       ],
+      expiration: cdk.Duration.days(BACKUP_EXPIRATION_DAYS),
     });
 
     this.backupDLQ = new sqs.Queue(this, 'BackupDLQ', {
