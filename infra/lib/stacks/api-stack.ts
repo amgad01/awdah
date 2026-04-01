@@ -167,7 +167,13 @@ export class ApiStack extends BaseStack {
       Math.floor(config.apiThrottle.burstLimit / ADMIN_ROUTE_RATE_DIVISOR),
     );
 
-    const routeSettings: Record<string, apigatewayv2.CfnStage.RouteSettingsProperty> = {};
+    const routeSettings: Record<
+      string,
+      {
+        ThrottlingBurstLimit: number;
+        ThrottlingRateLimit: number;
+      }
+    > = {};
     const protectedMutationRoutes = [
       'POST /v1/salah/log',
       'DELETE /v1/salah/log',
@@ -188,17 +194,15 @@ export class ApiStack extends BaseStack {
 
     protectedMutationRoutes.forEach((routeKey) => {
       routeSettings[routeKey] = {
-        detailedMetricsEnabled: true,
-        throttlingBurstLimit: mutationBurstLimit,
-        throttlingRateLimit: mutationRateLimit,
+        ThrottlingBurstLimit: mutationBurstLimit,
+        ThrottlingRateLimit: mutationRateLimit,
       };
     });
 
     adminMutationRoutes.forEach((routeKey) => {
       routeSettings[routeKey] = {
-        detailedMetricsEnabled: true,
-        throttlingBurstLimit: adminBurstLimit,
-        throttlingRateLimit: adminRateLimit,
+        ThrottlingBurstLimit: adminBurstLimit,
+        ThrottlingRateLimit: adminRateLimit,
       };
     });
 
