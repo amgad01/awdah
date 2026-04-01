@@ -125,7 +125,9 @@ async function ensureTable(client: DynamoDBClient, definition: LocalE2eTableDefi
   await waitUntilTableExists(
     {
       client,
-      maxWaitTime: 20,
+      minDelay: 2,
+      maxDelay: 5,
+      maxWaitTime: 60,
     },
     { TableName: tableName },
   );
