@@ -75,8 +75,8 @@ export async function saveOnboardingDraft(
     const payload = JSON.stringify({ step, data });
     const encrypted = await encrypt(payload, draftSecret);
     localStorage.setItem(draftKey, encrypted);
-  } catch (error) {
-    console.error('Failed to save onboarding draft', error);
+  } catch {
+    // Silently fail if draft save fails — not critical, user can re-enter.
   }
 }
 
