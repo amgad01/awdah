@@ -215,6 +215,7 @@
 
 @media (max-width: 1023px) {
   .nav {
+    position: sticky;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
@@ -227,10 +228,10 @@
   }
 
   .links {
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--spacing-xs);
     padding-bottom: var(--spacing-2xs);
-    scrollbar-width: none;
   }
 
   .sections {
@@ -248,21 +249,20 @@
     padding-inline: 0;
   }
 
-  .section:first-of-type .links {
-    grid-column: 1 / -1;
-  }
-
-  .section:last-of-type .links {
-    overflow-x: auto;
-  }
-
-  .links::-webkit-scrollbar {
-    display: none;
-  }
-
   .link,
   .logoutBtn {
     white-space: nowrap;
+  }
+
+  .link {
+    justify-content: center;
+    min-width: 0;
+    padding-inline: var(--spacing-sm);
+  }
+
+  .link span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .footer {
