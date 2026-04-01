@@ -9,7 +9,7 @@ Awdah uses Amazon DynamoDB as its primary data store. The architecture follows a
 Tracks all prayer-related activities (logged prayers, missed prayers, etc.).
 
 - **Partition Key (`PK`)**: `userId` (String) - Cognito User ID.
-- **Sort Key (`SK`)**: `sk` (String) - Typically `DATE#YYYY-MM-DD` or specific event IDs.
+- **Sort Key (`SK`)**: `sk` (String) - `{hijriDate}#{PRAYER_UPPER}#{eventId}` (for example `1446-09-01#FAJR#01J...`).
 - **GSIs**:
   - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate` (e.g., `LOG#2026-03-10`) for efficient date-range queries.
 
@@ -18,7 +18,7 @@ Tracks all prayer-related activities (logged prayers, missed prayers, etc.).
 Tracks fasting history.
 
 - **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `sk` (String) - `DATE#YYYY-MM-DD`.
+- **Sort Key (`SK`)**: `sk` (String) - `{hijriDate}#{eventId}` (for example `1446-09-01#01J...`).
 - **GSIs**:
   - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate`.
 
@@ -34,7 +34,7 @@ Stores metadata about when a user started/stopped practicing, used for debt calc
 Stores user-specific preferences (e.g., calculation methods, language).
 
 - **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `sk` (String) - Fixed value for simple settings (e.g., `SETTINGS`).
+- **Sort Key (`SK`)**: `sk` (String) - Fixed value `SETTINGS`.
 
 ### 5. User Lifecycle Jobs (`Awdah-UserLifecycleJobs-{env}`)
 
@@ -52,6 +52,7 @@ Tombstone ledger used during backup restore sanitization.
 - **Partition Key (`PK`)**: `userId` (String).
 - **Sort Key (`SK`)**: `deletedAt` (String — ISO 8601 timestamp of deletion).
 - **TTL**: `expiresAt` prunes old tombstones automatically after the configured retention window.
+- **Protection**: PITR is enabled and the table is included in backup exports so the restore-sanitization ledger survives broader recovery scenarios.
 - **Restore flow**: after restoring data tables from PITR or S3, run the restore-sanitization script before the table is used again.
 
 ## Resource Isolation

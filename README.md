@@ -12,7 +12,13 @@
 
 Awdah helps Muslims track and gradually fulfil their qadaa (makeup worship). The app calculates how many prayers and Ramadan fasts were missed based on practicing periods the user provides, then helps them log daily progress against that debt without judgment or pressure.
 
-Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognito — with GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture with two bounded contexts (Salah and Sawm), a CDK-managed infrastructure, and ships bilingual (English + Arabic) with full RTL support from day one.
+Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognito — with GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture across three domain contexts (Salah, Sawm, and User), uses CDK-managed infrastructure, and ships bilingual (English + Arabic) with full RTL support from day one.
+
+Quick links:
+
+- Live app: [https://amgad01.github.io/awdah/](https://amgad01.github.io/awdah/)
+- LinkedIn: [https://www.linkedin.com/in/amgad-m/](https://www.linkedin.com/in/amgad-m/)
+- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -23,7 +29,7 @@ Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognit
 
 ## Architecture
 
-Clean Architecture with two bounded contexts: **Salah** and **Sawm**. Domain logic has no AWS dependencies. Lambda handlers are thin wrappers that validate input, call use cases, and return structured responses.
+Clean Architecture with three main domain contexts: **Salah**, **Sawm**, and **User**. Domain logic has no AWS dependencies. Lambda handlers are thin wrappers that validate input, call use cases, and return structured responses.
 
 ```
 Presentation → Application → Domain ← Infrastructure
@@ -62,16 +68,15 @@ See [docs/architecture/](docs/architecture/) for diagrams and ADRs.
 
 No AWS account or real credentials needed locally.
 
-### Setup
+### Quick Start
 
 ```bash
-# Start LocalStack (simulates DynamoDB, S3, SQS, SNS, Cognito, Secrets Manager)
-docker compose up -d
-
-# Install dependencies
 npm install
 
-# Start Dev servers
+# Start LocalStack for backend-backed development
+docker compose up -d localstack
+
+# Start dev servers in separate terminals
 npm run dev:frontend   # http://localhost:5173
 npm run dev:backend    # Lambda runner on http://localhost:3000
 ```
@@ -84,6 +89,18 @@ AWS_SECRET_ACCESS_KEY=test
 AWS_DEFAULT_REGION=eu-west-1
 LOCALSTACK_ENDPOINT=http://localhost:4566
 ```
+
+### Pages Check
+
+If you touch routing, deploy config, `index.html`, or `404.html`, run:
+
+```bash
+npm run check:pages
+```
+
+That builds the frontend locally with the real production base path `/awdah/` and verifies that the generated bundle still points to `https://amgad01.github.io/awdah/`.
+
+For contributor-specific setup paths, content-only edits, translation work, and PR workflow details, see [CONTRIBUTING.md](CONTRIBUTING.md). The hosted [/contribute](https://amgad01.github.io/awdah/contribute) page is the source of truth for work areas and roadmap items.
 
 ### Demo and About
 
@@ -108,33 +125,33 @@ awdah/
 
 6 CDK stacks deployed in order: data → auth → api → backup → alarm → frontend.
 
-| Stack         | Resources                                                          |
-| ------------- | ------------------------------------------------------------------ |
-| DataStack     | 6 DynamoDB tables (PITR, PAY_PER_REQUEST)                          |
-| AuthStack     | Cognito User Pool and Client                                       |
-| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64)                      |
-| BackupStack   | S3 backup bucket, EventBridge daily export                         |
-| AlarmStack    | CloudWatch alarms, SNS alerts                                      |
-| FrontendStack | S3 + CloudFront for non-Pages hosting, previews, or custom domains |
+| Stack         | Resources                                                                   |
+| ------------- | --------------------------------------------------------------------------- |
+| DataStack     | 6 DynamoDB tables (PAY_PER_REQUEST, PITR where needed, GSIs for log access) |
+| AuthStack     | Cognito User Pool and Client                                                |
+| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64)                               |
+| BackupStack   | S3 backup bucket, EventBridge daily export                                  |
+| AlarmStack    | CloudWatch alarms, SNS alerts                                               |
+| FrontendStack | S3 + CloudFront for non-Pages hosting, previews, or custom domains          |
 
 ## API
 
-Two bounded contexts — **Salah** (prayers) and **Sawm** (fasts) — each with log, debt, and history endpoints. User profile and account deletion are shared. All routes require a Cognito JWT except `/health`. All dates are Hijri `YYYY-MM-DD`.
+Three route groups — **Salah** (prayers), **Sawm** (fasts), and **User** (profile and lifecycle operations). All protected routes require a Cognito JWT, while `/health` remains public. All dates are Hijri `YYYY-MM-DD`.
 
 Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger                           | Purpose                                            |
-| ------------------ | --------------------------------- | -------------------------------------------------- |
-| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, frontend audit     |
-| `test-on-push.yml` | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack    |
-| `deploy.yml`       | Manual                            | Deploy backend infra to AWS                        |
-| `deploy-pages.yml` | Manual or backend deploy          | Build and deploy the prod frontend to GitHub Pages |
+| Workflow           | Trigger                           | Purpose                                                                    |
+| ------------------ | --------------------------------- | -------------------------------------------------------------------------- |
+| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, frontend audit                             |
+| `test-on-push.yml` | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack                            |
+| `deploy.yml`       | Manual                            | Deploy backend infra to AWS and smoke-test the API                         |
+| `deploy-pages.yml` | Manual or backend deploy          | Build the pinned frontend commit, deploy to Pages, and smoke-test the site |
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for how to get started, what areas need help, and how to update the app's static content without writing any code.
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, and content-update guidance. For current work areas and roadmap items, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page.
 
 ## License
 

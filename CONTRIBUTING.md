@@ -1,10 +1,20 @@
 # Contributing to Awdah
 
-Awdah is a public repository. Contributions are welcome — code, translations, scholarly review, or catching a bug — and all collaboration remains subject to the repository license.
+Awdah is a public source-available repository. Contributions are welcome — code, translations, scholarly review, or catching a bug — and all collaboration remains subject to the repository license.
 
 For areas where help is most needed and the v2 roadmap, see the [/contribute](https://amgad01.github.io/awdah/contribute) page in the app — it covers what areas need work, how to submit a PR, and what is planned next.
 
 ---
+
+## Before You Start
+
+If this is your first contribution, choose the lightest lane that fits your change:
+
+- Content, docs, translations, and public-page copy: frontend-only is usually enough
+- Dashboard, tracker, settings, auth, or API work: use the full local app setup
+- Deploy, routing, `index.html`, or GitHub Pages changes: also run the Pages build check
+
+You do not need a real AWS account for normal contribution work.
 
 ## Local development
 
@@ -16,6 +26,29 @@ For areas where help is most needed and the v2 roadmap, see the [/contribute](ht
 
 ### Setup
 
+### 1. Frontend-only path
+
+Use this for:
+
+- `README.md`, `CONTRIBUTING.md`, and docs
+- translation files under `apps/frontend/src/i18n/`
+- static page content under `apps/frontend/public/data/`
+- UI work on public routes such as `/learn`, `/about`, `/contribute`, and `/demo`
+
+```bash
+# Clone and install
+git clone https://github.com/amgad01/awdah.git
+cd awdah
+npm install
+
+# Start the frontend
+npm run dev:frontend
+```
+
+### 2. Full local app path
+
+Use this when your change needs login, tracker data, settings, API routes, or LocalStack-backed behavior.
+
 ```bash
 # Clone and install
 git clone https://github.com/amgad01/awdah.git
@@ -23,9 +56,9 @@ cd awdah
 npm install
 
 # Start LocalStack (simulates DynamoDB, S3, SQS, Cognito, etc.)
-docker compose up -d
+docker compose up -d localstack
 
-# Start the dev servers
+# Start the dev servers in separate terminals
 npm run dev:frontend   # http://localhost:5173
 npm run dev:backend    # Lambda runner on http://localhost:3000
 ```
@@ -42,8 +75,9 @@ LOCALSTACK_ENDPOINT=http://localhost:4566
 ### Running checks
 
 ```bash
-npm run check:quick   # Fast: lint + unit tests
-npm run check         # Full: typecheck, audit, all tests
+npm run check:quick   # Fast repo gate: shared build + lint + format check + typecheck
+npm run check         # Full repo gate: builds, tests, and audit
+npm run check:pages   # Builds the frontend with /awdah/ and verifies the Pages output
 ```
 
 Pre-commit hooks run lint and a quick typecheck automatically.
@@ -78,6 +112,8 @@ For religious content changes, include the scholarly source in your commit messa
 ## Updating content without code changes
 
 Most of the app's public-facing content lives in JSON files under `apps/frontend/public/data/`. These files are fetched at runtime, so you can update them by editing the JSON, committing, and letting the deploy pipeline run — no TypeScript changes needed.
+
+For current work areas, roadmap items, and the contributor-facing project board, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page. This file stays focused on contribution workflow and repo mechanics.
 
 ### Add a contributor to the About page
 
