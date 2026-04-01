@@ -422,7 +422,7 @@
   },
   "about": {
     "nav_link": "About Awdah",
-    "project_badge": "Open Source Project",
+    "project_badge": "Open Repository Project",
     "project_title": "The story behind Awdah",
     "project_subtitle": "Why this project was built and the architecture that powers it."
   },
@@ -662,8 +662,8 @@
   },
   "contributing": {
     "nav_link": "Contribute",
-    "project_badge": "Open Source · Free",
+    "project_badge": "Public Repo · Free",
     "project_title": "Contribute to Awdah",
-    "project_subtitle": "Help improve a free, open-source Islamic worship tracker used by Muslims around the world."
+    "project_subtitle": "Help improve a free Islamic worship tracker used by Muslims around the world."
   }
 }

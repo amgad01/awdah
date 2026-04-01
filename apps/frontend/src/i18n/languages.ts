@@ -22,24 +22,24 @@ export interface LanguageDef {
 export const SUPPORTED_LANGUAGES: LanguageDef[] = languagesData as LanguageDef[];
 
 /**
- * Vite discovers non-core JSON files in this folder at build time and creates
- * lazy-loaded chunks for each. `en` and `ar` are bundled eagerly in `i18n/index.ts`
- * to avoid a flash on startup, so they are excluded here to keep the build clean.
+ * Vite discovers language JSON files in this folder at build time and imports
+ * them eagerly so the production build stays warning-free.
  */
 const allLanguageModules = import.meta.glob<{ default: Record<string, unknown> }>(
-  './!(en|ar).json',
+  './[a-z][a-z].json',
+  {
+    eager: true,
+    import: 'default',
+  },
 );
 
 /**
- * Loads a translation bundle for the given language code on demand.
- * `en` and `ar` are pre-bundled in `i18n/index.ts`, so this is only called for
- * languages added beyond those two.
+ * Loads a translation bundle for the given language code.
  */
 export async function loadLanguageBundle(code: string): Promise<Record<string, unknown>> {
-  const loader = allLanguageModules[`./${code}.json`];
-  if (!loader) {
+  const bundle = allLanguageModules[`./${code}.json`];
+  if (!bundle) {
     throw new Error(`No translation file found for language: ${code}`);
   }
-  const mod = await loader();
-  return mod.default;
+  return bundle;
 }

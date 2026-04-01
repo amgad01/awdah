@@ -1,50 +1,28 @@
-name: Test on Push
+name: Dockerized E2E
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
 
 permissions:
   contents: read
 
+concurrency:
+  group: e2e-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
-    name: Lint, Typecheck & Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared
-        run: npm run build --workspace=packages/shared
-
-      - name: Root Check (Lint & Typecheck)
-        run: |
-          npm run lint
-          npm run typecheck
-
-      - name: Backend Tests
-        run: npm run test --workspace=apps/backend
-
-      - name: Frontend Tests
-        run: npm run test --workspace=apps/frontend
-
   e2e-docker:
     name: Dockerized E2E (Dev Gate)
-    needs: validate
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

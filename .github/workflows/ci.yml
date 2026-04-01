@@ -66,8 +66,11 @@ jobs:
       - name: Test (backend)
         run: npm run test:coverage --workspace=apps/backend
 
+      - name: Test (frontend)
+        run: npm run test --workspace=apps/frontend
+
       - name: Test (shared)
         run: npm run test --workspace=packages/shared --if-present
 
       - name: Security audit
-        run: npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra
+        run: npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra
