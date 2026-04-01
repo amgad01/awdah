@@ -1,5 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import * as Icons from 'lucide-react';
+import {
+  Bell,
+  BookOpen,
+  Calculator,
+  CheckSquare,
+  Clock,
+  Globe,
+  Github,
+  HelpCircle,
+  Heart,
+  Languages,
+  Linkedin,
+  Monitor,
+  Moon,
+  Palette,
+  Server,
+  Star,
+  Wifi,
+} from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import styles from './contributing-page.module.css';
 
@@ -55,6 +73,8 @@ interface ContributingData {
   recognition_cta: string;
 }
 
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
 const badgeVariantClass: Record<ContributingSection['badge_variant'], string> = {
   accent: styles.badgeAccent,
   primary: styles.badgePrimary,
@@ -62,26 +82,98 @@ const badgeVariantClass: Record<ContributingSection['badge_variant'], string> = 
   info: styles.badgeInfo,
 };
 
+const CONTRIBUTION_ICONS: Record<string, IconComponent> = {
+  BookOpen,
+  Monitor,
+  Server,
+  Globe,
+  Languages,
+  Palette,
+  Calculator,
+};
+
+const ROADMAP_ICONS: Record<string, IconComponent> = {
+  BookOpen,
+  Bell,
+  Wifi,
+  Moon,
+  Languages,
+  CheckSquare,
+  Clock,
+  Star,
+};
+
 export const ContributingPage: React.FC = () => {
   const { language, t } = useLanguage();
   const [data, setData] = useState<ContributingData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const dataUrl = `${import.meta.env.BASE_URL}data/contributing-${language}.json`;
+    const controller = new AbortController();
+    let cancelled = false;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    fetch(dataUrl)
-      .then((res) => res.json())
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [language]);
+    setError(null);
+
+    const loadData = async () => {
+      try {
+        const res = await fetch(dataUrl, { signal: controller.signal });
+        if (!res.ok) {
+          throw new Error(`Failed to load Contributing content (${res.status})`);
+        }
+
+        const json = (await res.json()) as ContributingData;
+        if (!cancelled) {
+          setData(json);
+        }
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+        if (!cancelled) {
+          setData(null);
+          setError(err instanceof Error ? err.message : t('common.error'));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [language, refreshKey, t]);
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>{t('contributing.project_badge')}</span>
+          <h1 className={styles.heroTitle}>{t('contributing.project_title')}</h1>
+        </section>
+        <div style={{ marginTop: '2rem' }}>
+          <button
+            type="button"
+            className={styles.ctaButton}
+            onClick={() => setRefreshKey((v) => v + 1)}
+          >
+            {t('common.retry')}
+          </button>
+          <p className={styles.sectionBody} style={{ marginTop: '1rem' }}>
+            {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !data) {
     return <div className={styles.loading}>{t('common.loading')}</div>;
@@ -104,7 +196,7 @@ export const ContributingPage: React.FC = () => {
             rel="noopener noreferrer"
             className={styles.ctaButton}
           >
-            <Icons.Github size={18} />
+            <Github size={18} />
             <span>{data.github_link_label}</span>
           </a>
           <a
@@ -113,7 +205,7 @@ export const ContributingPage: React.FC = () => {
             rel="noopener noreferrer"
             className={styles.ctaButtonSecondary}
           >
-            <Icons.Linkedin size={18} />
+            <Linkedin size={18} />
             <span>{data.contact_label}</span>
           </a>
         </div>
@@ -121,8 +213,7 @@ export const ContributingPage: React.FC = () => {
 
       {/* ── Contribution Areas ── */}
       {data.sections.map((section) => {
-        const IconComponent =
-          (Icons as unknown as Record<string, Icons.LucideIcon>)[section.icon] ?? Icons.HelpCircle;
+        const IconComponent = CONTRIBUTION_ICONS[section.icon] ?? HelpCircle;
 
         return (
           <section key={section.id} className={styles.contributionSection}>
@@ -185,8 +276,7 @@ export const ContributingPage: React.FC = () => {
 
         <div className={styles.v2Grid}>
           {data.v2_items.map((item) => {
-            const IconComponent =
-              (Icons as unknown as Record<string, Icons.LucideIcon>)[item.icon] ?? Icons.HelpCircle;
+            const IconComponent = ROADMAP_ICONS[item.icon] ?? HelpCircle;
             return (
               <div key={item.id} className={styles.v2Card}>
                 <IconComponent size={20} className={styles.v2CardIcon} />
@@ -200,7 +290,7 @@ export const ContributingPage: React.FC = () => {
 
       {/* ── Recognition ── */}
       <section className={styles.recognitionSection}>
-        <Icons.Heart size={24} className={styles.recognitionIcon} />
+        <Heart size={24} className={styles.recognitionIcon} />
         <h2 className={styles.recognitionTitle}>{data.recognition_title}</h2>
         <p className={styles.recognitionBody}>{data.recognition_body}</p>
         <a
@@ -209,7 +299,7 @@ export const ContributingPage: React.FC = () => {
           rel="noopener noreferrer"
           className={styles.ctaButton}
         >
-          <Icons.Github size={18} />
+          <Github size={18} />
           <span>{data.recognition_cta}</span>
         </a>
       </section>

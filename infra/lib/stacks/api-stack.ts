@@ -44,6 +44,9 @@ interface RouteDefinition {
   integrationId: string;
 }
 
+const MUTATION_ROUTE_RATE_DIVISOR = 5;
+const ADMIN_ROUTE_RATE_DIVISOR = 20;
+
 export class ApiStack extends BaseStack {
   public readonly httpApi: apigatewayv2.HttpApi;
   public readonly defaultStage: apigatewayv2.HttpStage;
@@ -71,6 +74,7 @@ export class ApiStack extends BaseStack {
       autoDeploy: true,
       throttle: config.apiThrottle,
     });
+    this.applyRouteThrottles(config);
 
     // 2. Setup Shared Configuration
     const authorizer = new HttpUserPoolAuthorizer('AwdahAuthorizer', props.authStack.userPool, {
@@ -139,6 +143,66 @@ export class ApiStack extends BaseStack {
         allowOrigins: Array.from(origins),
       },
     });
+  }
+
+  private applyRouteThrottles(config: ProjectConfig): void {
+    const cfnStage = this.defaultStage.node.defaultChild as apigatewayv2.CfnStage;
+    // User-driven mutations are capped below the shared stage throttle so bursts of writes
+    // do not crowd out read traffic. Destructive/admin routes are capped lower again because
+    // they are rarer, heavier, and less latency-sensitive than normal tracking actions.
+    const mutationRateLimit = Math.max(
+      10,
+      Math.floor(config.apiThrottle.rateLimit / MUTATION_ROUTE_RATE_DIVISOR),
+    );
+    const mutationBurstLimit = Math.max(
+      20,
+      Math.floor(config.apiThrottle.burstLimit / MUTATION_ROUTE_RATE_DIVISOR),
+    );
+    const adminRateLimit = Math.max(
+      4,
+      Math.floor(config.apiThrottle.rateLimit / ADMIN_ROUTE_RATE_DIVISOR),
+    );
+    const adminBurstLimit = Math.max(
+      8,
+      Math.floor(config.apiThrottle.burstLimit / ADMIN_ROUTE_RATE_DIVISOR),
+    );
+
+    const routeSettings: Record<string, apigatewayv2.CfnStage.RouteSettingsProperty> = {};
+    const protectedMutationRoutes = [
+      'POST /v1/salah/log',
+      'DELETE /v1/salah/log',
+      'POST /v1/salah/practicing-period',
+      'PUT /v1/salah/practicing-period',
+      'DELETE /v1/salah/practicing-period',
+      'POST /v1/sawm/log',
+      'DELETE /v1/sawm/log',
+      'POST /v1/user/profile',
+    ];
+    const adminMutationRoutes = [
+      'DELETE /v1/salah/logs',
+      'DELETE /v1/sawm/logs',
+      'DELETE /v1/user/account',
+      'DELETE /v1/user/account/auth',
+      'POST /v1/user/export',
+    ];
+
+    protectedMutationRoutes.forEach((routeKey) => {
+      routeSettings[routeKey] = {
+        detailedMetricsEnabled: true,
+        throttlingBurstLimit: mutationBurstLimit,
+        throttlingRateLimit: mutationRateLimit,
+      };
+    });
+
+    adminMutationRoutes.forEach((routeKey) => {
+      routeSettings[routeKey] = {
+        detailedMetricsEnabled: true,
+        throttlingBurstLimit: adminBurstLimit,
+        throttlingRateLimit: adminRateLimit,
+      };
+    });
+
+    cfnStage.routeSettings = routeSettings;
   }
 
   private getSharedEnvironment(props: ApiStackProps): Record<string, string> {

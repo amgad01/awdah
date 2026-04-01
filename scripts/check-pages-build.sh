@@ -9,6 +9,12 @@ PAGES_BASE_PATH="${PAGES_BASE_PATH:-/awdah/}"
 
 cd "$ROOT_DIR"
 
+echo "▸ Verifying source HTML CSP hashes..."
+node ./scripts/verify-inline-script-csp.mjs \
+  "$ROOT_DIR/apps/frontend/index.html" \
+  "$ROOT_DIR/apps/frontend/public/404.html"
+
+echo ""
 echo "▸ Building the frontend with the GitHub Pages base path..."
 PAGES_SITE_URL="$PAGES_SITE_URL" \
 PAGES_BASE_PATH="$PAGES_BASE_PATH" \
@@ -23,3 +29,8 @@ echo ""
 echo "▸ Verifying the built Pages bundle..."
 ./scripts/verify-pages-dist.sh "$ROOT_DIR/apps/frontend/dist" "$PAGES_SITE_URL" "$PAGES_BASE_PATH"
 
+echo ""
+echo "▸ Verifying built HTML CSP hashes..."
+node ./scripts/verify-inline-script-csp.mjs \
+  "$ROOT_DIR/apps/frontend/dist/index.html" \
+  "$ROOT_DIR/apps/frontend/dist/404.html"

@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!--
+      style-src keeps 'unsafe-inline' for now because parts of the app still rely on runtime inline
+      styles for widths/layout. When those are removed, this can tighten to hashes/nonces.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'sha256-Met0FLFVqROiq/jDyYtlhInoFysISzTul6sZrG/Vad0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
@@ -27,17 +36,19 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://amgad01.github.io/awdah/" />
-    <meta property="og:image" content="%BASE_URL%og-image.png" />
+    <meta property="og:image" content="%BASE_URL%og-image.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
     <meta property="og:locale" content="en_GB" />
     <meta property="og:locale:alternate" content="ar_SA" />
 
     <!-- Twitter / X card -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Awdah — عودة" />
     <meta
       name="twitter:description"
       content="Track and fulfil your missed Salah and Sawm obligations."
     />
+    <meta name="twitter:image" content="%BASE_URL%og-image.svg" />
 
     <!-- GitHub Pages SPA routing: restore the path encoded by 404.html -->
     <script>

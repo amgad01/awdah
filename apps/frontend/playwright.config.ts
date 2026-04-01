@@ -1,4 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
+
+const configDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(configDir, '../..');
 
 export default defineConfig({
   testDir: './e2e',
@@ -6,7 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  outputDir: path.join(configDir, 'test-results'),
+  reporter: [['html', { open: 'never', outputFolder: path.join(configDir, 'playwright-report') }]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:5173',
     trace: 'on-first-retry',
@@ -24,10 +30,28 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : {
-        command: 'VITE_AUTH_MODE=local npm run dev',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+    : [
+        {
+          command: 'npm run dev',
+          url: 'http://localhost:5173',
+          env: {
+            ...process.env,
+            VITE_AUTH_MODE: 'local',
+          },
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+        {
+          command: `bash ${path.join(repoRoot, 'scripts/run-e2e-backend-dev.sh')}`,
+          env: {
+            ...process.env,
+            NODE_ENV: 'test',
+            LOCALSTACK_ENDPOINT: 'http://localhost:4566',
+            ENABLE_E2E_SEED: 'true',
+          },
+          port: 3000,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });

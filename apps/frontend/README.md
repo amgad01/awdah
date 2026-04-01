@@ -72,6 +72,8 @@ All CSS uses logical properties (`margin-inline-start`, `padding-inline-end`). T
 
 Tests live in `e2e/` and run against the local frontend dev server in `VITE_AUTH_MODE=local`, with the backend on `http://localhost:3000` and LocalStack providing DynamoDB.
 
+Start LocalStack first with `docker compose up -d localstack`. The Playwright backend helper now fails fast with a clear message if LocalStack is not reachable, instead of leaving the dev server half-started.
+
 ```bash
 npm run test:e2e         # Headless
 npm run test:e2e:ui      # Interactive

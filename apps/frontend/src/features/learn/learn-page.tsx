@@ -60,24 +60,52 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   const { t, language } = useLanguage();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [faqData, setFaqData] = useState<FaqSection[]>([]);
+  const [faqData, setFaqData] = useState<FaqSection[] | null>(null);
+  const [faqLoadedLanguage, setFaqLoadedLanguage] = useState<string | null>(null);
+  const [faqError, setFaqError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     const url = `${import.meta.env.BASE_URL}data/faq-${language}.json`;
-    fetch(url)
-      .then((res) => res.json())
-      .then((json: FaqSection[]) => setFaqData(json))
-      .catch(() => setFaqData([]));
-  }, [language]);
+
+    fetch(url, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load FAQ content');
+        }
+        return (await res.json()) as FaqSection[];
+      })
+      .then((json) => {
+        setFaqData(Array.isArray(json) ? json : []);
+        setFaqLoadedLanguage(language);
+        setFaqError(false);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+        setFaqData([]);
+        setFaqLoadedLanguage(language);
+        setFaqError(true);
+      });
+
+    return () => controller.abort();
+  }, [language, reloadKey]);
 
   const handleToggle = (key: string) => {
     setOpenKey((prev) => (prev === key ? null : key));
   };
 
   const normalizedQuery = query.trim().toLowerCase();
+  const faqLoading = faqLoadedLanguage !== language && !faqError;
+  const activeFaqData = useMemo(
+    () => (faqLoadedLanguage === language ? (faqData ?? []) : []),
+    [faqData, faqLoadedLanguage, language],
+  );
 
   const sections = useMemo(() => {
-    return faqData
+    return activeFaqData
       .map((section) => {
         const items = section.items.filter((item) => {
           if (!normalizedQuery) return true;
@@ -88,7 +116,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
         return { ...section, items };
       })
       .filter((section) => section.items.length > 0);
-  }, [faqData, normalizedQuery]);
+  }, [activeFaqData, normalizedQuery]);
 
   const glossaryEntries = useMemo(() => {
     return Object.entries(glossary)
@@ -113,6 +141,8 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   }, [language, normalizedQuery]);
 
   const hasResults = sections.length > 0 || glossaryEntries.length > 0;
+  const showFaqErrorState = faqError;
+  const showNoResultsState = !faqLoading && !showFaqErrorState && !hasResults;
 
   return (
     <div className={styles.page}>
@@ -146,12 +176,38 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
         ) : null}
       </header>
 
-      {!hasResults ? (
+      {faqLoading ? (
+        <Card variant="outline" className={styles.statusCard}>
+          <h2 className={styles.emptyTitle}>{t('common.loading')}</h2>
+          <p className={styles.emptyText}>{t('learn.loading_hint')}</p>
+        </Card>
+      ) : null}
+
+      {showFaqErrorState ? (
+        <Card variant="outline" className={styles.statusCard}>
+          <h2 className={styles.emptyTitle}>{t('learn.load_error_title')}</h2>
+          <p className={styles.emptyText}>{t('learn.load_error_body')}</p>
+          <button
+            type="button"
+            className={styles.retryButton}
+            onClick={() => {
+              setFaqData(null);
+              setFaqLoadedLanguage(null);
+              setFaqError(false);
+              setReloadKey((value) => value + 1);
+            }}
+          >
+            {t('common.retry')}
+          </button>
+        </Card>
+      ) : null}
+
+      {showNoResultsState ? (
         <Card variant="outline" className={styles.emptyCard}>
           <h2 className={styles.emptyTitle}>{t('learn.no_results_title')}</h2>
           <p className={styles.emptyText}>{t('learn.no_results_hint')}</p>
         </Card>
-      ) : (
+      ) : !faqLoading ? (
         <>
           <div className={styles.sections}>
             {sections.map((section) => (
@@ -200,7 +256,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
             </div>
           </section>
         </>
-      )}
+      ) : null}
 
       <footer className={styles.footer}>
         <p className={styles.footerNote}>{t('learn.footer_note')}</p>

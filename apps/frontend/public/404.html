@@ -4,9 +4,14 @@
     <meta charset="UTF-8" />
     <title>Awdah</title>
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!--
+      Canonical GitHub Pages 404 fallback for the frontend build.
+      If you change the inline script below, regenerate the script-src SHA from the exact script
+      contents in this file and rerun `npm run check:pages` to verify both source and built HTML.
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-qRuXeqkdQTHnPcJXXhDo6TkgmCMIR8MzQXtu1sHc6NM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'sha256-dqXIySKK46KsKOsprg2Grne7/9CQTTLSO9NqASQ/3O4='; style-src 'self'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
     />
     <!--
       GitHub Pages SPA routing — redirects all 404s back to index.html

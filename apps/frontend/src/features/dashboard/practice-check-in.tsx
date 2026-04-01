@@ -12,6 +12,7 @@ import styles from './practice-check-in.module.css';
 const DISMISS_KEY = 'awdah_practice_checkin_dismissed_until';
 const DISMISS_DAYS = 30;
 const MIN_PERIOD_AGE_DAYS = 14;
+const QADAA_LOG_BATCH_SIZE = 5;
 
 function isDismissed(): boolean {
   try {
@@ -35,6 +36,17 @@ type PrayerCounts = Record<PrayerName, number>;
 
 function zeroCounts(): PrayerCounts {
   return Object.fromEntries(PRAYERS.map((p) => [p, 0])) as PrayerCounts;
+}
+
+async function runInBatches<T>(tasks: Array<() => Promise<T>>, batchSize: number): Promise<void> {
+  for (let i = 0; i < tasks.length; i += batchSize) {
+    const results = await Promise.allSettled(tasks.slice(i, i + batchSize).map((task) => task()));
+    const failedResult = results.find((result) => result.status === 'rejected');
+
+    if (failedResult?.status === 'rejected') {
+      throw failedResult.reason;
+    }
+  }
 }
 
 /**
@@ -128,12 +140,15 @@ export const PracticeCheckIn: React.FC = () => {
     setSubmitting(true);
     setSubmitError(false);
     try {
-      for (const prayer of PRAYERS) {
-        const n = counts[prayer];
-        for (let i = 0; i < n; i++) {
-          await logMutation.mutateAsync({ date: today, prayerName: prayer, type: 'qadaa' });
-        }
-      }
+      const tasks = PRAYERS.flatMap((prayer) =>
+        Array.from(
+          { length: counts[prayer] },
+          () => () => logMutation.mutateAsync({ date: today, prayerName: prayer, type: 'qadaa' }),
+        ),
+      );
+
+      await runInBatches(tasks, QADAA_LOG_BATCH_SIZE);
+
       setDone(true);
       setTimeout(() => {
         setDismissedUntil();

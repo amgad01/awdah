@@ -8,11 +8,7 @@ import {
   LogOut,
   History,
   BookOpen,
-  PlayCircle,
-  Info,
-  Users,
   ClipboardList,
-  Shield,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -37,15 +33,20 @@ export const Nav: React.FC = () => {
 
   return (
     <nav className={styles.nav}>
-      <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
-        <BrandLockup tone="dark" />
-      </Link>
+      {/* Header */}
+      <div className={styles.navHeader}>
+        <Link to="/" className={styles.logoLink} aria-label={t('common.app_name')}>
+          <BrandLockup tone="dark" />
+        </Link>
+      </div>
 
+      {/* Main navigation links */}
       <div className={styles.links}>
         <NavLink
           to="/"
           end
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-dashboard"
         >
           <LayoutDashboard size={20} />
           <span>{t('nav.dashboard')}</span>
@@ -54,6 +55,7 @@ export const Nav: React.FC = () => {
         <NavLink
           to="/salah"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-salah"
         >
           <Moon size={20} />
           <span>{t('nav.salah')}</span>
@@ -62,6 +64,7 @@ export const Nav: React.FC = () => {
         <NavLink
           to="/sawm"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-sawm"
         >
           <Sun size={20} />
           <span>{t('nav.sawm')}</span>
@@ -70,6 +73,7 @@ export const Nav: React.FC = () => {
         <NavLink
           to="/history"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-history"
         >
           <History size={20} />
           <span>{t('nav.history')}</span>
@@ -78,33 +82,10 @@ export const Nav: React.FC = () => {
         <NavLink
           to="/learn"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-learn"
         >
           <BookOpen size={20} />
           <span>{t('nav.learn')}</span>
-        </NavLink>
-
-        <NavLink
-          to="/demo"
-          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
-        >
-          <PlayCircle size={20} />
-          <span>{t('nav.demo')}</span>
-        </NavLink>
-
-        <NavLink
-          to="/about"
-          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
-        >
-          <Info size={20} />
-          <span>{t('nav.about')}</span>
-        </NavLink>
-
-        <NavLink
-          to="/contribute"
-          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
-        >
-          <Users size={20} />
-          <span>{t('nav.contributing')}</span>
         </NavLink>
 
         {needsSetup && (
@@ -120,10 +101,16 @@ export const Nav: React.FC = () => {
         )}
       </div>
 
+      {/* Footer */}
       <div className={styles.footer}>
+        <div className={styles.footerControls}>
+          <LanguageSwitcher tone="inverse" />
+          <ThemeToggle />
+        </div>
         <NavLink
           to="/settings"
           className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+          data-testid="nav-settings"
         >
           <Settings size={20} />
           <span>{t('nav.settings')}</span>
@@ -137,15 +124,6 @@ export const Nav: React.FC = () => {
           <LogOut size={20} />
           <span>{t('nav.logout')}</span>
         </button>
-        <NavLink
-          to="/privacy"
-          className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
-        >
-          <Shield size={20} />
-          <span>{t('nav.privacy')}</span>
-        </NavLink>
-        <LanguageSwitcher tone="inverse" />
-        <ThemeToggle />
       </div>
     </nav>
   );

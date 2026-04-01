@@ -9,8 +9,51 @@ import { PracticingPeriod } from '../../../contexts/shared/domain/entities/pract
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
 import { PrayerName } from '../../../contexts/salah/domain/value-objects/prayer-name';
+import {
+  CreateTableCommand,
+  DescribeTableCommand,
+  waitUntilTableExists,
+} from '@aws-sdk/client-dynamodb';
+import { settings } from '../../config/settings';
+import { createLogger } from '../../middleware/logger';
 
 import { createAwsClientConfig } from '../aws/client-config';
+
+const logger = createLogger('E2ESeedRoutes');
+const LOCALSTACK_GSI_PROJECTION = 'ALL' as const;
+
+interface LocalE2eTableDefinition {
+  tableName: string;
+  pk: string;
+  sk: string;
+  gsi?: { name: string; pk: string; sk: string };
+}
+
+/**
+ * LocalStack-only bootstrap for the Playwright seed route.
+ *
+ * Keep the key shapes aligned with the CDK tables in infra/lib/stacks/data-stack.ts.
+ * This is intentionally limited to the keys/indexes the repositories need locally,
+ * so CDK remains the production source of truth for billing, alarms, backups, and PITR.
+ */
+const LOCALSTACK_E2E_TABLES: LocalE2eTableDefinition[] = [
+  {
+    tableName: settings.tables.prayerLogs,
+    pk: 'userId',
+    sk: 'sk',
+    gsi: { name: 'typeDateIndex', pk: 'userId', sk: 'typeDate' },
+  },
+  {
+    tableName: settings.tables.fastLogs,
+    pk: 'userId',
+    sk: 'sk',
+    gsi: { name: 'typeDateIndex', pk: 'userId', sk: 'typeDate' },
+  },
+  { tableName: settings.tables.practicingPeriods, pk: 'userId', sk: 'periodId' },
+  { tableName: settings.tables.userSettings, pk: 'userId', sk: 'sk' },
+  { tableName: settings.tables.userLifecycleJobs, pk: 'userId', sk: 'sk' },
+  { tableName: settings.tables.deletedUsers, pk: 'userId', sk: 'deletedAt' },
+];
 
 // Local user ID logic matching local-auth.service.ts
 function localUserId(email: string): string {
@@ -20,6 +63,78 @@ function localUserId(email: string): string {
     .filter(Boolean)
     .join('-');
   return `local-${safe || 'dev-user'}`;
+}
+
+async function ensureTable(client: DynamoDBClient, definition: LocalE2eTableDefinition) {
+  const { tableName, pk, sk, gsi } = definition;
+
+  try {
+    await client.send(new DescribeTableCommand({ TableName: tableName }));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'ResourceNotFoundException') {
+      const attributeDefinitions = Array.from(
+        new Set([pk, sk, gsi?.pk, gsi?.sk].filter(Boolean)),
+      ).map((attributeName) => ({
+        AttributeName: attributeName,
+        AttributeType: 'S' as const,
+      }));
+
+      try {
+        await client.send(
+          new CreateTableCommand({
+            TableName: tableName,
+            KeySchema: [
+              { AttributeName: pk, KeyType: 'HASH' as const },
+              { AttributeName: sk, KeyType: 'RANGE' as const },
+            ],
+            AttributeDefinitions: attributeDefinitions,
+            BillingMode: 'PAY_PER_REQUEST' as const,
+            GlobalSecondaryIndexes: gsi
+              ? [
+                  {
+                    IndexName: gsi.name,
+                    KeySchema: [
+                      { AttributeName: gsi.pk, KeyType: 'HASH' as const },
+                      { AttributeName: gsi.sk, KeyType: 'RANGE' as const },
+                    ],
+                    // The seed route reads full entities back via the index, so tests need all attributes.
+                    Projection: { ProjectionType: LOCALSTACK_GSI_PROJECTION },
+                  },
+                ]
+              : undefined,
+          }),
+        );
+      } catch (createError) {
+        if (!(createError instanceof Error && createError.name === 'ResourceInUseException')) {
+          throw createError;
+        }
+
+        logger.debug(
+          {
+            tableName,
+            err: createError,
+          },
+          'Table already exists during E2E bootstrap; continuing after parallel create race',
+        );
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  await waitUntilTableExists(
+    {
+      client,
+      maxWaitTime: 20,
+    },
+    { TableName: tableName },
+  );
+}
+
+async function ensureAllTables(client: DynamoDBClient) {
+  for (const table of LOCALSTACK_E2E_TABLES) {
+    await ensureTable(client, table);
+  }
 }
 
 export function registerE2eSeedRoutes(app: express.Express) {
@@ -36,6 +151,9 @@ export function registerE2eSeedRoutes(app: express.Express) {
 
   app.post('/v1/e2e/seed', async (req, res) => {
     try {
+      // Ensure tables exist in local environment (LocalStack)
+      await ensureAllTables(client);
+
       const { users } = req.body;
       if (!Array.isArray(users)) {
         return res.status(400).json({ error: 'Missing users array' });
@@ -89,8 +207,7 @@ export function registerE2eSeedRoutes(app: express.Express) {
 
       res.status(200).json({ status: 'seeded', count: users.length });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[E2E Seed Error]:', error);
+      logger.error({ err: error }, 'E2E seed route failed');
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });

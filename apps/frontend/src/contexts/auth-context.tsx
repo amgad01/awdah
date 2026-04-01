@@ -67,7 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const service = await getAuthService();
     setAuthNotice(null);
     await service.signOut();
-  }, []);
+    applySession(service.getCurrentUser());
+  }, [applySession]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
