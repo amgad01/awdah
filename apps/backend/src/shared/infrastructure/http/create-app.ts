@@ -3,6 +3,7 @@ import express, { type Express } from 'express';
 import { registerSalahRoutes } from './salah-routes';
 import { registerSawmRoutes } from './sawm-routes';
 import { registerUserRoutes } from './user-routes';
+import { registerE2eSeedRoutes } from './e2e-seed-routes';
 import { runLocalLambdaHandler } from './local-handler-runner';
 
 const API_VERSION = '/v1';
@@ -17,14 +18,17 @@ export function createApp(): Express {
   registerSawmRoutes(app, API_VERSION, runLocalLambdaHandler);
   registerUserRoutes(app, API_VERSION, runLocalLambdaHandler);
 
-  // E2E Support
   if (process.env.ENABLE_E2E_SEED === 'true') {
-    import('./e2e-seed-routes').then(({ registerE2eSeedRoutes }) => {
-      registerE2eSeedRoutes(app);
-    });
+    registerE2eSeedRoutes(app);
   }
 
-  app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+  app.get('/health', (_req, res) =>
+    res.json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+    }),
+  );
 
   return app;
 }

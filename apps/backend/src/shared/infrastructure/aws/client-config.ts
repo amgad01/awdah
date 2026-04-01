@@ -16,6 +16,14 @@ export function createAwsClientConfig({
   return {
     region,
     ...(endpoint ? { endpoint } : {}),
+    ...(endpoint
+      ? {
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
+          },
+        }
+      : {}),
     maxAttempts,
     retryMode: 'adaptive' as const,
   };

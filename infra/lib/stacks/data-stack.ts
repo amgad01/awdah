@@ -85,7 +85,7 @@ export class DataStack extends BaseStack {
       },
     );
 
-    // 6. Deleted Users Table — short-lived tombstone ledger, not in backup set
+    // 6. Deleted Users Table — tombstone ledger used during restore sanitization
     this.deletedUsersTable = ProjectResourceFactory.createDynamoDBTable(
       this,
       'DeletedUsersTable',
@@ -95,7 +95,7 @@ export class DataStack extends BaseStack {
       this.removalPolicy,
       {
         timeToLiveAttribute: ATTR.EXPIRES_AT,
-        pointInTimeRecoveryEnabled: false,
+        pointInTimeRecoveryEnabled: true,
       },
     );
   }

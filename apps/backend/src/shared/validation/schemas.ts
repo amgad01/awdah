@@ -86,6 +86,21 @@ export const updateUserSettingsSchema = z
   .refine((d) => !d.revertDate || d.revertDate >= d.bulughDate, {
     message: 'Revert date cannot be before bulugh date',
     path: ['revertDate'],
+  })
+  .refine((d) => !HijriDate.fromString(d.bulughDate).isAfter(HijriDate.today()), {
+    message: 'onboarding.error_date_after_max',
+    path: ['bulughDate'],
+  })
+  .refine(
+    (d) => !d.dateOfBirth || !HijriDate.fromString(d.dateOfBirth).isAfter(HijriDate.today()),
+    {
+      message: 'onboarding.error_date_after_max',
+      path: ['dateOfBirth'],
+    },
+  )
+  .refine((d) => !d.revertDate || !HijriDate.fromString(d.revertDate).isAfter(HijriDate.today()), {
+    message: 'onboarding.error_date_after_max',
+    path: ['revertDate'],
   });
 
 export const prayerHistoryQuerySchema = z

@@ -144,9 +144,12 @@ async function invokeApp(
 describe('API Route Tests', () => {
   it('GET /health should return 200 OK', async () => {
     const response = await invokeApp('GET', '/health');
+    const payload = JSON.parse(response.body);
 
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ status: 'ok' });
+    expect(payload).toEqual(expect.objectContaining({ status: 'UP' }));
+    expect(payload.timestamp).toEqual(expect.any(String));
+    expect(payload).toHaveProperty('environment');
   });
 
   it('POST /v1/salah/log without x-user-id should return 401', async () => {

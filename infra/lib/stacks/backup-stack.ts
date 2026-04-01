@@ -54,6 +54,7 @@ export class BackupStack extends BaseStack {
       props.dataStack.fastLogsTable,
       props.dataStack.practicingPeriodsTable,
       props.dataStack.userSettingsTable,
+      props.dataStack.deletedUsersTable,
     ];
 
     const backupFn = ProjectResourceFactory.createNodejsFunction(this, 'BackupExportFn', {

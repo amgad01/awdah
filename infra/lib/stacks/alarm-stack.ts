@@ -190,12 +190,12 @@ export class AlarmStack extends BaseStack {
     tables.forEach(({ table, label }) => {
       addAlarm(
         `DDB${label}ThrottleAlarm`,
-        table.metricThrottledRequestsForOperation(cdk.aws_dynamodb.Operation.GET_ITEM, {
+        table.metricThrottledRequests({
           period: cdk.Duration.minutes(5),
           statistic: 'Sum',
         }),
         `DDB-${label}-Throttles`,
-        `DynamoDB table ${label} requests are being throttled`,
+        `DynamoDB table ${label} requests are being throttled across one or more operations`,
         5,
         2,
       );
