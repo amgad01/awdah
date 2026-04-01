@@ -1,5 +1,5 @@
 {
-  "hero_badge": "Public Repo · Free",
+  "hero_badge": "Public Repo",
   "hero_title": "Contribute to Awdah",
   "hero_subtitle": "Awdah is a public project built with care for the Muslim community. Every contribution — code, translation, or scholarly review — is given voluntarily and makes a real difference.",
   "oss_note": "Contributions are welcome, and collaboration follows the repository license.",
@@ -162,7 +162,7 @@
       "badge_variant": "info",
       "icon": "Languages",
       "title": "Add a New Language",
-      "body": "The translation infrastructure is designed so that adding a new language requires only two steps: a translation JSON file and a single entry in the language manifest. No other code changes are needed. The language switcher automatically includes the new language and the entire app renders in it.",
+      "body": "The translation setup is intentionally lightweight: add a translation JSON file and register the language in the language manifest. The language switcher will pick it up automatically and the app will render in that language.",
       "items": [
         {
           "id": "add_language_steps",
@@ -176,7 +176,7 @@
             "Run npm run dev:frontend — the language switcher will automatically show your new language",
             "Go through the app screen by screen in your new language and fix any translation that looks wrong in context",
             "Also translate the public content files: copy apps/frontend/public/data/about-en.json to about-fr.json (or your code) and translate all values",
-            "Run the full test suite: npm run test. Fix any failures",
+            "Run npm run check or, at minimum, the relevant lint/tests for your change. Fix any failures",
             "Commit your changes with: git commit -m 'feat: add French translation'",
             "Open a pull request against the main branch of the original repo. Describe the language you added and note any strings you were unsure about so a reviewer can double-check them"
           ]
@@ -205,7 +205,7 @@
     {
       "step": 3,
       "title": "Install dependencies and start the local environment",
-      "body": "Run npm install to install all dependencies. Then start LocalStack for the AWS simulation: docker compose -f docker/docker-compose.yml up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
+      "body": "Run npm install to install all dependencies. Then start LocalStack for the AWS simulation with docker compose up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
     },
     {
       "step": 4,
@@ -215,7 +215,7 @@
     {
       "step": 5,
       "title": "Run tests and linting",
-      "body": "Before committing: run npm run lint and npm run test from the root. Both must pass. The pre-commit hook also runs tsc --noEmit — fix any type errors before committing."
+      "body": "Before committing, run npm run check:quick or the smallest equivalent set of checks for your change. If you touched shared types, API contracts, infra, or workflows, prefer npm run check."
     },
     {
       "step": 6,

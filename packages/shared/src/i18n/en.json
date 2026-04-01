@@ -27,6 +27,6 @@
   "periodTypes": {
     "salah": "Salah",
     "sawm": "Sawm",
-    "both": "Both"
+    "both": "Salah and Sawm"
   }
 }

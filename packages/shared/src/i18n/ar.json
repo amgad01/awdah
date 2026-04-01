@@ -14,11 +14,11 @@
     "ذو الحجة"
   ],
   "prayers": {
-    "fajr": "فجر",
-    "dhuhr": "ظهر",
-    "asr": "عصر",
-    "maghrib": "مغرب",
-    "isha": "عشاء"
+    "fajr": "الفجر",
+    "dhuhr": "الظهر",
+    "asr": "العصر",
+    "maghrib": "المغرب",
+    "isha": "العشاء"
   },
   "logTypes": {
     "obligatory": "فرض",
@@ -27,6 +27,6 @@
   "periodTypes": {
     "salah": "صلاة",
     "sawm": "صوم",
-    "both": "كلاهما"
+    "both": "الصلاة والصيام"
   }
 }

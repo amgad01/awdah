@@ -22,7 +22,7 @@
       {
         "id": "bulugh_age",
         "question": "What is the age of Bulugh in the app?",
-        "answer": "If you do not know your exact date of Bulugh, the app offers a default helper that sets it at 15 Hijri years from your date of birth. This is the position of the Hanafi, Shafi'i, and Hanbali schools, based on the hadith in which the Prophet ﷺ accepted Ibn 'Umar before Khandaq at 15 (Sahih al-Bukhari 2664)."
+        "answer": "If you do not know your exact date of Bulugh, the app offers a default helper that places it at 15 Hijri years from your date of birth. This follows the Hanafi, Shafi'i, and Hanbali position, based in part on the report that Ibn 'Umar was accepted for battle at age 15 (Sahih al-Bukhari 2664)."
       },
       {
         "id": "missed_days",
@@ -80,7 +80,7 @@
       {
         "id": "data_sensitive",
         "question": "Is my religious data sensitive?",
-        "answer": "Yes. Religious practice data is considered sensitive personal data. All data is encrypted at rest in AWS DynamoDB. Your logs are private to you — we do not sell or share your data. Authentication is handled by AWS Cognito; we never store raw passwords. Full account deletion is available in Settings."
+        "answer": "Yes. Religious practice data is sensitive personal data. Stored app data is encrypted at rest in AWS-managed infrastructure. Your logs remain private to you, we do not sell or share them, and authentication is handled by AWS Cognito so raw passwords are never stored by the app."
       }
     ]
   },

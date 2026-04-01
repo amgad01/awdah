@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>Awdah</title>
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'sha256-qRuXeqkdQTHnPcJXXhDo6TkgmCMIR8MzQXtu1sHc6NM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    />
     <!--
       GitHub Pages SPA routing — redirects all 404s back to index.html
       while preserving the requested path as a query parameter.
