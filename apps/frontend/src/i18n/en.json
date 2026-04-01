@@ -260,6 +260,8 @@
     "back_to_login": "Back to sign in"
   },
   "nav": {
+    "tracker": "Tracker",
+    "project": "Project",
     "dashboard": "Dashboard",
     "salah": "Salah (Qadaa)",
     "sawm": "Sawm (Fasting)",

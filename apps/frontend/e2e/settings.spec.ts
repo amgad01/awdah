@@ -1,23 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { loginOrSignupLocalUser, logoutButton } from './support/auth';
+import { logoutButton, seedAndLoginLocalUser } from './support/auth';
 
 const TEST_EMAIL = 'settings@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
-async function login(page: import('@playwright/test').Page) {
-  // Seed the test user to ensure they have a completed profile and practicing periods
-  // This bypasses the Onboarding Wizard and allows tests to reach the dashboard directly.
-  await page.request.post('/v1/e2e/seed', {
-    data: { users: [{ email: TEST_EMAIL }] },
-  });
-
-  await loginOrSignupLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-}
-
 test.describe('Settings Page', () => {
   test.beforeEach(async ({ page }) => {
-    await login(page);
-    await page.getByRole('link', { name: /settings/i }).click();
+    await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
+    await page.getByTestId('nav-settings').click();
   });
 
   test('loads the settings page with profile section', async ({ page }) => {
@@ -30,7 +20,8 @@ test.describe('Settings Page', () => {
     await expect(logoutBtn).toBeVisible();
 
     // Danger zone with delete account should also be visible
-    const deleteBtn = page.getByRole('button', { name: /delete.*account/i });
+    const deleteBtn = page.getByTestId('delete-account-button');
+    await deleteBtn.scrollIntoViewIfNeeded();
     await expect(deleteBtn).toBeVisible();
   });
 
@@ -39,6 +30,6 @@ test.describe('Settings Page', () => {
     await logoutBtn.click();
 
     // Should redirect to login
-    await expect(page.getByLabel(/email/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('login-email')).toBeVisible({ timeout: 10_000 });
   });
 });

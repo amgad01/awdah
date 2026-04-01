@@ -1,23 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { loginOrSignupLocalUser } from './support/auth';
+import { seedAndLoginLocalUser } from './support/auth';
 
 const TEST_EMAIL = 'history@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
-async function login(page: import('@playwright/test').Page) {
-  // Seed the test user to ensure they have a completed profile and practicing periods
-  // This bypasses the Onboarding Wizard and allows tests to reach the dashboard directly.
-  await page.request.post('/v1/e2e/seed', {
-    data: { users: [{ email: TEST_EMAIL }] },
-  });
-
-  await loginOrSignupLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-}
-
 test.describe('History Page', () => {
   test.beforeEach(async ({ page }) => {
-    await login(page);
-    await page.getByRole('link', { name: /history/i }).click();
+    await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
+    await page.getByTestId('nav-history').click();
   });
 
   test('loads the history page', async ({ page }) => {
@@ -25,9 +15,9 @@ test.describe('History Page', () => {
   });
 
   test('shows date filter controls', async ({ page }) => {
-    await page.getByRole('button', { name: /filters/i }).click();
-    await expect(page.getByLabel(/from/i).first()).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByLabel(/to/i).first()).toBeVisible({ timeout: 5_000 });
+    await page.getByTestId('history-filters-toggle').click();
+    await expect(page.getByTestId('history-start-date-trigger')).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByTestId('history-end-date-trigger')).toBeVisible({ timeout: 5_000 });
   });
 
   test('renders history content without invalid placeholders', async ({ page }) => {

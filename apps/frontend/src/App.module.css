@@ -91,6 +91,15 @@
   padding: var(--spacing-sm) 0;
 }
 
+.publicTopNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
 .publicBrand {
   display: inline-flex;
   align-items: center;
@@ -126,6 +135,8 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .publicTopLink {
@@ -488,6 +499,7 @@
   }
 
   .publicTopBar,
+  .publicTopNav,
   .publicTopActions {
     flex-direction: column;
     align-items: stretch;

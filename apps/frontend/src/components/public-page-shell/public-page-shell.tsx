@@ -28,7 +28,7 @@ function PublicTopBar({ onShowLogin }: PublicTopBarProps) {
         <BrandLockup tone="dark" />
       </Link>
 
-      <div className={styles.publicTopActions}>
+      <nav className={styles.publicTopNav} aria-label={t('common.app_name')}>
         <Link to="/demo" className={styles.publicTopLink}>
           {t('nav.demo')}
         </Link>
@@ -38,6 +38,15 @@ function PublicTopBar({ onShowLogin }: PublicTopBarProps) {
         <Link to="/learn" className={styles.publicTopLink}>
           {t('nav.learn')}
         </Link>
+        <Link to="/contribute" className={styles.publicTopLink}>
+          {t('nav.contributing')}
+        </Link>
+        <Link to="/privacy" className={styles.publicTopLink}>
+          {t('privacy.nav_link')}
+        </Link>
+      </nav>
+
+      <div className={styles.publicTopActions}>
         {onShowLogin ? (
           <Link to="/" className={styles.publicTopCta} onClick={onShowLogin}>
             {t('auth.login')}

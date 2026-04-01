@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import * as Icons from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  BookOpen,
+  Calendar,
+  Github,
+  Globe,
+  Heart,
+  HelpCircle,
+  Link as LinkIcon,
+  Linkedin,
+  Moon,
+  Shield,
+  Sun,
+} from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { ErrorState } from '@/components/ui/error-state/error-state';
 import styles from './about-page.module.css';
 
 interface SocialLink {
@@ -41,27 +55,73 @@ interface AboutData {
   privacy_title: string;
 }
 
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
+const FEATURE_ICONS: Record<string, IconComponent> = {
+  Moon,
+  Sun,
+  Calendar,
+  Globe,
+  Shield,
+  BookOpen,
+};
+
+const SOCIAL_ICONS: Record<string, IconComponent> = {
+  linkedin: Linkedin,
+};
+
 export const AboutPage: React.FC = () => {
   const { language, t } = useLanguage();
   const [data, setData] = useState<AboutData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    // Determine the URL based on the current language
     const dataUrl = `${import.meta.env.BASE_URL}data/about-${language}.json`;
+    const controller = new AbortController();
+    let cancelled = false;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    fetch(dataUrl)
-      .then((res) => res.json())
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [language]);
+    setError(null);
+
+    const loadData = async () => {
+      try {
+        const res = await fetch(dataUrl, { signal: controller.signal });
+        if (!res.ok) {
+          throw new Error(`Failed to load About content (${res.status})`);
+        }
+
+        const json = (await res.json()) as AboutData;
+        if (!cancelled) {
+          setData(json);
+        }
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+        if (!cancelled) {
+          setData(null);
+          setError(err instanceof Error ? err.message : t('common.error'));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [language, refreshKey, t]);
+
+  if (error) {
+    return <ErrorState message={error} onRetry={() => setRefreshKey((v) => v + 1)} />;
+  }
 
   if (loading || !data) {
     return <div className={styles.loading}>{t('common.loading')}</div>;
@@ -78,7 +138,7 @@ export const AboutPage: React.FC = () => {
 
       <section className={styles.missionSection}>
         <div className={styles.missionCard}>
-          <Icons.Heart size={20} className={styles.missionIcon} />
+          <Heart size={20} className={styles.missionIcon} />
           <h2 className={styles.sectionTitle}>{data.why_title}</h2>
           <p className={styles.sectionBody}>{data.why_body}</p>
         </div>
@@ -93,9 +153,7 @@ export const AboutPage: React.FC = () => {
         <h2 className={styles.sectionTitle}>{data.features_title}</h2>
         <div className={styles.featureGrid}>
           {data.features.map((feature) => {
-            const IconComponent =
-              (Icons as unknown as Record<string, Icons.LucideIcon>)[feature.icon] ??
-              Icons.HelpCircle;
+            const IconComponent = FEATURE_ICONS[feature.icon] ?? HelpCircle;
             return (
               <div key={feature.id} className={styles.featureCard}>
                 <IconComponent size={20} className={styles.featureIcon} />
@@ -122,14 +180,11 @@ export const AboutPage: React.FC = () => {
               rel="noopener noreferrer"
               className={styles.devLink}
             >
-              <Icons.Github size={18} />
+              <Github size={18} />
               <span>GitHub</span>
             </a>
             {member.socials.map((link) => {
-              const Icon =
-                (Icons as unknown as Record<string, Icons.LucideIcon>)[
-                  link.type.charAt(0).toUpperCase() + link.type.slice(1)
-                ] ?? Icons.Link;
+              const Icon = SOCIAL_ICONS[link.type] ?? LinkIcon;
               return (
                 <a
                   key={link.type}
@@ -161,19 +216,16 @@ export const AboutPage: React.FC = () => {
       {/* ── Privacy/Legal Section ── */}
       <section className={styles.legalSection}>
         <div className={styles.legalCard}>
-          <Icons.Shield size={20} className={styles.legalIcon} />
+          <Shield size={20} className={styles.legalIcon} />
           <h2 className={styles.sectionTitle}>{data.privacy_title}</h2>
           <p className={styles.sectionBody}>
             {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
           </p>
           <div className={styles.legalLinks}>
-            <button
-              onClick={() => (window.location.href = '/privacy')}
-              className={styles.legalLink}
-            >
-              <Icons.Shield size={18} />
+            <Link to="/privacy" className={styles.legalLink}>
+              <Shield size={18} />
               <span>{t('nav.privacy')}</span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>

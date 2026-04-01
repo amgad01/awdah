@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { PublicPageShell } from '@/components/public-page-shell/public-page-shell';
 import { PublicLanding } from '@/components/public-landing/public-landing';
 import { AuthenticatedApp } from '@/components/authenticated-app/authenticated-app';
+import { resolveRouterBase } from '@/lib/router-base';
 import { Loader2 } from 'lucide-react';
 import styles from './App.module.css';
 
@@ -138,9 +139,87 @@ function PublicContributingPage({
   );
 }
 
+// Extracted so authView state lives only while the user is unauthenticated.
+// This component is rendered only when isAuthenticated === false; it unmounts on login
+// (false → true) and remounts on logout (true → false), resetting authView to 'login'
+// automatically — no effect or ref needed.
+function UnauthenticatedRoutes({
+  authNotice,
+  checkUser,
+}: {
+  authNotice: boolean;
+  checkUser: () => void;
+}) {
+  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
+
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <PublicLanding
+              authNotice={authNotice}
+              authView={authView}
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+              onShowForgot={() => setAuthView('forgot')}
+              onAuthSuccess={checkUser}
+              LoginForm={LoginForm}
+              SignupForm={SignupForm}
+              ForgotPasswordForm={ForgotPasswordForm}
+            />
+          }
+        />
+        <Route
+          path="/learn"
+          element={
+            <PublicLearnPage
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+            />
+          }
+        />
+        <Route
+          path="/demo"
+          element={
+            <PublicDemoPage
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+            />
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <PublicAboutPage
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+            />
+          }
+        />
+        <Route
+          path="/contribute"
+          element={
+            <PublicContributingPage
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+            />
+          }
+        />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
 function App() {
   const { user, isAuthenticated, loading, authNotice, checkUser } = useAuth();
-  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
+  const runtimeBase = resolveRouterBase({
+    configuredBasePath: import.meta.env.BASE_URL,
+    currentPathname: typeof window === 'undefined' ? '/' : window.location.pathname,
+  });
   useTheme();
 
   if (loading) {
@@ -148,68 +227,11 @@ function App() {
   }
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={runtimeBase}>
       {isAuthenticated ? (
         <AuthenticatedApp key={user?.userId ?? 'authenticated'} />
       ) : (
-        <Suspense fallback={<LoadingScreen />}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <PublicLanding
-                  authNotice={!!authNotice}
-                  authView={authView}
-                  onShowLogin={() => setAuthView('login')}
-                  onShowSignup={() => setAuthView('signup')}
-                  onShowForgot={() => setAuthView('forgot')}
-                  onAuthSuccess={checkUser}
-                  LoginForm={LoginForm}
-                  SignupForm={SignupForm}
-                  ForgotPasswordForm={ForgotPasswordForm}
-                />
-              }
-            />
-            <Route
-              path="/learn"
-              element={
-                <PublicLearnPage
-                  onShowLogin={() => setAuthView('login')}
-                  onShowSignup={() => setAuthView('signup')}
-                />
-              }
-            />
-            <Route
-              path="/demo"
-              element={
-                <PublicDemoPage
-                  onShowLogin={() => setAuthView('login')}
-                  onShowSignup={() => setAuthView('signup')}
-                />
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <PublicAboutPage
-                  onShowLogin={() => setAuthView('login')}
-                  onShowSignup={() => setAuthView('signup')}
-                />
-              }
-            />
-            <Route
-              path="/contribute"
-              element={
-                <PublicContributingPage
-                  onShowLogin={() => setAuthView('login')}
-                  onShowSignup={() => setAuthView('signup')}
-                />
-              }
-            />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+        <UnauthenticatedRoutes authNotice={!!authNotice} checkUser={checkUser} />
       )}
     </BrowserRouter>
   );

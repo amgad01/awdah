@@ -247,6 +247,11 @@
   text-align: center;
 }
 
+.statusCard {
+  text-align: center;
+  gap: var(--spacing-sm);
+}
+
 .emptyTitle {
   margin: 0 0 var(--spacing-xs);
   font-size: var(--font-size-lg);
@@ -257,6 +262,17 @@
   margin: 0;
   color: var(--color-text-muted);
   line-height: 1.6;
+}
+
+.retryButton {
+  align-self: center;
+  padding: 0.7rem 1rem;
+  border-radius: var(--border-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
 }
 
 /* ── Footer ── */

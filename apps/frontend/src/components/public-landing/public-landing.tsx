@@ -107,6 +107,15 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
         </div>
 
         <footer className={styles.publicFooter}>
+          <Link to="/about" className={styles.publicFooterLink}>
+            {t('about.nav_link')}
+          </Link>
+          <Link to="/contribute" className={styles.publicFooterLink}>
+            {t('nav.contributing')}
+          </Link>
+          <Link to="/demo" className={styles.publicFooterLink}>
+            {t('nav.demo')}
+          </Link>
           <Link to="/privacy" className={styles.publicFooterLink}>
             {t('privacy.nav_link')}
           </Link>

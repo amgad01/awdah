@@ -55,6 +55,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('auth.email_placeholder')}
               required
+              data-testid="login-email"
             />
           </div>
         </div>
@@ -70,6 +71,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('auth.password_placeholder')}
               required
+              data-testid="login-password"
             />
           </div>
         </div>

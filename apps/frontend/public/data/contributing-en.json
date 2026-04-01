@@ -176,7 +176,7 @@
             "Run npm run dev:frontend — the language switcher will automatically show your new language",
             "Go through the app screen by screen in your new language and fix any translation that looks wrong in context",
             "Also translate the public content files: copy apps/frontend/public/data/about-en.json to about-fr.json (or your code) and translate all values",
-            "Run npm run check or, at minimum, the relevant lint/tests for your change. Fix any failures",
+            "Run the relevant lint and test commands for your change (see the root README for details). Fix any failures",
             "Commit your changes with: git commit -m 'feat: add French translation'",
             "Open a pull request against the main branch of the original repo. Describe the language you added and note any strings you were unsure about so a reviewer can double-check them"
           ]
@@ -273,7 +273,6 @@
       "title": "Regional moon sighting support",
       "body": "v1 uses the standard Hijri calendar for Ramadan day counts. v2 could allow users to select their regional moon sighting authority, which affects Ramadan start and end dates and therefore the Sawm debt calculation."
     },
-
     {
       "id": "additional_languages",
       "icon": "Languages",

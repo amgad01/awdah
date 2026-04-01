@@ -172,6 +172,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
             setTab('daily');
             setPendingUncheck(null);
           }}
+          data-testid="salah-tab-daily"
         >
           {t('salah.tab_daily')}
         </button>
@@ -185,6 +186,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
             setTab('qadaa');
             setPendingUncheck(null);
           }}
+          data-testid="salah-tab-qadaa"
         >
           {t('salah.tab_qadaa')}
         </button>
@@ -251,6 +253,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
                   role="button"
                   tabIndex={0}
                   aria-pressed={isLogged}
+                  data-testid={`prayer-tile-${prayer}`}
                   onClick={() => {
                     if (isPending || isDailyFuture || isBeforeBirth || isLogged) return;
                     handleDailyToggle(prayer);

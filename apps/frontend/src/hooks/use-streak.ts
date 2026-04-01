@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { addHijriDays, todayHijriDate, gregorianIsoToHijri, isoDate } from '@/utils/date-utils';
+import { addHijriDays, todayHijriDate, hijriToGregorianDate } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
 import { useSalahHistory } from './use-salah-queries';
 import { useSawmHistory } from './use-sawm-queries';
@@ -19,6 +19,38 @@ export function computeConsecutiveStreak(activeDays: Set<string>, today?: string
     checkDay = addHijriDays(checkDay, -1);
   }
   return count;
+}
+
+function weekdayForHijriDate(date: string): number {
+  return hijriToGregorianDate(date).getUTCDay();
+}
+
+export function computeMonThuStreak(fastDays: Set<string>, today?: string): number {
+  const referenceDay = today ?? todayHijriDate();
+  let cursor = referenceDay;
+  let streak = 0;
+
+  for (let i = 0; i < 17; i++) {
+    const weekday = weekdayForHijriDate(cursor);
+    const daysSinceMonday = (weekday + 6) % 7;
+    const monday = addHijriDays(cursor, -daysSinceMonday);
+    const thursday = addHijriDays(monday, 3);
+
+    if (hijriToGregorianDate(thursday).getTime() > hijriToGregorianDate(referenceDay).getTime()) {
+      cursor = addHijriDays(monday, -1);
+      continue;
+    }
+
+    if (fastDays.has(monday) && fastDays.has(thursday)) {
+      streak++;
+      cursor = addHijriDays(monday, -1);
+      continue;
+    }
+
+    break;
+  }
+
+  return streak;
 }
 
 export const useStreak = () => {
@@ -102,33 +134,7 @@ export const useStreakDetails = () => {
     for (const log of sawm.data ?? []) {
       if (log.type === 'qadaa') fastDays.add(log.date);
     }
-
-    const today = new Date();
-    const checkMon = new Date(today);
-    while (checkMon.getDay() !== 1) {
-      checkMon.setDate(checkMon.getDate() - 1);
-    }
-
-    let streak = 0;
-    for (let i = 0; i < 17; i++) {
-      const monStr = gregorianIsoToHijri(isoDate(checkMon));
-      const thuDate = new Date(checkMon);
-      thuDate.setDate(thuDate.getDate() + 3);
-      const thuStr = gregorianIsoToHijri(isoDate(thuDate));
-
-      if (thuDate > today) {
-        checkMon.setDate(checkMon.getDate() - 7);
-        continue;
-      }
-
-      if (fastDays.has(monStr) && fastDays.has(thuStr)) {
-        streak++;
-        checkMon.setDate(checkMon.getDate() - 7);
-      } else {
-        break;
-      }
-    }
-    return streak;
+    return computeMonThuStreak(fastDays);
   }, [sawm.data]);
 
   const bestPrayerStreak = useMemo((): BestPrayerStreak | null => {

@@ -1,22 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { loginOrSignupLocalUser, logoutButton } from './support/auth';
+import { logoutButton, seedAndLoginLocalUser } from './support/auth';
 
 const TEST_EMAIL = 'dashboard@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
-async function login(page: import('@playwright/test').Page) {
-  // Seed the test user to ensure they have a completed profile and practicing periods
-  // This bypasses the Onboarding Wizard and allows tests to reach the dashboard directly.
-  await page.request.post('/v1/e2e/seed', {
-    data: { users: [{ email: TEST_EMAIL }] },
-  });
-
-  await loginOrSignupLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-}
-
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await login(page);
+    await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
   });
 
   test('displays the streak card section', async ({ page }) => {
@@ -39,7 +29,7 @@ test.describe('Dashboard', () => {
 
   test('navigation sidebar has settings and logout', async ({ page }) => {
     // Settings link should be in the sidebar
-    const settingsLink = page.getByRole('link', { name: /settings/i });
+    const settingsLink = page.getByTestId('nav-settings');
     await expect(settingsLink).toBeVisible();
 
     // Logout button should be in the sidebar

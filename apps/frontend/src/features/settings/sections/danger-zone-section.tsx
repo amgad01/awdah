@@ -95,6 +95,7 @@ export const DangerZoneSection: React.FC = () => {
               className={styles.resetBtn}
               onClick={() => handleResetData('prayers')}
               disabled={resetPrayerLogs.isPending}
+              data-testid="reset-prayers-button"
             >
               <RotateCcw size={14} />
               {resetPrayerLogs.isPending ? t('settings.resetting') : t('settings.reset_prayers')}
@@ -130,6 +131,7 @@ export const DangerZoneSection: React.FC = () => {
               className={styles.resetBtn}
               onClick={() => handleResetData('fasts')}
               disabled={resetFastLogs.isPending}
+              data-testid="reset-fasts-button"
             >
               <RotateCcw size={14} />
               {resetFastLogs.isPending ? t('settings.resetting') : t('settings.reset_fasts')}
@@ -147,6 +149,7 @@ export const DangerZoneSection: React.FC = () => {
             className={styles.deleteBtn}
             onClick={() => setShowDeleteConfirm(true)}
             aria-label={t('settings.delete_account')}
+            data-testid="delete-account-button"
           >
             <Trash2 size={16} />
             {t('settings.delete_account')}

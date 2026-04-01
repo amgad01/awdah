@@ -1,5 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import * as Icons from 'lucide-react';
+import {
+  BookOpen,
+  CalendarRange,
+  CheckCircle2,
+  Circle,
+  Download,
+  Flame,
+  History,
+  Moon,
+  ShieldCheck,
+  Sun,
+  Target,
+  UserRound,
+} from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -93,6 +106,15 @@ interface DemoData {
 interface DemoPageProps {
   showHeading?: boolean;
 }
+
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
+const HISTORY_KIND_ICONS: Record<HistoryKind, IconComponent> = {
+  prayer: Moon,
+  fast: Sun,
+  period: CalendarRange,
+  covered: History,
+};
 
 function DemoDateStack({
   value,
@@ -246,7 +268,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             </span>
             {data.salah.streakDays > 0 && (
               <span className={styles.heroChip}>
-                {Icons.Flame && <Icons.Flame size={14} />}
+                <Flame size={14} />
                 {t('dashboard.hero_streak_chip', { days: fmtNumber(data.salah.streakDays) })}
               </span>
             )}
@@ -256,7 +278,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
         <Card className={styles.heroCard}>
           <div className={styles.heroCardHeader}>
             <span className={styles.heroCardKicker}>{t('dashboard.hero_focus')}</span>
-            <Icons.Target size={18} />
+            <Target size={18} />
           </div>
           <div className={styles.heroCardValue}>{fmtNumber(data.salah.completed)}</div>
           <p className={styles.heroCardLabel}>{t('dashboard.completed_label')}</p>
@@ -282,7 +304,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
       <section className={styles.overviewGrid}>
         <Card className={styles.overviewCard}>
           <div className={styles.cardIconRow}>
-            <Icons.UserRound size={18} />
+            <UserRound size={18} />
             <span>{t('demo.sample_user')}</span>
           </div>
           <h2 className={styles.sampleName}>{data.user.name}</h2>
@@ -335,7 +357,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             <div className={styles.recordStreakList}>
               {data.bestPrayerStreak && (
                 <div className={styles.recordStreakRow}>
-                  <Icons.Moon size={13} className={styles.recordStreakIcon} />
+                  <Moon size={13} className={styles.recordStreakIcon} />
                   <span>
                     {t('dashboard.record_prayer_streak', {
                       prayer: t(`prayers.${data.bestPrayerStreak.name}`),
@@ -347,7 +369,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
               )}
               {data.monThuStreak > 0 && (
                 <div className={styles.recordStreakRow}>
-                  <Icons.Sun size={13} className={styles.recordStreakIcon} />
+                  <Sun size={13} className={styles.recordStreakIcon} />
                   <span>
                     {t('dashboard.record_mon_thu_streak', {
                       n: fmtNumber(data.monThuStreak),
@@ -439,11 +461,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
               >
                 <span className={styles.prayerName}>{t(`prayers.${prayer.name}`)}</span>
                 <span className={styles.prayerStatus}>
-                  {prayer.status === 'done' ? (
-                    <Icons.CheckCircle2 size={16} />
-                  ) : (
-                    <Icons.Circle size={16} />
-                  )}
+                  {prayer.status === 'done' ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                   {prayer.status === 'done' ? t('demo.prayer_done') : t('demo.prayer_pending')}
                 </span>
               </div>
@@ -514,7 +532,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
                     <span className={styles.periodBadge}>
                       {t(`demo.period_type_${period.type}`)}
                     </span>
-                    <Icons.CalendarRange size={16} />
+                    <CalendarRange size={16} />
                   </div>
                   <DemoDateStack
                     value={start}
@@ -546,14 +564,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             {data.history.map((entry) => {
               const dual = format(entry.date, { includeGregorianYear: true });
               const label = historyLabel(entry, t);
-              const Icon =
-                entry.kind === 'prayer'
-                  ? Icons.Moon
-                  : entry.kind === 'fast'
-                    ? Icons.Sun
-                    : entry.kind === 'period'
-                      ? Icons.CalendarRange
-                      : Icons.History;
+              const Icon = HISTORY_KIND_ICONS[entry.kind];
 
               return (
                 <div key={entry.id} className={styles.historyRow}>
@@ -580,14 +591,14 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
           <div className={styles.settingList}>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.Download size={16} />
+                <Download size={16} />
                 {t('demo.setting_export')}
               </span>
               <strong>{data.settings.exportReady ? t('demo.enabled') : t('demo.disabled')}</strong>
             </div>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.Moon size={16} />
+                <Moon size={16} />
                 {t('demo.setting_reset_prayers')}
               </span>
               <strong>
@@ -596,7 +607,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             </div>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.Sun size={16} />
+                <Sun size={16} />
                 {t('demo.setting_reset_fasts')}
               </span>
               <strong>
@@ -605,7 +616,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             </div>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.ShieldCheck size={16} />
+                <ShieldCheck size={16} />
                 {t('demo.setting_delete')}
               </span>
               <strong>
@@ -614,14 +625,14 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             </div>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.BookOpen size={16} />
+                <BookOpen size={16} />
                 {t('demo.setting_privacy')}
               </span>
               <strong>{t(`demo.privacy_${data.settings.privacyModel}`)}</strong>
             </div>
             <div className={styles.settingRow}>
               <span className={styles.settingLabel}>
-                <Icons.History size={16} />
+                <History size={16} />
                 {t('demo.setting_auth')}
               </span>
               <strong>{t(`demo.auth_${data.settings.authCompatibility}`)}</strong>

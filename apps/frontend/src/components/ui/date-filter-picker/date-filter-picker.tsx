@@ -243,6 +243,7 @@ export const DateFilterPicker: React.FC<DateFilterPickerProps> = ({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={`${label}: ${displayLabel}`}
+        data-testid={id ? `${id}-trigger` : undefined}
       >
         {displayLabel}
         <span className={styles.triggerIcon} aria-hidden="true">

@@ -8,8 +8,8 @@ test.describe('Authentication', () => {
   test('shows login form on landing', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: /login|sign in/i }).first()).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    await expect(page.getByLabel(/email/i).last()).toBeVisible();
+    await expect(page.getByLabel(/^password$/i).last()).toBeVisible();
   });
 
   test('opens the public learn page from landing', async ({ page }) => {
@@ -43,6 +43,6 @@ test.describe('Authentication', () => {
     await registerLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
 
     await logoutButton(page).click();
-    await expect(page.getByLabel(/email/i).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByLabel(/email/i).last()).toBeVisible({ timeout: 5_000 });
   });
 });

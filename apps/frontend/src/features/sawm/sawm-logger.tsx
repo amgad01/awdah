@@ -149,6 +149,7 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
             onClick={handleToggle}
             disabled={isPending || isFuture || isBeforeBirth}
             aria-pressed={isLogged}
+            data-testid="sawm-log-button"
           >
             <div className={styles.info}>
               {isSelectedRamadan ? (

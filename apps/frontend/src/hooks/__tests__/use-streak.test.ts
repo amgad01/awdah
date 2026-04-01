@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { computeConsecutiveStreak } from '../use-streak';
-import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
+import { computeConsecutiveStreak, computeMonThuStreak } from '../use-streak';
+import { todayHijriDate, addHijriDays, gregorianIsoToHijri } from '@/utils/date-utils';
 
 function hijriDaysAgo(n: number): string {
   return addHijriDays(todayHijriDate(), -n);
@@ -48,5 +48,25 @@ describe('computeConsecutiveStreak', () => {
       days.add(hijriDaysAgo(i));
     }
     expect(computeConsecutiveStreak(days)).toBe(30);
+  });
+});
+
+describe('computeMonThuStreak', () => {
+  it('counts a completed Monday/Thursday pair using Hijri dates', () => {
+    const monday = gregorianIsoToHijri('2024-03-11');
+    const thursday = gregorianIsoToHijri('2024-03-14');
+    const friday = gregorianIsoToHijri('2024-03-15');
+
+    expect(computeMonThuStreak(new Set([monday, thursday]), friday)).toBe(1);
+  });
+
+  it('skips the current incomplete week and counts the previous completed one', () => {
+    const previousMonday = gregorianIsoToHijri('2024-03-04');
+    const previousThursday = gregorianIsoToHijri('2024-03-07');
+    const currentTuesday = gregorianIsoToHijri('2024-03-12');
+
+    expect(computeMonThuStreak(new Set([previousMonday, previousThursday]), currentTuesday)).toBe(
+      1,
+    );
   });
 });

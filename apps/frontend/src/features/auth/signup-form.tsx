@@ -26,7 +26,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setLoading(true);
     if (password !== confirmPassword) {
       toast.error(t('auth.password_mismatch'));
       setLoading(false);
@@ -130,6 +129,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('auth.email_placeholder')}
               required
+              data-testid="signup-email"
             />
           </div>
         </div>
@@ -145,6 +145,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('auth.password_placeholder')}
               required
+              data-testid="signup-password"
             />
           </div>
         </div>
@@ -158,17 +159,18 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder={t('auth.password_placeholder')}
+              placeholder={t('auth.confirm_password_placeholder')}
               required
+              data-testid="signup-confirm-password"
             />
           </div>
         </div>
 
         <button
           type="submit"
+          data-testid="signup-submit"
           className={styles.submitBtn}
           disabled={loading}
-          data-testid="signup-submit"
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : t('auth.sign_up')}
         </button>

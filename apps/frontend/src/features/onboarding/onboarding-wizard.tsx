@@ -257,7 +257,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
           {t('onboarding.step_indicator', { current: step, total: TOTAL_ONBOARDING_STEPS })}
         </span>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.headerActionLink} onClick={onSkip}>
+          <button
+            type="button"
+            className={styles.headerActionLink}
+            onClick={onSkip}
+            data-testid="onboarding-skip"
+          >
             {t('onboarding.skip_cta')}
           </button>
           <LanguageSwitcher />
@@ -341,6 +346,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               className={styles.skipBtn}
               onClick={onSkip}
               aria-label={t('onboarding.skip_cta')}
+              data-testid="onboarding-skip"
             >
               {t('onboarding.skip_cta')}
             </button>

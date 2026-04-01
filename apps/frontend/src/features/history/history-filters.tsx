@@ -32,6 +32,7 @@ export const HistoryFilterToggle: React.FC<{
     onClick={onToggle}
     aria-expanded={showFilters}
     aria-controls="history-filters"
+    data-testid="history-filters-toggle"
   >
     <Filter size={16} />
     {t('history.filters')}

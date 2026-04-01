@@ -37,6 +37,7 @@ export const DayNav: React.FC<DayNavProps> = ({
         disabled={isPrevDisabled}
         aria-label={t('common.previous_day')}
         type="button"
+        data-testid="day-nav-prev"
       >
         <PrevIcon size={18} aria-hidden="true" />
       </button>
@@ -52,6 +53,7 @@ export const DayNav: React.FC<DayNavProps> = ({
         disabled={isNextDisabled}
         aria-label={t('common.next_day')}
         type="button"
+        data-testid="day-nav-next"
       >
         <NextIcon size={18} aria-hidden="true" />
       </button>
