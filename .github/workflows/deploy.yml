@@ -50,3 +50,12 @@ jobs:
             Awdah-alarm-stack-prod \
             --context env=prod \
             --require-approval never
+
+      - name: Smoke test deployed API
+        run: |
+          api_url=$(aws ssm get-parameter --name /awdah/prod/api/url --query 'Parameter.Value' --output text)
+          health_body=$(curl --fail --silent --show-error --retry 6 --retry-all-errors "${api_url}/health")
+          printf '%s' "$health_body" | grep -q '"status":"UP"'
+
+          protected_status=$(curl --silent --show-error --output /tmp/protected-route.json --write-out '%{http_code}' "${api_url}/v1/user/profile")
+          test "$protected_status" = "401"

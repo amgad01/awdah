@@ -60,6 +60,9 @@ jobs:
       - name: Build frontend
         run: npm run build --workspace=apps/frontend
 
+      - name: Check Pages build
+        run: npm run check:pages
+
       - name: Build infra
         run: npm run build --workspace=infra
 

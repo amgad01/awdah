@@ -1,9 +1,9 @@
 #!/bin/sh
 # pre-push-checks.sh
 #
-# Mirrors the CI pipeline (ci.yml) exactly so that failures are caught locally
-# before reaching GitHub Actions. Run this manually or via the Husky pre-push
-# hook. All checks must pass for the script to exit cleanly.
+# Runs the same quality and build checks as the CI pipeline (ci.yml).
+# Run this manually or via the Husky pre-push hook. All checks must pass
+# for the script to exit cleanly.
 #
 # Independent steps within each phase run in parallel to reduce wall-clock time.
 #
@@ -119,7 +119,7 @@ fi
 if [ "${SKIP_BUILDS:-0}" = "1" ]; then
   warn "SKIP_BUILDS=1 — skipping app builds"
   step "Phase 4/4 — Security audit"
-  npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra
+  npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra
   success "Security audit passed"
 else
   step "Phase 4/4 — Builds & audit (parallel)"
@@ -127,7 +127,8 @@ else
     "Build: backend"  "npm run build --workspace=apps/backend" \
     "Build: frontend" "npm run build --workspace=apps/frontend" \
     "Build: infra"    "npm run build --workspace=infra" \
-    "Security audit"  "npm audit --audit-level=high --workspace=apps/backend --workspace=packages/shared --workspace=infra"
+    "Check: Pages build"  "npm run check:pages" \
+    "Security audit"  "npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra"
 fi
 
 printf "\n${GREEN}${BOLD}All checks passed. Safe to push.${RESET}\n\n"

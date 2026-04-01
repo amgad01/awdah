@@ -31,7 +31,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Resolve deploy ref
+        id: deploy-ref
+        run: echo "ref=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.deploy-ref.outputs.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,13 +62,16 @@ jobs:
         env:
           VITE_AUTH_MODE: cognito
           VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_APP_VERSION: ${{ steps.deploy-ref.outputs.ref }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
-          PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH || '/awdah/' }}
+          PAGES_BASE_PATH: /awdah/
           PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
-          PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL || 'https://amgad01.github.io/awdah/' }}
+          PAGES_SITE_URL: https://amgad01.github.io/awdah/
           PAGES_CNAME: ${{ vars.PAGES_CNAME }}
           SKIP_SHARED_BUILD: '1'
+
+      - name: Verify Pages bundle paths
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist https://amgad01.github.io/awdah/ /awdah/
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
@@ -75,3 +84,22 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Smoke test deployed Pages site
+        run: |
+          expected_url="https://amgad01.github.io/awdah/"
+          page_url="${{ steps.deployment.outputs.page_url }}"
+
+          case "$page_url" in
+            "$expected_url"|"$expected_url"*)
+              ;;
+            *)
+              echo "Unexpected GitHub Pages URL: $page_url"
+              exit 1
+              ;;
+          esac
+
+          body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
+          printf '%s' "$body" | grep -q 'Awdah'
+          printf '%s' "$body" | grep -q '/awdah/assets/'
+          printf '%s' "$body" | grep -q 'https://amgad01.github.io/awdah/'
