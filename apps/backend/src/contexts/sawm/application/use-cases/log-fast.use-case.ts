@@ -16,6 +16,13 @@ export class LogFastUseCase {
   async execute(command: LogFastCommand): Promise<void> {
     const date = HijriDate.fromString(command.date);
     const type = new LogType(command.type);
+    const existingLogs = await this.repository.findByUserAndDate(command.userId, date);
+
+    // A fast slot is effectively unique per (date, type). Treat duplicate submissions
+    // as idempotent so retries do not inflate qadaa completion counts.
+    if (existingLogs.some((log) => log.type.getValue() === type.getValue())) {
+      return;
+    }
 
     const fastLog = new FastLog({
       userId: command.userId,

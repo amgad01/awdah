@@ -68,12 +68,14 @@ export class DynamoDBFastLogRepository
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
-    return this.countByGSI({
+    const logs = await this.findAllWithIndexPrefix({
       pk: userId,
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
     });
+
+    return new Set(logs.map((log) => log.date.toString())).size;
   }
 
   async deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void> {

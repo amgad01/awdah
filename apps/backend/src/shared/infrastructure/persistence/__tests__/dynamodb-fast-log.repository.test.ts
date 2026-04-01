@@ -75,19 +75,40 @@ describe('DynamoDBFastLogRepository', () => {
     expect(calls[0]!.args[0].input.KeyConditionExpression).toContain('BETWEEN :start AND :end');
   });
 
-  it('should count qadaa logs using GSI', async () => {
+  it('should count unique qadaa dates using the GSI query results', async () => {
     ddbMock.on(QueryCommand).resolves({
-      Count: 10,
+      Items: [
+        {
+          userId,
+          sk: FastLogKey.encodeSk('1445-09-01', 'event-1'),
+          type: 'qadaa',
+          loggedAt: '2024-03-14T12:00:00.000Z',
+          typeDate: FastLogKey.encodeTypeDate('qadaa', '1445-09-01'),
+        },
+        {
+          userId,
+          sk: FastLogKey.encodeSk('1445-09-01', 'event-2'),
+          type: 'qadaa',
+          loggedAt: '2024-03-14T12:05:00.000Z',
+          typeDate: FastLogKey.encodeTypeDate('qadaa', '1445-09-01'),
+        },
+        {
+          userId,
+          sk: FastLogKey.encodeSk('1445-09-02', 'event-3'),
+          type: 'qadaa',
+          loggedAt: '2024-03-15T12:00:00.000Z',
+          typeDate: FastLogKey.encodeTypeDate('qadaa', '1445-09-02'),
+        },
+      ],
     });
 
     const count = await repository.countQadaaCompleted(userId);
 
-    expect(count).toBe(10);
+    expect(count).toBe(2);
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
       IndexName: 'typeDateIndex',
-      Select: 'COUNT',
-      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :type)',
+      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :sk)',
     });
   });
 
