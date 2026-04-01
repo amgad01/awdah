@@ -20,11 +20,10 @@ describe('E2E Seed Routes', () => {
     delete process.env.ENABLE_E2E_SEED;
     registerE2eSeedRoutes(app);
 
-    // Verify no seed route was registered by checking app._router
-    const hasRoute = (
-      app as { _router?: { stack: Array<{ route?: { path: string } }> } }
-    )._router?.stack.some((layer) => layer.route?.path === '/v1/e2e/seed');
-    expect(hasRoute).toBe(false);
+    return request(app)
+      .post('/v1/e2e/seed')
+      .send({ users: [{ email: 'test@example.com' }] })
+      .expect(404);
   });
 
   it('should register seed route when ENABLE_E2E_SEED is true', () => {
@@ -39,11 +38,13 @@ describe('E2E Seed Routes', () => {
 
     registerE2eSeedRoutes(app);
 
-    // Verify seed route was registered
-    const hasRoute = (
-      app as { _router?: { stack: Array<{ route?: { path: string } }> } }
-    )._router?.stack.some((layer) => layer.route?.path === '/v1/e2e/seed');
-    expect(hasRoute).toBe(true);
+    // Route existence is validated by ensuring this does not return 404.
+    return request(app)
+      .post('/v1/e2e/seed')
+      .send({})
+      .then((response) => {
+        expect(response.status).not.toBe(404);
+      });
   });
 
   it('should accept POST request with users array to /v1/e2e/seed', async () => {
