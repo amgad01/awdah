@@ -1,6 +1,6 @@
 services:
   localstack:
-    image: localstack/localstack@sha256:d2cd915054d149c8d8c656448295b80e3a5fd59d0841560a793d4f5cff5da666
+    image: localstack/localstack:4.4.0
     ports:
       - '4566:4566'
     environment:

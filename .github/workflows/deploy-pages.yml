@@ -7,19 +7,27 @@ on:
         description: 'Target environment (pages deployments are always public)'
         required: false
         default: 'pages'
+      release_tag:
+        description: 'Optional semver tag override (example: v1.2.3)'
+        required: false
   workflow_run:
     workflows: ['Deploy Backend']
     types:
       - completed
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
   group: deploy-pages
   cancel-in-progress: false
+
+env:
+  # The version tag created on the very first pipeline run (when no git tags exist).
+  # Change this before the initial release if you want a different starting version.
+  DEFAULT_FIRST_VERSION: v1.0.0
 
 jobs:
   deploy:
@@ -42,6 +50,56 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          git fetch --tags --force
+
+          input_tag='${{ github.event.inputs.release_tag }}'
+          semver_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+          if [ -n "$input_tag" ]; then
+            if ! printf '%s' "$input_tag" | grep -Eq "$semver_pattern"; then
+              echo "Invalid release_tag '$input_tag'. Expected format vX.Y.Z" >&2
+              exit 1
+            fi
+            release_tag="$input_tag"
+          else
+            latest_tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+
+            if [ -z "$latest_tag" ]; then
+              release_tag="${DEFAULT_FIRST_VERSION}"
+            else
+              major=${latest_tag#v}
+              major=${major%%.*}
+
+              rest=${latest_tag#v${major}.}
+              minor=${rest%%.*}
+
+              patch=${latest_tag##*.}
+              next_patch=$((patch + 1))
+
+              release_tag="v${major}.${minor}.${next_patch}"
+            fi
+          fi
+
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
+
+      - name: Create and push release tag
+        run: |
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG already exists locally."
+          else
+            git tag -a "$RELEASE_TAG" "$GITHUB_SHA" -m "GitHub Pages release $RELEASE_TAG"
+          fi
+
+          if git ls-remote --tags origin | grep -Fq "refs/tags/${RELEASE_TAG}"; then
+            echo "Tag $RELEASE_TAG already exists on origin."
+          else
+            git push origin "$RELEASE_TAG"
+          fi
+
       - name: Build shared package
         run: npm run build --workspace=packages/shared
 
@@ -56,7 +114,8 @@ jobs:
         env:
           VITE_AUTH_MODE: cognito
           VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_APP_VERSION: ${{ steps.release_tag.outputs.release_tag }}
+          VITE_APP_RELEASE_TAG: ${{ steps.release_tag.outputs.release_tag }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
           PAGES_BASE_PATH: /awdah/
           PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
@@ -78,6 +137,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.release_tag }}
+          name: Awdah ${{ steps.release_tag.outputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          make_latest: true
 
       - name: Smoke test deployed Pages site
         run: |

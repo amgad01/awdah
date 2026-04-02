@@ -125,6 +125,8 @@ echo "=> [4/5] Synthesizing all stacks..."
 cd "$INFRA_DIR"
 CONTEXT_ARGS=(--context "env=$ENV")
 [ -n "$ALERT_EMAIL" ] && CONTEXT_ARGS+=(--context "alertEmail=$ALERT_EMAIL")
+RELEASE_TAG="$(git -C "$ROOT_DIR" describe --tags --exact-match 2>/dev/null || git -C "$ROOT_DIR" tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+[ -n "$RELEASE_TAG" ] && CONTEXT_ARGS+=(--context "releaseTag=$RELEASE_TAG")
 
 if ! npx cdk synth --all "${CONTEXT_ARGS[@]}"; then
   exit 1

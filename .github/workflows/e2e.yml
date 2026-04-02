@@ -1,4 +1,4 @@
-name: Dockerized E2E
+name: E2E
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   e2e-docker:
-    name: Dockerized E2E (Dev Gate)
+    name: E2E (Dev Gate)
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     steps:
