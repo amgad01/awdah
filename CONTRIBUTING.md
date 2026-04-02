@@ -80,6 +80,8 @@ npm run check         # Full repo gate: builds, tests, and audit
 npm run check:pages   # Builds the frontend with /awdah/ and verifies the Pages output
 ```
 
+The Husky pre-push hook runs the full gate plus frontend Playwright E2E, so LocalStack must be running before you push. If you want the faster path while iterating, use `npm run check:quick`.
+
 Pre-commit hooks run lint and a quick typecheck automatically.
 
 ---

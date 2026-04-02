@@ -127,10 +127,11 @@ Same as `reset-prayers.sh` but for fast log entries. Targets the `fast-logs-dev`
 
 ### `pre-push-checks.sh`
 
-Mirrors the CI pipeline exactly. Run this before pushing to catch failures locally. Independent steps run in parallel to reduce wall-clock time.
+Mirrors the CI pipeline and, when `RUN_E2E=1` is set, also runs the frontend Playwright E2E suite. The Husky pre-push hook enables that flag by default, so it also requires LocalStack to be running. Independent steps run in parallel to reduce wall-clock time.
 
 ```bash
 ./scripts/pre-push-checks.sh                    # all checks
+RUN_E2E=1 ./scripts/pre-push-checks.sh          # include Playwright E2E
 SKIP_TESTS=1 ./scripts/pre-push-checks.sh       # skip tests
 SKIP_BUILDS=1 ./scripts/pre-push-checks.sh      # lint/typecheck/test only
 ```

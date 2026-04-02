@@ -68,6 +68,10 @@ The demo route is a public, JSON-backed sample account meant for portfolio links
 
 All CSS uses logical properties (`margin-inline-start`, `padding-inline-end`). The `dir` attribute on `<html>` toggles RTL/LTR based on selected language. All display strings are externalised into `src/i18n/en.json` and `src/i18n/ar.json`.
 
+## Design Tokens
+
+New components should use the centralized palette and shadow tokens in `src/assets/globals.css` instead of hardcoding colors in component CSS. See [docs/design-tokens.md](docs/design-tokens.md) for the component authoring guide.
+
 ## E2E Tests
 
 Tests live in `e2e/` and run against the local frontend dev server in `VITE_AUTH_MODE=local`, with the backend on `http://localhost:3000` and LocalStack providing DynamoDB.

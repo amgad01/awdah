@@ -10,6 +10,7 @@
 # Usage:
 #   ./scripts/pre-push-checks.sh                    # run all checks
 #   SKIP_TESTS=1 ./scripts/pre-push-checks.sh       # skip tests
+#   RUN_E2E=1 ./scripts/pre-push-checks.sh          # include frontend Playwright E2E
 #   SKIP_BUILDS=1 ./scripts/pre-push-checks.sh      # skip app builds (lint/typecheck/test only)
 set -e
 
@@ -113,6 +114,16 @@ else
       "npm run test --workspace=packages/shared --if-present" \
     "Tests: frontend" \
       "npm run test --workspace=apps/frontend --if-present"
+fi
+
+if [ "${SKIP_E2E:-0}" = "1" ]; then
+  warn "SKIP_E2E=1 — skipping frontend Playwright E2E"
+elif [ "${RUN_E2E:-0}" = "1" ]; then
+  step "Phase 3.5/4 — Frontend E2E"
+  npm run test:e2e --workspace=apps/frontend
+  success "Frontend E2E passed"
+else
+  warn "RUN_E2E=1 not set — skipping frontend Playwright E2E"
 fi
 
 # ── Phase 4: Builds + security audit ─────────────────────────────────────────
