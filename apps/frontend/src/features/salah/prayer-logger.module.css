@@ -105,12 +105,12 @@
 
 .checkCircleLogged {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .prayerBtn:hover:not(:disabled) .checkCircle:not(.checkCircleLogged) {
   background-color: var(--color-primary-light);
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 /* ── Tabs ── */
@@ -230,8 +230,8 @@
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  background-color: var(--color-error, #d32f2f);
-  color: white;
+  background-color: var(--color-error);
+  color: var(--color-text-on-primary);
   border: none;
 }
 

@@ -14,7 +14,7 @@
     );
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-lg);
-  box-shadow: 0 20px 38px -32px rgba(0, 77, 64, 0.32);
+  box-shadow: var(--shadow-primary-sm);
   transition: var(--transition-normal);
   border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--color-border));
   display: flex;
@@ -22,7 +22,7 @@
 }
 
 .card:hover {
-  box-shadow: 0 24px 46px -32px rgba(0, 77, 64, 0.36);
+  box-shadow: var(--shadow-primary-md);
   border-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
   transform: translateY(-3px);
 }
@@ -60,7 +60,7 @@
 
 .primary .title,
 .primary .subtitle {
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .outline {
@@ -75,8 +75,8 @@
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
 }

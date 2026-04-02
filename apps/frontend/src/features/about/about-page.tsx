@@ -31,6 +31,10 @@ interface TeamMember {
   socials: SocialLink[];
   tech_title: string;
   tech: string[];
+  languages_title?: string;
+  languages?: string[];
+  certifications_title?: string;
+  certifications?: string[];
 }
 
 interface ProjectFeature {
@@ -171,7 +175,15 @@ export const AboutPage: React.FC = () => {
           <span className={styles.heroBadge}>{data.team_title}</span>
           <h2 className={styles.devTitle}>{member.name}</h2>
           <p className={styles.devHeadline}>{member.role}</p>
-          <p className={styles.devBio}>{member.bio}</p>
+          {member.bio
+            .split(/\n\s*\n/)
+            .map((paragraph) => paragraph.trim())
+            .filter(Boolean)
+            .map((paragraph, index) => (
+              <p key={`${member.id}-bio-${index}`} className={styles.devBio}>
+                {paragraph}
+              </p>
+            ))}
 
           <div className={styles.devLinks}>
             <a
@@ -210,6 +222,32 @@ export const AboutPage: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {member.languages && member.languages.length > 0 ? (
+            <div className={styles.devTech}>
+              <h3 className={styles.devTechTitle}>{member.languages_title}</h3>
+              <div className={styles.techPills}>
+                {member.languages.map((languageName) => (
+                  <span key={languageName} className={styles.techPill}>
+                    {languageName}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {member.certifications && member.certifications.length > 0 ? (
+            <div className={styles.devTech}>
+              <h3 className={styles.devTechTitle}>{member.certifications_title}</h3>
+              <div className={styles.techPills}>
+                {member.certifications.map((certification) => (
+                  <span key={certification} className={styles.techPill}>
+                    {certification}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       ))}
 

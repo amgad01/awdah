@@ -31,11 +31,11 @@ export const Toast: React.FC<ToastProps> = ({ id, type, message, duration = 5000
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 size={18} className={styles.successIcon} color="#10b981" />;
+        return <CheckCircle2 size={18} className={styles.successIcon} />;
       case 'error':
-        return <AlertCircle size={18} className={styles.errorIcon} color="#ef4444" />;
+        return <AlertCircle size={18} className={styles.errorIcon} />;
       case 'info':
-        return <Info size={18} className={styles.infoIcon} color="#3b82f6" />;
+        return <Info size={18} className={styles.infoIcon} />;
     }
   };
 

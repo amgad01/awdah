@@ -33,7 +33,7 @@
   padding: 0.35rem 0.8rem;
   border-radius: var(--border-radius-pill);
   background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
-  color: #6f5200;
+  color: var(--color-accent-text-strong);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.05em;
@@ -145,11 +145,11 @@
   background: linear-gradient(
     180deg,
     var(--color-primary) 0%,
-    color-mix(in srgb, var(--color-primary) 88%, #0f3f37) 100%
+    color-mix(in srgb, var(--color-primary) 88%, var(--color-primary-card-end)) 100%
   );
   color: var(--color-text-on-primary);
   border: none;
-  box-shadow: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
+  box-shadow: var(--shadow-primary-xl);
 }
 
 .heroCardHeader {
@@ -203,7 +203,7 @@
 
 .heroCardStat strong {
   font-size: 1.2rem;
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .heroCardStat span {

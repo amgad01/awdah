@@ -16,9 +16,9 @@
 }
 
 :global([data-theme='dark']) .toggle {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.92);
+  border-color: var(--color-overlay-border);
+  background: var(--color-overlay-subtle);
+  color: var(--color-on-dark-high);
 }
 
 .toggle:hover {
@@ -28,7 +28,7 @@
 }
 
 :global([data-theme='dark']) .toggle:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.24);
-  color: #ffffff;
+  background: var(--color-overlay-hover);
+  border-color: var(--color-overlay-active);
+  color: var(--color-text-on-primary);
 }

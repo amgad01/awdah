@@ -127,11 +127,11 @@
 }
 
 .accordionItem:hover {
-  background-color: var(--color-primary-alpha-5, rgba(0, 77, 64, 0.04));
+  background-color: var(--color-primary-alpha-5);
 }
 
 .accordionItemOpen {
-  background-color: var(--color-primary-alpha-5, rgba(0, 77, 64, 0.04));
+  background-color: var(--color-primary-alpha-5);
 }
 
 .accordionTrigger {

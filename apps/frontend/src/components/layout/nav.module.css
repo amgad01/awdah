@@ -4,9 +4,7 @@
   inset-inline-start: 0;
   width: 100%;
   min-height: var(--header-height);
-  background:
-    linear-gradient(180deg, rgba(9, 33, 48, 0.98) 0%, rgba(11, 41, 58, 0.96) 100%),
-    var(--color-primary);
+  background: var(--nav-bg);
   color: var(--color-text-on-primary);
   display: flex;
   align-items: center;
@@ -34,7 +32,7 @@
 .sectionLabel {
   margin: 0;
   padding-inline: var(--spacing-xs);
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--color-on-dark-dim);
   font-size: 0.72rem;
   font-weight: var(--font-weight-extrabold);
   letter-spacing: 0.08em;
@@ -64,7 +62,7 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  box-shadow: 0 0 15px rgba(197, 160, 40, 0.2);
+  box-shadow: var(--shadow-accent-glow);
 }
 
 .logoText {
@@ -121,25 +119,25 @@
 }
 
 .link:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: white;
+  background-color: var(--color-overlay-subtle);
+  border-color: var(--color-overlay-subtle);
+  color: var(--color-text-on-primary);
 }
 
 .active {
-  background-color: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: white;
+  background-color: var(--color-overlay-hover);
+  border-color: var(--color-overlay-medium);
+  color: var(--color-text-on-primary);
 }
 
 .setupLink {
-  border: 1px dashed rgba(255, 255, 255, 0.22);
-  background: rgba(212, 175, 55, 0.12);
+  border: 1px dashed var(--color-overlay-strong);
+  background: var(--color-accent-alpha-12);
 }
 
 .setupLink:hover {
-  background: rgba(212, 175, 55, 0.18);
-  border-color: rgba(212, 175, 55, 0.38);
+  background: var(--color-accent-alpha-20);
+  border-color: var(--color-accent-alpha-38);
 }
 
 .footer {
@@ -169,9 +167,9 @@
   gap: 0.4rem;
   padding: 0.45rem 0.7rem;
   border-radius: var(--border-radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--color-overlay-subtle);
+  background: var(--color-overlay-ghost);
+  color: var(--color-on-dark-muted);
   font-size: 0.84rem;
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
@@ -179,15 +177,15 @@
 }
 
 .footerLink:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-on-primary);
+  background: var(--color-overlay-subtle);
+  border-color: var(--color-overlay-medium);
 }
 
 .footerLinkActive {
-  color: white;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--color-text-on-primary);
+  background: var(--color-overlay-medium);
+  border-color: var(--color-overlay-border);
 }
 
 .footerControls {
@@ -208,9 +206,9 @@
 }
 
 .logoutBtn:hover {
-  color: #ffb3b3;
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-error-on-dark);
+  background-color: var(--color-overlay-faint);
+  border-color: var(--color-overlay-subtle);
 }
 
 @media (max-width: 1023px) {
@@ -303,7 +301,7 @@
 
   .navHeader {
     padding: 0 var(--spacing-xs) var(--spacing-md);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--nav-border);
     margin-bottom: var(--spacing-xs);
   }
 
@@ -347,7 +345,7 @@
     flex-direction: column;
     width: 100%;
     margin-top: auto;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--color-overlay-dim);
     padding-top: var(--spacing-md);
     gap: var(--spacing-xs);
   }
@@ -361,8 +359,8 @@
   .footerLinks {
     width: 100%;
     padding: var(--spacing-xs) 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--color-overlay-faint);
+    border-bottom: 1px solid var(--color-overlay-faint);
   }
 
   .footerControls {

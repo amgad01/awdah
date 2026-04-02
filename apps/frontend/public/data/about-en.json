@@ -1,48 +1,48 @@
 {
   "project_badge": "The Project",
   "project_title": "About Awdah",
-  "project_subtitle": "Helping you return to missed prayers and fasts with clarity, privacy, and steady progress.",
+  "project_subtitle": "Your companion for returning to missed prayers and fasts, with structure, privacy, and quiet persistence.",
   "why_title": "Our Mission",
-  "why_body": "Awdah was born from a desire to make the journey of making up missed worship feel less overwhelming. We believe in calm, privacy-aware tools that respect the seriousness of your spiritual journey.",
+  "why_body": "Awdah was built to make qadaa feel less like a burden and more like a steady practice. The goal is a calm, private experience that respects the weight of the journey and helps you stay consistent, without pressure.",
   "who_title": "Who it's for",
-  "who_body": "Whether you are returning to practice after a long break or keeping track of a smaller backlog, Awdah gives you structure, visibility, and a gentler way to stay consistent.",
+  "who_body": "Whether you're returning after years away or tracking a small backlog of missed days, Awdah gives you the structure and clarity to move forward at your own pace.",
   "features_title": "Core Features",
   "features": [
     {
       "id": "salah",
       "icon": "Moon",
       "title": "Salah Tracking",
-      "body": "Track missed obligatory prayers with a clear view of what remains and what you've already completed."
+      "body": "Track your missed obligatory prayers with a clear picture of where you stand and how far you've come."
     },
     {
       "id": "sawm",
       "icon": "Sun",
       "title": "Sawm Tracking",
-      "body": "Log missed Ramadan fasts with dedicated support for qadaa progress and recovery."
+      "body": "Log missed Ramadan fasts with dedicated progress tracking and a clear view of what remains."
     },
     {
       "id": "hijri",
       "icon": "Calendar",
       "title": "Hijri First",
-      "body": "Built around the Islamic calendar with accurate dual-date support for all entries."
+      "body": "Built around the Islamic calendar, with accurate dual-date support for every entry you make."
     },
     {
       "id": "bilingual",
       "icon": "Globe",
       "title": "Bilingual + RTL",
-      "body": "Built for English and Arabic from the start, with full right-to-left support where it belongs."
+      "body": "Designed for Arabic and English from the ground up, with full right-to-left support built in, not bolted on."
     },
     {
       "id": "privacy",
       "icon": "Shield",
       "title": "Privacy First",
-      "body": "Your data stays yours, with minimal data collection and clear export and deletion controls."
+      "body": "Minimal data collection by design. Your data stays yours, with clear export and deletion controls always available."
     },
     {
       "id": "learn",
       "icon": "BookOpen",
       "title": "Learn Hub",
-      "body": "Reference content to explain key rulings, terminology, and product decisions behind qadaa tracking."
+      "body": "Reference content explaining the rulings, terminology, and thinking behind how qadaa tracking works in Awdah."
     }
   ],
   "team_title": "The Founder",
@@ -51,7 +51,7 @@
       "id": "amgad01",
       "name": "Amgad Mahmoud",
       "role": "Founder · Architect · Lead Developer",
-      "bio": "Cloud Engineer based in Germany with 5 years of experience building serverless software on AWS. Passionate about Clean Architecture, DDD, and building tools that serve the community.",
+      "bio": "Awdah came from a personal place, a need for something structured and calm that could hold the weight of a spiritual journey without making it feel heavier. So I built one.\n\nI'm a cloud engineer delivering cloud-native digital transformation projects on AWS, working across multi-account platform integration, IaC automation with CDKTF and AWS CDK, and CI/CD pipelines with integrated security gates. My work covers the full delivery stack: multi-tenant SaaS infrastructure, cloud automation, observability engineering, and cost governance. I care about clean architecture, scalable system design, and building things that are intentional by nature.",
       "github": "amgad01",
       "socials": [
         {
@@ -71,19 +71,34 @@
           "url": "https://substack.com/@amah01"
         }
       ],
-      "tech_title": "Tech Stack",
+      "tech_title": "Selected Skills",
       "tech": [
-        "Node.js",
-        "TypeScript",
-        "Python",
-        "Angular",
-        "React",
-        "IaC (AWS CDK, CDK for Terraform)",
-        "NoSQL (DynamoDB)",
-        "Auth (Cognito)",
-        "Serverless Architecture",
+        "Infrastructure as Code",
+        "AWS CDK",
+        "CDK for Terraform (CDKTF)",
+        "CI/CD & Security Gates",
         "Clean Architecture",
-        "DDD"
+        "Domain-Driven Design (DDD)",
+        "TypeScript",
+        "Node.js",
+        "Serverless Architecture",
+        "React",
+        "Python",
+        "Docker",
+        "NoSQL (DynamoDB, Redis)",
+        "SQL (PostgreSQL)"
+      ],
+      "languages_title": "Languages",
+      "languages": ["Arabic", "English", "German"],
+      "certifications_title": "Certifications",
+      "certifications": [
+        "AWS Certified Solutions Architect – Associate",
+        "AWS Certified CloudOps/SysOps Administrator – Associate",
+        "AWS Certified Developer – Associate",
+        "AWS Certified AI Practitioner",
+        "AWS Certified Cloud Practitioner",
+        "Microsoft Azure Fundamentals (AZ-900)",
+        "velpTEC Cloud Architecture"
       ]
     }
   ],

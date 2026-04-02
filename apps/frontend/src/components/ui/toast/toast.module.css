@@ -22,10 +22,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: 1rem;
-  box-shadow:
-    0 20px 40px -8px rgba(0, 0, 0, 0.15),
-    0 8px 16px -4px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-toast);
   pointer-events: auto;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
@@ -42,15 +39,27 @@
 }
 
 .success::before {
-  background: #10b981;
+  background: var(--color-success);
 }
 
 .error::before {
-  background: #ef4444;
+  background: var(--color-error);
 }
 
 .info::before {
-  background: #3b82f6;
+  background: var(--color-info);
+}
+
+.successIcon {
+  color: var(--color-success);
+}
+
+.errorIcon {
+  color: var(--color-error);
+}
+
+.infoIcon {
+  color: var(--color-info);
 }
 
 .icon {
@@ -64,7 +73,7 @@
   flex-grow: 1;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--text-main);
+  color: var(--color-text-primary);
   line-height: 1.4;
 }
 
@@ -73,7 +82,7 @@
   padding: 0.25rem;
   margin: -0.25rem;
   border-radius: 0.5rem;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   transition: all 0.2s;
   background: transparent;
   border: none;
@@ -81,8 +90,8 @@
 }
 
 .dismiss:hover {
-  background: var(--bg-hover);
-  color: var(--text-main);
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
 }
 
 @keyframes slideUp {

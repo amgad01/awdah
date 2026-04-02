@@ -215,7 +215,7 @@
   border-radius: var(--border-radius-md);
   border: none;
   background: var(--color-primary);
-  color: white;
+  color: var(--color-text-on-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1089,7 +1089,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-warning);
   border-radius: var(--border-radius-md);
-  color: #fff;
+  color: var(--color-text-on-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
@@ -1104,7 +1104,7 @@
 
 .resetFeedbackSuccess {
   font-size: var(--font-size-xs);
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
   margin: 0;
 }
 

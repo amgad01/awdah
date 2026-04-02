@@ -27,21 +27,21 @@
 }
 
 .switcherInverse:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-  color: white;
+  border-color: var(--color-overlay-active);
+  color: var(--color-text-on-primary);
   background: var(--color-overlay-medium);
 }
 
 .switcherInverse .active {
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .switcherInverse .inactive {
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--color-on-dark-muted);
 }
 
 .switcherInverse .divider {
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--color-overlay-border);
 }
 
 .active {
@@ -80,13 +80,13 @@
 .selectInverse {
   border-color: var(--color-overlay-border);
   background: var(--color-overlay-subtle);
-  color: white;
+  color: var(--color-text-on-primary);
 }
 
 .selectInverse:hover,
 .selectInverse:focus {
-  border-color: rgba(255, 255, 255, 0.32);
-  color: white;
+  border-color: var(--color-overlay-active);
+  color: var(--color-text-on-primary);
   background: var(--color-overlay-medium);
 }
 

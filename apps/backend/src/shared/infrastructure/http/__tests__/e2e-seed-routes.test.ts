@@ -28,23 +28,13 @@ describe('E2E Seed Routes', () => {
 
   it('should register seed route when ENABLE_E2E_SEED is true', () => {
     process.env.ENABLE_E2E_SEED = 'true';
+    const mockPost = vi.fn();
+    const mockApp = { post: mockPost } as unknown as Express;
 
-    // Mock the AWS client creation to avoid real AWS calls
-    vi.mock('../../aws/client-config', () => ({
-      createAwsClientConfig: () => ({
-        region: 'eu-west-1',
-      }),
-    }));
+    registerE2eSeedRoutes(mockApp);
 
-    registerE2eSeedRoutes(app);
-
-    // Route existence is validated by ensuring this does not return 404.
-    return request(app)
-      .post('/v1/e2e/seed')
-      .send({})
-      .then((response) => {
-        expect(response.status).not.toBe(404);
-      });
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledWith('/v1/e2e/seed', expect.any(Function));
   });
 
   it('should accept POST request with users array to /v1/e2e/seed', async () => {

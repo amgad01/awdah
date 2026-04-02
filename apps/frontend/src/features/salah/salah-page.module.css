@@ -44,7 +44,7 @@
       color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)) 100%
     );
   border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
-  box-shadow: 0 28px 60px -48px rgba(0, 77, 64, 0.45);
+  box-shadow: var(--shadow-primary-lg);
 }
 
 @media (max-width: 768px) {
@@ -117,11 +117,11 @@
   background: linear-gradient(
     180deg,
     var(--color-primary) 0%,
-    color-mix(in srgb, var(--color-primary) 88%, #0f3f37) 100%
+    color-mix(in srgb, var(--color-primary) 88%, var(--color-primary-card-end)) 100%
   );
   color: var(--color-text-on-primary);
   border: none;
-  box-shadow: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
+  box-shadow: var(--shadow-primary-xl);
 }
 
 .heroCardHeader {

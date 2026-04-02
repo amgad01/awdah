@@ -6,6 +6,7 @@
   --color-secondary: #00695c;
   --color-accent: #d4af37;
   --color-accent-hover: #b8960c;
+  --color-accent-text-strong: #6f5200;
 
   /* Neutral Palette */
   --color-background: #f8f9fa;
@@ -21,9 +22,19 @@
 
   /* Semantic Colors */
   --color-success: #2e7d32;
-  --color-warning: #f57c00;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #d97706;
+  --color-warning-text: #92400e;
+  --color-warning-alpha-10: rgba(245, 158, 11, 0.1);
+  --color-warning-alpha-18: rgba(245, 158, 11, 0.18);
+  --color-warning-alpha-24: rgba(245, 158, 11, 0.24);
+  --color-warning-alpha-50: rgba(245, 158, 11, 0.5);
   --color-error: #d32f2f;
   --color-info: #0288d1;
+  --color-info-alpha-12: rgba(2, 136, 209, 0.12);
+  --color-primary-hero-end: #01261f;
+  --color-primary-card-end: #0f3f37;
+  --color-accent-card-end: #3a2800;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -58,13 +69,29 @@
   --shadow-heavy: 0 24px 60px rgba(0, 0, 0, 0.18);
 
   /* Alpha color tokens (avoid scatter of inline rgba) */
-  --color-primary-alpha-10: rgba(0, 77, 64, 0.1);
   --color-primary-alpha-5: rgba(0, 121, 107, 0.05);
-  --color-accent-alpha-12: rgba(212, 175, 55, 0.12);
+  --color-primary-alpha-10: rgba(0, 77, 64, 0.1);
+  --color-primary-alpha-20: rgba(0, 77, 64, 0.2);
   --color-accent-alpha-5: rgba(212, 175, 55, 0.05);
+  --color-accent-alpha-12: rgba(212, 175, 55, 0.12);
+  --color-accent-alpha-20: rgba(212, 175, 55, 0.2);
+  --color-accent-alpha-38: rgba(212, 175, 55, 0.38);
   --color-success-alpha-8: rgba(46, 125, 50, 0.08);
   --color-error-alpha-10: rgba(211, 47, 47, 0.1);
   --color-error-alpha-20: rgba(211, 47, 47, 0.2);
+
+  /* Shadow tokens that reference the primary palette */
+  --shadow-primary-sm: 0 20px 38px -32px rgba(0, 77, 64, 0.32);
+  --shadow-primary-md: 0 24px 46px -32px rgba(0, 77, 64, 0.36);
+  --shadow-primary-lg: 0 28px 60px -48px rgba(0, 77, 64, 0.45);
+  --shadow-primary-xl: 0 24px 45px -28px rgba(0, 77, 64, 0.65);
+  --shadow-accent-glow: 0 4px 24px -4px rgba(197, 160, 40, 0.2);
+  --shadow-accent-lg: 0 28px 60px -48px rgba(180, 140, 30, 0.35);
+  --shadow-accent-xl: 0 24px 45px -28px rgba(180, 140, 30, 0.55);
+  --shadow-warning: 0 18px 34px -28px rgba(146, 64, 14, 0.4);
+  --shadow-toast:
+    0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 
   /* Glass/Overlay tokens — for elements placed on dark/primary-coloured backgrounds.
      These do not change between light and dark mode because the backgrounds
@@ -72,18 +99,38 @@
   --color-surface-glass: rgba(255, 255, 255, 0.96);
   --color-surface-glass-tint: rgba(255, 255, 255, 0.97);
   --color-on-accent-dark: #1f1801;
+
+  /* Overlay scale — white over dark/primary backgrounds */
+  --color-overlay-ghost: rgba(255, 255, 255, 0.04);
+  --color-overlay-faint: rgba(255, 255, 255, 0.06);
   --color-overlay-subtle: rgba(255, 255, 255, 0.08);
+  --color-overlay-dim: rgba(255, 255, 255, 0.1);
   --color-overlay-medium: rgba(255, 255, 255, 0.12);
   --color-overlay-hover: rgba(255, 255, 255, 0.14);
   --color-overlay-border: rgba(255, 255, 255, 0.18);
   --color-overlay-active: rgba(255, 255, 255, 0.2);
+  --color-overlay-strong: rgba(255, 255, 255, 0.24);
+  --color-overlay-heavy: rgba(255, 255, 255, 0.3);
+
+  /* On-dark text scale */
+  --color-on-dark-bright: rgba(255, 255, 255, 0.96);
   --color-on-dark-high: rgba(255, 255, 255, 0.92);
   --color-on-dark-medium: rgba(255, 255, 255, 0.88);
   --color-on-dark-secondary: rgba(255, 255, 255, 0.84);
   --color-on-dark-low: rgba(255, 255, 255, 0.8);
   --color-on-dark-muted: rgba(255, 255, 255, 0.7);
+  --color-on-dark-dim: rgba(255, 255, 255, 0.58);
+
+  /* Semantic on-dark — specific roles */
+  --color-accent-on-dark: #fff4ce; /* warm accent text on dark/hero panels */
+  --color-error-on-dark: #ffb3b3; /* error/danger text on dark backgrounds */
+
   --color-backdrop: rgba(0, 0, 0, 0.45);
   --color-surface-hover: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+
+  /* Nav / sidebar background — teal-based, always dark */
+  --nav-bg: #00251a;
+  --nav-border: rgba(255, 255, 255, 0.08);
 
   /* Glass/Overlay variants */
   --glass-bg: rgba(255, 255, 255, 0.75);
@@ -135,6 +182,7 @@
     --color-secondary: #4db6ac;
     --color-accent: #e6c349;
     --color-accent-hover: #d4af37;
+    --color-accent-text-strong: #f8df84;
     --color-background: #121212;
     --color-surface: #1e1e1e;
     --color-border: #2e2e2e;
@@ -144,20 +192,50 @@
     --color-text-muted: #808080;
     --color-text-on-primary: #ffffff;
     --color-success: #66bb6a;
-    --color-warning: #ffa726;
+    --color-warning: #fbbf24;
+    --color-warning-dark: #f59e0b;
+    --color-warning-text: #fcd34d;
+    --color-warning-alpha-10: rgba(251, 191, 36, 0.1);
+    --color-warning-alpha-18: rgba(251, 191, 36, 0.18);
+    --color-warning-alpha-24: rgba(251, 191, 36, 0.24);
+    --color-warning-alpha-50: rgba(251, 191, 36, 0.5);
     --color-error: #ef5350;
     --color-info: #29b6f6;
+    --color-info-alpha-12: rgba(41, 182, 246, 0.12);
+    --color-primary-hero-end: #0d3029;
+    --color-primary-card-end: #1f5d56;
+    --color-accent-card-end: #6a4f12;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-    --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
     --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
-    --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+    --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
+    --color-primary-alpha-20: rgba(38, 166, 154, 0.22);
     --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+    --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+    --color-accent-alpha-20: rgba(230, 195, 73, 0.2);
+    --color-accent-alpha-38: rgba(230, 195, 73, 0.38);
     --color-success-alpha-8: rgba(102, 187, 106, 0.1);
     --color-error-alpha-10: rgba(239, 83, 80, 0.12);
     --color-error-alpha-20: rgba(239, 83, 80, 0.25);
     --color-surface-hover: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+
+    /* Shadow tokens */
+    --shadow-primary-sm: 0 20px 38px -32px rgba(38, 166, 154, 0.2);
+    --shadow-primary-md: 0 24px 46px -32px rgba(38, 166, 154, 0.24);
+    --shadow-primary-lg: 0 28px 60px -48px rgba(38, 166, 154, 0.3);
+    --shadow-primary-xl: 0 24px 45px -28px rgba(38, 166, 154, 0.45);
+    --shadow-accent-glow: 0 4px 24px -4px rgba(230, 195, 73, 0.18);
+    --shadow-accent-lg: 0 28px 60px -48px rgba(230, 195, 73, 0.25);
+    --shadow-accent-xl: 0 24px 45px -28px rgba(230, 195, 73, 0.4);
+    --shadow-warning: 0 18px 34px -28px rgba(251, 191, 36, 0.3);
+    --shadow-toast:
+      0 20px 40px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+    /* Nav */
+    --nav-bg: #0d1f1d;
+    --nav-border: rgba(255, 255, 255, 0.08);
 
     /* Glass/Overlay variants - Dark */
     --color-surface-glass: rgba(30, 30, 30, 0.85);
@@ -177,6 +255,7 @@
   --color-secondary: #4db6ac;
   --color-accent: #e6c349;
   --color-accent-hover: #d4af37;
+  --color-accent-text-strong: #f8df84;
   --color-background: #121212;
   --color-surface: #1e1e1e;
   --color-border: #2e2e2e;
@@ -186,21 +265,52 @@
   --color-text-muted: #808080;
   --color-text-on-primary: #ffffff;
   --color-success: #66bb6a;
-  --color-warning: #ffa726;
+  --color-warning: #fbbf24;
+  --color-warning-dark: #f59e0b;
+  --color-warning-text: #fcd34d;
+  --color-warning-alpha-10: rgba(251, 191, 36, 0.1);
+  --color-warning-alpha-18: rgba(251, 191, 36, 0.18);
+  --color-warning-alpha-24: rgba(251, 191, 36, 0.24);
+  --color-warning-alpha-50: rgba(251, 191, 36, 0.5);
   --color-error: #ef5350;
   --color-info: #29b6f6;
+  --color-info-alpha-12: rgba(41, 182, 246, 0.12);
+  --color-primary-hero-end: #0d3029;
+  --color-primary-card-end: #1f5d56;
+  --color-accent-card-end: #6a4f12;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
   --color-primary-alpha-5: rgba(77, 182, 172, 0.08);
-  --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+  --color-primary-alpha-10: rgba(38, 166, 154, 0.15);
+  --color-primary-alpha-20: rgba(38, 166, 154, 0.22);
   --color-accent-alpha-5: rgba(230, 195, 73, 0.08);
+  --color-accent-alpha-12: rgba(230, 195, 73, 0.15);
+  --color-accent-alpha-20: rgba(230, 195, 73, 0.2);
+  --color-accent-alpha-38: rgba(230, 195, 73, 0.38);
   --color-success-alpha-8: rgba(102, 187, 106, 0.1);
   --color-error-alpha-10: rgba(239, 83, 80, 0.12);
   --color-error-alpha-20: rgba(239, 83, 80, 0.25);
   --color-surface-glass: rgba(30, 30, 30, 0.85);
   --color-surface-glass-tint: rgba(30, 30, 30, 0.88);
+  --glass-bg: rgba(30, 30, 30, 0.7);
+  --glass-bg-elevated: rgba(40, 40, 40, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 16px;
+  --color-surface-hover: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  --shadow-primary-sm: 0 20px 38px -32px rgba(38, 166, 154, 0.2);
+  --shadow-primary-md: 0 24px 46px -32px rgba(38, 166, 154, 0.24);
+  --shadow-primary-lg: 0 28px 60px -48px rgba(38, 166, 154, 0.3);
+  --shadow-primary-xl: 0 24px 45px -28px rgba(38, 166, 154, 0.45);
+  --shadow-accent-glow: 0 4px 24px -4px rgba(230, 195, 73, 0.18);
+  --shadow-accent-lg: 0 28px 60px -48px rgba(230, 195, 73, 0.25);
+  --shadow-accent-xl: 0 24px 45px -28px rgba(230, 195, 73, 0.4);
+  --shadow-warning: 0 18px 34px -28px rgba(251, 191, 36, 0.3);
+  --shadow-toast:
+    0 20px 40px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --nav-bg: #0d1f1d;
+  --nav-border: rgba(255, 255, 255, 0.08);
 }
 
 /* Global animation keyframes — reference these in CSS modules without redefining */
