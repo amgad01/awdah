@@ -51,8 +51,6 @@ const LOCALSTACK_E2E_TABLES: LocalE2eTableDefinition[] = [
   },
   { tableName: settings.tables.practicingPeriods, pk: 'userId', sk: 'periodId' },
   { tableName: settings.tables.userSettings, pk: 'userId', sk: 'sk' },
-  { tableName: settings.tables.userLifecycleJobs, pk: 'userId', sk: 'sk' },
-  { tableName: settings.tables.deletedUsers, pk: 'userId', sk: 'deletedAt' },
 ];
 
 // Local user ID logic matching local-auth.service.ts

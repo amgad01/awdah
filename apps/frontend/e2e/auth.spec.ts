@@ -15,7 +15,7 @@ test.describe('Authentication', () => {
   test('opens the public learn page from landing', async ({ page }) => {
     await page.goto('/');
     await page.locator('a[href="/learn"]').first().click();
-    await expect(page).toHaveURL(/\/learn$/);
+    await expect(page).toHaveURL(/\/learn(\?lang=en)?$/);
     await expect(page.locator('input[type="search"]')).toBeVisible();
   });
 
