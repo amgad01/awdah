@@ -22,6 +22,7 @@ const deployFrontend =
   app.node.tryGetContext('deployFrontend') === 'true';
 const commit = app.node.tryGetContext('commit') as string | undefined;
 const buildId = app.node.tryGetContext('buildId') as string | undefined;
+const releaseTag = app.node.tryGetContext('releaseTag') as string | undefined;
 const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
 function validateOriginContext(name: string, value: string | undefined): void {
@@ -41,6 +42,7 @@ if (ticket) cdk.Tags.of(app).add('ticket', ticket);
 cdk.Tags.of(app).add('owner', 'Amgad Mahmoud');
 if (commit) cdk.Tags.of(app).add('commit', commit);
 if (buildId) cdk.Tags.of(app).add('buildId', buildId);
+if (releaseTag) cdk.Tags.of(app).add('release', releaseTag);
 
 const dataStack = new DataStack(app, `Awdah-data-stack-${envWithTicket}`, {
   description:

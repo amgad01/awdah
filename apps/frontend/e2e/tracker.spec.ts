@@ -40,13 +40,15 @@ test.describe('Salah Tracker', () => {
   test('navigates to previous day and back', async ({ page }) => {
     await page.getByTestId('salah-tab-qadaa').click();
     const prevBtn = page.getByTestId('day-nav-prev').first();
-    const nextBtn = page.getByTestId('day-nav-next').first();
+    let nextBtn = page.getByTestId('day-nav-next').first();
 
     // Today — next is disabled
     await expect(nextBtn).toBeDisabled();
 
     await prevBtn.click();
     // Now on yesterday — next should be enabled
+    // Re-query nextBtn to ensure we have the latest element after re-render
+    nextBtn = page.getByTestId('day-nav-next').first();
     await expect(nextBtn).toBeEnabled();
 
     await nextBtn.click();
