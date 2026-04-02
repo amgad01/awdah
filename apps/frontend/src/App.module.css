@@ -534,17 +534,33 @@
 
 .publicFooter {
   padding: var(--spacing-4) var(--spacing-6);
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
   border-block-start: 1px solid var(--color-overlay-medium);
 }
 
 .publicFooterLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--border-radius-pill);
   font-size: 0.8rem;
   color: var(--color-on-dark-low);
   text-decoration: none;
+  border: 1px solid transparent;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .publicFooterLink:hover {
   color: var(--color-on-dark-bright);
-  text-decoration: underline;
+  background: var(--color-overlay-faint);
+  border-color: var(--color-overlay-subtle);
+  text-decoration: none;
 }

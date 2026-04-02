@@ -64,9 +64,10 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
             </div>
 
             <div className={styles.heroStats}>
-              <div className={styles.statPill}>{t('marketing.stat_bilingual')}</div>
+              <div className={styles.statPill}>{t('marketing.stat_multilingual')}</div>
               <div className={styles.statPill}>{t('marketing.stat_hijri')}</div>
               <div className={styles.statPill}>{t('marketing.stat_privacy')}</div>
+              <div className={styles.statPill}>{t('marketing.stat_selfhost')}</div>
             </div>
 
             <div className={styles.featureGrid}>

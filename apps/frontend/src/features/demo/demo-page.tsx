@@ -242,8 +242,9 @@ export const DemoPage: React.FC<DemoPageProps> = ({ showHeading = true }) => {
             <p className={styles.story}>{localizedStory}</p>
 
             <div className={styles.headerChips}>
-              <span className={styles.heroChip}>{t('marketing.stat_bilingual')}</span>
+              <span className={styles.heroChip}>{t('marketing.stat_multilingual')}</span>
               <span className={styles.heroChip}>{t('marketing.stat_privacy')}</span>
+              <span className={styles.heroChip}>{t('marketing.stat_selfhost')}</span>
             </div>
           </div>
         </header>

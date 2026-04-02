@@ -1,6 +1,6 @@
-import './i18n';
 import '@/assets/globals.css';
 import { validateEnv } from './lib/validate-env';
+import { initializeI18n } from './i18n';
 
 // Fail loudly at startup if required env vars are missing — avoids silent
 // Cognito failures that produce confusing runtime errors.
@@ -16,16 +16,22 @@ import { AuthProvider } from './hooks/use-auth';
 import { ToastProvider } from './hooks/use-toast';
 import App from './App';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-);
+async function bootstrap(): Promise<void> {
+  await initializeI18n();
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  );
+}
+
+void bootstrap();

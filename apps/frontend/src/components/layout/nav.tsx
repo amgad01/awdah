@@ -178,7 +178,7 @@ export const Nav: React.FC = () => {
         </div>
 
         <div className={styles.footerControls}>
-          <LanguageSwitcher tone="inverse" />
+          <LanguageSwitcher tone="inverse" density="compact" />
           <ThemeToggle />
         </div>
       </div>

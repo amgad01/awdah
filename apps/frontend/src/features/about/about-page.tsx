@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   Linkedin,
   Moon,
+  Server,
   Shield,
   Sun,
 } from 'lucide-react';
@@ -68,6 +69,7 @@ const FEATURE_ICONS: Record<string, IconComponent> = {
   Globe,
   Shield,
   BookOpen,
+  Server,
 };
 
 const SOCIAL_ICONS: Record<string, IconComponent> = {

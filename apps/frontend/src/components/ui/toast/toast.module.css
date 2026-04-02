@@ -31,9 +31,8 @@
 .toast::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  inset-inline-start: 0;
+  inset-block: 0;
   width: 4px;
   background: var(--color-primary);
 }
@@ -114,14 +113,4 @@
     opacity: 0;
     transform: translateY(0.5rem) scale(0.95);
   }
-}
-
-/* RTL Support */
-[dir='rtl'] .toastContainer {
-  inset-inline-end: 1.5rem;
-}
-
-[dir='rtl'] .toast::before {
-  left: auto;
-  right: 0;
 }

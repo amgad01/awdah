@@ -27,7 +27,8 @@ import type { PeriodLike } from './types';
 import { getErrorMessage } from './helpers';
 import styles from './settings-page.module.css';
 
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0';
+const APP_VERSION =
+  import.meta.env.VITE_APP_RELEASE_TAG || import.meta.env.VITE_APP_VERSION || 'v1.0.0-dev';
 
 export const SettingsPage: React.FC = () => {
   const { t } = useLanguage();
