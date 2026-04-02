@@ -1,48 +1,54 @@
 {
   "project_badge": "The Project",
   "project_title": "About Awdah",
-  "project_subtitle": "Your companion for returning to missed prayers and fasts, with structure, privacy, and quiet persistence.",
+  "project_subtitle": "A calm companion for returning to missed prayers and fasts, with guided onboarding, privacy-aware tracking, and steady progress you can sustain.",
   "why_title": "Our Mission",
-  "why_body": "Awdah was built to make qadaa feel less like a burden and more like a steady practice. The goal is a calm, private experience that respects the weight of the journey and helps you stay consistent, without pressure.",
+  "why_body": "Awdah was built to make qadaa feel less overwhelming and more manageable, one honest step at a time. The goal is a compassionate, private experience that respects the weight of this journey while giving you the structure to keep moving without shame, noise, or pressure.",
   "who_title": "Who it's for",
-  "who_body": "Whether you're returning after years away or tracking a small backlog of missed days, Awdah gives you the structure and clarity to move forward at your own pace.",
+  "who_body": "Whether you are returning after a long gap, trying to estimate your starting point with care, or simply looking for a clearer way to stay consistent, Awdah helps you begin with clarity and continue with steadiness.",
   "features_title": "Core Features",
   "features": [
     {
       "id": "salah",
       "icon": "Moon",
       "title": "Salah Tracking",
-      "body": "Track your missed obligatory prayers with a clear picture of where you stand and how far you've come."
+      "body": "Track missed obligatory prayers with a clear view of what has been completed, what remains, and how your effort is building over time."
     },
     {
       "id": "sawm",
       "icon": "Sun",
       "title": "Sawm Tracking",
-      "body": "Log missed Ramadan fasts with dedicated progress tracking and a clear view of what remains."
+      "body": "Log missed Ramadan fasts with dedicated progress tracking and a focused picture of what still needs to be made up."
     },
     {
       "id": "hijri",
       "icon": "Calendar",
       "title": "Hijri First",
-      "body": "Built around the Islamic calendar, with accurate dual-date support for every entry you make."
+      "body": "Built around the Islamic calendar, with accurate dual-date support to help qadaa records stay grounded in the dates that matter."
     },
     {
-      "id": "bilingual",
+      "id": "multilingual",
       "icon": "Globe",
-      "title": "Bilingual + RTL",
-      "body": "Designed for Arabic and English from the ground up, with full right-to-left support built in, not bolted on."
+      "title": "Dynamic Language Support",
+      "body": "Designed for a multilingual product experience, with Arabic, English, and German supported today, and the language system ready to grow cleanly as new communities contribute."
     },
     {
       "id": "privacy",
       "icon": "Shield",
       "title": "Privacy First",
-      "body": "Minimal data collection by design. Your data stays yours, with clear export and deletion controls always available."
+      "body": "Awdah is designed to stay respectful of sensitive religious data, with minimal collection, clear account controls, and privacy-aware flows from onboarding onward."
     },
     {
       "id": "learn",
       "icon": "BookOpen",
-      "title": "Learn Hub",
-      "body": "Reference content explaining the rulings, terminology, and thinking behind how qadaa tracking works in Awdah."
+      "title": "Onboarding & Guidance",
+      "body": "A guided onboarding flow helps users set a starting point thoughtfully, while supporting content explains the terms, assumptions, and rulings behind the tracking experience."
+    },
+    {
+      "id": "selfhost",
+      "icon": "Server",
+      "title": "Fully Self-Hostable",
+      "body": "Run the entire stack locally with a single docker compose up command. LocalStack simulates every AWS service the app uses, so you get full functionality: DynamoDB, auth, backups, without an AWS account, without sending data anywhere, and with the same performance as the hosted version."
     }
   ],
   "team_title": "The Founder",
@@ -51,7 +57,7 @@
       "id": "amgad01",
       "name": "Amgad Mahmoud",
       "role": "Founder · Architect · Lead Developer",
-      "bio": "Awdah came from a personal place, a need for something structured and calm that could hold the weight of a spiritual journey without making it feel heavier. So I built one.\n\nI'm a cloud engineer delivering cloud-native digital transformation projects on AWS, working across multi-account platform integration, IaC automation with CDKTF and AWS CDK, and CI/CD pipelines with integrated security gates. My work covers the full delivery stack: multi-tenant SaaS infrastructure, cloud automation, observability engineering, and cost governance. I care about clean architecture, scalable system design, and building things that are intentional by nature.",
+      "bio": "Awdah came from a personal place: a need for something structured and calm that could support a spiritual journey without adding pressure. So I designed and built it as a production-minded product, not just a prototype.\n\nThrough Awdah, I have led end-to-end product engineering: domain modeling for Salah and Sawm workflows, Hijri-first calculation logic, multilingual UX architecture, and privacy-aware user journeys. I built the platform on a serverless AWS stack (Lambda, API Gateway, DynamoDB, Cognito) with CDK-managed infrastructure, CI/CD automation, observability guardrails, and cost-aware design decisions for sustainable operation.\n\nI work as a cloud engineer on cloud-native transformation initiatives across multi-account platform integration for large enterprises, IaC automation with CDKTF and AWS CDK, and security-gated delivery pipelines. My focus is clean architecture, scalable systems, and turning meaningful ideas into reliable products that real users can trust.",
       "github": "amgad01",
       "socials": [
         {

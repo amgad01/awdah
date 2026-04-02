@@ -6,7 +6,8 @@
     "dailyIntention": 8,
     "story": {
       "en": "Maryam represents a fully used account: she has tracked daily worship, logged qadaa consistently, added practicing periods, and relies on history and privacy tools to stay organised.",
-      "ar": "يعرض هذا المثال مريم كحساب مستخدَم فعلياً: تسجّل عباداتها اليومية، وتقضي ما فاتها باستمرار، وتضيف فترات الالتزام، وتراجع السجل وأدوات الخصوصية لتنظيم رحلتها."
+      "ar": "يعرض هذا المثال مريم كحساب مستخدَم فعلياً: تسجّل عباداتها اليومية، وتقضي ما فاتها باستمرار، وتضيف فترات الالتزام، وتراجع السجل وأدوات الخصوصية لتنظيم رحلتها.",
+      "de": "Maryam steht hier für ein real genutztes Konto: Sie dokumentiert ihre täglichen Gebete, holt verpasste Gebete regelmäßig nach, ergänzt Praxisphasen und nutzt Verlauf sowie Datenschutzfunktionen, um ihre Reise geordnet zu halten."
     }
   },
   "bestPrayerStreak": {

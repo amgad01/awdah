@@ -3,99 +3,117 @@
     "arabic": "البلوغ",
     "synonyms": {
       "en": "puberty · age of accountability · Islamic maturity · age of obligation",
-      "ar": "سن التكليف · سن المسؤولية الدينية"
+      "ar": "سن التكليف · سن المسؤولية الدينية",
+      "de": "Pubertät · Alter der Rechtsverantwortung · islamische Mündigkeit · Pflichtalter"
     },
     "definition": {
       "en": "The point at which a Muslim becomes legally responsible for their religious duties. Signs include physical puberty; the scholarly default is 15 Hijri years when signs are unknown.",
-      "ar": "المرحلة التي يصبح فيها المسلم ملزماً شرعاً بأداء الفرائض. علاماته: علامات الحلم، وإن لم تظهر فسن الخامسة عشرة هجرية هو الافتراضي."
+      "ar": "المرحلة التي يصبح فيها المسلم ملزماً شرعاً بأداء الفرائض. علاماته: علامات الحلم، وإن لم تظهر فسن الخامسة عشرة هجرية هو الافتراضي.",
+      "de": "Der Zeitpunkt, an dem ein Muslim für religiöse Pflichten rechtlich verantwortlich wird. Kennzeichen sind körperliche Pubertät; liegt kein erkennbares Zeichen vor, gilt scholastisch standardmäßig das 15. Hijri-Jahr."
     }
   },
   "qadaa": {
     "arabic": "القضاء",
     "synonyms": {
       "en": "makeup · making up missed obligations · compensation",
-      "ar": "الصلوات الفائتة · التعويض"
+      "ar": "الصلوات الفائتة · التعويض",
+      "de": "Nachholen · Nachholen verpasster Pflichten · Ausgleich"
     },
     "definition": {
       "en": "The practice of fulfilling missed obligatory prayers or fasts. Every missed obligation remains owed until it is made up, regardless of how long ago it was missed.",
-      "ar": "أداء الصلوات أو أيام الصيام التي فاتت. كل فريضة فائتة يجب قضاؤها بغض النظر عن مدة الفوات."
+      "ar": "أداء الصلوات أو أيام الصيام التي فاتت. كل فريضة فائتة يجب قضاؤها بغض النظر عن مدة الفوات.",
+      "de": "Das Erfüllen verpasster obligatorischer Gebete oder Fastentage. Jede versäumte Pflicht bleibt bis zum Nachholen bestehen, unabhängig davon, wie lange sie zurückliegt."
     }
   },
   "salah": {
     "arabic": "الصلاة",
     "synonyms": {
       "en": "prayer · ritual prayer · namaz (South Asian)",
-      "ar": "الفريضة · الصلوات الخمس"
+      "ar": "الفريضة · الصلوات الخمس",
+      "de": "Gebet · rituelles Gebet · Namaz (Südasien)"
     },
     "definition": {
       "en": "The five obligatory daily prayers in Islam: Fajr (dawn), Dhuhr (midday), Asr (afternoon), Maghrib (sunset), and Isha (night).",
-      "ar": "الصلوات الخمس الواجبة يومياً: الفجر والظهر والعصر والمغرب والعشاء."
+      "ar": "الصلوات الخمس الواجبة يومياً: الفجر والظهر والعصر والمغرب والعشاء.",
+      "de": "Die fünf täglichen Pflichtgebete im Islam: Fajr (Morgendämmerung), Dhuhr (Mittag), Asr (Nachmittag), Maghrib (Sonnenuntergang) und Isha (Nacht)."
     }
   },
   "sawm": {
     "arabic": "الصوم",
     "synonyms": {
       "en": "fasting · Ramadan fast · roza (South Asian)",
-      "ar": "الصيام · صوم رمضان"
+      "ar": "الصيام · صوم رمضان",
+      "de": "Fasten · Ramadan-Fasten · Roza (Südasien)"
     },
     "definition": {
       "en": "The obligatory fast during the month of Ramadan — abstaining from food, drink, and certain acts from dawn until sunset each day.",
-      "ar": "الصيام الواجب في شهر رمضان، بالإمساك عن الطعام والشراب من طلوع الفجر حتى غروب الشمس."
+      "ar": "الصيام الواجب في شهر رمضان، بالإمساك عن الطعام والشراب من طلوع الفجر حتى غروب الشمس.",
+      "de": "Das verpflichtende Fasten im Monat Ramadan - der Verzicht auf Essen, Trinken und bestimmte Handlungen von der Morgendämmerung bis zum Sonnenuntergang jeden Tag."
     }
   },
   "ramadan": {
     "arabic": "رمضان",
     "synonyms": {
       "en": "the holy month · month of fasting",
-      "ar": "الشهر الكريم · شهر الصيام"
+      "ar": "الشهر الكريم · شهر الصيام",
+      "de": "der heilige Monat · Fastenmonat"
     },
     "definition": {
       "en": "The ninth month of the Islamic (Hijri) calendar, in which fasting is obligatory for all accountable Muslims.",
-      "ar": "الشهر التاسع في التقويم الهجري الإسلامي، الذي يجب فيه صيام شهر كامل على كل مسلم بالغ."
+      "ar": "الشهر التاسع في التقويم الهجري الإسلامي، الذي يجب فيه صيام شهر كامل على كل مسلم بالغ.",
+      "de": "Der neunte Monat des islamischen (Hijri-)Kalenders, in dem das Fasten für alle rechtsverantwortlichen Muslime verpflichtend ist."
     }
   },
   "hijri": {
     "arabic": "الهجري",
     "synonyms": {
       "en": "Islamic calendar · lunar calendar · AH (Anno Hegirae)",
-      "ar": "التقويم الإسلامي · التقويم القمري"
+      "ar": "التقويم الإسلامي · التقويم القمري",
+      "de": "islamischer Kalender · Mondkalender · AH (Anno Hegirae)"
     },
     "definition": {
       "en": "The Islamic lunar calendar. Years are counted from the Hijra (the Prophet's migration from Mecca to Medina). Hijri years are ~11 days shorter than Gregorian years.",
-      "ar": "التقويم القمري الإسلامي. تُعدّ السنوات من الهجرة النبوية. السنة الهجرية أقصر من الميلادية بـ 11 يوماً تقريباً."
+      "ar": "التقويم القمري الإسلامي. تُعدّ السنوات من الهجرة النبوية. السنة الهجرية أقصر من الميلادية بـ 11 يوماً تقريباً.",
+      "de": "Der islamische Mondkalender. Die Jahre werden ab der Hidschra gezählt (der Auswanderung des Propheten von Mekka nach Medina). Hijri-Jahre sind etwa 11 Tage kürzer als Gregorianische Jahre."
     }
   },
   "mukallaf": {
     "arabic": "مكلَّف",
     "synonyms": {
       "en": "legally accountable person · one upon whom obligations apply",
-      "ar": "المسلم البالغ العاقل"
+      "ar": "المسلم البالغ العاقل",
+      "de": "rechtsverantwortliche Person · jemand, für den Pflichten gelten"
     },
     "definition": {
       "en": "A Muslim who is legally accountable — i.e., has reached bulugh and is of sound mind. Religious obligations only apply to a mukallaf.",
-      "ar": "المسلم الذي بلغ سن التكليف وكان عاقلاً. الفرائض الدينية لا تجب إلا على المكلَّف."
+      "ar": "المسلم الذي بلغ سن التكليف وكان عاقلاً. الفرائض الدينية لا تجب إلا على المكلَّف.",
+      "de": "Ein Muslim, der rechtlich verantwortlich ist, also bulugh erreicht hat und geistig zurechnungsfähig ist. Religiöse Pflichten gelten nur für einen Mukallaf."
     }
   },
   "momentum": {
     "arabic": "الزخم",
     "synonyms": {
       "en": "main streak · daily consistency · obligatory streak",
-      "ar": "الاستمرارية · زحم الأداء"
+      "ar": "الاستمرارية · زحم الأداء",
+      "de": "Haupt-Serie · tägliche Beständigkeit · Pflicht-Serie"
     },
     "definition": {
       "en": "Your main tracker for consecutive days where all 5 obligatory (fara'id) prayers were completed. It represents your consistency in meeting today's duties.",
-      "ar": "المؤشر الرئيسي لتتبع الأيام المتتالية التي أتممت فيها الصلوات الخمس المفروضة لهذا اليوم. يمثل انتظامك في أداء الواجبات اليومية."
+      "ar": "المؤشر الرئيسي لتتبع الأيام المتتالية التي أتممت فيها الصلوات الخمس المفروضة لهذا اليوم. يمثل انتظامك في أداء الواجبات اليومية.",
+      "de": "Dein Haupt-Tracker für aufeinanderfolgende Tage, an denen alle 5 täglichen Pflichtgebete abgeschlossen wurden. Er steht für deine Beständigkeit bei den heutigen Pflichten."
     }
   },
   "persistence": {
     "arabic": "المثابرة",
     "synonyms": {
       "en": "inclusive streaks · recovery records · individual prayer streaks",
-      "ar": "سلاسل الإنجاز · سلاسل القضاء"
+      "ar": "سلاسل الإنجاز · سلاسل القضاء",
+      "de": "inklusive Serien · Aufholprotokolle · einzelne Gebetsserien"
     },
     "definition": {
       "en": "Streaks shown for individual prayers (like Fajr) or fasting. These are inclusive and count both obligatory acts and make-ups (qadaa), rewarding your steady effort even when the main Momentum is broken.",
-      "ar": "سجلات تظهر لكل صلاة على حدة (كالفجر) أو للصيام. هذه السجلات شاملة، حيث تعدّ الأداء اليومي والقضاء معاً، لتشجيع استمرارك حتى وإن انقطعت سلسلة الزخم العام."
+      "ar": "سجلات تظهر لكل صلاة على حدة (كالفجر) أو للصيام. هذه السجلات شاملة، حيث تعدّ الأداء اليومي والقضاء معاً، لتشجيع استمرارك حتى وإن انقطعت سلسلة الزخم العام.",
+      "de": "Serien, die für einzelne Gebete (wie Fajr) oder fürs Fasten angezeigt werden. Sie sind inklusiv und zählen sowohl Pflichtakte als auch Nachholgebete (qadaa), um deine stetige Mühe zu würdigen, auch wenn das Haupt-Momentum unterbrochen ist."
     }
   }
 }

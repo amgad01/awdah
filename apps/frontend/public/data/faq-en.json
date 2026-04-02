@@ -6,7 +6,7 @@
       {
         "id": "hijri_calc",
         "question": "How are Hijri dates calculated?",
-        "answer": "We use the Umm al-Qura calendar system — the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally."
+        "answer": "We use the Umm al-Qura calendar system, the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally."
       },
       {
         "id": "hijri_30days",
@@ -48,7 +48,7 @@
       {
         "id": "salah_limit",
         "question": "Is there a time limit on making up missed prayers?",
-        "answer": "No. The obligation remains until it is fulfilled — scholars across all four major madhabs are in agreement on this. Making up even one prayer per day is valid and valued."
+        "answer": "No. The obligation remains until it is fulfilled. Scholars across all four major madhabs are in agreement on this. Making up even one prayer per day is valid and valued."
       }
     ]
   },
@@ -59,7 +59,7 @@
       {
         "id": "sawm_calc",
         "question": "How does the app calculate missed fasts?",
-        "answer": "The app identifies every Ramadan that occurred during your gap periods and counts the actual days of that Ramadan (29 or 30) using the Umm al-Qura calendar — no hardcoded values."
+        "answer": "The app identifies every Ramadan that occurred during your gap periods and counts the actual days of that Ramadan (29 or 30) using the Umm al-Qura calendar, with no hardcoded values."
       },
       {
         "id": "kaffarah",
@@ -91,12 +91,12 @@
       {
         "id": "periods_no_autofill",
         "question": "Why don't practicing periods automatically fill in my prayer logs?",
-        "answer": "When you add a practicing period, Awdah subtracts those days from your qadaa debt mathematically — no rows are created. Auto-generating thousands of entries would embed a false timestamp on every row (all showing the moment onboarding was saved, not when each prayer was actually made), invert the mental model for any prayer you missed inside an otherwise practicing period, and create bulk DynamoDB rows that are slow to query or delete. The debt number is correct without the rows."
+        "answer": "When you add a practicing period, Awdah subtracts those days from your qadaa debt mathematically, so no rows are created. Auto-generating thousands of entries would embed a false timestamp on every row, all showing the moment onboarding was saved rather than when each prayer was actually made. It would also invert the mental model for any prayer you missed inside an otherwise practicing period and create bulk DynamoDB rows that are slow to query or delete. The debt number is correct without the rows."
       },
       {
         "id": "revert_date_calculation",
         "question": "How is the revert (convert) date handled in the calculation?",
-        "answer": "For a new Muslim, obligations begin at the moment of shahada — not at puberty. If your revert date is after your bulugh date, Awdah uses your revert date as the start of your qadaa calculation. If your revert date is at or before bulugh (for example, you converted as a child), bulugh remains the start date. The effective start is always: max(bulugh date, revert date)."
+        "answer": "For a new Muslim, obligations begin at the moment of shahada, not at puberty. If your revert date is after your bulugh date, Awdah uses your revert date as the start of your qadaa calculation. If your revert date is at or before bulugh (for example, you converted as a child), bulugh remains the start date. The effective start is always: max(bulugh date, revert date)."
       },
       {
         "id": "debt_preview",
