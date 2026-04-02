@@ -109,7 +109,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       case 2:
         return !!data.gender;
       case 3:
-        return !!data.bulughDateHijri || !!data.revertDateHijri;
+        return Boolean(data.bulughDateHijri) || Boolean(data.revertDateHijri);
       case 4:
         return true;
       case 5:
