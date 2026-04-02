@@ -4,15 +4,15 @@ React 19 SPA with TypeScript, Vite, CSS Modules, and full Arabic RTL support.
 
 ## Features
 
-| Area        | Stack                                        |
-| ----------- | -------------------------------------------- |
-| UI          | React 19, CSS Modules, Framer Motion         |
-| State       | TanStack Query (server), React hooks (local) |
-| i18n / RTL  | i18next, react-i18next — English + Arabic    |
-| Routing     | React Router v7                              |
-| Charts      | Recharts                                     |
-| Icons       | Lucide React                                 |
-| E2E Testing | Playwright                                   |
+| Area        | Stack                                               |
+| ----------- | --------------------------------------------------- |
+| UI          | React 19, CSS Modules, Framer Motion                |
+| State       | TanStack Query (server), React hooks (local)        |
+| i18n / RTL  | i18next, react-i18next — dynamic multilingual + RTL |
+| Routing     | React Router v7                                     |
+| Charts      | Recharts                                            |
+| Icons       | Lucide React                                        |
+| E2E Testing | Playwright                                          |
 
 ## Project Structure
 

@@ -1,8 +1,8 @@
 # Contributing to Awdah
 
-Awdah is a public source-available repository. Contributions are welcome — code, translations, scholarly review, or catching a bug — and all collaboration remains subject to the repository license.
+Awdah is a public source-available repository. Contributions are welcome: code, translations, scholarly review, or catching a bug. All collaboration remains subject to the repository license.
 
-For areas where help is most needed and the v2 roadmap, see the [/contribute](https://amgad01.github.io/awdah/contribute) page in the app — it covers what areas need work, how to submit a PR, and what is planned next.
+For areas where help is most needed and the v2 roadmap, see the [/contribute](https://amgad01.github.io/awdah/contribute) page in the app. It covers what areas need work, how to submit a PR, and what is planned next.
 
 ---
 
@@ -102,12 +102,12 @@ For religious content changes, include the scholarly source in your commit messa
 
 ## Code standards
 
-- No `console.log` — use the structured logger in the backend
-- No hardcoded display strings in components — all copy goes through the translation layer (`t('key')`)
-- No directional CSS properties (`margin-left`, `padding-right`) — use logical properties only (`margin-inline-start`, `padding-inline-end`)
+- No `console.log` - use the structured logger in the backend
+- No hardcoded display strings in components - all copy goes through the translation layer (`t('key')`)
+- No directional CSS properties (`margin-left`, `padding-right`) - use logical properties only (`margin-inline-start`, `padding-inline-end`)
 - No raw `any` types
 - All API route changes must be reflected in `docs/api/openapi.yaml`
-- All dates are Hijri `YYYY-MM-DD` — Gregorian conversion only at the API boundary
+- All dates are Hijri `YYYY-MM-DD` - Gregorian conversion only at the API boundary
 
 ---
 
@@ -143,21 +143,72 @@ The Contributing page content (areas of work, PR guide, v2 roadmap) lives in `ap
 
 ### Add a new UI language
 
-Adding a new language to the app requires two things — one translation file and one config entry:
+Adding a new language to the app requires changes in two separate places: the i18n translation bundle and the public data files.
 
-1. Copy `apps/frontend/src/i18n/en.json` and name it with your language code (e.g. `fr.json` for French, `tr.json` for Turkish, `ur.json` for Urdu)
-2. Translate all string values in the new file — do not change the keys, and keep `{{variable}}` placeholders exactly as they are
-3. Open `apps/frontend/src/i18n/languages.json` and add an entry for your language:
+Important boundary:
+
+- Only files in `apps/frontend/src/i18n/` use the `_meta` key.
+- Files in `apps/frontend/public/data/` do not use `_meta` and should keep their existing content-only schema.
+- Today, the built-in translation bundles are `en.json`, `ar.json`and `de.json`, but the system is designed to scale to more languages without code changes.
+
+#### 1. i18n translation bundle
+
+Each language is a single JSON file. The file is self-describing — the language switcher discovers it automatically, so no registration step is needed.
+
+1. Copy `apps/frontend/src/i18n/en.json` and name it with the ISO 639-1 code (e.g. `fr.json` for French, `tr.json` for Turkish, `ur.json` for Urdu)
+2. Translate all string values — do not change keys, and keep `{{variable}}` placeholders exactly as they are
+3. At the end of the file, add a `_meta` block:
    ```json
-   { "code": "fr", "name": "French", "nativeName": "Français", "shortLabel": "FR", "dir": "ltr" }
+   "_meta": {
+     "code": "fr",
+     "name": "French",
+     "nativeName": "Français",
+     "shortLabel": "FR",
+     "dir": "ltr"
+   }
    ```
-   For a right-to-left language like Urdu: `"dir": "rtl"`
-4. Also translate the public data files: copy `apps/frontend/public/data/about-en.json` → `about-fr.json` (and similarly for `faq`, `contributing`)
-5. Run `npm run dev:frontend` — the language switcher will show your new language immediately
-6. Go through the app in your new language and fix anything that looks wrong in context
-7. Run `npm run test` and fix any failures, then open a PR
+   For a right-to-left language like Urdu, use `"dir": "rtl"`. That is all the registration needed — the language switcher picks up the file automatically.
 
-The language switcher and RTL layout both update automatically from the config — no component code changes are needed.
+#### 2. Public data files
+
+The About, FAQ, and Contributing pages load their content from `apps/frontend/public/data/`. These files are independent of the i18n system and need to be translated separately.
+
+1. Copy each `*-en.json` file to a `*-<code>.json` variant and translate all string values:
+   - `about-en.json` → `about-fr.json`
+   - `faq-en.json` → `faq-fr.json`
+   - `contributing-en.json` → `contributing-fr.json`
+     Do not add `_meta` to these files. They are page-content payloads, not translation bundles.
+
+#### 3. Glossary terms and tooltips
+
+The glossary in `apps/frontend/src/content/glossary/glossary.json` powers the term tooltips used in onboarding and other educational copy. It is separate from the translation bundles, but it still needs language-specific text if you want the terms to read naturally in a new language.
+
+1. Review the glossary terms that appear in translated screens, especially onboarding and qadaa guidance copy.
+2. Add your language code to any glossary entry that should have native synonyms or definitions.
+3. Verify the tooltip copy in the app in both LTR and RTL if applicable.
+
+Glossary entries fall back to English when a language key is missing, so adding the new language is optional for basic functionality but required for a fully polished rollout.
+
+#### 4. Full language support checklist
+
+To ship a new language end-to-end, add all of the following:
+
+- `apps/frontend/src/i18n/<code>.json` with the translated UI copy and a valid `_meta` block
+- `apps/frontend/public/data/about-<code>.json`
+- `apps/frontend/public/data/contributing-<code>.json`
+- `apps/frontend/public/data/faq-<code>.json`
+- `apps/frontend/src/content/glossary/glossary.json` entries for any terms that should have native tooltip text
+- `apps/frontend/public/demo-data/sample-user.json` with `user.story.<code>` for the demo route
+
+If the language is right-to-left, set `_meta.dir` to `rtl` and verify the UI in both LTR and RTL contexts.
+
+#### 5. Verify
+
+1. Run `npm run dev:frontend` — the language switcher will show your new language immediately
+2. Go through the app in your new language and check for anything that looks wrong in context
+3. Run `npm run test --workspace=apps/frontend` and `npm run check:quick`, then open a PR
+
+RTL layout switches automatically based on the `dir` value in `_meta` — no component changes are needed.
 
 ---
 

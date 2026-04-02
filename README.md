@@ -12,7 +12,7 @@
 
 Awdah helps Muslims track and gradually fulfil their qadaa (makeup worship). The app calculates how many prayers and Ramadan fasts were missed based on practicing periods the user provides, then helps them log daily progress against that debt without judgment or pressure.
 
-Built as a full-stack serverless application on AWS — Lambda, DynamoDB, Cognito — with GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture across three domain contexts (Salah, Sawm, and User), uses CDK-managed infrastructure, and ships bilingual (English + Arabic) with full RTL support from day one.
+Built as a full-stack serverless application on AWS, with Lambda, DynamoDB, and Cognito, plus GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture across three domain contexts (Salah, Sawm, and User), uses CDK-managed infrastructure, and ships with dynamic multilingual support (Arabic, English, German, and extensible language onboarding) with full RTL support.
 
 Quick links:
 
@@ -37,25 +37,25 @@ Presentation → Application → Domain ← Infrastructure
 
 | Layer          | Technology                      | Notes                                                   |
 | -------------- | ------------------------------- | ------------------------------------------------------- |
-| Frontend       | React 19, TypeScript, Vite      | CSS Modules, i18next, bilingual + RTL                   |
+| Frontend       | React 19, TypeScript, Vite      | CSS Modules, i18next, dynamic multilingual + RTL        |
 | Backend        | Node.js, TypeScript, AWS Lambda | One handler per use case, ARM64                         |
 | Infrastructure | AWS CDK                         | 6 stacks: Data, Auth, API, Backup, Alarms, Frontend     |
 | Database       | DynamoDB                        | PAY_PER_REQUEST, PITR enabled, GSIs for access patterns |
 | Auth           | AWS Cognito                     | JWT-based, local simulation via LocalStack in dev       |
 | CI/CD          | GitHub Actions                  | Lint, test, build, deploy pipelines                     |
 
-See [docs/architecture/](docs/architecture/) for diagrams and ADRs.
+See [docs/architecture/overview.md](docs/architecture/overview.md) for system diagrams, stack dependencies, request lifecycle, and data access patterns.
 
 ## Features
 
-- **Qadaa debt calculator** — computes missed prayers and fasts from practicing periods, handles non-continuous gaps
-- **Daily Salah tracker** — log each of the five prayers, mark on time or late
-- **Daily qadaa logger** — log makeup prayers and fasts against the calculated debt
-- **Dashboard** — remaining debt, today's prayers, streak, and a projection of when you'll be done
-- **History** — browse past days in a read-only log
-- **Bilingual** — English and Arabic, full RTL layout, respects system locale by default
-- **Dark mode** — respects `prefers-color-scheme`, manual override in settings
-- **Offline demo** — full preview using static sample data, no login required
+- **Qadaa debt calculator** - computes missed prayers and fasts from practicing periods, handles non-continuous gaps
+- **Daily Salah tracker** - log each of the five prayers, mark on time or late
+- **Daily qadaa logger** - log makeup prayers and fasts against the calculated debt
+- **Dashboard** - remaining debt, today's prayers, streak, and a projection of when you'll be done
+- **History** - browse past days in a read-only log
+- **Language support** - dynamic multilingual architecture (English, Arabic, German), full RTL layout, respects system locale by default
+- **Dark mode** - respects `prefers-color-scheme`, manual override in settings
+- **Offline demo** - full preview using static sample data, no login required
 
 ## Local Development
 
@@ -104,9 +104,9 @@ For contributor-specific setup paths, content-only edits, translation work, and 
 
 ### Demo and About
 
-- `/demo` — a fully hydrated preview using bundled sample data, works without a backend
-- `/about` — the story behind the project and the developer behind it
-- `/contribute` — how to contribute, what areas need help, and the v2 roadmap
+- `/demo` - a fully hydrated preview using bundled sample data, works without a backend
+- `/about` - the story behind the project and the developer behind it
+- `/contribute` - how to contribute, what areas need help, and the v2 roadmap
 
 ## Project Structure
 
@@ -136,22 +136,26 @@ awdah/
 
 ## API
 
-Three route groups — **Salah** (prayers), **Sawm** (fasts), and **User** (profile and lifecycle operations). All protected routes require a Cognito JWT, while `/health` remains public. All dates are Hijri `YYYY-MM-DD`.
+Three route groups: **Salah** (prayers), **Sawm** (fasts), and **User** (profile and lifecycle operations). All protected routes require a Cognito JWT, while `/health` remains public. All dates are Hijri `YYYY-MM-DD`.
 
 Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger                           | Purpose                                                                    |
-| ------------------ | --------------------------------- | -------------------------------------------------------------------------- |
-| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, frontend audit                             |
-| `test-on-push.yml` | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack                            |
-| `deploy.yml`       | Manual                            | Deploy backend infra to AWS and smoke-test the API                         |
-| `deploy-pages.yml` | Manual or backend deploy          | Build the pinned frontend commit, deploy to Pages, and smoke-test the site |
+| Workflow           | Trigger                           | Purpose                                                                     |
+| ------------------ | --------------------------------- | --------------------------------------------------------------------------- |
+| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, security audit                              |
+| `e2e.yml`          | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack                             |
+| `deploy.yml`       | Manual                            | Deploy backend CDK stacks to AWS and smoke-test the API                     |
+| `deploy-pages.yml` | Manual or after `deploy.yml`      | Build frontend, create semver release tag, deploy to Pages, smoke-test site |
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, and content-update guidance. For current work areas and roadmap items, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, language support, and content-update guidance. For current work areas and roadmap items, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page.
+
+Translation note: only `apps/frontend/src/i18n/*.json` files carry `_meta` and participate in language auto-discovery. Public page content under `apps/frontend/public/data/` stays schema-specific and does not use `_meta`, and glossary tooltips live in `apps/frontend/src/content/glossary/glossary.json`.
+
+For a full new-language rollout, add the matching `about-<code>.json`, `contributing-<code>.json`, `faq-<code>.json`, `sample-user.json` story entry, and any glossary entries that should render natively so the demo route and onboarding copy stay localized too.
 
 ## License
 
