@@ -1,0 +1,115 @@
+{
+  "project_badge": "Das Projekt",
+  "project_title": "Über Awdah",
+  "project_subtitle": "Ein ruhiger Begleiter für das Nachholen verpasster Gebete und Fasten – mit geführtem Onboarding, datensensiblem Tracking und beständigem Fortschritt, den man wirklich durchhalten kann.",
+  "why_title": "Unsere Mission",
+  "why_body": "Awdah wurde entwickelt, damit qadaa sich weniger überwältigend und Schritt für Schritt besser tragbar anfühlt. Ziel ist eine mitfühlende, private Erfahrung, die das Gewicht dieser Reise respektiert und zugleich die Struktur gibt, um ohne Scham, Druck oder Lärm weiterzugehen.",
+  "who_title": "Für wen es gedacht ist",
+  "who_body": "Ob du nach langer Zeit zurückkehrst, deinen Startpunkt vorsichtig einschätzen möchtest oder einfach eine klarere Struktur suchst, um dranzubleiben: Awdah hilft dir, mit Klarheit zu beginnen und mit Ruhe weiterzumachen.",
+  "features_title": "Kernfunktionen",
+  "features": [
+    {
+      "id": "salah",
+      "icon": "Moon",
+      "title": "Salah-Tracking",
+      "body": "Erfasse verpasste Pflichtgebete mit einem klaren Blick auf das, was bereits erledigt ist, was noch offen bleibt und wie sich dein Einsatz mit der Zeit aufbaut."
+    },
+    {
+      "id": "sawm",
+      "icon": "Sun",
+      "title": "Sawm-Tracking",
+      "body": "Dokumentiere verpasste Ramadan-Fasten mit eigener Fortschrittsansicht und einem fokussierten Überblick darüber, was noch nachgeholt werden muss."
+    },
+    {
+      "id": "hijri",
+      "icon": "Calendar",
+      "title": "Hijri zuerst",
+      "body": "Rund um den islamischen Kalender aufgebaut, mit präziser Dual-Datum-Unterstützung, damit qadaa-Einträge an den Daten ausgerichtet bleiben, die wirklich zählen."
+    },
+    {
+      "id": "multilingual",
+      "icon": "Globe",
+      "title": "Dynamische Mehrsprachigkeit",
+      "body": "Für ein mehrsprachiges Produkterlebnis konzipiert. Arabisch, Englisch und Deutsch sind heute unterstützt, und das Sprachsystem ist so aufgebaut, dass es mit neuen Community-Beiträgen sauber weiterwachsen kann."
+    },
+    {
+      "id": "privacy",
+      "icon": "Shield",
+      "title": "Privatsphäre zuerst",
+      "body": "Awdah ist so gestaltet, dass sensible religiöse Daten respektvoll behandelt werden – mit minimaler Datenerhebung, klaren Kontoeinstellungen und datensensiblen Abläufen schon ab dem Onboarding."
+    },
+    {
+      "id": "learn",
+      "icon": "BookOpen",
+      "title": "Onboarding & Orientierung",
+      "body": "Ein geführter Onboarding-Ablauf hilft dabei, den eigenen Startpunkt mit Bedacht festzulegen, während begleitende Inhalte die Begriffe, Annahmen und Urteile hinter dem Tracking erklären."
+    },
+    {
+      "id": "selfhost",
+      "icon": "Server",
+      "title": "Vollständig selbst hostbar",
+      "body": "Starte den kompletten Stack lokal mit einem einzigen docker compose up. LocalStack simuliert alle genutzten AWS-Dienste, sodass du volle Funktionalität bekommst: DynamoDB, Authentifizierung, Backups, ohne AWS-Konto, ohne Daten nach außen zu senden und mit derselben Performance wie die gehostete Version."
+    }
+  ],
+  "team_title": "Der Gründer",
+  "team": [
+    {
+      "id": "amgad01",
+      "name": "Amgad Mahmoud",
+      "role": "Gründer · Architekt · Lead-Entwickler",
+      "bio": "Awdah entstand aus etwas sehr Persönlichem: dem Wunsch nach etwas Strukturiertem und Ruhigem, das das Gewicht einer spirituellen Reise tragen kann, ohne sie noch schwerer zu machen. Also habe ich so ein Werkzeug gebaut.\n\nIch bin Cloud Engineer und arbeite an cloud-nativen Digital-Transformation-Projekten auf AWS. Dazu gehören die Integration von Multi-Account-Plattformen, IaC-Automatisierung mit CDKTF und AWS CDK sowie CI/CD-Pipelines mit eingebauten Sicherheitsprüfungen. Meine Arbeit deckt den gesamten Delivery-Stack ab: Multi-Tenant-SaaS-Infrastruktur, Cloud-Automatisierung, Observability-Engineering und Kostensteuerung. Ich lege Wert auf Clean Architecture, skalierbares Systemdesign und darauf, Dinge bewusst und mit Absicht zu bauen.",
+      "github": "amgad01",
+      "socials": [
+        {
+          "type": "linkedin",
+          "url": "https://linkedin.com/in/amgad-m"
+        },
+        {
+          "type": "credly",
+          "url": "https://credly.com/users/amgad-mahmoud"
+        },
+        {
+          "type": "stackoverflow",
+          "url": "https://stackoverflow.com/users/14566143/amgad"
+        },
+        {
+          "type": "substack",
+          "url": "https://substack.com/@amah01"
+        }
+      ],
+      "tech_title": "Ausgewählte Fähigkeiten",
+      "tech": [
+        "Infrastructure as Code",
+        "AWS CDK",
+        "CDK for Terraform (CDKTF)",
+        "CI/CD & Security Gates",
+        "Clean Architecture",
+        "Domain-Driven Design (DDD)",
+        "TypeScript",
+        "Node.js",
+        "Serverless Architecture",
+        "React",
+        "Python",
+        "Docker",
+        "NoSQL (DynamoDB, Redis)",
+        "SQL (PostgreSQL)"
+      ],
+      "languages_title": "Sprachen",
+      "languages": ["Arabic", "English", "German"],
+      "certifications_title": "Zertifizierungen",
+      "certifications": [
+        "AWS Certified Solutions Architect – Associate",
+        "AWS Certified CloudOps/SysOps Administrator – Associate",
+        "AWS Certified Developer – Associate",
+        "AWS Certified AI Practitioner",
+        "AWS Certified Cloud Practitioner",
+        "Microsoft Azure Fundamentals (AZ-900)",
+        "velpTEC Cloud Architecture"
+      ]
+    }
+  ],
+  "contributors_title": "Mitwirkende",
+  "contributors_empty": "",
+  "contributors": [],
+  "privacy_title": "Rechtliches & Privatsphäre"
+}

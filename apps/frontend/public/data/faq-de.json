@@ -1,0 +1,123 @@
+[
+  {
+    "id": "hijri",
+    "title": "Hijri-Kalender und Datumsberechnung",
+    "items": [
+      {
+        "id": "hijri_calc",
+        "question": "Wie werden Hijri-Daten berechnet?",
+        "answer": "Wir verwenden das Umm-al-Qura-Kalendersystem – den offiziellen zivilen Hijri-Kalender Saudi-Arabiens und weltweit den am häufigsten genutzten standardisierten Hijri-Kalender."
+      },
+      {
+        "id": "hijri_30days",
+        "question": "Warum nicht einfach jeden Monat mit 30 Tagen annehmen?",
+        "answer": "Wenn man pauschal 30 Tage pro Monat annimmt, entstehen über die Zeit deutliche Fehler. Ein echtes Hijri-Jahr hat ungefähr 354–355 Tage, nicht 360. Mit dem Umm-al-Qura-Kalender werden Monate korrekt mit 29 oder 30 Tagen erfasst, Ramadan richtig erkannt und dein qadaa präzise gezählt."
+      }
+    ]
+  },
+  {
+    "id": "bulugh",
+    "title": "Pubertät (Bulugh) und Qadaa",
+    "items": [
+      {
+        "id": "bulugh_age",
+        "question": "Wie behandelt die App das Bulugh-Alter?",
+        "answer": "Wenn du dein genaues Bulugh-Datum nicht kennst, bietet die App eine Standardhilfe an und setzt es auf 15 Hijri-Jahre nach deinem Geburtsdatum. Das folgt der hanafitischen, schafiitischen und hanbalitischen Position und stützt sich unter anderem auf die Überlieferung, dass Ibn 'Umar im Alter von 15 Jahren für den Kampf angenommen wurde (Sahih al-Bukhari 2664)."
+      },
+      {
+        "id": "missed_days",
+        "question": "Wie werden verpasste Tage berechnet?",
+        "answer": "Qadaa umfasst nur die Lücken in deiner Praxisgeschichte. Startpunkt: dein Bulugh-Datum. Endpunkt: das aktuelle Datum. Ausgenommen sind alle Praxisphasen, die du einträgst. Formel: (Gesamtzahl der Tage von Bulugh bis heute) − (Gesamtzahl der Tage in Praxisphasen)."
+      }
+    ]
+  },
+  {
+    "id": "salah",
+    "title": "Salah (Gebet) Qadaa",
+    "items": [
+      {
+        "id": "salah_included",
+        "question": "Welche Gebete sind im qadaa enthalten?",
+        "answer": "Die fünf täglichen Pflichtgebete (Fard): Fajr, Dhuhr, Asr, Maghrib und Isha."
+      },
+      {
+        "id": "witr",
+        "question": "Und was ist mit Witr?",
+        "answer": "In v1 wird Witr nicht als eigene qadaa-Pflicht erfasst. Zwar betrachtet die hanafitische Schule Witr als verpflichtend (Wajib), doch die Mehrheitsmeinung stuft es als Sunnah Mu'akkadah ein. Um in v1 eine übergreifende Madhhab-Kompatibilität zu erhalten, konzentrieren wir uns auf die fünf allgemein anerkannten Fard-Gebete."
+      },
+      {
+        "id": "salah_limit",
+        "question": "Gibt es eine Frist, um verpasste Gebete nachzuholen?",
+        "answer": "Nein. Die Verpflichtung bleibt bestehen, bis sie erfüllt ist – darin sind sich Gelehrte aller vier großen Madhhabs einig. Schon ein nachgeholtes Gebet pro Tag ist gültig und wertvoll."
+      }
+    ]
+  },
+  {
+    "id": "sawm",
+    "title": "Sawm (Fasten) Qadaa",
+    "items": [
+      {
+        "id": "sawm_calc",
+        "question": "Wie berechnet die App verpasste Fastentage?",
+        "answer": "Die App identifiziert jeden Ramadan, der in deine Lücken fällt, und zählt die tatsächlichen Tage dieses Ramadans (29 oder 30) mithilfe des Umm-al-Qura-Kalenders – ohne hart codierte Werte."
+      },
+      {
+        "id": "kaffarah",
+        "question": "Und was ist mit absichtlich gebrochenen Fasten (Kaffarah)?",
+        "answer": "Kaffarah ist in v1 nicht enthalten. Alle verpassten Fasten werden unabhängig vom Grund als normales qadaa behandelt. Die Kaffarah-Berechnung ist für eine spätere Version vorgesehen."
+      },
+      {
+        "id": "women_exemption",
+        "question": "Und was ist mit Ramadan-Ausnahmen für Frauen?",
+        "answer": "Ausnahmen aufgrund von Menstruation sind in v1 für Sawm nicht berücksichtigt. Die Fastenanzahl zieht derzeit keine entschuldigten Tage ab. Das wird in v2 behandelt."
+      }
+    ]
+  },
+  {
+    "id": "privacy",
+    "title": "Sicherheit und Privatsphäre",
+    "items": [
+      {
+        "id": "data_sensitive",
+        "question": "Sind meine religiösen Daten sensibel?",
+        "answer": "Ja. Daten zur religiösen Praxis sind sensible personenbezogene Daten. Gespeicherte App-Daten sind in der von AWS verwalteten Infrastruktur at rest verschlüsselt. Deine Einträge bleiben privat, werden weder verkauft noch geteilt, und die Anmeldung läuft über AWS Cognito, sodass das App selbst keine Klartext-Passwörter speichert."
+      }
+    ]
+  },
+  {
+    "id": "technical",
+    "title": "Wie die App berechnet",
+    "items": [
+      {
+        "id": "periods_no_autofill",
+        "question": "Warum füllt die App Praxisphasen nicht automatisch in meine Gebetsprotokolle ein?",
+        "answer": "Wenn du eine Praxisphase einträgst, zieht Awdah diese Tage mathematisch von deiner qadaa-Schuld ab – es werden keine Datensätze erzeugt. Würde man tausende Einträge automatisch anlegen, hätte jede Zeile einen falschen Zeitstempel (alle würden den Moment des Onboardings zeigen, nicht den tatsächlichen Zeitpunkt des Gebets), das mentale Modell für Gebete innerhalb einer Praxisphase würde verdreht, und es entstünden große DynamoDB-Mengen, die langsam abzufragen oder zu löschen wären. Die Schuldzahl ist auch ohne diese Zeilen korrekt."
+      },
+      {
+        "id": "revert_date_calculation",
+        "question": "Wie wird das Rückkehr-/Konvertierungsdatum berechnet?",
+        "answer": "Bei einer neuen Muslima oder einem neuen Muslim beginnen die Verpflichtungen mit dem Moment der Shahada – nicht erst mit der Pubertät. Wenn dein Reversionsdatum nach dem Bulugh-Datum liegt, verwendet Awdah dein Reversionsdatum als Startpunkt der qadaa-Berechnung. Liegt dein Reversionsdatum an oder vor Bulugh (zum Beispiel bei einer Konversion im Kindesalter), bleibt Bulugh der Startpunkt. Der effektive Start ist immer: max(Bulugh-Datum, Reversionsdatum)."
+      },
+      {
+        "id": "debt_preview",
+        "question": "Ist die vor dem Speichern angezeigte Schuldschätzung nach Änderungen genau?",
+        "answer": "Es ist eine Frontend-Schätzung auf Basis deiner aktuellen Praxisphasen und der vorgeschlagenen neuen Daten. Sie verwendet dieselbe Formel wie die maßgebliche Berechnung im Backend. Nach deiner Bestätigung und dem Speichern berechnet das Backend den exakten Wert neu, und das Dashboard aktualisiert sich mit der genauen Zahl."
+      },
+      {
+        "id": "timezone_handling",
+        "question": "Warum verwendet die App für alle Datumsberechnungen UTC?",
+        "answer": "UTC verhindert Verschiebungen durch Sommerzeit. Ein Gebet, das um Mitternacht lokaler Zeit erfasst wird, könnte sonst auf den vorherigen oder nächsten Hijri-Tag rutschen. UTC hält die religiösen Daten stabil, egal wo du dich befindest oder ob in deiner Region Sommerzeit gilt. Gregorianische Daten in der Oberfläche werden nur zur Anzeige in deine lokale Zeitzone umgerechnet."
+      },
+      {
+        "id": "momentum_calculation",
+        "question": "Wie wird der Momentum-Wert berechnet?",
+        "answer": "Momentum ist strikt an deine täglichen Pflichtgebete gekoppelt. Die Serie zählt rückwärts von heute aus jeden aufeinanderfolgenden Hijri-Tag, an dem du alle fünf Pflichtgebete erfüllt hast. Sie steht für deine aktuelle Beständigkeit bei dieser zentralen Pflicht. Wenn du heute oder gestern auch nur ein einziges Pflichtgebet verpasst, wird die Momentum-Serie zurückgesetzt."
+      },
+      {
+        "id": "persistence_streaks",
+        "question": "Wie funktionieren einzelne Gebets- und Fasten-Serien?",
+        "answer": "Im Gegensatz zur Hauptserie Momentum sind einzelne Serien (wie deine 'Fajr-Serie' oder 'Fasten-Serie') inklusiv. Gezählt wird jeder Tag, an dem du diese Handlung vollzogen hast – sei es als tägliche Pflicht, als Nachholung (qadaa) oder während des Ramadan. Dieses Modell der Beständigkeit sorgt dafür, dass dein Einsatz beim Nachholen verpasster Gebete immer erfasst und gewürdigt wird, selbst wenn Momentum unterbrochen ist."
+      }
+    ]
+  }
+]
