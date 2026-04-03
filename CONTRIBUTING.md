@@ -135,11 +135,11 @@ Commit the two files and open a PR. Once merged and deployed, your entry appears
 
 ### Update the FAQ
 
-Edit `apps/frontend/public/data/faq-en.json` and `faq-ar.json`. Each entry in the `items` array has an `id`, `question`, and `answer`. Add to the relevant section or add a new section if needed. The FAQ page fetches the file fresh on each load, so there is no cache to clear.
+Edit `apps/frontend/public/data/faq-en.json`, `faq-ar.json`, and `faq-de.json`. Each entry in the `items` array has an `id`, `question`, `answer`, and optional `references` array. Add to the relevant section or add a new section if needed. The FAQ page fetches the file fresh on each load, so there is no cache to clear.
 
 ### Update the Contributing page sections
 
-The Contributing page content (areas of work, PR guide, v2 roadmap) lives in `apps/frontend/public/data/contributing-en.json` and `contributing-ar.json`. Edit the text directly — sections, items, and steps are all plain strings. No component changes are needed.
+The Contributing page content (areas of work, PR guide, v2 roadmap) lives in `apps/frontend/public/data/contributing-en.json`, `contributing-ar.json`, and `contributing-de.json`. Edit the text directly – sections, items, and steps are all plain strings. No component changes are needed.
 
 ### Add a new UI language
 
@@ -174,18 +174,22 @@ Each language is a single JSON file. The file is self-describing — the languag
 The About, FAQ, and Contributing pages load their content from `apps/frontend/public/data/`. These files are independent of the i18n system and need to be translated separately.
 
 1. Copy each `*-en.json` file to a `*-<code>.json` variant and translate all string values:
-   - `about-en.json` → `about-fr.json`
-   - `faq-en.json` → `faq-fr.json`
-   - `contributing-en.json` → `contributing-fr.json`
-     Do not add `_meta` to these files. They are page-content payloads, not translation bundles.
 
-#### 3. Glossary terms and tooltips
+- `apps/frontend/public/data/about-en.json` → `apps/frontend/public/data/about-fr.json`
+- `apps/frontend/public/data/contributing-en.json` → `apps/frontend/public/data/contributing-fr.json`
+- `apps/frontend/public/data/faq-en.json` → `apps/frontend/public/data/faq-fr.json`
+- Keep the same content-only schema. Do not add `_meta` to these files.
+
+2. If a language is only partially translated, the UI falls back to English for missing public content.
+
+#### 3. Glossary terms, references, and tooltips
 
 The glossary in `apps/frontend/src/content/glossary/glossary.json` powers the term tooltips used in onboarding and other educational copy. It is separate from the translation bundles, but it still needs language-specific text if you want the terms to read naturally in a new language.
 
 1. Review the glossary terms that appear in translated screens, especially onboarding and qadaa guidance copy.
-2. Add your language code to any glossary entry that should have native synonyms or definitions.
-3. Verify the tooltip copy in the app in both LTR and RTL if applicable.
+2. Add your language code to any glossary entry that should have native synonyms, definitions, or source references.
+3. If you introduce new scholarly links, add them under `apps/frontend/src/content/references/` and render them through the reference list component.
+4. Verify the tooltip copy in the app in both LTR and RTL if applicable.
 
 Glossary entries fall back to English when a language key is missing, so adding the new language is optional for basic functionality but required for a fully polished rollout.
 
@@ -197,7 +201,8 @@ To ship a new language end-to-end, add all of the following:
 - `apps/frontend/public/data/about-<code>.json`
 - `apps/frontend/public/data/contributing-<code>.json`
 - `apps/frontend/public/data/faq-<code>.json`
-- `apps/frontend/src/content/glossary/glossary.json` entries for any terms that should have native tooltip text
+- `apps/frontend/src/content/glossary/glossary.json` entries for any terms that should have native tooltip text or references
+- `apps/frontend/src/content/references/` entries for any new scholarly sources you want to surface in the UI
 - `apps/frontend/public/demo-data/sample-user.json` with `user.story.<code>` for the demo route
 
 If the language is right-to-left, set `_meta.dir` to `rtl` and verify the UI in both LTR and RTL contexts.

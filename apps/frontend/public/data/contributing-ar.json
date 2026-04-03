@@ -131,7 +131,7 @@
       "badge_variant": "success",
       "icon": "Globe",
       "title": "تحسين الترجمات القائمة",
-      "body": "يتوفر التطبيق بالعربية والإنجليزية والألمانية، مع بنية ترجمة قابلة للتوسع. ملفا الترجمة موجودان في apps/frontend/src/i18n/. إن وجدت صياغة مربكة أو ترجمة خاطئة أو نصاً لا يتوافق مع الأسلوب الرحيم وغير الحكمي للتطبيق، فقم بتصحيحه.",
+      "body": "يتوفر التطبيق بالعربية والإنجليزية والألمانية، مع بنية ترجمة قابلة للتوسع. تشمل الترجمة ملفات i18n الأساسية، ومحتوى JSON العام، ومصطلحات المعجم، ومراجعة النبرة في الشاشات الحساسة. وإذا كانت الترجمة جزئية فقط، فسيستخدم التطبيق الإنجليزية كخيار احتياطي للمحتوى الناقص.",
       "items": [
         {
           "id": "arabic_review",
@@ -152,7 +152,7 @@
         {
           "id": "public_data_files",
           "title": "مراجعة وتحسين ملفات المحتوى العام",
-          "description": "صفحات عن التطبيق والمساهمة والأسئلة الشائعة تحمّل محتواها من ملفات JSON في apps/frontend/public/data/. هذه الملفات ليست جزءاً من الحزمة المجمّعة ويمكن تحسينها دون تغيير الكود. راجع about-en.json وabout-ar.json وcontributing-en.json وcontributing-ar.json من حيث الدقة والنبرة. وإذا كان النص المترجم يستخدم مصطلحات معجمية يجب أن تظهر بتلميحات أصلية، فحدّث apps/frontend/src/content/glossary/glossary.json أيضاً."
+          "description": "صفحات عن التطبيق والمساهمة والأسئلة الشائعة تحمّل محتواها من ملفات JSON في apps/frontend/public/data/. راجع هذه الملفات من حيث الدقة والنبرة والاتساق بين اللغات: apps/frontend/public/data/about-en.json وabout-ar.json وabout-de.json، وcontributing-en.json وcontributing-ar.json وcontributing-de.json، وfaq-en.json وfaq-ar.json وfaq-de.json. وإذا كان النص المترجم يستخدم مصطلحات معجمية يجب أن تظهر بتلميحات أصلية، فحدّث apps/frontend/src/content/glossary/glossary.json أيضاً."
         }
       ]
     },
@@ -175,8 +175,9 @@
             "أضف كتلة _meta في أعلى ملف الترجمة نفسه. مثال للفرنسية: { \"code\": \"fr\", \"name\": \"French\", \"nativeName\": \"Français\", \"shortLabel\": \"FR\", \"dir\": \"ltr\" }. للغات التي تُكتب من اليمين إلى اليسار مثل الأردية، اضبط dir على \"rtl\"",
             "شغّل npm run dev:frontend. سيعرض مبدّل اللغة تلقائياً لغتك الجديدة",
             "استعرض التطبيق شاشةً شاشةً بلغتك الجديدة وأصلح أي ترجمة تبدو غير صحيحة في السياق",
-            "ترجم أيضاً ملفات المحتوى العام: انسخ apps/frontend/public/data/about-en.json إلى about-fr.json (أو كود لغتك) وترجم كل القيم",
-            "إذا كان النص المترجم يستخدم مصطلحات معجمية يجب أن تظهر بتلميحات أصلية، فأضف إدخالات اللغة المطابقة في apps/frontend/src/content/glossary/glossary.json",
+            "ترجم أيضاً ملفات المحتوى العام: انسخ apps/frontend/public/data/about-en.json إلى apps/frontend/public/data/about-fr.json (أو كود لغتك)، وapps/frontend/public/data/contributing-en.json إلى apps/frontend/public/data/contributing-fr.json، وapps/frontend/public/data/faq-en.json إلى apps/frontend/public/data/faq-fr.json، ثم ترجم كل القيم. وإذا كانت الترجمة جزئية، فستبقى الإنجليزية متاحة كخيار احتياطي للمحتوى الناقص",
+            "راجع وحدّث apps/frontend/src/content/glossary/glossary.json إذا كانت هناك مصطلحات تحتاج تعريفات أو مرادفات أو مراجع محلية",
+            "أضف روابط المراجع الشرعية الجديدة في apps/frontend/src/content/references/ إذا احتاجت لغتك أو حكمك إلى ذلك",
             "شغّل npm run check أو على الأقل الفحوصات المناسبة للتغيير الذي أجريته، ثم أصلح أي فشل",
             "احفظ تغييراتك بـ: git commit -m 'feat: add French translation'",
             "افتح Pull Request على الفرع الرئيسي للمستودع الأصلي. صف اللغة التي أضفتها وأشر إلى أي نصوص لم تكن متأكداً منها ليراجعها أحد المراجعين"

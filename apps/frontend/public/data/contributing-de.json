@@ -131,7 +131,7 @@
       "badge_variant": "success",
       "icon": "Globe",
       "title": "Bestehende Übersetzungen verbessern",
-      "body": "Die App wird auf Englisch und Arabisch ausgeliefert. Beide Übersetzungsdateien liegen in apps/frontend/src/i18n/. Wenn dir sperrige Formulierungen, Fehlübersetzungen oder Texte auffallen, die nicht zur mitfühlenden, nicht wertenden Tonalität der App passen, korrigiere sie bitte.",
+      "body": "Die App wird auf Englisch, Arabisch und Deutsch ausgeliefert und ist für weitere Sprachen ausgelegt. Zur Übersetzungsarbeit gehören die i18n-Kerndateien, öffentliche JSON-Inhalte, Glossarbegriffe und die Tonprüfung sensibler Bildschirme. Wenn eine Sprache nur teilweise übersetzt ist, fällt die App für fehlende Inhalte auf Englisch zurück.",
       "items": [
         {
           "id": "arabic_review",
@@ -147,7 +147,7 @@
         {
           "id": "english_tone",
           "title": "Englische Texte auf Ton und Klarheit prüfen",
-          "description": "Englische Texte sollten klar, freundlich und frei von Fachjargon sein. Prüfe en.json auf Formulierungen, die klinisch klingen, geschäftsmäßig wirken oder für Menschen mit großer Schuld vorwurfsvoll wirken könnten. Verwende nicht 'debt outstanding', 'overdue' oder 'owe' — nimm stattdessen 'remaining', 'on your journey' oder eine sinngemäße Alternative."
+          "description": "Die About-, Contributing- und FAQ-Seiten laden ihren Inhalt aus JSON-Dateien in apps/frontend/public/data/. Prüfe diese Dateien auf Genauigkeit, Ton und Sprachkonsistenz: apps/frontend/public/data/about-en.json, about-ar.json, about-de.json, contributing-en.json, contributing-ar.json, contributing-de.json, faq-en.json, faq-ar.json und faq-de.json. Wenn dein übersetzter Text Glossarbegriffe enthält, die native Tooltips zeigen sollen, aktualisiere auch apps/frontend/src/content/glossary/glossary.json."
         },
         {
           "id": "public_data_files",
@@ -175,8 +175,9 @@
             "Ergänze dieselbe Datei um eine _meta-Karte auf oberster Ebene. Beispiel für Französisch: { \"code\": \"fr\", \"name\": \"French\", \"nativeName\": \"Français\", \"shortLabel\": \"FR\", \"dir\": \"ltr\" }. Für Sprachen von rechts nach links wie Urdu setze dir: \"rtl\"",
             "Starte npm run dev:frontend — der Sprachschalter zeigt deine neue Sprache dann automatisch an",
             "Gehe die App Bildschirm für Bildschirm in deiner neuen Sprache durch und korrigiere jede Übersetzung, die im Kontext falsch wirkt",
-            "Übersetze auch die öffentlichen Inhaltsdateien: kopiere apps/frontend/public/data/about-en.json nach about-fr.json (oder mit deinem Sprachcode) und übersetze alle Werte",
-            "Wenn der übersetzte Text Glossarbegriffe enthält, die native Tooltips zeigen sollen, aktualisiere auch apps/frontend/src/content/glossary/glossary.json",
+            "Übersetze auch die öffentlichen Inhaltsdateien: kopiere apps/frontend/public/data/about-en.json nach apps/frontend/public/data/about-fr.json (oder mit deinem Sprachcode), apps/frontend/public/data/contributing-en.json nach apps/frontend/public/data/contributing-fr.json und apps/frontend/public/data/faq-en.json nach apps/frontend/public/data/faq-fr.json, und übersetze alle Werte. Wenn die Übersetzung nur teilweise vorhanden ist, fällt die App für fehlende Inhalte auf Englisch zurück",
+            "Prüfe und aktualisiere apps/frontend/src/content/glossary/glossary.json, wenn ein Begriff native Synonyme, Definitionen oder Quellen braucht",
+            "Lege neue Quellenlinks unter apps/frontend/src/content/references/ an, wenn deine Sprache oder ein Urteil zusätzliche Verweise braucht",
             "Führe die relevanten Lint- und Testbefehle für deine Änderung aus (siehe root README für Details). Behebe alle Fehler",
             "Committe deine Änderungen mit: git commit -m 'feat: add French translation'",
             "Öffne einen Pull Request gegen den main-Branch des Original-Repos. Beschreibe die hinzugefügte Sprache und nenne alle Stellen, bei denen du unsicher warst, damit ein Reviewer sie gegenprüfen kann"

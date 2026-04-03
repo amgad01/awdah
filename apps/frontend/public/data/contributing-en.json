@@ -131,7 +131,7 @@
       "badge_variant": "success",
       "icon": "Globe",
       "title": "Improve Existing Translations",
-      "body": "Awdah already supports multiple languages and is designed to grow beyond the current set over time. Translation work includes the core i18n files, public JSON content, and tone review across sensitive onboarding, dashboard, and guidance flows.",
+      "body": "Awdah already supports multiple languages and is designed to grow beyond the current set over time. Translation work includes the core i18n files, public JSON content, glossary terms, and tone review across sensitive onboarding, dashboard, and guidance flows. If a language is only partially translated, the app falls back to English for missing content.",
       "items": [
         {
           "id": "arabic_review",
@@ -152,7 +152,7 @@
         {
           "id": "public_data_files",
           "title": "Review and improve the public content files",
-          "description": "The About, Contributing, and FAQ pages load their content from JSON files in apps/frontend/public/data/. Review those files for accuracy, tone, and multilingual consistency. If your translated copy introduces glossary terms that should have native tooltips, update apps/frontend/src/content/glossary/glossary.json too."
+          "description": "The About, Contributing, and FAQ pages load their content from JSON files in apps/frontend/public/data/. Review these files for accuracy, tone, and multilingual consistency: apps/frontend/public/data/about-en.json, about-ar.json, about-de.json, contributing-en.json, contributing-ar.json, contributing-de.json, faq-en.json, faq-ar.json, and faq-de.json. If your translated copy introduces glossary terms that should have native tooltips, update apps/frontend/src/content/glossary/glossary.json too."
         }
       ]
     },
@@ -175,8 +175,9 @@
             "Add a top-level _meta block to the same JSON file. Example for French: { \"code\": \"fr\", \"name\": \"French\", \"nativeName\": \"Français\", \"shortLabel\": \"FR\", \"dir\": \"ltr\" }. For right-to-left languages like Urdu, set dir: \"rtl\".",
             "Run npm run dev:frontend. The language switcher will automatically show your new language",
             "Go through the app screen by screen in your new language and fix any translation that looks wrong in context",
-            "Also translate the public content files: copy apps/frontend/public/data/about-en.json to about-fr.json, contributing-en.json to contributing-fr.json, and faq-en.json to faq-fr.json, then translate all values",
-            "If the translated copy uses glossary terms that should have native synonyms or definitions, add matching language entries in apps/frontend/src/content/glossary/glossary.json",
+            "Also translate the public content files: copy apps/frontend/public/data/about-en.json to apps/frontend/public/data/about-fr.json, apps/frontend/public/data/contributing-en.json to apps/frontend/public/data/contributing-fr.json, and apps/frontend/public/data/faq-en.json to apps/frontend/public/data/faq-fr.json, then translate all values. If the translation is partial, English content stays available as the fallback.",
+            "Review and update apps/frontend/src/content/glossary/glossary.json if any term needs native synonyms, definitions, or source references",
+            "Add new scholar source links under apps/frontend/src/content/references/ if your language or ruling needs them",
             "Run the relevant lint and test commands for your change and fix any failures",
             "Commit your changes with: git commit -m 'feat: add French translation'",
             "Open a pull request against the main branch of the original repo. Describe the language you added and note any strings you were unsure about so a reviewer can double-check them"
