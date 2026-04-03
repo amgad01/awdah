@@ -1,2 +1,7 @@
 #!/bin/sh
+
+if [ "${CI:-}" = "true" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+	exit 0
+fi
+
 RUN_E2E=1 ./scripts/pre-push-checks.sh
