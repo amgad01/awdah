@@ -10,6 +10,12 @@ on:
       release_tag:
         description: 'Optional semver tag override (example: v1.2.3)'
         required: false
+      release_tagger_name:
+        description: 'Optional Git tagger name to use for the release tag'
+        required: false
+      release_tagger_email:
+        description: 'Optional Git tagger email to use for the release tag'
+        required: false
   workflow_run:
     workflows: ['Deploy Backend']
     types:
@@ -88,7 +94,21 @@ jobs:
 
       - name: Create and push release tag
         run: |
-          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+          tagger_name='${{ github.event.inputs.release_tagger_name }}'
+          tagger_email='${{ github.event.inputs.release_tagger_email }}'
+
+          if [ -z "$tagger_name" ]; then
+            tagger_name='github-actions[bot]'
+          fi
+
+          if [ -z "$tagger_email" ]; then
+            tagger_email='github-actions[bot]@users.noreply.github.com'
+          fi
+
+          git config user.name "$tagger_name"
+          git config user.email "$tagger_email"
+
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists locally."
           else
             git tag -a "$RELEASE_TAG" "$GITHUB_SHA" -m "GitHub Pages release $RELEASE_TAG"
