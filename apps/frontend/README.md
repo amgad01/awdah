@@ -76,7 +76,7 @@ New components should use the centralized palette and shadow tokens in `src/asse
 
 Tests live in `e2e/` and run against the local frontend dev server in `VITE_AUTH_MODE=local`, with the backend on `http://localhost:3000` and LocalStack providing DynamoDB.
 
-Start LocalStack first with `docker compose up -d localstack`. The Playwright backend helper now fails fast with a clear message if LocalStack is not reachable, instead of leaving the dev server half-started.
+The Playwright backend helper starts LocalStack automatically when it is missing, then waits for it to become healthy before seeding data. If Docker is unavailable, it fails with a clear message.
 
 ```bash
 npm run test:e2e         # Headless
