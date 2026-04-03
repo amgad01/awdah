@@ -18,7 +18,9 @@ import {
   Star,
   Wifi,
 } from 'lucide-react';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import { useLanguage } from '@/hooks/use-language';
+import { loadLocalizedContent } from '@/utils/localized-content';
 import styles from './contributing-page.module.css';
 
 interface ContributingItem {
@@ -111,7 +113,6 @@ export const ContributingPage: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const dataUrl = `${import.meta.env.BASE_URL}data/contributing-${language}.json`;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -120,12 +121,9 @@ export const ContributingPage: React.FC = () => {
 
     const loadData = async () => {
       try {
-        const res = await fetch(dataUrl, { signal: controller.signal });
-        if (!res.ok) {
-          throw new Error(`Failed to load Contributing content (${res.status})`);
-        }
-
-        const json = (await res.json()) as ContributingData;
+        const json = await loadLocalizedContent<ContributingData>('contributing', language, {
+          signal: controller.signal,
+        });
         if (!cancelled) {
           setData(json);
         }
@@ -185,9 +183,13 @@ export const ContributingPage: React.FC = () => {
       <section className={styles.hero}>
         <span className={styles.heroBadge}>{data.hero_badge}</span>
         <h1 className={styles.heroTitle}>{data.hero_title}</h1>
-        <p className={styles.heroSubtitle}>{data.hero_subtitle}</p>
+        <p className={styles.heroSubtitle}>
+          <GlossaryText>{data.hero_subtitle}</GlossaryText>
+        </p>
 
-        <div className={styles.ossNote}>{data.oss_note}</div>
+        <div className={styles.ossNote}>
+          <GlossaryText>{data.oss_note}</GlossaryText>
+        </div>
 
         <div className={styles.ctaLinks}>
           <a
@@ -225,20 +227,26 @@ export const ContributingPage: React.FC = () => {
                 <IconComponent size={22} className={styles.sectionIcon} />
                 <h2 className={styles.sectionTitle}>{section.title}</h2>
               </div>
-              <p className={styles.sectionBody}>{section.body}</p>
+              <p className={styles.sectionBody}>
+                <GlossaryText>{section.body}</GlossaryText>
+              </p>
             </div>
 
             <div className={styles.itemList}>
               {section.items.map((item) => (
                 <div key={item.id} className={styles.itemCard}>
                   <h3 className={styles.itemTitle}>{item.title}</h3>
-                  <p className={styles.itemDescription}>{item.description}</p>
+                  <p className={styles.itemDescription}>
+                    <GlossaryText>{item.description}</GlossaryText>
+                  </p>
                   {item.steps && item.steps.length > 0 && (
                     <ol className={styles.stepList}>
                       {item.steps.map((step, i) => (
                         <li key={i} className={styles.stepItem}>
                           <span className={styles.stepNumber}>{i + 1}</span>
-                          <span className={styles.stepText}>{step}</span>
+                          <span className={styles.stepText}>
+                            <GlossaryText>{step}</GlossaryText>
+                          </span>
                         </li>
                       ))}
                     </ol>
@@ -253,7 +261,9 @@ export const ContributingPage: React.FC = () => {
       {/* ── How to Submit a PR ── */}
       <section className={styles.prSection}>
         <h2 className={styles.sectionTitle}>{data.pr_title}</h2>
-        <p className={styles.sectionBody}>{data.pr_intro}</p>
+        <p className={styles.sectionBody}>
+          <GlossaryText>{data.pr_intro}</GlossaryText>
+        </p>
 
         <ol className={styles.prStepList}>
           {data.pr_steps.map((step) => (
@@ -261,7 +271,9 @@ export const ContributingPage: React.FC = () => {
               <span className={styles.prStepNumber}>{step.step}</span>
               <div className={styles.prStepContent}>
                 <h3 className={styles.prStepTitle}>{step.title}</h3>
-                <p className={styles.prStepBody}>{step.body}</p>
+                <p className={styles.prStepBody}>
+                  <GlossaryText>{step.body}</GlossaryText>
+                </p>
               </div>
             </li>
           ))}
@@ -272,7 +284,9 @@ export const ContributingPage: React.FC = () => {
       <section className={styles.v2Section}>
         <span className={`${styles.badge} ${styles.badgePrimary}`}>{data.v2_badge}</span>
         <h2 className={styles.sectionTitle}>{data.v2_title}</h2>
-        <p className={styles.sectionBody}>{data.v2_intro}</p>
+        <p className={styles.sectionBody}>
+          <GlossaryText>{data.v2_intro}</GlossaryText>
+        </p>
 
         <div className={styles.v2Grid}>
           {data.v2_items.map((item) => {
@@ -281,7 +295,9 @@ export const ContributingPage: React.FC = () => {
               <div key={item.id} className={styles.v2Card}>
                 <IconComponent size={20} className={styles.v2CardIcon} />
                 <h3 className={styles.v2CardTitle}>{item.title}</h3>
-                <p className={styles.v2CardBody}>{item.body}</p>
+                <p className={styles.v2CardBody}>
+                  <GlossaryText>{item.body}</GlossaryText>
+                </p>
               </div>
             );
           })}
@@ -292,7 +308,9 @@ export const ContributingPage: React.FC = () => {
       <section className={styles.recognitionSection}>
         <Heart size={24} className={styles.recognitionIcon} />
         <h2 className={styles.recognitionTitle}>{data.recognition_title}</h2>
-        <p className={styles.recognitionBody}>{data.recognition_body}</p>
+        <p className={styles.recognitionBody}>
+          <GlossaryText>{data.recognition_body}</GlossaryText>
+        </p>
         <a
           href={data.github_link}
           target="_blank"

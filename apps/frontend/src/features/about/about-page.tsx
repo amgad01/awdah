@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ErrorState } from '@/components/ui/error-state/error-state';
+import { GlossaryText } from '@/components/ui/term-tooltip';
+import { loadLocalizedContent } from '@/utils/localized-content';
 import styles from './about-page.module.css';
 
 interface SocialLink {
@@ -84,7 +86,6 @@ export const AboutPage: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const dataUrl = `${import.meta.env.BASE_URL}data/about-${language}.json`;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -93,12 +94,9 @@ export const AboutPage: React.FC = () => {
 
     const loadData = async () => {
       try {
-        const res = await fetch(dataUrl, { signal: controller.signal });
-        if (!res.ok) {
-          throw new Error(`Failed to load About content (${res.status})`);
-        }
-
-        const json = (await res.json()) as AboutData;
+        const json = await loadLocalizedContent<AboutData>('about', language, {
+          signal: controller.signal,
+        });
         if (!cancelled) {
           setData(json);
         }
@@ -139,20 +137,26 @@ export const AboutPage: React.FC = () => {
       <section className={styles.hero}>
         <span className={styles.heroBadge}>{data.project_badge}</span>
         <h1 className={styles.heroTitle}>{data.project_title}</h1>
-        <p className={styles.heroSubtitle}>{data.project_subtitle}</p>
+        <p className={styles.heroSubtitle}>
+          <GlossaryText>{data.project_subtitle}</GlossaryText>
+        </p>
       </section>
 
       <section className={styles.missionSection}>
         <div className={styles.missionCard}>
           <Heart size={20} className={styles.missionIcon} />
           <h2 className={styles.sectionTitle}>{data.why_title}</h2>
-          <p className={styles.sectionBody}>{data.why_body}</p>
+          <p className={styles.sectionBody}>
+            <GlossaryText>{data.why_body}</GlossaryText>
+          </p>
         </div>
       </section>
 
       <section className={styles.audienceSection}>
         <h2 className={styles.sectionTitle}>{data.who_title}</h2>
-        <p className={styles.sectionBody}>{data.who_body}</p>
+        <p className={styles.sectionBody}>
+          <GlossaryText>{data.who_body}</GlossaryText>
+        </p>
       </section>
 
       <section className={styles.featuresSection}>
@@ -164,7 +168,9 @@ export const AboutPage: React.FC = () => {
               <div key={feature.id} className={styles.featureCard}>
                 <IconComponent size={20} className={styles.featureIcon} />
                 <h3>{feature.title}</h3>
-                <p>{feature.body}</p>
+                <p>
+                  <GlossaryText>{feature.body}</GlossaryText>
+                </p>
               </div>
             );
           })}
@@ -183,7 +189,7 @@ export const AboutPage: React.FC = () => {
             .filter(Boolean)
             .map((paragraph, index) => (
               <p key={`${member.id}-bio-${index}`} className={styles.devBio}>
-                {paragraph}
+                <GlossaryText>{paragraph}</GlossaryText>
               </p>
             ))}
 

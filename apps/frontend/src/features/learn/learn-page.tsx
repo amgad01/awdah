@@ -3,13 +3,21 @@ import { useLanguage } from '@/hooks/use-language';
 import { ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card/card';
 import { GlossaryText } from '@/components/ui/term-tooltip';
-import { glossary, resolveGlossaryText } from '@/content/glossary/glossary';
+import {
+  glossary,
+  resolveGlossaryReferences,
+  resolveGlossaryText,
+} from '@/content/glossary/glossary';
+import { ReferenceLinks } from '@/components/ui/reference-links/reference-links';
+import type { ReferenceLink } from '@/content/references/reference-links';
+import { loadLocalizedContent } from '@/utils/localized-content';
 import styles from './learn-page.module.css';
 
 interface FaqItem {
   id: string;
   question: string;
   answer: string;
+  references?: ReferenceLink[];
 }
 
 interface FaqSection {
@@ -21,11 +29,20 @@ interface FaqSection {
 interface AccordionItemProps {
   question: string;
   answer: string;
+  references?: ReferenceLink[];
+  referenceHeading: string;
   isOpen: boolean;
   onToggle: () => void;
 }
 
-const AccordionItem: React.FC<AccordionItemProps> = ({ question, answer, isOpen, onToggle }) => (
+const AccordionItem: React.FC<AccordionItemProps> = ({
+  question,
+  answer,
+  references = [],
+  referenceHeading,
+  isOpen,
+  onToggle,
+}) => (
   <div className={`${styles.accordionItem} ${isOpen ? styles.accordionItemOpen : ''}`}>
     <button
       type="button"
@@ -42,6 +59,12 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ question, answer, isOpen,
         aria-hidden="true"
       />
     </button>
+    <ReferenceLinks
+      heading={referenceHeading}
+      references={references}
+      className={styles.referenceBlock}
+      compact
+    />
     {isOpen && (
       <div className={styles.accordionBody} role="region">
         <p className={styles.accordionAnswer}>
@@ -56,6 +79,14 @@ interface LearnPageProps {
   showHeading?: boolean;
 }
 
+interface GlossaryCardEntry {
+  termId: string;
+  arabic: string;
+  synonyms?: string;
+  definition?: string;
+  references: ReferenceLink[];
+}
+
 export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   const { t, language } = useLanguage();
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -67,15 +98,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
 
   useEffect(() => {
     const controller = new AbortController();
-    const url = `${import.meta.env.BASE_URL}data/faq-${language}.json`;
-
-    fetch(url, { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error('Failed to load FAQ content');
-        }
-        return (await res.json()) as FaqSection[];
-      })
+    loadLocalizedContent<FaqSection[]>('faq', language, { signal: controller.signal })
       .then((json) => {
         setFaqData(Array.isArray(json) ? json : []);
         setFaqLoadedLanguage(language);
@@ -118,17 +141,19 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
       .filter((section) => section.items.length > 0);
   }, [activeFaqData, normalizedQuery]);
 
-  const glossaryEntries = useMemo(() => {
+  const glossaryEntries = useMemo<GlossaryCardEntry[]>(() => {
     return Object.entries(glossary)
       .map(([termId, entry]) => {
         const synonyms = resolveGlossaryText(entry.synonyms, language);
         const definition = resolveGlossaryText(entry.definition, language);
+        const references = resolveGlossaryReferences(entry.references, language);
 
         return {
           termId,
           arabic: entry.arabic,
           synonyms,
           definition,
+          references,
         };
       })
       .filter((entry) => {
@@ -219,6 +244,8 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
                       key={item.id}
                       question={item.question}
                       answer={item.answer}
+                      references={item.references}
+                      referenceHeading={t('common.references')}
                       isOpen={openKey === item.id}
                       onToggle={() => handleToggle(item.id)}
                     />
@@ -251,6 +278,12 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
                       <GlossaryText>{entry.definition}</GlossaryText>
                     </p>
                   ) : null}
+
+                  <ReferenceLinks
+                    heading={t('common.references')}
+                    references={entry.references}
+                    className={styles.glossaryReferences}
+                  />
                 </Card>
               ))}
             </div>

@@ -6,6 +6,7 @@
  *   - "arabic": Arabic script (shown in every language)
  *   - "synonyms": { "en": "...", "ar": "..." }  — alternative names per language
  *   - "definition": { "en": "...", "ar": "..." }  — brief definition per language
+ *   - "references": optional source links that can be rendered in the Learn page
  *
  * If a language code is missing, the component falls back to English.
  * If neither exists, the tooltip is suppressed and the text renders as plain text.
@@ -14,6 +15,11 @@
  */
 
 import glossaryJson from './glossary.json';
+import {
+  type LocalizedReferenceLink,
+  resolveLocalizedText,
+  resolveReferenceLinks,
+} from '../references/reference-links';
 
 export interface GlossaryEntry {
   /** Arabic script for the term — displayed in every language */
@@ -22,6 +28,7 @@ export interface GlossaryEntry {
   synonyms: Partial<Record<string, string>>;
   /** Brief plain-language definition, keyed by language code */
   definition: Partial<Record<string, string>>;
+  references?: LocalizedReferenceLink[];
 }
 
 export const glossary: Record<string, GlossaryEntry> = glossaryJson as Record<
@@ -46,5 +53,14 @@ export function resolveGlossaryText(
   field: Partial<Record<string, string>>,
   language: string,
 ): string | undefined {
-  return field[language] ?? field['en'];
+  return resolveLocalizedText(field, language);
 }
+
+export function resolveGlossaryReferences(
+  references: LocalizedReferenceLink[] | undefined,
+  language: string,
+) {
+  return resolveReferenceLinks(references, language);
+}
+
+export { resolveLocalizedText } from '../references/reference-links';

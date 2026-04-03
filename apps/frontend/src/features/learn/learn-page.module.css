@@ -174,6 +174,10 @@
   line-height: 1.6;
 }
 
+.referenceBlock {
+  margin-block-start: var(--spacing-sm);
+}
+
 .glossarySection {
   display: flex;
   flex-direction: column;
@@ -241,6 +245,10 @@
   margin: 0;
   color: var(--color-text-secondary);
   line-height: 1.7;
+}
+
+.glossaryReferences {
+  margin-block-start: var(--spacing-sm);
 }
 
 .emptyCard {
