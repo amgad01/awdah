@@ -61,13 +61,11 @@ describe('AboutPage — bio paragraph rendering', () => {
       expect(screen.getByText('Second paragraph with more detail.')).toBeInTheDocument();
     });
 
-    const paragraphs = screen
-      .getAllByRole('paragraph')
-      .filter(
-        (el) =>
-          el.textContent === 'First paragraph of the founder bio.' ||
-          el.textContent === 'Second paragraph with more detail.',
-      );
+    const paragraphs = Array.from(document.querySelectorAll('p')).filter(
+      (el) =>
+        el.textContent === 'First paragraph of the founder bio.' ||
+        el.textContent === 'Second paragraph with more detail.',
+    );
     expect(paragraphs).toHaveLength(2);
   });
 
@@ -88,9 +86,9 @@ describe('AboutPage — bio paragraph rendering', () => {
       expect(screen.getByText('Only one paragraph here.')).toBeInTheDocument();
     });
 
-    const paragraphs = screen
-      .getAllByRole('paragraph')
-      .filter((el) => el.textContent === 'Only one paragraph here.');
+    const paragraphs = Array.from(document.querySelectorAll('p')).filter(
+      (el) => el.textContent === 'Only one paragraph here.',
+    );
     expect(paragraphs).toHaveLength(1);
   });
 
