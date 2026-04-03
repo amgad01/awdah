@@ -16,13 +16,40 @@
     ]
   },
   {
+    "id": "product",
+    "title": "Über Awdah",
+    "items": [
+      {
+        "id": "product_about",
+        "question": "Was ist Awdah?",
+        "answer": "Awdah ist ein ruhiger Begleiter für Menschen, die verpasste Gebete und Fasten nachholen. Es verbindet geführtes Onboarding, klare Fortschrittsanzeige und datensensible Voreinstellungen, damit die Erfahrung ruhig und beherrschbar bleibt.",
+        "references": [
+          {
+            "label": "Über Awdah",
+            "url": "/about"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "bulugh",
     "title": "Pubertät (Bulugh) und Qadaa",
     "items": [
       {
         "id": "bulugh_age",
         "question": "Wie behandelt die App das Bulugh-Alter?",
-        "answer": "Wenn du dein genaues Bulugh-Datum nicht kennst, bietet die App eine Standardhilfe an und setzt es auf 15 Hijri-Jahre nach deinem Geburtsdatum. Das folgt der hanafitischen, schafiitischen und hanbalitischen Position und stützt sich unter anderem auf die Überlieferung, dass Ibn 'Umar im Alter von 15 Jahren für den Kampf angenommen wurde (Sahih al-Bukhari 2664)."
+        "answer": "Wenn du dein genaues Bulugh-Datum nicht kennst, bietet die App eine Standardhilfe an und setzt es auf 15 Hijri-Jahre nach deinem Geburtsdatum. Das ist die maßgebliche Orientierung für das Onboarding und wird nur verwendet, wenn du die Standardannahme ausdrücklich auswählst.",
+        "references": [
+          {
+            "label": "Sahih al-Bukhari 2664",
+            "url": "https://sunnah.com/bukhari:2664"
+          },
+          {
+            "label": "IslamWeb: Pflichten ab der Pubertät",
+            "url": "https://www.islamweb.net/en/fatwa/83431/islamic-obligations-at-puberty"
+          }
+        ]
       },
       {
         "id": "missed_days",
@@ -43,12 +70,36 @@
       {
         "id": "witr",
         "question": "Und was ist mit Witr?",
-        "answer": "In v1 wird Witr nicht als eigene qadaa-Pflicht erfasst. Zwar betrachtet die hanafitische Schule Witr als verpflichtend (Wajib), doch die Mehrheitsmeinung stuft es als Sunnah Mu'akkadah ein. Um in v1 eine übergreifende Madhhab-Kompatibilität zu erhalten, konzentrieren wir uns auf die fünf allgemein anerkannten Fard-Gebete."
+        "answer": "In v1 wird Witr nicht als eigene qadaa-Pflicht erfasst. Die App konzentriert sich auf die fünf allgemein anerkannten Fard-Gebete und weist darauf hin, dass die hanafitische Schule Witr anders behandelt als die Mehrheitsmeinung.",
+        "references": [
+          {
+            "label": "IslamWeb: Witr-Gebet",
+            "url": "https://www.islamweb.net/en/fatwa/469702/ruling-on-witr-prayer"
+          },
+          {
+            "label": "IslamQA: Witr-Gebet",
+            "url": "https://islamqa.info/en/answers/36793"
+          }
+        ]
       },
       {
         "id": "salah_limit",
         "question": "Gibt es eine Frist, um verpasste Gebete nachzuholen?",
-        "answer": "Nein. Die Verpflichtung bleibt bestehen, bis sie erfüllt ist – darin sind sich Gelehrte aller vier großen Madhhabs einig. Schon ein nachgeholtes Gebet pro Tag ist gültig und wertvoll."
+        "answer": "Nein. Die Verpflichtung bleibt bestehen, bis sie erfüllt ist. Die App folgt der Mehrheitsmeinung, dass verpasste Gebete nachgeholt werden, weist aber auch darauf hin, dass manche Gelehrte bei vorsätzlichem Unterlassen stärker auf Reue verweisen. Schon ein nachgeholtes Gebet pro Tag ist gültig und wertvoll.",
+        "references": [
+          {
+            "label": "SeekersGuidance: verpasste Gebete nachholen",
+            "url": "https://seekersguidance.org/answers/hanafi-fiqh/what-is-the-ruling-of-praying-missed-prayers-how-do-i-correctly-make-up-missed-prayers/"
+          },
+          {
+            "label": "IslamOnline: verpasste Gebete nachholen",
+            "url": "https://fiqh.islamonline.net/en/making-up-for-years-of-missed-prayer/"
+          },
+          {
+            "label": "IslamWeb: verpasste Gebete im hanbalitischen Fiqh",
+            "url": "https://www.islamweb.net/en/fatwa/351946/making-up-missed-prayers-in-hanbali-school"
+          }
+        ]
       }
     ]
   },
@@ -64,12 +115,24 @@
       {
         "id": "kaffarah",
         "question": "Und was ist mit absichtlich gebrochenen Fasten (Kaffarah)?",
-        "answer": "Kaffarah ist in v1 nicht enthalten. Alle verpassten Fasten werden unabhängig vom Grund als normales qadaa behandelt. Die Kaffarah-Berechnung ist für eine spätere Version vorgesehen."
+        "answer": "Kaffarah ist in v1 nicht enthalten. Die App verfolgt nur die qadaa-Seite. Wenn ein Fasten ohne gültigen Grund absichtlich gebrochen wurde, kann zusätzlich Kaffarah geschuldet sein; bitte kläre deinen Fall mit einem qualifizierten Gelehrten.",
+        "references": [
+          {
+            "label": "Islamic Relief: verpasste Fasten und Kaffarah",
+            "url": "https://islamic-relief.org/what-are-missed-fasts-in-islam-and-who-has-to-make-them-up/"
+          }
+        ]
       },
       {
         "id": "women_exemption",
         "question": "Und was ist mit Ramadan-Ausnahmen für Frauen?",
-        "answer": "Ausnahmen aufgrund von Menstruation sind in v1 für Sawm nicht berücksichtigt. Die Fastenanzahl zieht derzeit keine entschuldigten Tage ab. Das wird in v2 behandelt."
+        "answer": "Ausnahmen aufgrund von Menstruation sind in v1 für Sawm nicht berücksichtigt. Dadurch kann die aktuelle Zahl für manche Frauen höher sein als die tatsächliche Pflicht, bis diese Situation in einer späteren Version unterstützt wird.",
+        "references": [
+          {
+            "label": "Islamic Relief: verpasste Fasten und Menstruation",
+            "url": "https://islamic-relief.org/what-are-missed-fasts-in-islam-and-who-has-to-make-them-up/"
+          }
+        ]
       }
     ]
   },
@@ -80,7 +143,7 @@
       {
         "id": "data_sensitive",
         "question": "Sind meine religiösen Daten sensibel?",
-        "answer": "Ja. Daten zur religiösen Praxis sind sensible personenbezogene Daten. Gespeicherte App-Daten sind in der von AWS verwalteten Infrastruktur at rest verschlüsselt. Deine Einträge bleiben privat, werden weder verkauft noch geteilt, und die Anmeldung läuft über AWS Cognito, sodass das App selbst keine Klartext-Passwörter speichert."
+        "answer": "Ja. Daten zur religiösen Praxis sind sensible personenbezogene Daten. Gespeicherte App-Daten sind in einer verwalteten Cloud-Infrastruktur at rest verschlüsselt. Deine Einträge bleiben privat, werden weder verkauft noch geteilt, und die Anmeldung läuft über einen Cloud-Anmeldedienst, sodass die App selbst keine Klartext-Passwörter speichert."
       }
     ]
   },
@@ -91,7 +154,7 @@
       {
         "id": "periods_no_autofill",
         "question": "Warum füllt die App Praxisphasen nicht automatisch in meine Gebetsprotokolle ein?",
-        "answer": "Wenn du eine Praxisphase einträgst, zieht Awdah diese Tage mathematisch von deiner qadaa-Schuld ab – es werden keine Datensätze erzeugt. Würde man tausende Einträge automatisch anlegen, hätte jede Zeile einen falschen Zeitstempel (alle würden den Moment des Onboardings zeigen, nicht den tatsächlichen Zeitpunkt des Gebets), das mentale Modell für Gebete innerhalb einer Praxisphase würde verdreht, und es entstünden große DynamoDB-Mengen, die langsam abzufragen oder zu löschen wären. Die Schuldzahl ist auch ohne diese Zeilen korrekt."
+        "answer": "Wenn du eine Praxisphase einträgst, zieht Awdah diese Tage mathematisch von deiner qadaa-Schuld ab – es werden keine Datensätze erzeugt. Würde man tausende Einträge automatisch anlegen, hätte jede Zeile einen falschen Zeitstempel (alle würden den Moment des Onboardings zeigen, nicht den tatsächlichen Zeitpunkt des Gebets), das mentale Modell für Gebete innerhalb einer Praxisphase würde verdreht, und es entstünden große Mengen an Datenbankeinträgen, die langsam abzufragen oder zu löschen wären. Die Schuldzahl ist auch ohne diese Zeilen korrekt."
       },
       {
         "id": "revert_date_calculation",

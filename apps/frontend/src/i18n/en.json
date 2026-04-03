@@ -19,6 +19,7 @@
     "decrease_rate": "Decrease rate",
     "increase_rate": "Increase rate",
     "select_language": "Select language",
+    "references": "References",
     "uncheck_confirm": "Remove this entry?",
     "suppress_10min": "Don't ask again for 10 minutes",
     "confirm_uncheck": "Remove",
@@ -256,6 +257,7 @@
     "forgot_password_error": "Failed to reset password. Please try again.",
     "reset_password": "Reset Password",
     "reset_password_subtitle": "Enter the code from your email and set a new password.",
+    "new_password": "New Password",
     "send_reset_code": "Send reset code",
     "back_to_login": "Back to sign in"
   },
@@ -592,7 +594,7 @@
   },
   "learn": {
     "title": "Learn",
-    "subtitle": "Understand the rulings, terminology, and product choices behind how Awdah works.",
+    "subtitle": "Understand the rulings, references, terminology, and product choices behind how Awdah works.",
     "search_label": "Search the reference",
     "search_placeholder": "Search rulings, glossary terms, privacy...",
     "section_nav_label": "Jump to a section",
@@ -603,7 +605,7 @@
     "load_error_body": "The glossary is still available, but the reference content did not load. Please try again.",
     "no_results_title": "No matching guidance found",
     "no_results_hint": "Try a broader keyword like bulugh, Ramadan, privacy, or qadaa.",
-    "footer_note": "This document is a living reference. All rulings should be verified with a qualified scholar."
+    "footer_note": "This document is a living reference. All rulings and references should be verified with a qualified scholar."
   },
   "demo": {
     "badge": "Live Demo",

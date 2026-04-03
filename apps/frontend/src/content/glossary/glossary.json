@@ -10,7 +10,27 @@
       "en": "The point at which a Muslim becomes legally responsible for their religious duties. Signs include physical puberty; the scholarly default is 15 Hijri years when signs are unknown.",
       "ar": "المرحلة التي يصبح فيها المسلم ملزماً شرعاً بأداء الفرائض. علاماته: علامات الحلم، وإن لم تظهر فسن الخامسة عشرة هجرية هو الافتراضي.",
       "de": "Der Zeitpunkt, an dem ein Muslim für religiöse Pflichten rechtlich verantwortlich wird. Kennzeichen sind körperliche Pubertät; liegt kein erkennbares Zeichen vor, gilt scholastisch standardmäßig das 15. Hijri-Jahr."
-    }
+    },
+    "references": [
+      {
+        "label": {
+          "en": "Sahih al-Bukhari 2664",
+          "ar": "صحيح البخاري 2664",
+          "de": "Sahih al-Bukhari 2664"
+        },
+        "url": "https://sunnah.com/bukhari:2664",
+        "verified": true
+      },
+      {
+        "label": {
+          "en": "IslamWeb: Islamic obligations at puberty",
+          "ar": "إسلام ويب: التكليف الشرعي عند البلوغ",
+          "de": "IslamWeb: Islamische Pflichten ab der Pubertät"
+        },
+        "url": "https://www.islamweb.net/en/fatwa/83431/islamic-obligations-at-puberty",
+        "verified": true
+      }
+    ]
   },
   "qadaa": {
     "arabic": "القضاء",
@@ -23,7 +43,36 @@
       "en": "The practice of fulfilling missed obligatory prayers or fasts. Every missed obligation remains owed until it is made up, regardless of how long ago it was missed.",
       "ar": "أداء الصلوات أو أيام الصيام التي فاتت. كل فريضة فائتة يجب قضاؤها بغض النظر عن مدة الفوات.",
       "de": "Das Erfüllen verpasster obligatorischer Gebete oder Fastentage. Jede versäumte Pflicht bleibt bis zum Nachholen bestehen, unabhängig davon, wie lange sie zurückliegt."
-    }
+    },
+    "references": [
+      {
+        "label": {
+          "en": "SeekersGuidance: make up missed prayers",
+          "ar": "SeekersGuidance: قضاء الصلوات الفائتة",
+          "de": "SeekersGuidance: Verpasste Gebete nachholen"
+        },
+        "url": "https://seekersguidance.org/answers/hanafi-fiqh/what-is-the-ruling-of-praying-missed-prayers-how-do-i-correctly-make-up-missed-prayers/",
+        "verified": true
+      },
+      {
+        "label": {
+          "en": "IslamOnline: making up missed prayers",
+          "ar": "إسلام أونلاين: قضاء الصلوات الفائتة",
+          "de": "IslamOnline: Verpasste Gebete nachholen"
+        },
+        "url": "https://fiqh.islamonline.net/en/making-up-for-years-of-missed-prayer/",
+        "verified": true
+      },
+      {
+        "label": {
+          "en": "IslamWeb: missed prayers in Hanbali fiqh",
+          "ar": "إسلام ويب: قضاء الصلوات الفائتة في الفقه الحنبلي",
+          "de": "IslamWeb: Verpasste Gebete im hanbalitischen Fiqh"
+        },
+        "url": "https://www.islamweb.net/en/fatwa/351946/making-up-missed-prayers-in-hanbali-school",
+        "verified": true
+      }
+    ]
   },
   "salah": {
     "arabic": "الصلاة",
@@ -49,7 +98,18 @@
       "en": "The obligatory fast during the month of Ramadan — abstaining from food, drink, and certain acts from dawn until sunset each day.",
       "ar": "الصيام الواجب في شهر رمضان، بالإمساك عن الطعام والشراب من طلوع الفجر حتى غروب الشمس.",
       "de": "Das verpflichtende Fasten im Monat Ramadan - der Verzicht auf Essen, Trinken und bestimmte Handlungen von der Morgendämmerung bis zum Sonnenuntergang jeden Tag."
-    }
+    },
+    "references": [
+      {
+        "label": {
+          "en": "Islamic Relief: missed fasts and who makes them up",
+          "ar": "الإغاثة الإسلامية: الصيام الفائت ومن يجب عليه قضاؤه",
+          "de": "Islamic Relief: Verpasste Fasten und wer sie nachholen muss"
+        },
+        "url": "https://islamic-relief.org/what-are-missed-fasts-in-islam-and-who-has-to-make-them-up/",
+        "verified": true
+      }
+    ]
   },
   "ramadan": {
     "arabic": "رمضان",
@@ -88,7 +148,18 @@
       "en": "A Muslim who is legally accountable — i.e., has reached bulugh and is of sound mind. Religious obligations only apply to a mukallaf.",
       "ar": "المسلم الذي بلغ سن التكليف وكان عاقلاً. الفرائض الدينية لا تجب إلا على المكلَّف.",
       "de": "Ein Muslim, der rechtlich verantwortlich ist, also bulugh erreicht hat und geistig zurechnungsfähig ist. Religiöse Pflichten gelten nur für einen Mukallaf."
-    }
+    },
+    "references": [
+      {
+        "label": {
+          "en": "IslamOnline: accountability and the status of prayer",
+          "ar": "إسلام أونلاين: التكليف وحكم الصلاة",
+          "de": "IslamOnline: Verantwortlichkeit und der Status des Gebets"
+        },
+        "url": "https://fiqh.islamonline.net/en/making-up-for-years-of-missed-prayer/",
+        "verified": true
+      }
+    ]
   },
   "momentum": {
     "arabic": "الزخم",

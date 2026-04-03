@@ -19,6 +19,7 @@
     "decrease_rate": "Rate verringern",
     "increase_rate": "Rate erhöhen",
     "select_language": "Sprache auswählen",
+    "references": "Quellen",
     "uncheck_confirm": "Diesen Eintrag entfernen?",
     "suppress_10min": "10 Minuten lang nicht erneut fragen",
     "confirm_uncheck": "Entfernen",
@@ -259,6 +260,7 @@
     "forgot_password_error": "Passwort konnte nicht zurückgesetzt werden. Bitte erneut versuchen.",
     "reset_password": "Passwort zurücksetzen",
     "reset_password_subtitle": "Gib den Code aus deiner E-Mail ein und lege ein neues Passwort fest.",
+    "new_password": "Neues Passwort",
     "send_reset_code": "Reset-Code senden",
     "back_to_login": "Zurück zur Anmeldung"
   },
@@ -595,7 +597,7 @@
   },
   "learn": {
     "title": "Lernen",
-    "subtitle": "Antworten und Hintergründe zu den Regeln, die die App verwendet.",
+    "subtitle": "Antworten und Hintergründe zu den Regeln, Quellen und Begriffen, die die App verwendet.",
     "search_label": "Referenz durchsuchen",
     "search_placeholder": "Regelungen, Glossarbegriffe, Datenschutz suchen...",
     "section_nav_label": "Zu einem Abschnitt springen",
@@ -606,7 +608,7 @@
     "load_error_body": "Das Glossar ist noch verfügbar, aber der Referenzinhalt konnte nicht geladen werden. Bitte erneut versuchen.",
     "no_results_title": "Keine passenden Hinweise gefunden",
     "no_results_hint": "Versuche ein allgemeineres Stichwort wie Bulugh, Ramadan, Datenschutz oder Qadaa.",
-    "footer_note": "Dieses Dokument ist eine lebendige Referenz. Alle Regelungen sollten mit einem qualifizierten Gelehrten überprüft werden."
+    "footer_note": "Dieses Dokument ist eine lebendige Referenz. Alle Regelungen und Quellen sollten mit einem qualifizierten Gelehrten überprüft werden."
   },
   "demo": {
     "badge": "Live-Demo",
