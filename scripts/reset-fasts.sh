@@ -12,8 +12,17 @@
 set -euo pipefail
 
 ENDPOINT="http://localhost:4566"
-TABLE="fast-logs-dev"
+TABLE="Awdah-FastLogs-dev"
 USER_ID="${1:-}"
+
+# Validate LocalStack is running
+if ! curl -sf "$ENDPOINT/_localstack/health" >/dev/null 2>&1; then
+  echo "✗ LocalStack is not running at $ENDPOINT"
+  echo "  Start it with: docker-compose up localstack"
+  exit 1
+fi
+
+export TABLE
 
 echo "▶ Scanning table: $TABLE on $ENDPOINT"
 
@@ -45,16 +54,18 @@ if [[ "$COUNT" -eq 0 ]]; then
 fi
 
 # Batch-delete in chunks of 25 (DynamoDB limit)
-echo "$ITEMS" | python3 - <<'PY'
+echo "$ITEMS" | python3 - <<PY
 import sys, json, subprocess, math
+import os
 
 items = json.load(sys.stdin)
 chunk_size = 25
 chunks = [items[i:i+chunk_size] for i in range(0, len(items), chunk_size)]
+table_name = os.environ.get('TABLE', 'Awdah-FastLogs-dev')
 
 for idx, chunk in enumerate(chunks, 1):
     delete_requests = [{"DeleteRequest": {"Key": {"PK": item["PK"], "SK": item["SK"]}}} for item in chunk]
-    payload = json.dumps({"fast-logs-dev": delete_requests})
+    payload = json.dumps({table_name: delete_requests})
     result = subprocess.run(
         ["aws", "dynamodb", "batch-write-item",
          "--endpoint-url", "http://localhost:4566",
