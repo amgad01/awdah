@@ -36,5 +36,5 @@ export async function waitForLifecycleJob(
     await sleep(USER_JOB_POLL_INTERVAL_MS);
   }
 
-  throw new Error('The background task is taking longer than expected. Please try again shortly.');
+  throw new Error('common.task_timeout');
 }
