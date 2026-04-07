@@ -52,4 +52,60 @@ describe('GetPrayerHistoryUseCase', () => {
     ]);
     expect(mockRepo.findByUserAndDateRange).toHaveBeenCalled();
   });
+
+  it('returns multiple qadaa entries per prayer per day (net prayed − deselected)', async () => {
+    const command: GetPrayerHistoryCommand = {
+      userId: 'user-1',
+      startDate: '1445-09-01',
+      endDate: '1445-09-01',
+    };
+
+    const ts = (offset: number) => new Date(Date.UTC(2025, 0, 1, 0, 0, offset));
+    const mockResults = [
+      new PrayerLog({
+        userId: 'user-1',
+        eventId: 'q1',
+        date: HijriDate.fromString('1445-09-01'),
+        prayerName: new PrayerName('fajr'),
+        type: new LogType('qadaa'),
+        action: 'prayed',
+        loggedAt: ts(1),
+      }),
+      new PrayerLog({
+        userId: 'user-1',
+        eventId: 'q2',
+        date: HijriDate.fromString('1445-09-01'),
+        prayerName: new PrayerName('fajr'),
+        type: new LogType('qadaa'),
+        action: 'prayed',
+        loggedAt: ts(2),
+      }),
+      new PrayerLog({
+        userId: 'user-1',
+        eventId: 'q3',
+        date: HijriDate.fromString('1445-09-01'),
+        prayerName: new PrayerName('fajr'),
+        type: new LogType('qadaa'),
+        action: 'prayed',
+        loggedAt: ts(3),
+      }),
+      new PrayerLog({
+        userId: 'user-1',
+        eventId: 'q4',
+        date: HijriDate.fromString('1445-09-01'),
+        prayerName: new PrayerName('fajr'),
+        type: new LogType('qadaa'),
+        action: 'deselected',
+        loggedAt: ts(4),
+      }),
+    ];
+    vi.mocked(mockRepo.findByUserAndDateRange).mockResolvedValue(mockResults);
+
+    const results = await useCase.execute(command);
+
+    // 3 prayed − 1 deselected = net 2
+    const qadaaResults = results.filter((r) => r.type === 'qadaa');
+    expect(qadaaResults).toHaveLength(2);
+    expect(qadaaResults.every((r) => r.prayerName === 'fajr')).toBe(true);
+  });
 });
