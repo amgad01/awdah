@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { computeConsecutiveStreak, computeMonThuStreak } from '../use-streak';
 import { todayHijriDate, addHijriDays, gregorianIsoToHijri } from '@/utils/date-utils';

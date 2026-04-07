@@ -17,8 +17,10 @@
  *          ...
  *        }
  *
- *   No other code changes are needed. Vite discovers the file via import.meta.glob,
- *   reads _meta, and the language switcher renders it automatically.
+ *   2. Rebuild and redeploy the frontend to bundle the new language.
+ *
+ *   No registration step is needed — the language switcher discovers
+ *   the file automatically at build time via Vite's import.meta.glob.
  */
 
 export interface LanguageDef {
@@ -42,8 +44,8 @@ const allLanguageMetadata = import.meta.glob<LanguageMeta>('./[a-z][a-z].json', 
   import: '_meta',
 });
 
-// Full translation bundles stay lazy so adding new languages does not grow the
-// initial app chunk unnecessarily.
+// Full translation bundles are loaded via Vite's import.meta.glob.
+// Languages must be present at build time to be available in the app.
 const allLanguageBundleLoaders = import.meta.glob<TranslationBundle>('./[a-z][a-z].json', {
   import: 'default',
 });
@@ -82,20 +84,24 @@ function toLanguageDef(filePath: string, meta: unknown): LanguageDef {
   };
 }
 
-/**
- * SUPPORTED_LANGUAGES is built at import time from the _meta block of every
- * discovered translation JSON. English is always sorted first; all other
- * languages follow in alphabetical order by their English name.
- */
-export const SUPPORTED_LANGUAGES: LanguageDef[] = Object.entries(allLanguageMetadata)
-  .map(([filePath, meta]) => toLanguageDef(filePath, meta))
-  .sort((a, b) =>
+function sortLanguages(languages: LanguageDef[]): LanguageDef[] {
+  return [...languages].sort((a, b) =>
     a.code === DEFAULT_LANGUAGE_CODE
       ? -1
       : b.code === DEFAULT_LANGUAGE_CODE
         ? 1
         : a.name.localeCompare(b.name),
   );
+}
+
+/**
+ * SUPPORTED_LANGUAGES is built at import time from the _meta block of every
+ * discovered translation JSON. English is always sorted first; all other
+ * languages follow in alphabetical order by their English name.
+ */
+export const SUPPORTED_LANGUAGES: LanguageDef[] = sortLanguages(
+  Object.entries(allLanguageMetadata).map(([filePath, meta]) => toLanguageDef(filePath, meta)),
+);
 
 const supportedLanguageMap = new Map(
   SUPPORTED_LANGUAGES.map((language) => [language.code, language]),
@@ -171,13 +177,15 @@ export function persistLanguageCode(
 /**
  * Returns the translation bundle for the given language code, with the
  * internal _meta block stripped so it never pollutes the i18n namespace.
+ *
+ * Languages must be present at build time in src/i18n/ to be available.
  */
 export async function loadLanguageBundle(code: string): Promise<TranslationBundle> {
-  const loader = allLanguageBundleLoaders[`./${code}.json`];
-  if (loader == null) {
-    throw new Error(`No translation file found for language: ${code}`);
+  const bundledLoader = allLanguageBundleLoaders[`./${code}.json`];
+  if (bundledLoader != null) {
+    const bundle = await bundledLoader();
+    return omitMeta(bundle);
   }
 
-  const bundle = await loader();
-  return omitMeta(bundle);
+  throw new Error('common.language_not_available');
 }

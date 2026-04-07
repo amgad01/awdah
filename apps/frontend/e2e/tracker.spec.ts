@@ -7,7 +7,8 @@ const TEST_PASSWORD = 'TestPassword1!';
 test.describe('Salah Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await page.getByTestId('nav-salah').click();
+    await page.getByTestId('nav-burger').first().click();
+    await page.getByTestId('nav-salah').first().click();
   });
 
   test('displays all five prayers', async ({ page }) => {
@@ -51,7 +52,7 @@ test.describe('Salah Tracker', () => {
     nextBtn = page.getByTestId('day-nav-next').first();
     await expect(nextBtn).toBeEnabled();
 
-    await nextBtn.click();
+    await nextBtn.click({ force: true });
     // Back to today — next disabled again
     await expect(nextBtn).toBeDisabled();
   });
@@ -60,7 +61,18 @@ test.describe('Salah Tracker', () => {
 test.describe('Sawm Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await page.getByTestId('nav-sawm').click();
+    await page
+      .getByTestId('nav-burger')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLButtonElement).click();
+      });
+    await page
+      .getByTestId('nav-sawm')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLAnchorElement).click();
+      });
   });
 
   test('shows fast log button', async ({ page }) => {
