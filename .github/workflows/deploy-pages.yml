@@ -181,7 +181,4 @@ jobs:
               ;;
           esac
 
-          body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
-          printf '%s' "$body" | grep -q 'Awdah'
-          printf '%s' "$body" | grep -q '/awdah/assets/'
-          printf '%s' "$body" | grep -q 'https://amgad01.github.io/awdah/'
+          ./scripts/smoke-test-pages.sh "$expected_url"
