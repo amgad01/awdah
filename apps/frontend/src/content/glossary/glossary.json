@@ -32,6 +32,45 @@
       }
     ]
   },
+  "fard": {
+    "arabic": "فرض",
+    "synonyms": {
+      "en": "obligatory act · duty · required act",
+      "ar": "الفرض · الواجب",
+      "de": "Pflicht · verpflichtende Handlung · vorgeschriebene Handlung"
+    },
+    "definition": {
+      "en": "A single religious obligation that must be performed. In app wording, a fard is one obligatory prayer or fast that counts toward your duties.",
+      "ar": "فريضة واحدة يجب أداؤها. وفي لغة التطبيق، الفرض هو صلاة أو صيام واجب يدخل في حساب المسؤوليات.",
+      "de": "Eine einzelne religiöse Pflicht, die erfüllt werden muss. In der App ist ein Fard ein verpflichtendes Gebet oder Fasten, das zu deinen Pflichten zählt."
+    }
+  },
+  "faraid": {
+    "arabic": "الفرائض",
+    "synonyms": {
+      "en": "obligatory duties · required obligations · mandatory acts",
+      "ar": "الواجبات · الفروض",
+      "de": "Pflichten · verpflichtende Handlungen · Pflichtakte"
+    },
+    "definition": {
+      "en": "The plural of fard: the set of obligatory religious duties you are accountable for, such as the daily prayers or Ramadan fasting.",
+      "ar": "جمع الفرض: مجموعة الواجبات الدينية التي تُسأل عنها، مثل الصلوات اليومية أو صيام رمضان.",
+      "de": "Der Plural von Fard: die Gesamtheit der verpflichtenden religiösen Pflichten, für die du verantwortlich bist, etwa die täglichen Gebete oder das Fasten im Ramadan."
+    }
+  },
+  "hijra": {
+    "arabic": "الهجرة",
+    "synonyms": {
+      "en": "Migration to Medina · the Hijra",
+      "ar": "الهجرة النبوية · الهجرة إلى المدينة",
+      "de": "Hidschra · Auswanderung nach Medina"
+    },
+    "definition": {
+      "en": "The Prophet Muhammad's migration from Mecca to Medina, which marks the start of the Islamic calendar.",
+      "ar": "هجرة النبي محمد صلى الله عليه وسلم من مكة إلى المدينة، وهي بداية التقويم الإسلامي.",
+      "de": "Die Auswanderung des Propheten Muhammad von Mekka nach Medina, die den Beginn des islamischen Kalenders markiert."
+    }
+  },
   "qadaa": {
     "arabic": "القضاء",
     "synonyms": {
@@ -185,6 +224,19 @@
       "en": "Streaks shown for individual prayers (like Fajr) or fasting. These are inclusive and count both obligatory acts and make-ups (qadaa), rewarding your steady effort even when the main Momentum is broken.",
       "ar": "سجلات تظهر لكل صلاة على حدة (كالفجر) أو للصيام. هذه السجلات شاملة، حيث تعدّ الأداء اليومي والقضاء معاً، لتشجيع استمرارك حتى وإن انقطعت سلسلة الزخم العام.",
       "de": "Serien, die für einzelne Gebete (wie Fajr) oder fürs Fasten angezeigt werden. Sie sind inklusiv und zählen sowohl Pflichtakte als auch Nachholgebete (qadaa), um deine stetige Mühe zu würdigen, auch wenn das Haupt-Momentum unterbrochen ist."
+    }
+  },
+  "sunnah": {
+    "arabic": "السنة",
+    "synonyms": {
+      "en": "prophetic practice · recommended act · non-obligatory act",
+      "ar": "المستحب · النافلة · هدي النبي",
+      "de": "prophetische Praxis · empfohlene Handlung · nicht verpflichtende Handlung"
+    },
+    "definition": {
+      "en": "A recommended practice based on the Prophet's example. Sunnah acts are rewarded, but missing them is not the same as missing an obligation.",
+      "ar": "سنة أو عمل مستحب مبني على هدي النبي صلى الله عليه وسلم. يثاب فاعله، لكن تركه لا يساوي ترك الفريضة.",
+      "de": "Eine empfohlene Praxis, die auf dem Vorbild des Propheten beruht. Sunnah-Handlungen werden belohnt, aber ihr Verzicht ist nicht dasselbe wie das Versäumen einer Pflicht."
     }
   }
 }

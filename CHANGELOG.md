@@ -25,10 +25,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Auth error normalization layer (`auth-errors.ts`) to prevent raw Cognito error messages from surfacing in user-facing toasts
 - Shared `--font-family-display` and `--font-family-display-ar` CSS custom property tokens for consistent typography across the app
 - Privacy page redesigned with hero section, sticky sidebar navigation, and structured article layout
+- Expanded the quick glossary with additional core concepts used across the app, including `fard`, `faraid`, `hijra`, and `sunnah`
+- Mobile swipe navigation for About and Contributing pages with touch gesture support
+- New `useSwipe` hook for detecting horizontal swipe gestures on mobile
+- `MobileSwipeableSections` component for swipeable card-based mobile layouts
+- Tracker e2e coverage for Salah and Sawm now asserts the authenticated shell navigation before entering each page
 
 ### Changed
 
 - Public and authenticated mobile navigation now use a compact burger menu with click-outside dismissal
+- About page mobile layout restructured: static sections at top/bottom, team members in swipeable slider
+- Contributing page mobile layout restructured: static hero/recognition, contribution areas in swipeable slider
+- Privacy page mobile spacing now uses logical alignment and centered content for a cleaner narrow-screen layout
+- Dashboard mobile layout optimized to reduce scrolling before prayer logger access
+- Dashboard SnapshotGrid hidden on mobile to eliminate duplicate information
 - Privacy content now renders consistently in the public shell and authenticated overlay flow
 - Release/versioning now derives the app and release version from `release/vX.Y.Z-*` branch prefixes when present, while still allowing explicit Pages overrides
 - Release/versioning guidance lives in `CONTRIBUTING.md`, with contributor-facing content kept in sync across locales
@@ -44,6 +54,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Docker Compose now starts the backend runtime image successfully by copying the backend workspace node_modules into the final image, which restores runtime resolution for `zod`
+- Pre-push hook now defaults to the lightweight gate so local pushes are not blocked by the Node 22 jsdom worker crash; the full gate remains available via `RUN_FULL_PRE_PUSH=1`
+- Deploy scripts no longer print false failure banners after a successful frontend deploy
+- Glossary tooltips now use a softer elevated surface and better wrap long definitions on small screens
+- Settings glossary tooltips now render with a more readable elevated surface treatment
+- Dashboard hero and snapshot sections now scale down more cleanly on narrow screens
 - Qadaa make-ups remain available in the prayer logger without requiring today's obligatory prayers first, and the unused unlock-warning translation key was removed from the locale files
 - Export downloads retry while the lifecycle-job artifact is still propagating, which avoids false not-found failures after the job completes
 - Reset actions now surface failures instead of failing silently when password verification or mutation work does not succeed

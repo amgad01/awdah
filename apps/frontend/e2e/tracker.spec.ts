@@ -7,8 +7,19 @@ const TEST_PASSWORD = 'TestPassword1!';
 test.describe('Salah Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await page.getByTestId('nav-burger').first().click();
-    await page.getByTestId('nav-salah').first().click();
+    const burger = page.getByTestId('nav-burger').first();
+    if (await burger.isVisible().catch(() => false)) {
+      await burger.evaluate((element) => {
+        (element as HTMLButtonElement).click();
+      });
+    }
+    await page
+      .getByTestId('nav-salah')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLAnchorElement).click();
+      });
+    await expect(page).toHaveURL(/\/salah$/);
   });
 
   test('displays all five prayers', async ({ page }) => {
@@ -61,18 +72,19 @@ test.describe('Salah Tracker', () => {
 test.describe('Sawm Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await page
-      .getByTestId('nav-burger')
-      .first()
-      .evaluate((element) => {
+    const burger = page.getByTestId('nav-burger').first();
+    if (await burger.isVisible().catch(() => false)) {
+      await burger.evaluate((element) => {
         (element as HTMLButtonElement).click();
       });
+    }
     await page
       .getByTestId('nav-sawm')
       .first()
       .evaluate((element) => {
         (element as HTMLAnchorElement).click();
       });
+    await expect(page).toHaveURL(/\/sawm$/);
   });
 
   test('shows fast log button', async ({ page }) => {

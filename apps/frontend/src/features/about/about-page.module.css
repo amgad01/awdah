@@ -5,6 +5,71 @@
   animation: fadeIn 0.4s ease;
 }
 
+/* Mobile/Desktop View Switching */
+.mobileSwipeView {
+  display: block;
+}
+
+.desktopScrollView {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobileSwipeView {
+    display: none;
+  }
+
+  .desktopScrollView {
+    display: block;
+  }
+}
+
+/* Slider Section Container */
+.sliderSection {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg);
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.sliderSectionTitle {
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Static Team Section on Mobile */
+.teamSection {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.teamMember {
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.teamMemberName {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+}
+
+.teamMemberRole {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
 /* ── Hero ── */
 .hero {
   text-align: center;
@@ -146,8 +211,81 @@
   border-radius: var(--border-radius-lg);
 }
 
+/* Expanded Founder Card */
+.founderCard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.founderHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.founderAvatar {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)) 0%,
+    color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)) 100%
+  );
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-circle);
+  color: var(--color-primary);
+}
+
+.founderInfo {
+  text-align: center;
+}
+
+.founderBio {
+  max-width: 650px;
+  margin: 0 auto var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  text-align: start;
+}
+
+.founderLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+}
+
+.founderExpertise {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.expertiseBlock {
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
 .devTitle {
-  font-size: 1.6rem;
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
   margin-top: var(--spacing-sm);
@@ -155,18 +293,21 @@
 }
 
 .devHeadline {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .devBio {
   font-size: var(--font-size-md);
   color: var(--color-text-secondary);
-  line-height: 1.7;
-  max-width: 600px;
-  margin: 0 auto var(--spacing-lg);
+  line-height: 1.8;
+  margin-bottom: var(--spacing-sm);
+}
+
+.devBio:last-child {
+  margin-bottom: 0;
 }
 
 .devLinks {
@@ -210,6 +351,12 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: var(--spacing-sm);
+}
+
+.devTechTitleIcon {
+  display: inline;
+  margin-inline-end: 0.5rem;
+  vertical-align: text-bottom;
 }
 
 .techPills {
@@ -272,6 +419,41 @@
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+/* ── Founder Expertise Slider (Mobile) ── */
+.founderExpertiseSlider {
+  margin: var(--spacing-lg) 0 var(--spacing-xl);
+}
+
+.expertiseSlide {
+  text-align: center;
+  padding: var(--spacing-md);
+}
+
+.expertiseSlideTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--spacing-md);
+}
+
+.expertiseSlidePills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.expertiseSlidePill {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
 }
 
 @media (max-width: 640px) {
