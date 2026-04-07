@@ -70,7 +70,7 @@
     "flatted": "3.4.2",
     "graphemer": "1.4.0",
     "husky": "9.1.7",
-    "jsdom": "29.0.1",
+    "jsdom": "26.1.0",
     "magic-string": "0.30.21",
     "nanoid": "5.1.7",
     "pathe": "2.0.3",

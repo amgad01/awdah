@@ -24,7 +24,7 @@ PAGES_SITE_URL="${PAGES_SITE_URL:-$(compute_site_url "$PAGES_ORIGIN" "$PAGES_BAS
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 FAILED=false
-trap 'if [ "$FAILED" = true ] || [ $? -ne 0 ]; then echo ""; echo "✗ Frontend deploy FAILED — check the output above."; exit 1; fi' EXIT
+trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Frontend deploy FAILED — check the output above."; exit 1; fi' EXIT
 
 echo "▸ [1/3] Building frontend for $TARGET..."
 cd "$ROOT_DIR"
