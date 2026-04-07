@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLogPrayer, useSalahHistory } from '@/hooks/use-worship';
-import { useDualDate } from '@/hooks/use-dual-date';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
 import { PracticeCheckInModal } from './practice-check-in-modal';
@@ -63,7 +62,6 @@ async function runInBatches<T>(tasks: Array<() => Promise<T>>, batchSize: number
  */
 export const PracticeCheckIn: React.FC = () => {
   const { t, fmtNumber } = useLanguage();
-  const { format } = useDualDate();
   const navigate = useNavigate();
   const { data: periods } = usePracticingPeriods();
   const [dismissed, setLocalDismissed] = useState(() => isDismissed());
@@ -162,8 +160,6 @@ export const PracticeCheckIn: React.FC = () => {
     }
   };
 
-  const lastEntryLabel = lastQadaaDate ? format(lastQadaaDate).primary : null;
-
   return (
     <>
       <div className={styles.banner} role="status" aria-label={t('dashboard.check_in_title')}>
@@ -191,7 +187,7 @@ export const PracticeCheckIn: React.FC = () => {
           done={done}
           submitError={submitError}
           totalToLog={totalToLog}
-          lastEntryLabel={lastEntryLabel}
+          lastEntryDate={lastQadaaDate}
           onClose={handleClose}
           onIncrement={increment}
           onDecrement={decrement}

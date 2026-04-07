@@ -29,6 +29,9 @@ vi.mock('@/lib/auth-service', () => ({
     }),
 }));
 
+/** A password that satisfies all five signup checks */
+const STRONG_PASSWORD = 'Test1ng!';
+
 describe('SignupForm', () => {
   const onSuccess = vi.fn();
   const onSwitchToLogin = vi.fn();
@@ -49,6 +52,55 @@ describe('SignupForm', () => {
     expect(screen.getByTestId('signup-submit')).toBeInTheDocument();
   });
 
+  it('disables submit when password requirements are not met', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-email'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: 'weak' },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: 'weak' },
+    });
+
+    expect(screen.getByTestId('signup-submit')).toBeDisabled();
+  });
+
+  it('shows password requirements checklist when typing', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: 'a' },
+    });
+
+    expect(screen.getByText('auth.password_requirement_length')).toBeInTheDocument();
+    expect(screen.getByText('auth.password_requirement_lowercase')).toBeInTheDocument();
+    expect(screen.getByText('auth.password_requirement_uppercase')).toBeInTheDocument();
+    expect(screen.getByText('auth.password_requirement_number')).toBeInTheDocument();
+    expect(screen.getByText('auth.password_requirement_symbol')).toBeInTheDocument();
+  });
+
+  it('shows match hint when confirm password is typed', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: 'mismatch' },
+    });
+
+    expect(screen.getByText('auth.passwords_do_not_match')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+
+    expect(screen.getByText('auth.passwords_match')).toBeInTheDocument();
+  });
+
   it('shows error when passwords do not match', async () => {
     renderForm();
 
@@ -56,16 +108,14 @@ describe('SignupForm', () => {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByTestId('signup-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.change(screen.getByTestId('signup-confirm-password'), {
-      target: { value: 'different' },
+      target: { value: 'Different1!' },
     });
-    fireEvent.click(screen.getByTestId('signup-submit'));
 
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('auth.password_mismatch');
-    });
+    // Button should be disabled because passwords don't match
+    expect(screen.getByTestId('signup-submit')).toBeDisabled();
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
@@ -78,18 +128,18 @@ describe('SignupForm', () => {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByTestId('signup-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.change(screen.getByTestId('signup-confirm-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.click(screen.getByTestId('signup-submit'));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
     });
-    expect(mockSignUp).toHaveBeenCalledWith('test@example.com', 'password123');
-    expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(mockSignUp).toHaveBeenCalledWith('test@example.com', STRONG_PASSWORD);
+    expect(mockSignIn).toHaveBeenCalledWith('test@example.com', STRONG_PASSWORD);
   });
 
   it('switches to verification phase when verification is needed', async () => {
@@ -100,10 +150,10 @@ describe('SignupForm', () => {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByTestId('signup-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.change(screen.getByTestId('signup-confirm-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.click(screen.getByTestId('signup-submit'));
 
@@ -127,10 +177,10 @@ describe('SignupForm', () => {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByTestId('signup-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.change(screen.getByTestId('signup-confirm-password'), {
-      target: { value: 'password123' },
+      target: { value: STRONG_PASSWORD },
     });
     fireEvent.click(screen.getByTestId('signup-submit'));
 

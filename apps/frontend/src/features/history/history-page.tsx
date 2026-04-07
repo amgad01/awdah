@@ -11,7 +11,11 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import { getCoveredPracticingDays, periodCoversContext } from '@/lib/practicing-periods';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import {
+  invalidateSalahQueries,
+  invalidateSawmQueries,
+  invalidatePracticingPeriods,
+} from '@/utils/query-invalidation';
 import { Loader2, Inbox } from 'lucide-react';
 import { addHijriDays, todayHijriDate } from '@/utils/date-utils';
 import {
@@ -256,10 +260,9 @@ export const HistoryPage: React.FC = () => {
         <ErrorState
           message={pageError instanceof Error ? pageError.message : t('common.error')}
           onRetry={() => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahHistoryPrefix });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmHistoryPrefix });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combinedHistoryPrefix });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
+            invalidateSalahQueries(queryClient);
+            invalidateSawmQueries(queryClient);
+            invalidatePracticingPeriods(queryClient);
           }}
         />
       ) : grouped.length === 0 ? (

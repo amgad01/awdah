@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
 import { PrayerLogger } from '@/features/salah/prayer-logger';
 import { PRAYERS } from '@/lib/constants';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateSalahQueries } from '@/utils/query-invalidation';
 import { todayHijriDate } from '@/utils/date-utils';
 import { Moon, CheckCircle2, Circle, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import styles from './salah-page.module.css';
@@ -37,7 +37,7 @@ export const SalahPage: React.FC = () => {
     return (
       <ErrorState
         message={error instanceof Error ? error.message : t('common.error')}
-        onRetry={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt })}
+        onRetry={() => invalidateSalahQueries(queryClient)}
       />
     );
   }
