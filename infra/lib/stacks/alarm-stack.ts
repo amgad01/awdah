@@ -22,6 +22,8 @@ export class AlarmStack extends BaseStack {
 
     this.addContextTag('shared');
     const config = getConfig(this);
+    const isProd = this.projectEnv === 'prod';
+    const isStaging = this.projectEnv === 'staging';
 
     const alertTopic = new sns.Topic(this, 'SystemAlerts', {
       topicName: this.fullResourceName('SystemAlerts'),
@@ -71,16 +73,18 @@ export class AlarmStack extends BaseStack {
     );
 
     // ── Lifecycle Job DLQ ─────────────────────────────────────────────────────
-    addAlarm(
-      'LifecycleJobDLQAlarm',
-      props.apiStack.lifecycleJobDlq.metricApproximateNumberOfMessagesVisible({
-        period: cdk.Duration.minutes(5),
-        statistic: 'Sum',
-      }),
-      'LifecycleJobDLQ',
-      'User lifecycle job processing failed after retries — manual investigation required',
-      1,
-    );
+    if (props.apiStack.hasLifecycleJobDlq) {
+      addAlarm(
+        'LifecycleJobDLQAlarm',
+        props.apiStack.lifecycleJobDlq.metricApproximateNumberOfMessagesVisible({
+          period: cdk.Duration.minutes(5),
+          statistic: 'Sum',
+        }),
+        'LifecycleJobDLQ',
+        'User lifecycle job processing failed after retries — manual investigation required',
+        1,
+      );
+    }
 
     // ── API Gateway 5xx errors ────────────────────────────────────────────────
     // HTTP API v2 publishes under AWS/ApiGatewayV2 with lowercase metric name.
@@ -122,63 +126,57 @@ export class AlarmStack extends BaseStack {
       2,
     );
 
-    // ── Per-Lambda error alarms ───────────────────────────────────────────────
-    props.apiStack.lambdaMonitoringConfigs.forEach(
-      ({ function: fn, durationAlarmThresholdMs, concurrencyAlarmThreshold }, index) => {
-        const fnName = fn.functionName;
-        addAlarm(
-          `LambdaErrors${index}Alarm`,
-          fn.metricErrors({
-            period: cdk.Duration.minutes(5),
-            statistic: 'Sum',
-          }),
-          `Lambda-${fnName}-Errors`,
-          `Lambda function ${fnName} is producing errors`,
-          3,
-          2,
-        );
+    // ── Lambda aggregate alarms ─────────────────────────────────────────────
+    // Use account-level Lambda metrics (no function dimension) to stay within
+    // CloudWatch free tier (10 alarms). Per-function breakdown is on the dashboard.
+    {
+      addAlarm(
+        'LambdaAggregateErrorsAlarm',
+        new cloudwatch.Metric({
+          namespace: 'AWS/Lambda',
+          metricName: 'Errors',
+          period: cdk.Duration.minutes(5),
+          statistic: 'Sum',
+        }),
+        'Lambda-Aggregate-Errors',
+        'Total Lambda errors across all functions exceeded threshold',
+        isProd || isStaging ? 5 : 10,
+        2,
+      );
 
-        addAlarm(
-          `LambdaThrottles${index}Alarm`,
-          fn.metricThrottles({
-            period: cdk.Duration.minutes(5),
-            statistic: 'Sum',
-          }),
-          `Lambda-${fnName}-Throttles`,
-          `Lambda function ${fnName} is being throttled`,
-          5,
-          2,
-        );
+      addAlarm(
+        'LambdaAggregateThrottlesAlarm',
+        new cloudwatch.Metric({
+          namespace: 'AWS/Lambda',
+          metricName: 'Throttles',
+          period: cdk.Duration.minutes(5),
+          statistic: 'Sum',
+        }),
+        'Lambda-Aggregate-Throttles',
+        'Total Lambda throttles across all functions exceeded threshold',
+        isProd || isStaging ? 5 : 10,
+        2,
+      );
 
-        addAlarm(
-          `LambdaDurationP95${index}Alarm`,
-          fn.metricDuration({
-            period: cdk.Duration.minutes(5),
-            statistic: 'p95',
-          }),
-          `Lambda-${fnName}-Duration-P95`,
-          `Lambda function ${fnName} p95 duration is elevated`,
-          durationAlarmThresholdMs,
-          2,
-        );
-
-        if (concurrencyAlarmThreshold !== undefined) {
-          addAlarm(
-            `LambdaConcurrency${index}Alarm`,
-            fn.metric('ConcurrentExecutions', {
-              period: cdk.Duration.minutes(5),
-              statistic: 'Maximum',
-            }),
-            `Lambda-${fnName}-Concurrency`,
-            `Lambda function ${fnName} is saturating its reserved concurrency budget`,
-            concurrencyAlarmThreshold,
-            2,
-          );
-        }
-      },
-    );
+      addAlarm(
+        'LambdaAggregateDurationAlarm',
+        new cloudwatch.Metric({
+          namespace: 'AWS/Lambda',
+          metricName: 'Duration',
+          period: cdk.Duration.minutes(5),
+          statistic: 'p95',
+        }),
+        'Lambda-Aggregate-Duration-P95',
+        'Account-wide Lambda p95 duration is elevated',
+        config.heavyLambdaDurationAlarmMs,
+        2,
+      );
+    }
 
     // ── DynamoDB throttling alarms ────────────────────────────────────────────
+    // Single aggregate alarm across all tables to stay within free tier.
+    // Uses per-operation metrics (read + write + scan) summed per table, then
+    // aggregated across tables, to avoid the deprecated metricThrottledRequests.
     const tables = [
       { table: props.dataStack.prayerLogsTable, label: 'PrayerLogs' },
       { table: props.dataStack.fastLogsTable, label: 'FastLogs' },
@@ -187,27 +185,95 @@ export class AlarmStack extends BaseStack {
       { table: props.dataStack.userLifecycleJobsTable, label: 'UserLifecycleJobs' },
     ];
 
-    tables.forEach(({ table, label }) => {
+    {
+      const readOp = cdk.aws_dynamodb.Operation.GET_ITEM;
+      const writeOp = cdk.aws_dynamodb.Operation.PUT_ITEM;
+      const scanOp = cdk.aws_dynamodb.Operation.SCAN;
+      const period = cdk.Duration.minutes(5);
+      const stat = 'Sum';
+
+      const ddbMetrics: Record<string, cloudwatch.IMetric> = {};
+      tables.forEach(({ table, label }, idx) => {
+        // Sum read, write, and scan throttles per table into one sub-expression
+        const r = `r${idx}`;
+        const w = `w${idx}`;
+        const s = `s${idx}`;
+        ddbMetrics[r] = table.metricThrottledRequestsForOperation(readOp, {
+          period,
+          statistic: stat,
+        });
+        ddbMetrics[w] = table.metricThrottledRequestsForOperation(writeOp, {
+          period,
+          statistic: stat,
+        });
+        ddbMetrics[s] = table.metricThrottledRequestsForOperation(scanOp, {
+          period,
+          statistic: stat,
+          label,
+        });
+      });
+
+      // Total: 5 tables × 3 ops = 15 metrics → too many for one expression (max 10).
+      // Group by operation type instead: sum all tables per op, then combine.
+      const readMetrics: Record<string, cloudwatch.IMetric> = {};
+      const writeMetrics: Record<string, cloudwatch.IMetric> = {};
+      const scanMetrics: Record<string, cloudwatch.IMetric> = {};
+      tables.forEach(({ table, label }, idx) => {
+        readMetrics[`r${idx}`] = table.metricThrottledRequestsForOperation(readOp, {
+          period,
+          statistic: stat,
+          label: `${label}-Read`,
+        });
+        writeMetrics[`w${idx}`] = table.metricThrottledRequestsForOperation(writeOp, {
+          period,
+          statistic: stat,
+          label: `${label}-Write`,
+        });
+        scanMetrics[`s${idx}`] = table.metricThrottledRequestsForOperation(scanOp, {
+          period,
+          statistic: stat,
+          label: `${label}-Scan`,
+        });
+      });
+
+      const readKeys = Object.keys(readMetrics).join(',');
+      const readSum = new cloudwatch.MathExpression({
+        expression: `SUM([${readKeys}])`,
+        usingMetrics: readMetrics,
+        label: 'ReadThrottles',
+      });
+
+      const writeKeys = Object.keys(writeMetrics).join(',');
+      const writeSum = new cloudwatch.MathExpression({
+        expression: `SUM([${writeKeys}])`,
+        usingMetrics: writeMetrics,
+        label: 'WriteThrottles',
+      });
+
+      const scanKeys = Object.keys(scanMetrics).join(',');
+      const scanSum = new cloudwatch.MathExpression({
+        expression: `SUM([${scanKeys}])`,
+        usingMetrics: scanMetrics,
+        label: 'ScanThrottles',
+      });
+
       addAlarm(
-        `DDB${label}ThrottleAlarm`,
-        table.metricThrottledRequests({
-          period: cdk.Duration.minutes(5),
-          statistic: 'Sum',
+        'DDBAggregateThrottleAlarm',
+        new cloudwatch.MathExpression({
+          expression: 'readTotal + writeTotal + scanTotal',
+          usingMetrics: {
+            readTotal: readSum,
+            writeTotal: writeSum,
+            scanTotal: scanSum,
+          },
+          label: 'AggregateThrottles',
         }),
-        `DDB-${label}-Throttles`,
-        `DynamoDB table ${label} requests are being throttled across one or more operations`,
-        5,
+        'DDB-Aggregate-Throttles',
+        'DynamoDB aggregate throttling across all tables and operations',
+        isProd || isStaging ? 5 : 10,
         2,
       );
-    });
-
-    const api5xxMetric = new cloudwatch.Metric({
-      namespace: 'AWS/ApiGatewayV2',
-      metricName: '5xx',
-      dimensionsMap: { ApiId: props.apiStack.httpApi.apiId },
-      period: cdk.Duration.minutes(5),
-      statistic: 'Sum',
-    });
+    }
 
     const operationsDashboard = new cloudwatch.Dashboard(this, 'OperationsDashboard', {
       dashboardName: this.fullResourceName('Operations'),
@@ -251,7 +317,13 @@ export class AlarmStack extends BaseStack {
             period: cdk.Duration.minutes(5),
             statistic: 'Sum',
           }),
-          api5xxMetric,
+          new cloudwatch.Metric({
+            namespace: 'AWS/ApiGatewayV2',
+            metricName: '5xx',
+            dimensionsMap: { ApiId: props.apiStack.httpApi.apiId },
+            period: cdk.Duration.minutes(5),
+            statistic: 'Sum',
+          }),
         ],
       }),
       new cloudwatch.GraphWidget({
@@ -315,13 +387,18 @@ export class AlarmStack extends BaseStack {
         title: 'DynamoDB Throttles',
         width: 24,
         height: 6,
-        left: tables.map(({ table, label }) =>
+        left: tables.flatMap(({ table, label }) => [
           table.metricThrottledRequestsForOperation(cdk.aws_dynamodb.Operation.GET_ITEM, {
             period: cdk.Duration.minutes(5),
             statistic: 'Sum',
-            label,
+            label: `${label} Read`,
           }),
-        ),
+          table.metricThrottledRequestsForOperation(cdk.aws_dynamodb.Operation.PUT_ITEM, {
+            period: cdk.Duration.minutes(5),
+            statistic: 'Sum',
+            label: `${label} Write`,
+          }),
+        ]),
       }),
     );
 

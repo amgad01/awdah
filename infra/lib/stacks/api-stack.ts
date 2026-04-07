@@ -56,8 +56,23 @@ export class ApiStack extends BaseStack {
     durationAlarmThresholdMs: number;
     concurrencyAlarmThreshold?: number;
   }>;
-  public lifecycleJobDlq!: sqs.Queue;
+  private _lifecycleJobDlq?: sqs.Queue;
 
+  public get lifecycleJobDlq(): sqs.Queue {
+    if (!this._lifecycleJobDlq) {
+      throw new Error('ApiStack.lifecycleJobDlq was accessed before it was initialized.');
+    }
+
+    return this._lifecycleJobDlq;
+  }
+
+  public get hasLifecycleJobDlq(): boolean {
+    return this._lifecycleJobDlq !== undefined;
+  }
+
+  public set lifecycleJobDlq(queue: sqs.Queue) {
+    this._lifecycleJobDlq = queue;
+  }
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
@@ -74,7 +89,6 @@ export class ApiStack extends BaseStack {
       autoDeploy: true,
       throttle: config.apiThrottle,
     });
-    this.applyRouteThrottles(config);
 
     // 2. Setup Shared Configuration
     const authorizer = new HttpUserPoolAuthorizer('AwdahAuthorizer', props.authStack.userPool, {
@@ -91,8 +105,11 @@ export class ApiStack extends BaseStack {
     this.wireLambdaPermissions(props, lambdas);
     this.wireEventSources(props, lambdas);
 
-    // 5. Register Routes
-    this.registerRoutes(api, authorizer, lambdas);
+    // 5. Register Routes (must happen before applying throttles)
+    const routes = this.registerRoutes(api, authorizer, lambdas);
+
+    // Apply throttles after routes exist, and make stage depend on routes
+    this.applyRouteThrottles(config, routes);
 
     // 6. Setup Monitoring Properties (Read-only)
     this.lambdaFunctions = definitions.map((def) => lambdas.get(def.id)!);
@@ -145,7 +162,11 @@ export class ApiStack extends BaseStack {
     });
   }
 
-  private applyRouteThrottles(config: ProjectConfig): void {
+  // Keep the route list in this method's contract because the stage must depend on every
+  // route resource. Without that explicit ordering, CloudFormation can create the default
+  // stage before all routes exist, which may cause API Gateway deployment failures or
+  // incomplete per-route throttle settings on the stage.
+  private applyRouteThrottles(config: ProjectConfig, routes: apigatewayv2.HttpRoute[]): void {
     const cfnStage = this.defaultStage.node.defaultChild as apigatewayv2.CfnStage;
     // User-driven mutations are capped below the shared stage throttle so bursts of writes
     // do not crowd out read traffic. Destructive/admin routes are capped lower again because
@@ -207,6 +228,11 @@ export class ApiStack extends BaseStack {
     });
 
     cfnStage.routeSettings = routeSettings;
+
+    // Add explicit dependencies: Stage must be created after all Routes
+    routes.forEach((route) => {
+      cfnStage.addDependency(route.node.defaultChild as cdk.CfnResource);
+    });
   }
 
   private getSharedEnvironment(props: ApiStackProps): Record<string, string> {
@@ -299,22 +325,24 @@ export class ApiStack extends BaseStack {
     api: apigatewayv2.HttpApi,
     authorizer: HttpUserPoolAuthorizer,
     lambdas: Map<string, lambda.IFunction>,
-  ): void {
-    const routes = this.getRouteDefinitions();
-    routes.forEach((route) => {
+  ): apigatewayv2.HttpRoute[] {
+    const routes: apigatewayv2.HttpRoute[] = [];
+    const routeDefinitions = this.getRouteDefinitions();
+    routeDefinitions.forEach((route) => {
       const fn = lambdas.get(route.lambdaId);
       if (!fn) throw new Error(`Missing Lambda function: ${route.lambdaId}`);
 
-      api.addRoutes({
+      const addedRoutes = api.addRoutes({
         path: route.path,
         methods: [route.method],
         integration: new apigatewayv2_integrations.HttpLambdaIntegration(route.integrationId, fn),
         authorizer,
       });
+      routes.push(...addedRoutes);
     });
 
     // Health route is public
-    api.addRoutes({
+    const healthRoutes = api.addRoutes({
       path: '/health',
       methods: [apigatewayv2.HttpMethod.GET],
       integration: new apigatewayv2_integrations.HttpLambdaIntegration(
@@ -322,6 +350,9 @@ export class ApiStack extends BaseStack {
         lambdas.get('HealthFn')!,
       ),
     });
+    routes.push(...healthRoutes);
+
+    return routes;
   }
 
   private getLambdaDefinitions(props: ApiStackProps, config: ProjectConfig): LambdaDefinition[] {

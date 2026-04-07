@@ -98,8 +98,8 @@ interface DemoData {
     resetPrayersEnabled: boolean;
     resetFastsEnabled: boolean;
     deleteAccountEnabled: boolean;
-    privacyModel: 'aws_encrypted';
-    authCompatibility: 'cognito_or_local';
+    privacyModel: 'cloud_encrypted';
+    authCompatibility: 'managed_or_local';
   };
 }
 

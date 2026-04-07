@@ -155,7 +155,7 @@
     "resetPrayersEnabled": true,
     "resetFastsEnabled": true,
     "deleteAccountEnabled": true,
-    "privacyModel": "aws_encrypted",
-    "authCompatibility": "cognito_or_local"
+    "privacyModel": "cloud_encrypted",
+    "authCompatibility": "managed_or_local"
   }
 }
