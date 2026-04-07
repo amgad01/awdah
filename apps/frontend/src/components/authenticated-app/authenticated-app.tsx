@@ -5,7 +5,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useOnboardingStatus } from '@/hooks/use-profile';
 import { ErrorState } from '@/components/ui/error-state/error-state';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateUserProfile, invalidatePracticingPeriods } from '@/utils/query-invalidation';
 import { readOnboardingSkipped, writeOnboardingSkipped } from '@/lib/onboarding-state';
 import { Loader2 } from 'lucide-react';
 import styles from '../../App.module.css';
@@ -97,7 +97,7 @@ export const AuthenticatedApp: React.FC = () => {
         <ErrorState
           message={error instanceof Error ? error.message : 'Please try again in a moment.'}
           onRetry={() => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
+            invalidateUserProfile(queryClient);
           }}
         />
       </div>
@@ -110,8 +110,8 @@ export const AuthenticatedApp: React.FC = () => {
         <OnboardingWizard
           onComplete={() => {
             writeOnboardingSkipped(user?.userId, false);
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
+            invalidateUserProfile(queryClient);
+            invalidatePracticingPeriods(queryClient);
             if (showOnboardingRoute) {
               navigate('/', { replace: true });
             }

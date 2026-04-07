@@ -2,6 +2,7 @@ import React, { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { Nav } from './nav';
+import { MobileFooter } from './mobile-footer';
 import styles from './layout.module.css';
 
 interface LayoutProps {
@@ -31,6 +32,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, showSetupReminder = fa
 
           {children}
         </div>
+        <MobileFooter />
       </main>
     </div>
   );
