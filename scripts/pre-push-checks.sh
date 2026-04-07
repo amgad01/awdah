@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # pre-push-checks.sh
 #
 # Runs the same quality and build checks as the CI pipeline (ci.yml).
