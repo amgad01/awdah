@@ -5,6 +5,37 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
+# --- Help ---
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  cat <<'EOF'
+Usage: destroy-stack.sh [STACK] [OPTIONS]
+
+Destroy a single CDK stack interactively or by name.
+⚠️  WARNING: This will delete the stack and its resources!
+
+Stacks:
+  data      Core persistence (DynamoDB Tables)
+  auth      Identity management (Cognito User Pool)
+  api       Business logic (Lambda handlers & HTTP API Gateway)
+  backup    Resilience (S3 Backup & Recovery flows)
+  alarm     Observability (CloudWatch Dashboard & SNS Alarms)
+  frontend  User Interface (Web App bundle)
+
+Options:
+  --help, -h    Show this help message
+
+Environment:
+  DEPLOY_ENV          Target environment (dev/staging/prod, default: dev)
+  AWS_DEFAULT_REGION  AWS region (default: eu-west-1)
+
+Examples:
+  destroy-stack.sh              # Interactive stack selection
+  destroy-stack.sh api          # Destroy API stack
+
+EOF
+  exit 0
+fi
+
 # ── AWS Session Check ──
 "$SCRIPT_DIR/check-aws-session.sh" || exit 1
 
@@ -15,7 +46,7 @@ if [ -f "$ROOT_DIR/.env" ]; then
   set +a
 fi
 
-ENV="${DEPLOY_ENV:-staging}"
+ENV="${DEPLOY_ENV:-dev}"
 AWS_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
 STACK="${1:-}"
 
