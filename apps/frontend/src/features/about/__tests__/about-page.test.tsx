@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { AboutPage } from '../about-page';
@@ -49,19 +49,29 @@ const renderPage = () =>
 
 describe('AboutPage — bio paragraph rendering', () => {
   it('renders a blank-line-separated bio as multiple paragraphs', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => baseAboutData,
-    } as Response);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        ({
+          ok: true,
+          json: async () => baseAboutData,
+        }) as Response,
+    );
 
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('First paragraph of the founder bio.')).toBeInTheDocument();
-      expect(screen.getByText('Second paragraph with more detail.')).toBeInTheDocument();
+      const desktopView = screen.getByTestId('about-desktop-view');
+      expect(
+        within(desktopView).getByText('First paragraph of the founder bio.'),
+      ).toBeInTheDocument();
+      expect(
+        within(desktopView).getByText('Second paragraph with more detail.'),
+      ).toBeInTheDocument();
     });
 
-    const paragraphs = Array.from(document.querySelectorAll('p')).filter(
+    const paragraphs = Array.from(
+      screen.getByTestId('about-desktop-view').querySelectorAll('p'),
+    ).filter(
       (el) =>
         el.textContent === 'First paragraph of the founder bio.' ||
         el.textContent === 'Second paragraph with more detail.',
@@ -75,20 +85,25 @@ describe('AboutPage — bio paragraph rendering', () => {
       team: [{ ...baseAboutData.team[0], bio: 'Only one paragraph here.' }],
     };
 
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => singleParaBio,
-    } as Response);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        ({
+          ok: true,
+          json: async () => singleParaBio,
+        }) as Response,
+    );
 
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Only one paragraph here.')).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId('about-desktop-view')).getByText('Only one paragraph here.'),
+      ).toBeInTheDocument();
     });
 
-    const paragraphs = Array.from(document.querySelectorAll('p')).filter(
-      (el) => el.textContent === 'Only one paragraph here.',
-    );
+    const paragraphs = Array.from(
+      screen.getByTestId('about-desktop-view').querySelectorAll('p'),
+    ).filter((el) => el.textContent === 'Only one paragraph here.');
     expect(paragraphs).toHaveLength(1);
   });
 
@@ -111,17 +126,21 @@ describe('AboutPage — bio paragraph rendering', () => {
       ],
     };
 
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-      ok: true,
-      json: async () => dataWithFeatures,
-    } as Response);
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        ({
+          ok: true,
+          json: async () => dataWithFeatures,
+        }) as Response,
+    );
 
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Salah Tracking')).toBeInTheDocument();
-      expect(screen.getByText('Self-Hostable')).toBeInTheDocument();
-      expect(screen.getByText('Run locally')).toBeInTheDocument();
+      const desktopView = screen.getByTestId('about-desktop-view');
+      expect(within(desktopView).getByText('Salah Tracking')).toBeInTheDocument();
+      expect(within(desktopView).getByText('Self-Hostable')).toBeInTheDocument();
+      expect(within(desktopView).getByText('Run locally')).toBeInTheDocument();
     });
   });
 });

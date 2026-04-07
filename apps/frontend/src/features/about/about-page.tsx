@@ -329,7 +329,7 @@ export const AboutPage: React.FC = () => {
   return (
     <main className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Mobile View - Static Header + Slider + Static Footer */}
-      <div className={styles.mobileSwipeView}>
+      <div className={styles.mobileSwipeView} data-testid="about-mobile-view">
         {/* Static Hero */}
         <section className={styles.hero}>
           <span className={styles.heroBadge}>{data.project_badge}</span>
@@ -411,7 +411,7 @@ export const AboutPage: React.FC = () => {
       </div>
 
       {/* Desktop Scroll View */}
-      <div className={styles.desktopScrollView}>
+      <div className={styles.desktopScrollView} data-testid="about-desktop-view">
         {/* ── Project Section ── */}
         <section className={styles.hero}>
           <span className={styles.heroBadge}>{data.project_badge}</span>

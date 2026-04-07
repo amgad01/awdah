@@ -5,6 +5,29 @@ import { LanguageSwitcher } from '../language-switcher';
 
 const mockToggleLanguage = vi.fn();
 const mockSetLanguage = vi.fn();
+const supportedLanguages = [
+  {
+    code: 'en',
+    shortLabel: 'EN',
+    name: 'English',
+    nativeName: 'English',
+    dir: 'ltr' as const,
+  },
+  {
+    code: 'ar',
+    shortLabel: 'AR',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    dir: 'rtl' as const,
+  },
+  {
+    code: 'de',
+    shortLabel: 'DE',
+    name: 'German',
+    nativeName: 'Deutsch',
+    dir: 'ltr' as const,
+  },
+];
 
 vi.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
@@ -12,28 +35,14 @@ vi.mock('@/hooks/use-language', () => ({
     t: (key: string) => key,
     toggleLanguage: mockToggleLanguage,
     setLanguage: mockSetLanguage,
-    supportedLanguages: [
-      {
-        code: 'en',
-        shortLabel: 'EN',
-        name: 'English',
-        nativeName: 'English',
-        dir: 'ltr',
-      },
-      {
-        code: 'ar',
-        shortLabel: 'AR',
-        name: 'Arabic',
-        nativeName: 'العربية',
-        dir: 'rtl',
-      },
-    ],
+    supportedLanguages,
   }),
 }));
 
 describe('LanguageSwitcher', () => {
   it('toggles language in compact two-language mode', async () => {
     const user = userEvent.setup();
+    supportedLanguages.splice(2);
     render(<LanguageSwitcher density="compact" />);
 
     await user.click(screen.getByRole('button'));
@@ -43,6 +52,31 @@ describe('LanguageSwitcher', () => {
 
   it('renders full variant and changes language from list', async () => {
     const user = userEvent.setup();
+    supportedLanguages.splice(
+      0,
+      supportedLanguages.length,
+      {
+        code: 'en',
+        shortLabel: 'EN',
+        name: 'English',
+        nativeName: 'English',
+        dir: 'ltr' as const,
+      },
+      {
+        code: 'ar',
+        shortLabel: 'AR',
+        name: 'Arabic',
+        nativeName: 'العربية',
+        dir: 'rtl' as const,
+      },
+      {
+        code: 'de',
+        shortLabel: 'DE',
+        name: 'German',
+        nativeName: 'Deutsch',
+        dir: 'ltr' as const,
+      },
+    );
     render(<LanguageSwitcher variant="full" />);
 
     const arabicButton = screen.getByRole('button', { name: /العربية/i });

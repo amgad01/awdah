@@ -64,7 +64,7 @@ describe('useResponsiveMenu', () => {
 
     // Click outside both elements
     act(() => {
-      document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      document.dispatchEvent(new Event('pointerdown', { bubbles: true }));
     });
     expect(result.current.isOpen).toBe(false);
 
@@ -89,7 +89,7 @@ describe('useResponsiveMenu', () => {
     expect(result.current.isOpen).toBe(true);
 
     act(() => {
-      childEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      childEl.dispatchEvent(new Event('pointerdown', { bubbles: true }));
     });
     expect(result.current.isOpen).toBe(true);
 

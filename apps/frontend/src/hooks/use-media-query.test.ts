@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { useMediaQuery } from './use-media-query';
 
 describe('useMediaQuery', () => {
@@ -74,9 +74,9 @@ describe('useMediaQuery', () => {
     const listeners = mqlListeners.get('(min-width: 768px)');
     expect(listeners).toBeDefined();
 
-    if (listeners && listeners[0]) {
-      listeners[0]({ matches: true } as MediaQueryListEvent);
-    }
+    act(() => {
+      listeners?.[0]?.({ matches: true } as MediaQueryListEvent);
+    });
 
     expect(result.current).toBe(true);
   });

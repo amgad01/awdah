@@ -185,7 +185,7 @@ describe('SignupForm', () => {
     fireEvent.click(screen.getByTestId('signup-submit'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Email already exists');
+      expect(mockToastError).toHaveBeenCalledWith('auth.signup_error');
     });
   });
 });
