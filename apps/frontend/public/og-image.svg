@@ -1,46 +1,52 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">Awdah - عودة</title>
-  <desc id="desc">Clean Open Graph preview for Awdah qadaa tracker.</desc>
-  
-  <!-- Deep elegant gradient background -->
-  <rect width="1200" height="630" fill="#111827" />
-  <path d="M0 0H1200V630H0V0Z" fill="url(#paint0_linear_1_2)" />
-
-  <!-- Very subtle orbs -->
-  <circle cx="975" cy="108" r="128" fill="#D4A24C" fill-opacity="0.10" />
-  <circle cx="238" cy="486" r="176" fill="#9ED3C6" fill-opacity="0.07" />
-  <circle cx="1045" cy="471" r="86" fill="#FFFFFF" fill-opacity="0.04" />
-
-  <!-- Logo container -->
-  <rect x="84" y="82" width="164" height="164" rx="40" fill="#0F172A" fill-opacity="0.82" stroke="#D4A24C" stroke-opacity="0.78" stroke-width="8" />
-
-  <!-- Gold star -->
-  <path d="M166 118L188 160L230 182L188 204L166 246L144 204L102 182L144 160L166 118Z" fill="#D4A24C" />
-  <path d="M158 145L186 182L158 219L130 182L158 145Z" fill="#F5E6BD" fill-opacity="0.92" />
-
-  <!-- Main title -->
-  <text x="300" y="176" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700" letter-spacing="-2.8px" text-rendering="optimizeLegibility">Awdah</text>
-  
-  <!-- Arabic -->
-  <text x="302" y="244" fill="#D4A24C" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="600" text-rendering="optimizeLegibility">عودة</text>
-
-  <!-- Primary tagline -->
-  <text x="84" y="368" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="600" letter-spacing="-0.9px" text-rendering="optimizeLegibility">Track your missed prayers and fasts with clarity.</text>
-
-  <!-- Secondary tagline -->
-  <text x="84" y="422" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="400" letter-spacing="-0.5px" text-rendering="optimizeLegibility">Hijri-first. Bilingual. Privacy-aware.</text>
-
-  <!-- Feature highlight box (cleaner proportions) -->
-  <rect x="84" y="478" width="520" height="74" rx="22" fill="#0F172A" fill-opacity="0.68" stroke="#D4A24C" stroke-opacity="0.62" stroke-width="4" />
-  
-  <!-- Perfectly centered text -->
-  <text x="344" y="515" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" letter-spacing="-0.3px" text-rendering="optimizeLegibility" text-anchor="middle">A focused qadaa tracker for daily progress.</text>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 1200">
   <defs>
-    <linearGradient id="paint0_linear_1_2" x1="120" y1="30" x2="1080" y2="600" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0F172A" />
-      <stop offset="0.54" stop-color="#152238" />
-      <stop offset="1" stop-color="#1F2937" />
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#121212"/>
+      <stop offset="100%" stop-color="#1e1e1e"/>
     </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#26a69a" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#26a69a" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .titleEn { font: 800 72px Inter, sans-serif; fill:#ffffff;}
+      .line { font: 400 30px Inter, sans-serif; fill:#d0d0d0;}
+      .tiny { font: 600 16px Inter, sans-serif; fill:#9e9e9e; letter-spacing:0.08em;}
+    </style>
   </defs>
+
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#glow)"/>
+
+  <rect x="80" y="80" width="1040" height="1040" rx="36"
+        fill="#1e1e1e" stroke="#2e2e2e"/>
+
+  <!-- Icon -->
+  <g transform="translate(600 330)">
+    <circle r="90" fill="none" stroke="#26a69a" stroke-width="8"/>
+    <circle r="68" fill="none" stroke="#e6c349" stroke-width="5" stroke-dasharray="10 8"/>
+    <path d="M0 -55V0L34 34" stroke="#26a69a" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="4" fill="#e6c349"/>
+  </g>
+
+  <text
+    x="600"
+    y="600"
+    text-anchor="middle"
+    fill="#e6c349"
+    font-family="Noto Sans Arabic, sans-serif"
+    font-size="72"
+    font-weight="700"
+    direction="rtl"
+    unicode-bidi="bidi-override"
+    xml:lang="ar"
+  >
+    عودة
+  </text>
+
+  <text x="600" y="680" text-anchor="middle" class="titleEn">Awdah</text>
+
+  <text x="600" y="880" text-anchor="middle" class="tiny">
+    Privacy-first • Resilient • Event-driven
+  </text>
 </svg>
