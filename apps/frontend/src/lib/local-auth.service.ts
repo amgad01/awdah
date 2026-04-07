@@ -52,6 +52,15 @@ export function deleteLocalUser(email: string): void {
 }
 
 export const localAuthService: AuthService = {
+  async verifyPassword(email: string, password: string): Promise<void> {
+    const registry = getRegistry();
+    const normalizedEmail = normalizeEmail(email);
+    const storedPassword = registry[normalizedEmail];
+    if (!storedPassword || storedPassword !== mockHash(password)) {
+      throw new Error('auth.login_error');
+    }
+  },
+
   async signIn(email: string, password: string): Promise<UserSession> {
     const registry = getRegistry();
     const normalizedEmail = normalizeEmail(email);

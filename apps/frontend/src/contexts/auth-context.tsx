@@ -80,9 +80,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [applySession],
   );
 
+  const verifyPassword = useCallback(async (email: string, password: string) => {
+    const service = await getAuthService();
+    await service.verifyPassword(email, password);
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, loading, authNotice, checkUser, signIn, signOut }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        loading,
+        authNotice,
+        checkUser,
+        signIn,
+        verifyPassword,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>

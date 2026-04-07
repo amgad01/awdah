@@ -8,6 +8,7 @@ export interface AuthContextValue {
   authNotice: AuthNotice | null;
   checkUser: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<UserSession>;
+  verifyPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 

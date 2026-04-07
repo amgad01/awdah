@@ -53,6 +53,21 @@ function buildSession(cognitoSession: CognitoUserSession): UserSession {
 }
 
 export const cognitoAuthService: AuthService = {
+  async verifyPassword(email: string, password: string): Promise<void> {
+    // Authenticate via SRP to prove knowledge of the password without
+    // persisting the resulting session, so the active session is unchanged.
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
+      const authDetails = new AuthenticationDetails({ Username: email, Password: password });
+
+      cognitoUser.authenticateUser(authDetails, {
+        onSuccess: () => resolve(),
+        onFailure: (err: Error) => reject(err),
+        newPasswordRequired: () => reject(new Error('Password reset required')),
+      });
+    });
+  },
+
   async signIn(email: string, password: string): Promise<UserSession> {
     // USER_SRP_AUTH: the SRP challenge-response exchange proves knowledge of the
     // password without transmitting it. Matches authFlows.userSrp = true in CDK.
@@ -125,9 +140,12 @@ export const cognitoAuthService: AuthService = {
       try {
         // GlobalSignOut invalidates all sessions server-side — requires the access token
         await sdkClient.send(new GlobalSignOutCommand({ AccessToken: token }));
-      } catch {
+      } catch (err) {
         // Proceeds with local cleanup even if the server-side revocation fails
         // (token may already be expired or the account may have been deleted)
+        if (import.meta.env.DEV) {
+          console.debug('[auth] GlobalSignOut failed:', err);
+        }
       }
     }
     clearPersistedSession();
