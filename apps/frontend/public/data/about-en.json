@@ -1,5 +1,5 @@
 {
-  "project_badge": "The Project",
+  "project_badge": "The Application",
   "project_title": "About Awdah",
   "project_subtitle": "A calm companion for returning to missed prayers and fasts, with guided onboarding, privacy-aware tracking, and steady progress you can sustain.",
   "why_title": "Our Mission",
@@ -111,5 +111,11 @@
   "contributors_title": "Contributors",
   "contributors_empty": "",
   "contributors": [],
+  "version_title": "Version",
+  "version_body": "v1.1.0",
+  "stack_title": "Built With",
+  "stack_items": ["React", "TypeScript", "AWS CDK", "DynamoDB", "Lambda", "Docker"],
+  "contribute_title": "Contribute",
+  "contribute_body": "Awdah is open source. If you would like to help improve it, report a bug, or suggest a feature, check out how to contribute.",
   "privacy_title": "Legal & Privacy"
 }

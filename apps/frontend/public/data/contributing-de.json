@@ -96,7 +96,7 @@
       "badge_variant": "primary",
       "icon": "Server",
       "title": "Backend-Verbesserungen",
-      "body": "Das Backend besteht aus Node.js mit TypeScript und wird als AWS-Lambda-Funktionen bereitgestellt. Es folgt Clean Architecture und DDD – die Fachlogik ist strikt von der AWS-Infrastruktur getrennt. Alle religiösen Berechnungen laufen ausschließlich im Backend.",
+      "body": "Das Backend besteht aus Node.js mit TypeScript und wird als serverlose Cloud-Funktionen bereitgestellt. Es folgt Clean Architecture und DDD – die Fachlogik ist strikt von der Cloud-Infrastruktur getrennt. Alle religiösen Berechnungen laufen ausschließlich im Backend.",
       "items": [
         {
           "id": "test_coverage",
@@ -106,12 +106,12 @@
         {
           "id": "integration_tests",
           "title": "Integrationstests für Lambda-Handler hinzufügen",
-          "description": "Lambda-Handler sollten Integrationstests haben, die das AWS SDK mocken und den vollständigen Request-Response-Ablauf prüfen, einschließlich Validierung, Fehlerbehandlung und korrekter Statuscodes. Orientiere dich am Muster der vorhandenen Handler-Tests in apps/backend/src/__tests__/."
+          "description": "Serverless-Handler sollten Integrationstests haben, die das Cloud-Provider-SDK mocken und den vollständigen Request-Response-Ablauf prüfen, einschließlich Validierung, Fehlerbehandlung und korrekter Statuscodes. Orientiere dich am Muster der vorhandenen Handler-Tests in apps/backend/src/__tests__/."
         },
         {
           "id": "validation_hardening",
           "title": "Eingabevalidierung härten",
-          "description": "Alle Lambda-Handler validieren Eingaben an der Grenze. Prüfe jeden Handler auf Randfälle: überlappende Praxiszeiträume, Praxiszeiträume nach heute, Bulugh-Daten in der Zukunft und Ramadan-Daten in weit entfernten Hijri-Jahren. Jede fehlende Validierung sollte als eigener, fokussierter PR umgesetzt werden."
+          "description": "Alle Serverless-Handler validieren Eingaben an der Grenze. Prüfe jeden Handler auf Randfälle: überlappende Praxiszeiträume, Praxiszeiträume nach heute, Bulugh-Daten in der Zukunft und Ramadan-Daten in weit entfernten Hijri-Jahren. Jede fehlende Validierung sollte als eigener, fokussierter PR umgesetzt werden."
         },
         {
           "id": "error_messages",
@@ -207,7 +207,7 @@
     {
       "step": 3,
       "title": "Abhängigkeiten installieren und lokale Umgebung starten",
-      "body": "Führe npm install aus, um alle Abhängigkeiten zu installieren. Starte dann LocalStack für die AWS-Simulation mit docker compose up -d. Anschließend starte mit npm run dev:frontend oder npm run dev:backend den Dienst, an dem du arbeitest."
+      "body": "Führe npm install aus, um alle Abhängigkeiten zu installieren. Starte dann LocalStack für die Cloud-Service-Simulation mit docker compose up -d. Anschließend starte mit npm run dev:frontend oder npm run dev:backend den Dienst, an dem du arbeitest."
     },
     {
       "step": 4,
@@ -261,7 +261,7 @@
       "id": "notifications",
       "icon": "Bell",
       "title": "Push-Benachrichtigungen und Erinnerungen",
-      "body": "Tägliche Erinnerungen zum Eintragen von Gebeten, qadaa-Serien und Ramadan-Hinweisen. Dafür braucht es zusätzliche AWS-Infrastruktur (SNS, mobile Push-Endpunkte) und vom Nutzer steuerbare Benachrichtigungseinstellungen."
+      "body": "Tägliche Erinnerungen zum Eintragen von Gebeten, qadaa-Serien und Ramadan-Hinweisen. Dafür braucht es zusätzliche Cloud-Infrastruktur und vom Nutzer steuerbare Benachrichtigungseinstellungen."
     },
     {
       "id": "offline_pwa",
@@ -291,7 +291,7 @@
       "id": "prayer_times",
       "icon": "Clock",
       "title": "Gebetszeiten und Erinnerungen nach Standort",
-      "body": "Ein Echtzeit-Countdown für das 'nächste Gebet', gespeist aus dem Standort des Nutzers und einer Gebetszeiten-API. Das würde Browser-Push-Benachrichtigungen für Gebetszeiten hinzufügen, zusätzliche AWS-Infrastruktur erfordern und einen sehr sorgfältigen Umgang mit Standortberechtigungen und Privatsphäre verlangen."
+      "body": "Ein Echtzeit-Countdown für das 'nächste Gebet', gespeist aus dem Standort des Nutzers und einer Gebetszeiten-API. Das würde Browser-Push-Benachrichtigungen für Gebetszeiten hinzufügen, zusätzliche Cloud-Infrastruktur erfordern und einen sehr sorgfältigen Umgang mit Standortberechtigungen und Privatsphäre verlangen."
     },
     {
       "id": "sunnah_tracker",

@@ -1,5 +1,5 @@
 {
-  "project_badge": "Das Projekt",
+  "project_badge": "Die Anwendung",
   "project_title": "Über Awdah",
   "project_subtitle": "Ein ruhiger Begleiter für das Nachholen verpasster Gebete und Fasten – mit geführtem Onboarding, datensensiblem Tracking und beständigem Fortschritt, den man wirklich durchhalten kann.",
   "why_title": "Unsere Mission",
@@ -111,5 +111,11 @@
   "contributors_title": "Mitwirkende",
   "contributors_empty": "",
   "contributors": [],
+  "version_title": "Version",
+  "version_body": "v1.1.0",
+  "stack_title": "Erstellt mit",
+  "stack_items": ["React", "TypeScript", "AWS CDK", "DynamoDB", "Lambda", "Docker"],
+  "contribute_title": "Mitwirken",
+  "contribute_body": "Awdah ist Open Source. Wenn du helfen möchtest, es zu verbessern, einen Fehler melden oder eine Funktion vorschlagen möchtest, dann schau dir an, wie du beitragen kannst.",
   "privacy_title": "Rechtliches & Privatsphäre"
 }

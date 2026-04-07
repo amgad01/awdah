@@ -13,6 +13,9 @@ import {
   Server,
   Shield,
   Sun,
+  Tag,
+  Layers,
+  Users,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ErrorState } from '@/components/ui/error-state/error-state';
@@ -60,6 +63,12 @@ interface AboutData {
   team_title: string;
   team: TeamMember[];
   privacy_title: string;
+  version_title?: string;
+  version_body?: string;
+  stack_title?: string;
+  stack_items?: string[];
+  contribute_title?: string;
+  contribute_body?: string;
 }
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
@@ -132,7 +141,7 @@ export const AboutPage: React.FC = () => {
   }
 
   return (
-    <div className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <main className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* ── Project Section ── */}
       <section className={styles.hero}>
         <span className={styles.heroBadge}>{data.project_badge}</span>
@@ -259,6 +268,54 @@ export const AboutPage: React.FC = () => {
         </section>
       ))}
 
+      {/* ── Contribute Section ── */}
+      {data.contribute_title ? (
+        <section className={styles.legalSection}>
+          <div className={styles.legalCard}>
+            <Users size={20} className={styles.legalIcon} />
+            <h2 className={styles.sectionTitle}>{data.contribute_title}</h2>
+            <p className={styles.sectionBody}>{data.contribute_body}</p>
+            <div className={styles.legalLinks}>
+              <Link to="/contribute" className={styles.legalLink}>
+                <Users size={18} />
+                <span>{t('nav.contributing')}</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ── Version & Stack Metadata Section ── */}
+      <section className={styles.legalSection}>
+        <div className={styles.legalCard}>
+          <Tag size={20} className={styles.legalIcon} />
+          <h2 className={styles.sectionTitle}>
+            {data.version_title || t('about.version_title', 'Version')}
+          </h2>
+          <p className={styles.sectionBody}>
+            {data.version_body || import.meta.env.VITE_APP_VERSION || '1.1.0'}
+          </p>
+          <div className={styles.devTech}>
+            <h3 className={styles.devTechTitle}>
+              <Layers
+                size={16}
+                style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'text-bottom' }}
+              />
+              {data.stack_title || t('about.stack_title', 'Stack')}
+            </h3>
+            <div className={styles.techPills}>
+              {(data.stack_items || ['React', 'TypeScript', 'AWS CDK', 'DynamoDB', 'Lambda']).map(
+                (item) => (
+                  <span key={item} className={styles.techPill}>
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Privacy/Legal Section ── */}
       <section className={styles.legalSection}>
         <div className={styles.legalCard}>
@@ -275,6 +332,6 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 };
