@@ -34,12 +34,14 @@
     );
   border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
   box-shadow: var(--shadow-primary-lg);
+  min-width: 0;
 }
 
 .heroMain {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  min-width: 0;
 }
 
 .heroBadge {
@@ -56,10 +58,11 @@
 
 .title {
   margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.75rem, 6vw, 3rem);
   font-weight: var(--font-weight-black);
   letter-spacing: -0.05em;
   color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .name {
@@ -72,6 +75,7 @@
   color: var(--color-text-secondary);
   font-size: 1.02rem;
   line-height: 1.75;
+  overflow-wrap: anywhere;
 }
 
 .heroChips {
@@ -109,6 +113,7 @@
   color: var(--color-text-on-primary);
   border: none;
   box-shadow: var(--shadow-primary-xl);
+  min-width: 0;
 }
 
 .heroCardHeader {
@@ -127,7 +132,7 @@
 }
 
 .heroCardValue {
-  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-size: clamp(1.9rem, 8vw, 3.2rem);
   font-weight: var(--font-weight-black);
   letter-spacing: -0.05em;
   line-height: 1;
@@ -179,6 +184,7 @@
 .snapshotCard {
   gap: var(--spacing-sm);
   min-height: 10rem;
+  min-width: 0;
 }
 
 .snapshotCardWide {
@@ -548,13 +554,56 @@
     gap: var(--spacing-md);
   }
 
+  /* Hide snapshot grid on mobile - duplicates hero info */
+  .snapshotGrid {
+    display: none;
+  }
+
+  /* Move today's prayers card to top on mobile using order */
+  .grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .todayCard {
+    order: -1;
+  }
+
+  /* Compact hero for mobile */
+  .hero {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .heroChips {
+    margin-top: var(--spacing-xs);
+  }
+
   .hero,
   .clearedBanner {
     padding: var(--spacing-lg);
   }
 
-  .snapshotGrid {
-    grid-template-columns: 1fr;
+  .heroCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heroCardValue {
+    font-size: clamp(1.8rem, 11vw, 2.6rem);
+  }
+
+  .heroChips {
+    gap: 0.4rem;
+  }
+
+  .heroChip {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .snapshotCardWide {
