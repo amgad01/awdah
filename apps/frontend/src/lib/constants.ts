@@ -34,6 +34,9 @@ export const DEFAULT_HISTORY_RANGE_DAYS = 30;
 /** Number of log records to fetch per history page */
 export const HISTORY_PAGE_SIZE = 20;
 
+/** Compact language switcher breakpoint in pixels */
+export const LANGUAGE_SWITCHER_COMPACT_BREAKPOINT_PX = 480;
+
 /** The five obligatory daily prayers, in order */
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const;
 

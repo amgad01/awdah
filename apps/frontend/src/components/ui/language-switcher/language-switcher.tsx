@@ -2,6 +2,8 @@ import React from 'react';
 import { Globe } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import styles from './language-switcher.module.css';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { LANGUAGE_SWITCHER_COMPACT_BREAKPOINT_PX } from '@/lib/constants';
 
 type LanguageSwitcherProps = {
   variant?: 'compact' | 'full';
@@ -31,12 +33,14 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   density = 'default',
 }) => {
   const { language, setLanguage, toggleLanguage, supportedLanguages, t } = useLanguage();
+  const isNarrow = useMediaQuery(`(max-width: ${LANGUAGE_SWITCHER_COMPACT_BREAKPOINT_PX}px)`);
   const isCompact = variant === 'compact';
   const isDense = density === 'compact';
   const isInverse = tone === 'inverse';
   const hasTwoLanguages = supportedLanguages.length === 2;
   const shouldRenderInlineList =
-    variant === 'full' || (supportedLanguages.length > 2 && supportedLanguages.length <= 5);
+    !isNarrow &&
+    (variant === 'full' || (supportedLanguages.length > 2 && supportedLanguages.length <= 5));
   const iconSize = isCompact || isDense ? 14 : 16;
 
   if (!supportedLanguages.length) {
@@ -81,8 +85,8 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     );
   }
 
-  // Toggle button for exactly 2 languages
-  if (hasTwoLanguages) {
+  // Toggle button for exactly 2 languages (when not narrow)
+  if (hasTwoLanguages && !isNarrow) {
     return (
       <button
         type="button"
@@ -111,7 +115,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     );
   }
 
-  // Native select for 6+ languages (browser handles everything)
+  // Native select for 6+ languages, narrow viewports, or any overflow scenario
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value);
   };
