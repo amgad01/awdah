@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Awdah Stack Outputs — readable summary
 # Usage: ./scripts/list-outputs.sh [env]
