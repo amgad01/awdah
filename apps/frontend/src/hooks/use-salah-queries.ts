@@ -4,7 +4,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  type QueryClient,
 } from '@tanstack/react-query';
 import { api, type PrayerLogResponse, type HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
@@ -13,13 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useProfile } from '@/hooks/use-profile';
 import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
+import { invalidateSalahQueries } from '@/utils/query-invalidation';
 
-export function invalidateSalahQueries(queryClient: QueryClient, date?: string) {
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahHistoryPrefix });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combinedHistoryPrefix });
-  if (date) queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDailyLogs(date) });
-}
+export { invalidateSalahQueries } from '@/utils/query-invalidation';
 
 export async function fetchPrayerHistoryPage(
   startDate: string,
