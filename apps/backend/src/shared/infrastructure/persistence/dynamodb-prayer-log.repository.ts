@@ -7,6 +7,7 @@ import { LogType } from '../../../contexts/shared/domain/value-objects/log-type'
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { PrayerLogKey } from './keys/prayer-log-key';
+import { createPrayerSlotKey } from '../../utils/prayer-slot-key';
 import { decodeCursor, encodeCursor } from './cursor';
 
 export class DynamoDBPrayerLogRepository
@@ -69,23 +70,28 @@ export class DynamoDBPrayerLogRepository
   }
 
   async countQadaaCompleted(userId: string): Promise<number> {
-    const logs = await this.findAllWithIndexPrefix({
-      pk: userId,
-      indexName: 'typeDateIndex',
-      skName: 'typeDate',
-      skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
-    });
-
-    const effective = new Map<string, string>();
-    for (const log of logs.sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime())) {
-      const key = `${log.date.toString()}#${log.prayerName.getValue()}`;
-      effective.set(key, log.action);
-    }
-
-    return Array.from(effective.values()).filter((action) => action === 'prayed').length;
+    const buckets = await this.computeQadaaBuckets(userId);
+    return Array.from(buckets.values()).reduce(
+      (total, bucket) => total + Math.max(0, bucket.prayed - bucket.deselected),
+      0,
+    );
   }
 
   async countQadaaCompletedByPrayer(userId: string): Promise<Record<string, number>> {
+    const buckets = await this.computeQadaaBuckets(userId);
+    const counts: Record<string, number> = {};
+    for (const bucket of buckets.values()) {
+      const net = Math.max(0, bucket.prayed - bucket.deselected);
+      if (net > 0) {
+        counts[bucket.prayerName] = (counts[bucket.prayerName] ?? 0) + net;
+      }
+    }
+    return counts;
+  }
+
+  private async computeQadaaBuckets(
+    userId: string,
+  ): Promise<Map<string, { prayerName: string; prayed: number; deselected: number }>> {
     const logs = await this.findAllWithIndexPrefix({
       pk: userId,
       indexName: 'typeDateIndex',
@@ -93,21 +99,22 @@ export class DynamoDBPrayerLogRepository
       skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
     });
 
-    const effective = new Map<string, string>();
+    const buckets = new Map<string, { prayerName: string; prayed: number; deselected: number }>();
     for (const log of logs.sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime())) {
-      const key = `${log.date.toString()}#${log.prayerName.getValue()}`;
-      effective.set(key, log.action);
-    }
-
-    const counts: Record<string, number> = {};
-    for (const [key, action] of effective.entries()) {
-      if (action === 'prayed') {
-        const prayerName = key.split('#')[1]!.toLowerCase();
-        counts[prayerName] = (counts[prayerName] ?? 0) + 1;
+      const key = createPrayerSlotKey(log.date.toString(), log.prayerName.getValue());
+      const bucket = buckets.get(key) ?? {
+        prayerName: log.prayerName.getValue().toLowerCase(),
+        prayed: 0,
+        deselected: 0,
+      };
+      if (log.action === 'prayed') {
+        bucket.prayed += 1;
+      } else {
+        bucket.deselected += 1;
       }
+      buckets.set(key, bucket);
     }
-
-    return counts;
+    return buckets;
   }
 
   async deleteEntry(
