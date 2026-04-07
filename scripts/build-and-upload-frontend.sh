@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
+# DEPRECATED: This script is superseded by deploy-frontend.sh which uses the
+# common.sh helpers, proper error trapping, and the env-aware target selection.
+# Use:  ./scripts/deploy-frontend.sh <env>   (or npm run deploy:frontend:dev)
+#
+# This file is kept for historical reference only and is NOT called by any
+# NPM script, workflow, or other script.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
-ENV="${1:-staging}"
+ENV="${1:-dev}"
 AWS_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
 
 echo "▸ build-and-upload-frontend ($ENV)"

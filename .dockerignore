@@ -1,0 +1,62 @@
+# Exclude test files from Docker build
+**/*.test.ts
+**/*.test.tsx
+**/__tests__/**
+**/*.spec.ts
+**/*.e2e.ts
+**/e2e/**
+**/*.mock.ts
+docs/private/**
+
+# Node modules (shouldn't be copied anyway)
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+build
+*.log
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+
+# Documentation that's not needed for runtime
+docs
+*.md
+
+# CI/CD
+.github
+.husky
+
+# Docker files (not needed in context)
+docker-compose*.yml
+Dockerfile*
+
+# Environment files (security + not needed)
+.env
+.env.*
+!.env.example
+
+# CDK/Infra build outputs
+infra/cdk.out
+infra/*.js
+infra/*.d.ts
+!infra/jest.config.js
+
+# Coverage reports
+coverage
+.nyc_output
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
