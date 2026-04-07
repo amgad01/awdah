@@ -4,6 +4,7 @@ import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
 import { Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import styles from './auth-forms.module.css';
 
 interface LoginFormProps {
@@ -32,7 +33,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'auth.login_error';
+      const message = getAuthErrorKey(err, 'auth.login_error');
       toast.error(t(message));
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@ import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
 import { Mail, Lock, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import styles from './auth-forms.module.css';
 
 interface ForgotPasswordFormProps {
@@ -36,7 +37,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       setPhase('confirm');
       toast.success(t('auth.forgot_password_email_sent'));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t('auth.forgot_password_error'));
+      toast.error(t(getAuthErrorKey(err, 'auth.forgot_password_error')));
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       await authService.signIn(email, newPassword);
       onSuccess();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t('auth.forgot_password_error'));
+      toast.error(t(getAuthErrorKey(err, 'auth.forgot_password_error')));
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,7 @@
   --switcher-accent: var(--color-primary);
   --switcher-accent-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
   --switcher-menu-shadow: 0 0.9rem 2rem color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color-scheme: light dark;
 }
 
 .inverse {
@@ -29,13 +30,13 @@
   );
   --switcher-background: color-mix(
     in srgb,
-    var(--color-overlay-subtle) 88%,
-    var(--color-primary) 12%
+    var(--color-overlay-medium) 82%,
+    var(--color-primary-dark) 18%
   );
   --switcher-background-hover: color-mix(
     in srgb,
-    var(--color-overlay-medium) 82%,
-    var(--color-primary) 18%
+    var(--color-overlay-active) 72%,
+    var(--color-primary-dark) 28%
   );
   --switcher-text: var(--color-text-on-primary);
   --switcher-text-muted: color-mix(in srgb, var(--color-text-on-primary) 68%, transparent);
@@ -43,6 +44,7 @@
   --switcher-accent-soft: color-mix(in srgb, var(--color-text-on-primary) 16%, transparent);
   --switcher-menu-shadow: 0 0.9rem 2rem
     color-mix(in srgb, var(--color-overlay-active) 18%, transparent);
+  color-scheme: light dark;
 }
 
 .defaultDensity {
@@ -77,7 +79,7 @@
   block-size: var(--switcher-height);
   padding-inline: var(--switcher-padding-inline);
   border: 1px solid var(--switcher-border);
-  border-radius: 999px;
+  border-radius: 0.85rem;
   background: var(--switcher-background);
   color: var(--switcher-text);
   font-size: var(--switcher-font-size);
@@ -90,12 +92,17 @@
     color var(--transition-fast),
     box-shadow var(--transition-fast),
     transform var(--transition-fast);
+  overflow: hidden;
 }
 
 .control:hover,
 .open {
   border-color: var(--switcher-border-hover);
   background: var(--switcher-background-hover);
+}
+
+.control:active {
+  transform: translateY(0);
 }
 
 .control:focus-visible,
@@ -401,10 +408,11 @@
   block-size: var(--switcher-height);
   padding-inline: var(--switcher-padding-inline);
   border: 1px solid var(--switcher-border);
-  border-radius: 999px;
+  border-radius: 0.85rem;
   background: var(--switcher-background);
   color: var(--switcher-text);
   transition: all var(--transition-fast);
+  overflow: hidden;
 }
 
 .selectWrapper:hover {
@@ -427,14 +435,17 @@
 
 .select {
   appearance: none;
-  background: transparent;
+  -webkit-appearance: none;
+  background: var(--switcher-background);
   border: none;
+  border-radius: 0.65rem;
   color: inherit;
   font-size: var(--switcher-font-size);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   cursor: pointer;
   min-inline-size: 4rem;
+  padding-block: 0.28rem;
   padding-inline-end: 1.25rem;
 }
 
@@ -442,9 +453,13 @@
   outline: none;
 }
 
+.select:focus-visible {
+  outline: none;
+}
+
 .select option {
-  color: var(--color-text-primary);
-  background: var(--color-surface);
+  color: var(--switcher-text);
+  background: var(--switcher-background);
 }
 
 .selectChevron {

@@ -13,6 +13,8 @@
   --color-surface: #ffffff;
   --color-border: #e0e0e0;
   --color-divider: #eeeeee;
+  --color-input-bg: #ffffff;
+  --color-input-border: #d0d5dd;
 
   /* Text Colors */
   --color-text-primary: #1a1a1a;
@@ -46,6 +48,8 @@
 
   /* Typography */
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  --font-family-display-ar: 'Noto Naskh Arabic', 'Amiri', 'Times New Roman', serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -187,6 +191,8 @@
     --color-surface: #1e1e1e;
     --color-border: #2e2e2e;
     --color-divider: #2a2a2a;
+    --color-input-bg: #2a2a2e;
+    --color-input-border: #404045;
     --color-text-primary: #e8e8e8;
     --color-text-secondary: #b0b0b0;
     --color-text-muted: #808080;
@@ -260,6 +266,8 @@
   --color-surface: #1e1e1e;
   --color-border: #2e2e2e;
   --color-divider: #2a2a2a;
+  --color-input-bg: #2a2a2e;
+  --color-input-border: #404045;
   --color-text-primary: #e8e8e8;
   --color-text-secondary: #b0b0b0;
   --color-text-muted: #808080;
@@ -463,8 +471,8 @@ textarea:focus-visible {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
+  border: 1px solid var(--color-input-border);
+  background-color: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: var(--font-size-md);
   transition:

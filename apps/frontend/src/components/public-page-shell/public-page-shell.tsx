@@ -1,10 +1,11 @@
 import React, { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
+import { useResponsiveMenu } from '@/hooks/use-responsive-menu';
 import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import styles from '../../App.module.css';
 
 function LoadingFallback() {
@@ -17,10 +18,17 @@ function LoadingFallback() {
 
 interface PublicTopBarProps {
   onShowLogin?: () => void;
+  onShowSignup?: () => void;
+  hideAuthLinksOnMobile?: boolean;
 }
 
-function PublicTopBar({ onShowLogin }: PublicTopBarProps) {
+function PublicTopBar({
+  onShowLogin,
+  onShowSignup,
+  hideAuthLinksOnMobile = false,
+}: PublicTopBarProps) {
   const { t } = useLanguage();
+  const { isOpen, toggle, close, menuRef, triggerRef } = useResponsiveMenu();
 
   return (
     <header className={styles.publicTopBar}>
@@ -28,30 +36,64 @@ function PublicTopBar({ onShowLogin }: PublicTopBarProps) {
         <BrandLockup tone="dark" />
       </Link>
 
-      <nav className={styles.publicTopNav} aria-label={t('common.app_name')}>
-        <Link to="/demo" className={styles.publicTopLink}>
+      <button
+        ref={triggerRef}
+        className={styles.publicBurgerBtn}
+        onClick={toggle}
+        aria-label={t('common.menu')}
+        aria-expanded={isOpen}
+        data-testid="public-nav-burger"
+      >
+        <Menu size={22} />
+      </button>
+
+      <nav
+        ref={menuRef as React.RefObject<HTMLElement>}
+        className={`${styles.publicTopNav} ${isOpen ? styles.publicTopNavOpen : ''}`}
+        aria-label={t('common.app_name')}
+      >
+        <Link to="/demo" className={styles.publicTopLink} onClick={close}>
           {t('nav.demo')}
         </Link>
-        <Link to="/about" className={styles.publicTopLink}>
+        <Link to="/about" className={styles.publicTopLink} onClick={close}>
           {t('about.nav_link')}
         </Link>
-        <Link to="/learn" className={styles.publicTopLink}>
+        <Link to="/learn" className={styles.publicTopLink} onClick={close}>
           {t('nav.learn')}
         </Link>
-        <Link to="/contribute" className={styles.publicTopLink}>
+        <Link to="/contribute" className={styles.publicTopLink} onClick={close}>
           {t('nav.contributing')}
         </Link>
-        <Link to="/privacy" className={styles.publicTopLink}>
+        <Link to="/privacy" className={styles.publicTopLink} onClick={close}>
           {t('privacy.nav_link')}
         </Link>
-      </nav>
-
-      <div className={styles.publicTopActions}>
+        {onShowSignup ? (
+          <Link
+            to="/?auth=signup"
+            className={`${styles.publicTopCta} ${hideAuthLinksOnMobile ? styles.publicTopAuthHideMobile : ''}`}
+            onClick={() => {
+              close();
+              onShowSignup();
+            }}
+          >
+            {t('auth.sign_up')}
+          </Link>
+        ) : null}
         {onShowLogin ? (
-          <Link to="/" className={styles.publicTopCta} onClick={onShowLogin}>
+          <Link
+            to="/?auth=login"
+            className={`${styles.publicTopCta} ${hideAuthLinksOnMobile ? styles.publicTopAuthHideMobile : ''}`}
+            onClick={() => {
+              close();
+              onShowLogin();
+            }}
+          >
             {t('auth.login')}
           </Link>
         ) : null}
+      </nav>
+
+      <div className={styles.publicTopActions}>
         <LanguageSwitcher tone="inverse" />
         <ThemeToggle />
       </div>
@@ -86,7 +128,7 @@ export const PublicPageShell: React.FC<PublicPageShellProps> = ({
   return (
     <div className={styles.authScreen}>
       <div className={styles.publicFrame}>
-        <PublicTopBar onShowLogin={onShowLogin} />
+        <PublicTopBar onShowLogin={onShowLogin} onShowSignup={onShowSignup} />
 
         <section className={styles.learnHero}>
           <div className={styles.learnHeroCopy}>
@@ -104,10 +146,10 @@ export const PublicPageShell: React.FC<PublicPageShellProps> = ({
             {ctaTitle ? <h2 className={styles.learnCtaTitle}>{ctaTitle}</h2> : null}
             {ctaText ? <p className={styles.learnCtaText}>{ctaText}</p> : null}
             <div className={styles.learnCtaActions}>
-              <Link to="/" className={styles.learnPrimary} onClick={onShowSignup}>
+              <Link to="/?auth=signup" className={styles.learnPrimary} onClick={onShowSignup}>
                 {t('marketing.primary_cta')}
               </Link>
-              <Link to="/" className={styles.learnSecondary} onClick={onShowLogin}>
+              <Link to="/?auth=login" className={styles.learnSecondary} onClick={onShowLogin}>
                 {t('marketing.secondary_cta')}
               </Link>
             </div>

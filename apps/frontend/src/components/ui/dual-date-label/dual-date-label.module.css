@@ -1,0 +1,30 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.inline {
+  flex-wrap: wrap;
+}
+
+.stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.primary {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.secondary {
+  color: var(--color-text-muted);
+  font-size: 0.88em;
+}
+
+.separator {
+  color: var(--color-text-muted);
+}

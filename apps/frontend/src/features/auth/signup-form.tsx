@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
-import { Loader2, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { Loader2, Mail, Lock, ShieldCheck, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import styles from './auth-forms.module.css';
 
 interface SignupFormProps {
@@ -22,6 +23,23 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   const [phase, setPhase] = useState<SignupPhase>('register');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const passwordChecks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /\d/.test(password),
+      symbol: /[^a-zA-Z0-9]/.test(password),
+    }),
+    [password],
+  );
+
+  const allChecksPassed = Object.values(passwordChecks).every(Boolean);
+
+  const passwordsMatch =
+    password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
+  const showMatchHint = confirmPassword.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +61,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         onSuccess();
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t('auth.signup_error'));
+      toast.error(t(getAuthErrorKey(err, 'auth.signup_error')));
     } finally {
       setLoading(false);
     }
@@ -59,7 +77,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t('auth.verify_error'));
+      toast.error(t(getAuthErrorKey(err, 'auth.verify_error')));
     } finally {
       setLoading(false);
     }
@@ -71,7 +89,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       await authService.signUp(email, password);
       toast.success(t('auth.verify_resend_done'));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t('auth.signup_error'));
+      toast.error(t(getAuthErrorKey(err, 'auth.signup_error')));
     }
   };
 
@@ -148,6 +166,33 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               data-testid="signup-password"
             />
           </div>
+          {password.length > 0 && (
+            <ul
+              className={styles.passwordChecklist}
+              aria-label={t('auth.password_requirements_title')}
+            >
+              <li className={passwordChecks.length ? styles.checkPass : styles.checkFail}>
+                {passwordChecks.length ? <Check size={12} /> : <X size={12} />}
+                <span>{t('auth.password_requirement_length')}</span>
+              </li>
+              <li className={passwordChecks.lowercase ? styles.checkPass : styles.checkFail}>
+                {passwordChecks.lowercase ? <Check size={12} /> : <X size={12} />}
+                <span>{t('auth.password_requirement_lowercase')}</span>
+              </li>
+              <li className={passwordChecks.uppercase ? styles.checkPass : styles.checkFail}>
+                {passwordChecks.uppercase ? <Check size={12} /> : <X size={12} />}
+                <span>{t('auth.password_requirement_uppercase')}</span>
+              </li>
+              <li className={passwordChecks.number ? styles.checkPass : styles.checkFail}>
+                {passwordChecks.number ? <Check size={12} /> : <X size={12} />}
+                <span>{t('auth.password_requirement_number')}</span>
+              </li>
+              <li className={passwordChecks.symbol ? styles.checkPass : styles.checkFail}>
+                {passwordChecks.symbol ? <Check size={12} /> : <X size={12} />}
+                <span>{t('auth.password_requirement_symbol')}</span>
+              </li>
+            </ul>
+          )}
         </div>
 
         <div className={styles.inputGroup}>
@@ -164,13 +209,24 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               data-testid="signup-confirm-password"
             />
           </div>
+          {showMatchHint && (
+            <p
+              className={passwordsMatch ? styles.matchHintPass : styles.matchHintFail}
+              role="status"
+            >
+              {passwordsMatch ? <Check size={12} /> : <X size={12} />}
+              <span>
+                {passwordsMatch ? t('auth.passwords_match') : t('auth.passwords_do_not_match')}
+              </span>
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
           data-testid="signup-submit"
           className={styles.submitBtn}
-          disabled={loading}
+          disabled={loading || !allChecksPassed || !passwordsMatch}
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : t('auth.sign_up')}
         </button>
