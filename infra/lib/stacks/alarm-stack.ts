@@ -175,8 +175,9 @@ export class AlarmStack extends BaseStack {
 
     // ── DynamoDB throttling alarms ────────────────────────────────────────────
     // Single aggregate alarm across all tables to stay within free tier.
-    // Uses per-operation metrics (read + write + scan) summed per table, then
-    // aggregated across tables, to avoid the deprecated metricThrottledRequests.
+    // CloudWatch alarms can use at most 10 metrics in a math expression, so we
+    // aggregate table-level read/write throttle event metrics instead of
+    // expanding operation-level GET/PUT/SCAN metrics per table.
     const tables = [
       { table: props.dataStack.prayerLogsTable, label: 'PrayerLogs' },
       { table: props.dataStack.fastLogsTable, label: 'FastLogs' },
@@ -186,53 +187,21 @@ export class AlarmStack extends BaseStack {
     ];
 
     {
-      const readOp = cdk.aws_dynamodb.Operation.GET_ITEM;
-      const writeOp = cdk.aws_dynamodb.Operation.PUT_ITEM;
-      const scanOp = cdk.aws_dynamodb.Operation.SCAN;
       const period = cdk.Duration.minutes(5);
       const stat = 'Sum';
 
-      const ddbMetrics: Record<string, cloudwatch.IMetric> = {};
-      tables.forEach(({ table, label }, idx) => {
-        // Sum read, write, and scan throttles per table into one sub-expression
-        const r = `r${idx}`;
-        const w = `w${idx}`;
-        const s = `s${idx}`;
-        ddbMetrics[r] = table.metricThrottledRequestsForOperation(readOp, {
-          period,
-          statistic: stat,
-        });
-        ddbMetrics[w] = table.metricThrottledRequestsForOperation(writeOp, {
-          period,
-          statistic: stat,
-        });
-        ddbMetrics[s] = table.metricThrottledRequestsForOperation(scanOp, {
-          period,
-          statistic: stat,
-          label,
-        });
-      });
-
-      // Total: 5 tables × 3 ops = 15 metrics → too many for one expression (max 10).
-      // Group by operation type instead: sum all tables per op, then combine.
       const readMetrics: Record<string, cloudwatch.IMetric> = {};
       const writeMetrics: Record<string, cloudwatch.IMetric> = {};
-      const scanMetrics: Record<string, cloudwatch.IMetric> = {};
       tables.forEach(({ table, label }, idx) => {
-        readMetrics[`r${idx}`] = table.metricThrottledRequestsForOperation(readOp, {
+        readMetrics[`r${idx}`] = table.metric('ReadThrottleEvents', {
           period,
           statistic: stat,
-          label: `${label}-Read`,
+          label: `${label}-ReadThrottleEvents`,
         });
-        writeMetrics[`w${idx}`] = table.metricThrottledRequestsForOperation(writeOp, {
+        writeMetrics[`w${idx}`] = table.metric('WriteThrottleEvents', {
           period,
           statistic: stat,
-          label: `${label}-Write`,
-        });
-        scanMetrics[`s${idx}`] = table.metricThrottledRequestsForOperation(scanOp, {
-          period,
-          statistic: stat,
-          label: `${label}-Scan`,
+          label: `${label}-WriteThrottleEvents`,
         });
       });
 
@@ -250,26 +219,18 @@ export class AlarmStack extends BaseStack {
         label: 'WriteThrottles',
       });
 
-      const scanKeys = Object.keys(scanMetrics).join(',');
-      const scanSum = new cloudwatch.MathExpression({
-        expression: `SUM([${scanKeys}])`,
-        usingMetrics: scanMetrics,
-        label: 'ScanThrottles',
-      });
-
       addAlarm(
         'DDBAggregateThrottleAlarm',
         new cloudwatch.MathExpression({
-          expression: 'readTotal + writeTotal + scanTotal',
+          expression: 'readTotal + writeTotal',
           usingMetrics: {
             readTotal: readSum,
             writeTotal: writeSum,
-            scanTotal: scanSum,
           },
           label: 'AggregateThrottles',
         }),
         'DDB-Aggregate-Throttles',
-        'DynamoDB aggregate throttling across all tables and operations',
+        'DynamoDB aggregate read/write throttling across all tables',
         isProd || isStaging ? 5 : 10,
         2,
       );

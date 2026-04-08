@@ -92,7 +92,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 - Docker Compose now starts the backend runtime image successfully by copying the backend workspace node_modules into the final image, which restores runtime resolution for `zod`
 - LocalStack reset scripts now target the real `Awdah-*` table names and key schema used by the backend
-- DynamoDB throttle alarms now aggregate the main read, write, and scan operations instead of monitoring `GetItem` alone
+- DynamoDB throttle alarms now aggregate the main read, write, and scan operations instead of monitoring `GetItem` alone compling with CloudWatch limits
+
 - Expanded production environment detection for table deletion protection (`prod`, `production`, `live`)
 - LocalStack reset scripts and DynamoDB table references now use the real `Awdah-PascalCase-{env}` naming convention (e.g. `Awdah-PrayerLogs-dev`) consistent with CDK stack definitions
 
