@@ -16,13 +16,13 @@
 }
 
 .md .logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
 }
 
 .sm .logo {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
 }
 
 .text {
@@ -35,6 +35,7 @@
 
 .en {
   font-weight: var(--font-weight-black);
+  font-family: var(--font-family-display);
   letter-spacing: -0.03em;
 }
 
@@ -45,6 +46,7 @@
 
 .ar {
   font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-display-ar);
   opacity: 0.92;
 }
 
@@ -90,4 +92,10 @@
 
 .light .ar {
   color: var(--color-text-secondary);
+}
+
+@media (max-width: 360px) {
+  .text {
+    display: none;
+  }
 }

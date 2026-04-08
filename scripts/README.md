@@ -16,11 +16,21 @@ Full deploy or targeted partial deploy with an interactive mode selector.
 ./scripts/deploy.sh --hotswap      # near-instant Lambda update without hotswap+parallel
 ./scripts/deploy.sh --skip-build   # skip shared package build (use if already built)
 ./scripts/deploy.sh --skip-bootstrap  # skip CDK bootstrap (use after first deploy)
+./scripts/deploy.sh --skip-alarm-stack  # deploy all stacks except alarm stack
 ```
 
-Interactive mode offers four options: Full, Quick, Hotswap Only, and Skip Setup.
+Interactive mode offers six options: Full, Quick, Hotswap Only, Skip Setup, Skip Alarm Stack, and Cancel.
 
 Reads `DEPLOY_ENV` (default: `dev`) and `AWS_DEFAULT_REGION` (default: `eu-west-1`) from `.env` if present.
+
+**NPM shortcuts:**
+
+| Command                               | Description                          |
+| ------------------------------------- | ------------------------------------ |
+| `npm run deploy:dev`                  | Full deploy to dev                   |
+| `npm run deploy:quick`                | Quick deploy (hotswap + parallel)    |
+| `npm run deploy:skip-alarm:dev`       | Deploy dev without alarm stack       |
+| `npm run deploy:skip-alarm:quick:dev` | Quick deploy dev without alarm stack |
 
 ### `deploy-all.sh`
 
@@ -41,6 +51,23 @@ Deploys a single named CDK stack. Accepts the stack name as first argument or pr
 ```
 
 Valid stack names: `data`, `auth`, `api`, `backup`, `alarm`, `frontend`.
+
+### `deploy-localstack.sh`
+
+Deploys CDK stacks to LocalStack for local development. Does not require AWS SSO — uses dummy credentials and the LocalStack endpoint.
+
+```bash
+./scripts/deploy-localstack.sh        # interactive stack selection
+./scripts/deploy-localstack.sh data   # deploy data stack to LocalStack
+./scripts/deploy-localstack.sh api    # deploy API stack to LocalStack
+```
+
+Valid stack names: `data`, `auth`, `api`, `backup`, `alarm`. (Frontend is excluded — use `deploy-stack.sh frontend` with real AWS for CloudFront deployments.)
+
+Prerequisites:
+
+- LocalStack running (`docker compose up -d localstack`)
+- Same dummy credentials as backend: `AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`
 
 ### `deploy-frontend.sh`
 
@@ -84,7 +111,7 @@ Destroys a single named CDK stack. Interactive or accepts stack name as argument
 Reads CDK outputs from `infra/outputs.json` (produced by a deploy) and writes the frontend `.env.production` file. Run this after any deploy that changes API URLs or Cognito config.
 
 ```bash
-DEPLOY_ENV=staging ./scripts/generate-frontend-config.sh
+DEPLOY_ENV=dev ./scripts/generate-frontend-config.sh
 ```
 
 Updates `VITE_API_BASE_URL`, `VITE_BASE_PATH`, `VITE_COGNITO_USER_POOL_ID`, and `VITE_COGNITO_CLIENT_ID` if the relevant stacks were part of the last deploy. Existing values are preserved if the stack was not redeployed.
@@ -143,6 +170,21 @@ Lightweight gate: lint and typecheck only. Runs in roughly 15–20 seconds. Test
 ```bash
 ./scripts/pre-push-quick.sh
 ```
+
+---
+
+## Load testing
+
+### `smoke-test-pages.sh`
+
+Validates a deployed GitHub Pages site by checking that key HTML pages respond, the asset bundle is referenced correctly, and the CSP and OG meta tags are present. Called automatically by the `deploy-pages.yml` workflow after each Pages deployment.
+
+```bash
+./scripts/smoke-test-pages.sh                                     # uses PAGES_SITE_URL or default
+./scripts/smoke-test-pages.sh https://amgad01.github.io/awdah/   # explicit URL
+```
+
+Exits with code 1 and prints a summary of all failed checks if anything is wrong.
 
 ---
 

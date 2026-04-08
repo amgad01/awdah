@@ -144,6 +144,29 @@
   justify-content: flex-end;
 }
 
+.publicBurgerBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-overlay-medium);
+  background: var(--color-overlay-subtle);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.publicBurgerBtn:hover {
+  background: var(--color-overlay-hover);
+  border-color: var(--color-overlay-strong);
+}
+
 .publicTopLink {
   display: inline-flex;
   align-items: center;
@@ -175,6 +198,10 @@
     opacity 0.15s ease;
 }
 
+.publicTopAuthHideMobile {
+  display: inline-flex;
+}
+
 .publicTopCta:hover {
   transform: translateY(-1px);
   opacity: 0.94;
@@ -195,7 +222,7 @@
 
 .authTitle {
   font-size: clamp(1.9rem, 4vw, 3.15rem);
-  font-family: 'Alegreya', 'Iowan Old Style', 'Palatino Linotype', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-family-display);
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text-on-primary);
   letter-spacing: -0.03em;
@@ -504,10 +531,53 @@
   }
 
   .publicTopBar,
-  .publicTopNav,
-  .publicTopActions {
+  .publicTopNav {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .publicBurgerBtn {
+    display: flex;
+  }
+
+  .publicTopBar {
+    position: relative;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .publicBrand :global(.brand-text) {
+    display: none;
+  }
+
+  .publicTopNav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    inline-size: min(18rem, calc(100vw - 2rem));
+    z-index: 100;
+    background: var(--nav-bg);
+    border: 1px solid var(--color-overlay-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+    box-shadow: var(--shadow-lg);
+    margin-top: var(--spacing-xs);
+  }
+
+  .publicTopNavOpen {
+    display: flex;
+  }
+
+  .publicTopActions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-inline-start: auto;
   }
 
   .publicTopLink,
@@ -524,10 +594,34 @@
   .heroActions {
     flex-direction: column;
   }
+
+  .publicTopNav .publicTopLink,
+  .publicTopNav .publicTopCta {
+    min-height: 44px;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.35;
+    padding: 0.65rem 0.9rem;
+  }
+
+  .authScreen .heroActions {
+    display: none;
+  }
+
+  .publicTopAuthHideMobile {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  :global([dir='rtl']) .publicTopNav {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
 }
 
 :global([dir='rtl']) .authTitle {
-  font-family: 'Noto Naskh Arabic', 'Amiri', 'Alegreya', serif;
+  font-family: var(--font-family-display-ar);
   line-height: 1.18;
   letter-spacing: 0;
 }

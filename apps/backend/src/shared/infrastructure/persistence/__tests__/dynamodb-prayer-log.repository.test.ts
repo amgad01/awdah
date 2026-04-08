@@ -107,6 +107,47 @@ describe('DynamoDBPrayerLogRepository', () => {
     });
   });
 
+  it('should count repeated qadaa logs on the same slot individually', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          userId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-1'),
+          type: 'qadaa',
+          action: 'prayed',
+          loggedAt: '2024-01-01T10:00:00.000Z',
+        },
+        {
+          userId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-2'),
+          type: 'qadaa',
+          action: 'prayed',
+          loggedAt: '2024-01-01T11:00:00.000Z',
+        },
+        {
+          userId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-3'),
+          type: 'qadaa',
+          action: 'deselected',
+          loggedAt: '2024-01-01T12:00:00.000Z',
+        },
+        {
+          userId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-4'),
+          type: 'qadaa',
+          action: 'prayed',
+          loggedAt: '2024-01-01T13:00:00.000Z',
+        },
+      ],
+    });
+
+    const count = await repository.countQadaaCompleted(userId);
+    const byPrayer = await repository.countQadaaCompletedByPrayer(userId);
+
+    expect(count).toBe(2);
+    expect(byPrayer).toEqual({ fajr: 2 });
+  });
+
   it('should delete a prayer log entry', async () => {
     ddbMock.on(DeleteCommand).resolves({});
 

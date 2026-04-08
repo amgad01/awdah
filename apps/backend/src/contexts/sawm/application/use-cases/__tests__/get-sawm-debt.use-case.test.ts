@@ -71,4 +71,48 @@ describe('GetSawmDebtUseCase', () => {
     mockUserRepo.findById.mockResolvedValue(null);
     await expect(useCase.execute('u')).rejects.toThrow('User settings not found');
   });
+
+  it('returns zero debt when bulugh date is in the future', async () => {
+    const futureBulugh = new HijriDate(1450, 1, 1); // Future date
+    const today = new HijriDate(1445, 1, 1);
+
+    mockUserRepo.findById.mockResolvedValue({
+      userId: 'u',
+      bulughDate: futureBulugh,
+      gender: 'male',
+      version: 1,
+    });
+    mockPeriodRepo.findByUser.mockResolvedValue([]);
+    mockFastLogRepo.countQadaaCompleted.mockResolvedValue(0);
+    mockCalendar.today.mockReturnValue(today);
+
+    const result = await useCase.execute('u');
+
+    expect(result.totalDaysOwed).toBe(0);
+    expect(result.completedDays).toBe(0);
+    expect(result.remainingDays).toBe(0);
+  });
+
+  it('returns zero debt when revert date is in the future (for reverts)', async () => {
+    const pastBulugh = new HijriDate(1440, 1, 1);
+    const futureRevert = new HijriDate(1450, 1, 1); // Future revert date
+    const today = new HijriDate(1445, 1, 1);
+
+    mockUserRepo.findById.mockResolvedValue({
+      userId: 'u',
+      bulughDate: pastBulugh,
+      revertDate: futureRevert,
+      gender: 'male',
+      version: 1,
+    });
+    mockPeriodRepo.findByUser.mockResolvedValue([]);
+    mockFastLogRepo.countQadaaCompleted.mockResolvedValue(0);
+    mockCalendar.today.mockReturnValue(today);
+
+    const result = await useCase.execute('u');
+
+    expect(result.totalDaysOwed).toBe(0);
+    expect(result.completedDays).toBe(0);
+    expect(result.remainingDays).toBe(0);
+  });
 });

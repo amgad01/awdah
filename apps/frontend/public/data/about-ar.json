@@ -1,5 +1,5 @@
 {
-  "project_badge": "المشروع",
+  "project_badge": "التطبيق",
   "project_title": "عن عودة",
   "project_subtitle": "رفيق هادئ للعودة إلى الصلوات والصيام الفائتة، مع تهيئة أولية موجَّهة، وتتبع يراعي الخصوصية، وتقدّم ثابت يمكن الاستمرار عليه.",
   "why_title": "رسالتنا",
@@ -110,5 +110,11 @@
   "contributors_title": "المساهمون",
   "contributors_empty": "",
   "contributors": [],
+  "version_title": "الإصدار",
+  "version_body": "v1.1.0",
+  "stack_title": "مبني بـ",
+  "stack_items": ["React", "TypeScript", "AWS CDK", "DynamoDB", "Lambda", "Docker"],
+  "contribute_title": "ساهم",
+  "contribute_body": "عودة مشروع مفتوح المصدر. إذا أردت المساعدة في تحسينه أو الإبلاغ عن خطأ أو اقتراح ميزة، تعرّف على كيفية المساهمة.",
   "privacy_title": "الخصوصية"
 }

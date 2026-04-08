@@ -65,7 +65,7 @@ describe('Nav', () => {
     expect(screen.getByTestId('nav-salah')).toBeInTheDocument();
     expect(screen.getByTestId('nav-sawm')).toBeInTheDocument();
     expect(screen.getByTestId('nav-history')).toBeInTheDocument();
-    expect(screen.getByTestId('nav-settings')).toBeInTheDocument();
+    expect(screen.getAllByTestId('nav-settings')).toHaveLength(2);
   });
 
   it('renders brand lockup', () => {
@@ -75,22 +75,22 @@ describe('Nav', () => {
 
   it('renders language switcher and theme toggle', () => {
     renderNav();
-    expect(screen.getByTestId('language-switcher')).toBeInTheDocument();
-    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
+    expect(screen.getAllByTestId('language-switcher')).toHaveLength(2);
+    expect(screen.getAllByTestId('theme-toggle')).toHaveLength(2);
   });
 
   it('renders footer links', () => {
     renderNav();
-    expect(screen.getByTestId('nav-about')).toBeInTheDocument();
-    expect(screen.getByTestId('nav-privacy')).toBeInTheDocument();
-    expect(screen.getByTestId('nav-demo')).toBeInTheDocument();
+    expect(screen.getAllByTestId('nav-about')).toHaveLength(2);
+    expect(screen.getAllByTestId('nav-privacy')).toHaveLength(2);
+    expect(screen.getAllByTestId('nav-demo')).toHaveLength(2);
   });
 
   it('calls signOut and navigates home on logout', async () => {
     mockSignOut.mockResolvedValue(undefined);
     renderNav();
 
-    fireEvent.click(screen.getByTestId('logout-button'));
+    fireEvent.click(screen.getAllByTestId('logout-button')[0]);
 
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });

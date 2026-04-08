@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
@@ -139,10 +139,32 @@ function PublicContributingPage({
   );
 }
 
-// Extracted so authView state lives only while the user is unauthenticated.
-// This component is rendered only when isAuthenticated === false; it unmounts on login
-// (false → true) and remounts on logout (true → false), resetting authView to 'login'
-// automatically — no effect or ref needed.
+function PublicPrivacyPage({
+  onShowLogin,
+  onShowSignup,
+}: {
+  onShowLogin: () => void;
+  onShowSignup: () => void;
+}) {
+  const { t } = useLanguage();
+
+  return (
+    <PublicPageShell
+      badge={t('privacy.nav_link')}
+      title={t('privacy.title')}
+      subtitle={t('privacy.intro_body')}
+      onShowLogin={onShowLogin}
+      onShowSignup={onShowSignup}
+    >
+      <PrivacyPage embedded />
+    </PublicPageShell>
+  );
+}
+
+/**
+ * The unauthenticated shell supports an initial auth view hint via ?auth=login|signup|forgot.
+ * We read the query parameter once on mount and use it only to choose the first panel.
+ */
 function UnauthenticatedRoutes({
   authNotice,
   checkUser,
@@ -150,7 +172,12 @@ function UnauthenticatedRoutes({
   authNotice: boolean;
   checkUser: () => void;
 }) {
-  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
+  const location = useLocation();
+  const initialAuthView = (() => {
+    const next = new URLSearchParams(location.search).get('auth');
+    return next === 'login' || next === 'signup' || next === 'forgot' ? next : 'login';
+  })();
+  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>(initialAuthView);
 
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -207,7 +234,15 @@ function UnauthenticatedRoutes({
             />
           }
         />
-        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route
+          path="/privacy"
+          element={
+            <PublicPrivacyPage
+              onShowLogin={() => setAuthView('login')}
+              onShowSignup={() => setAuthView('signup')}
+            />
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

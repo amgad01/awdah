@@ -2,38 +2,91 @@ name: Deploy Backend
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ['E2E']
-    types:
-      - completed
+    inputs:
+      confirm_branch_release_tag:
+        description: 'Check this to deploy with the version parsed from the selected release/* branch. Leave unchecked only if you fill in release_tag.'
+        required: false
+        type: boolean
+        default: false
+      release_tag:
+        description: 'Optional semver override for manual runs (example: v1.1.0)'
+        required: false
+        type: string
+      source_ref:
+        description: '[Internal] Source branch/ref to deploy. Leave blank for manual runs.'
+        required: false
+        type: string
+      source_sha:
+        description: '[Internal] Exact commit SHA to deploy. Leave blank for manual runs.'
+        required: false
+        type: string
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: deploy-backend-${{ inputs.source_sha || github.sha }}
+  cancel-in-progress: false
 
 jobs:
+  prepare:
+    name: Prepare backend release context
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      source_ref: ${{ steps.context.outputs.source_ref }}
+      source_sha: ${{ steps.context.outputs.source_sha }}
+      release_tag: ${{ steps.context.outputs.release_tag }}
+    steps:
+      - name: Checkout release workflow code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ inputs.source_sha || github.sha }}
+
+      - name: Resolve source ref, SHA, and release tag
+        id: context
+        uses: ./.github/actions/prepare-release
+        with:
+          confirm-branch-release-tag: ${{ inputs.confirm_branch_release_tag }}
+          release-tag-input: ${{ inputs.release_tag || '' }}
+          source-ref: ${{ inputs.source_ref || github.ref_name }}
+          source-sha: ${{ inputs.source_sha || github.sha }}
+          require-branch-release-tag-confirmation: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+
+  approve:
+    name: 'Approve: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}'
+    runs-on: ubuntu-latest
+    needs: prepare
+    environment: prod
+    steps:
+      - name: Approval granted
+        run: echo "Approved backend deploy"
+
   deploy:
     name: CDK Deploy (prod)
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    needs: [prepare, approve]
     environment: prod
+    permissions:
+      contents: read
+      id-token: write
     env:
       TARGET_ENV: prod
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout release commit
+        uses: actions/checkout@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 1
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared
-        run: npm run build --workspace=packages/shared
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
 
       - name: Build infra
         run: cd infra && npm run build
@@ -44,19 +97,10 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_DEFAULT_REGION }}
 
-      - name: Determine release tag
-        id: release_tag
-        run: |
-          git fetch --tags --force
-          tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
-          echo "release_tag=${tag}" >> "$GITHUB_OUTPUT"
-
       - name: CDK deploy
         run: |
           cd infra
-          CONTEXT_ARGS=(--context env=prod)
-          [ -n "${{ steps.release_tag.outputs.release_tag }}" ] && \
-            CONTEXT_ARGS+=(--context "releaseTag=${{ steps.release_tag.outputs.release_tag }}")
+          CONTEXT_ARGS=(--context env=prod --context "releaseTag=$RELEASE_TAG")
           npx cdk deploy \
             Awdah-data-stack-prod \
             Awdah-auth-stack-prod \

@@ -9,7 +9,10 @@ import { estimateSalahDebt } from '@/lib/practicing-periods';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useUpdateProfile, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
 import { api } from '@/lib/api';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import {
+  invalidatePracticingPeriods,
+  invalidateAllWorshipQueries,
+} from '@/utils/query-invalidation';
 import { getOnboardingDraftKey } from '@/lib/onboarding-state';
 import {
   createEmptyOnboardingData,
@@ -174,9 +177,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       }
 
       hasCompletedWizardRef.current = true;
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.practicingPeriods });
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
+      await invalidatePracticingPeriods(queryClient);
+      await invalidateAllWorshipQueries(queryClient);
 
       const [salahResult, sawmResult] = await Promise.all([
         api.salah.getDebt(),

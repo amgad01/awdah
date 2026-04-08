@@ -12,7 +12,7 @@ cdk.out/
 *.local
 
 # Private docs (local only)
-private-docs/
+/docs/private/*
 
 .github/*.md
 
@@ -30,6 +30,7 @@ Thumbs.db
 # IDE
 .idea/
 .vscode/
+.windsurf/
 *.swp
 *.swo
 

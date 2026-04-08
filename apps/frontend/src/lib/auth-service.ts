@@ -16,6 +16,12 @@ export type AuthNotice = 'session-expired';
 
 export interface AuthService {
   signIn(email: string, password: string): Promise<UserSession>;
+  /**
+   * Verifies the user's current password without creating or replacing the
+   * active session. Use this for destructive action confirmations (export,
+   * account deletion, data reset) so the existing session is preserved.
+   */
+  verifyPassword(email: string, password: string): Promise<void>;
   signUp(email: string, password: string): Promise<{ needsVerification: boolean }>;
   confirmSignUp(email: string, code: string): Promise<void>;
   forgotPassword(email: string): Promise<void>;
@@ -29,6 +35,7 @@ export interface AuthService {
 const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
 
 let authServiceInstance: AuthService | null = null;
+let inMemorySession: UserSession | null = null;
 
 function getStorage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -45,6 +52,10 @@ function isSessionExpired(session: UserSession): boolean {
 }
 
 export function persistSession(session: UserSession): void {
+  // Keep in memory for active session (avoids storage reads)
+  inMemorySession = session;
+
+  // Also write to sessionStorage for page refresh persistence
   const storage = getStorage();
   if (!storage) return;
 
@@ -58,6 +69,9 @@ export function publishAuthNotice(notice: AuthNotice): void {
 }
 
 export function clearPersistedSession(notice?: AuthNotice): void {
+  // Clear in-memory session immediately
+  inMemorySession = null;
+
   const storage = getStorage();
   if (storage) {
     storage.removeItem(TOKEN_KEY);
@@ -72,6 +86,17 @@ export function clearPersistedSession(notice?: AuthNotice): void {
 }
 
 export function readPersistedSession(): UserSession | null {
+  // Return in-memory session if available (avoids storage reads during active session)
+  if (inMemorySession) {
+    if (isSessionExpired(inMemorySession)) {
+      inMemorySession = null;
+      clearPersistedSession('session-expired');
+      return null;
+    }
+    return inMemorySession;
+  }
+
+  // Fall back to sessionStorage (page refresh scenario)
   const storage = getStorage();
   if (!storage) return null;
 
@@ -86,6 +111,8 @@ export function readPersistedSession(): UserSession | null {
       return null;
     }
 
+    // Cache in memory for subsequent reads
+    inMemorySession = session;
     return session;
   } catch {
     clearPersistedSession();
@@ -95,6 +122,15 @@ export function readPersistedSession(): UserSession | null {
 
 export function getPersistedToken(): string | null {
   return readPersistedSession()?.token ?? null;
+}
+
+/** Get the current session from memory only (no storage read). */
+export function getInMemorySession(): UserSession | null {
+  if (inMemorySession && isSessionExpired(inMemorySession)) {
+    inMemorySession = null;
+    return null;
+  }
+  return inMemorySession;
 }
 
 export function subscribeToAuthChanges(
@@ -127,10 +163,10 @@ export async function getAuthService(): Promise<AuthService> {
 
   let service: AuthService;
   if (AUTH_MODE === 'local') {
-    const mod = await import('./local-auth.service.ts');
+    const mod = await import('./local-auth.service');
     service = mod.localAuthService;
   } else {
-    const mod = await import('./cognito-auth.service.ts');
+    const mod = await import('./cognito-auth.service');
     service = mod.cognitoAuthService;
   }
 

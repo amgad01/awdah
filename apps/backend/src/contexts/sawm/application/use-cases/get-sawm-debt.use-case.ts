@@ -35,6 +35,15 @@ export class GetSawmDebtUseCase {
     const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userId);
     const today = this.calendarService.today();
 
+    // Early return: if effective start date is in the future, user has zero debt
+    if (effectiveStartDate.isAfter(today)) {
+      return {
+        totalDaysOwed: 0,
+        completedDays: completedQadaa,
+        remainingDays: 0,
+      };
+    }
+
     return this.debtCalculator.calculate(
       effectiveStartDate,
       relevantPeriods,

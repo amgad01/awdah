@@ -1,0 +1,117 @@
+.container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.swipeArea {
+  width: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.slidesContainer {
+  display: flex;
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+
+.slide {
+  width: 100%;
+  flex-shrink: 0;
+  padding: 0 var(--spacing-sm);
+}
+
+.slideContent {
+  min-height: 60vh;
+  min-height: 60dvh;
+  padding: var(--spacing-md) 0;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  transition: all var(--transition-fast);
+}
+
+.navButton:hover {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.navButtonLeft {
+  left: var(--spacing-xs);
+}
+
+.navButtonRight {
+  right: var(--spacing-xs);
+}
+
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.dotActive {
+  background: var(--color-primary);
+  transform: scale(1.2);
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+}
+
+/* Hide on desktop - these components are for mobile only */
+@media (min-width: 768px) {
+  .container {
+    display: none;
+  }
+}
+
+/* Swipe hint animation */
+@keyframes swipeHint {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.swipeHint {
+  animation: swipeHint 1.5s ease-in-out infinite;
+}

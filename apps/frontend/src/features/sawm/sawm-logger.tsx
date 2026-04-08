@@ -7,7 +7,7 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Check, Loader2, Sun, Moon } from 'lucide-react';
 import { DayNav } from '@/components/ui/day-nav/day-nav';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateSawmQueries } from '@/utils/query-invalidation';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { HijriDate } from '@awdah/shared';
 import styles from './sawm-logger.module.css';
@@ -134,9 +134,7 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
         <ErrorState
           compact
           message={error instanceof Error ? error.message : t('common.error')}
-          onRetry={() =>
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDailyLog(selectedDate) })
-          }
+          onRetry={() => invalidateSawmQueries(queryClient, selectedDate)}
         />
       ) : isBeforeBirth ? (
         <div className={styles.beforeBirthPlaceholder}>

@@ -194,6 +194,12 @@ export function estimateSalahDebt(
     revertDate && HijriDate.fromString(revertDate).isAfter(bulugh)
       ? HijriDate.fromString(revertDate)
       : bulugh;
+
+  // Early return: if effective start date is in the future, zero debt
+  if (effectiveStart.isAfter(today)) {
+    return 0;
+  }
+
   let lastHandledDate = effectiveStart;
 
   for (const period of sortedPeriods) {

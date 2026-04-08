@@ -9,7 +9,7 @@ import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Card } from '@/components/ui/card/card';
 import { CelebrationToast } from '@/components/ui/celebration-toast/celebration-toast';
 import { PrayerLogger } from '@/features/salah/prayer-logger';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateAllWorshipQueries } from '@/utils/query-invalidation';
 import { getUserDisplayName } from '@/lib/user-display';
 import { todayHijriDate } from '@/utils/date-utils';
 import { useCelebration } from './use-celebration';
@@ -73,8 +73,7 @@ export const Dashboard: React.FC = () => {
       <ErrorState
         message={error instanceof Error ? error.message : t('common.error')}
         onRetry={() => {
-          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
-          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
+          invalidateAllWorshipQueries(queryClient);
         }}
       />
     );

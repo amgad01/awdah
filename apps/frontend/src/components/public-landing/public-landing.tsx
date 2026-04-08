@@ -43,7 +43,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   return (
     <div className={styles.authScreen}>
       <div className={styles.publicFrame}>
-        <PublicTopBar onShowLogin={onShowLogin} />
+        <PublicTopBar onShowLogin={onShowLogin} onShowSignup={onShowSignup} hideAuthLinksOnMobile />
 
         <div className={styles.authShell}>
           <section className={styles.heroPanel}>

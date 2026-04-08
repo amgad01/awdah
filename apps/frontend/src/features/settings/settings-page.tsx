@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import {
   useExportData,
   useProfile,
@@ -13,13 +14,13 @@ import {
   User,
   Bell,
   Languages,
-  Info,
   Shield,
   Download,
-  Edit2,
   Check,
+  Edit2,
   X,
   Loader2,
+  Lock,
 } from 'lucide-react';
 import { SettingsSection } from './components';
 import { ProfileSection, PeriodsSection, LogoutSection, DangerZoneSection } from './sections';
@@ -27,12 +28,9 @@ import type { PeriodLike } from './types';
 import { getErrorMessage } from './helpers';
 import styles from './settings-page.module.css';
 
-const APP_VERSION =
-  import.meta.env.VITE_APP_RELEASE_TAG || import.meta.env.VITE_APP_VERSION || 'v1.0.0-dev';
-
 export const SettingsPage: React.FC = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, verifyPassword } = useAuth();
   const { data: periods } = usePracticingPeriods();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
@@ -47,11 +45,24 @@ export const SettingsPage: React.FC = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
   const [exportError, setExportError] = useState<string | null>(null);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+  const [exportPassword, setExportPassword] = useState('');
 
   const handleExportData = async () => {
     setExportError(null);
+    const email = user?.email || user?.username || '';
+
+    try {
+      await verifyPassword(email, exportPassword);
+    } catch (error) {
+      setExportError(t(getAuthErrorKey(error, 'settings.verify_password_failed')));
+      return;
+    }
+
     try {
       await exportData.mutateAsync();
+      setShowExportConfirm(false);
+      setExportPassword('');
     } catch (error) {
       setExportError(getErrorMessage(error, t('common.error')));
     }
@@ -179,33 +190,69 @@ export const SettingsPage: React.FC = () => {
       {/* Privacy */}
       <SettingsSection icon={<Shield size={18} />} title={t('settings.privacy')}>
         <p className={styles.privacyText}>{t('settings.privacy_note')}</p>
-        <button
-          className={styles.exportBtn}
-          onClick={() => void handleExportData()}
-          disabled={exportData.isPending}
-        >
-          <Download size={16} />
-          {exportData.isPending ? t('settings.exporting') : t('settings.export_data')}
-        </button>
-        {exportError && (
-          <p className={styles.sectionError} role="alert">
-            {exportError}
-          </p>
-        )}
-      </SettingsSection>
 
-      {/* About */}
-      <SettingsSection icon={<Info size={18} />} title={t('settings.about')}>
-        <div className={styles.aboutInfo}>
-          <div className={styles.aboutRow}>
-            <span className={styles.aboutKey}>{t('settings.version')}</span>
-            <span className={styles.aboutVal}>{APP_VERSION}</span>
+        {!showExportConfirm ? (
+          <button
+            className={styles.exportBtn}
+            onClick={() => {
+              setShowExportConfirm(true);
+              setExportPassword('');
+              setExportError(null);
+            }}
+            disabled={exportData.isPending}
+            data-testid="export-data-button"
+          >
+            <Download size={16} />
+            {t('settings.export_data')}
+          </button>
+        ) : (
+          <div className={styles.exportConfirm}>
+            <p className={styles.exportConfirmText}>{t('settings.export_reauth_hint')}</p>
+            <div className={styles.exportPasswordRow}>
+              <Lock size={16} className={styles.exportPasswordIcon} />
+              <input
+                type="password"
+                className={styles.exportPasswordInput}
+                placeholder={t('settings.export_confirm_password')}
+                value={exportPassword}
+                onChange={(e) => {
+                  setExportPassword(e.target.value);
+                  setExportError(null);
+                }}
+                aria-label={t('settings.export_confirm_password')}
+              />
+            </div>
+            {exportError && (
+              <p
+                className={styles.exportErrorText}
+                role="alert"
+                data-testid="settings-export-error"
+              >
+                {exportError}
+              </p>
+            )}
+            <div className={styles.exportConfirmBtns}>
+              <button
+                className={styles.cancelAddBtn}
+                onClick={() => {
+                  setShowExportConfirm(false);
+                  setExportPassword('');
+                  setExportError(null);
+                }}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                className={styles.confirmAddBtn}
+                onClick={() => void handleExportData()}
+                disabled={exportData.isPending || !exportPassword}
+              >
+                <Check size={16} />
+                {exportData.isPending ? t('settings.exporting') : t('common.confirm')}
+              </button>
+            </div>
           </div>
-          <div className={styles.aboutRow}>
-            <span className={styles.aboutKey}>{t('settings.built_with')}</span>
-            <span className={styles.aboutVal}>{t('settings.built_with_value')}</span>
-          </div>
-        </div>
+        )}
       </SettingsSection>
 
       {/* Logout */}

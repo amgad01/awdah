@@ -8,6 +8,7 @@ import {
 } from '../../domain/services/debt-calculator.service';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
+import { PRAYER_NAMES } from '@awdah/shared';
 
 export class GetSalahDebtUseCase {
   constructor(
@@ -43,6 +44,17 @@ export class GetSalahDebtUseCase {
 
     // 4. Calculate debt
     const today = this.calendarService.today();
+
+    // Early return: if effective start date is in the future, user has zero debt
+    if (effectiveStartDate.isAfter(today)) {
+      return {
+        totalDaysMissed: 0,
+        totalPrayersOwed: 0,
+        completedPrayers: completedQadaa,
+        remainingPrayers: 0,
+        perPrayerRemaining: Object.fromEntries(PRAYER_NAMES.map((name) => [name, 0])),
+      };
+    }
 
     return this.debtCalculator.calculate(
       effectiveStartDate,

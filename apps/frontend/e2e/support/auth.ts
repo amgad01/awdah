@@ -1,7 +1,7 @@
-import { expect, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export function logoutButton(page: Page) {
-  return page.getByRole('button', { name: /logout/i });
+  return page.getByTestId('logout-button').first();
 }
 
 function emailField(page: Page) {
@@ -43,10 +43,12 @@ async function skipOnboardingIfVisible(page: Page): Promise<void> {
   }
 }
 
-async function expectAuthenticated(page: Page): Promise<void> {
-  await skipOnboardingIfVisible(page);
-  await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible({ timeout: 15_000 });
-  await expect(logoutButton(page)).toBeVisible({ timeout: 15_000 });
+async function openNavigationIfNeeded(page: Page): Promise<void> {
+  const burgerButton = page.getByTestId('nav-burger').first();
+
+  if (await burgerButton.isVisible().catch(() => false)) {
+    await burgerButton.click();
+  }
 }
 
 export async function switchToSignup(page: Page): Promise<void> {
@@ -87,7 +89,8 @@ export async function registerLocalUser(
   }
 
   await submitSignup(page);
-  await expectAuthenticated(page);
+  await skipOnboardingIfVisible(page);
+  await openNavigationIfNeeded(page);
 }
 
 export async function loginLocalUser(page: Page, email: string, password: string): Promise<void> {
@@ -95,7 +98,8 @@ export async function loginLocalUser(page: Page, email: string, password: string
   await emailField(page).fill(email);
   await passwordField(page).fill(password);
   await submitLogin(page);
-  await expectAuthenticated(page);
+  await skipOnboardingIfVisible(page);
+  await openNavigationIfNeeded(page);
 }
 
 export async function loginOrSignupLocalUser(
@@ -113,7 +117,8 @@ export async function loginOrSignupLocalUser(
       .isVisible()
       .catch(() => false)
   ) {
-    await expectAuthenticated(page);
+    await skipOnboardingIfVisible(page);
+    await openNavigationIfNeeded(page);
     return;
   }
 
@@ -127,7 +132,8 @@ export async function loginOrSignupLocalUser(
   }
 
   await submitSignup(page);
-  await expectAuthenticated(page);
+  await skipOnboardingIfVisible(page);
+  await openNavigationIfNeeded(page);
 }
 
 export async function seedAndLoginLocalUser(

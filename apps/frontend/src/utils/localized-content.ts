@@ -10,6 +10,21 @@ interface LoadLocalizedContentOptions {
   signal?: AbortSignal;
 }
 
+function resolveContentUrl(baseUrl: string, path: string): string {
+  try {
+    const absoluteBaseUrl = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(baseUrl)
+      ? baseUrl
+      : new URL(
+          baseUrl,
+          typeof window !== 'undefined' ? window.location.href : 'http://localhost/',
+        ).toString();
+
+    return new URL(path, absoluteBaseUrl).toString();
+  } catch {
+    return path;
+  }
+}
+
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError';
 }
@@ -105,14 +120,14 @@ export async function loadLocalizedContent<T>(
     signal,
   }: LoadLocalizedContentOptions = {},
 ): Promise<T> {
-  const fallbackUrl = `${baseUrl}data/${contentName}-${fallbackLanguage}.json`;
+  const fallbackUrl = resolveContentUrl(baseUrl, `data/${contentName}-${fallbackLanguage}.json`);
   const fallbackContent = await fetchJson<T>(fallbackUrl, signal);
 
   if (language === fallbackLanguage) {
     return fallbackContent;
   }
 
-  const localizedUrl = `${baseUrl}data/${contentName}-${language}.json`;
+  const localizedUrl = resolveContentUrl(baseUrl, `data/${contentName}-${language}.json`);
 
   try {
     const localizedContent = await fetchJson<T>(localizedUrl, signal);

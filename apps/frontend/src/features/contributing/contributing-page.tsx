@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Bell,
   BookOpen,
@@ -21,6 +21,7 @@ import {
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import { useLanguage } from '@/hooks/use-language';
 import { loadLocalizedContent } from '@/utils/localized-content';
+import { MobileSwipeableSections } from '@/components/ui/mobile-swipeable-sections/mobile-swipeable-sections';
 import styles from './contributing-page.module.css';
 
 interface ContributingItem {
@@ -77,6 +78,11 @@ interface ContributingData {
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
 
+interface ContributionSectionOptions {
+  itemLimit?: number;
+  showSteps?: boolean;
+}
+
 const badgeVariantClass: Record<ContributingSection['badge_variant'], string> = {
   accent: styles.badgeAccent,
   primary: styles.badgePrimary,
@@ -103,6 +109,70 @@ const ROADMAP_ICONS: Record<string, IconComponent> = {
   CheckSquare,
   Clock,
   Star,
+};
+
+const renderContributionSection = (
+  section: ContributingSection,
+  options: ContributionSectionOptions = {},
+  key?: string,
+): React.JSX.Element => {
+  const { itemLimit, showSteps = true } = options;
+  const IconComponent = CONTRIBUTION_ICONS[section.icon] ?? HelpCircle;
+  const items = typeof itemLimit === 'number' ? section.items.slice(0, itemLimit) : section.items;
+
+  return (
+    <section key={key ?? section.id} className={styles.contributionSection}>
+      <div className={styles.sectionHeader}>
+        <span className={`${styles.badge} ${badgeVariantClass[section.badge_variant]}`}>
+          {section.badge}
+        </span>
+        <div className={styles.sectionTitleRow}>
+          <IconComponent size={22} className={styles.sectionIcon} />
+          <h2 className={styles.sectionTitle}>{section.title}</h2>
+        </div>
+        <p className={styles.sectionBody}>
+          <GlossaryText>{section.body}</GlossaryText>
+        </p>
+      </div>
+
+      <div className={styles.itemList}>
+        {items.map((item) => (
+          <div key={item.id} className={styles.itemCard}>
+            <h3 className={styles.itemTitle}>{item.title}</h3>
+            <p className={styles.itemDescription}>
+              <GlossaryText>{item.description}</GlossaryText>
+            </p>
+            {showSteps && item.steps && item.steps.length > 0 && (
+              <ol className={styles.stepList}>
+                {item.steps.map((step, index) => (
+                  <li key={`${item.id}-${step}`} className={styles.stepItem}>
+                    <span className={styles.stepNumber}>{index + 1}</span>
+                    <span className={styles.stepText}>
+                      <GlossaryText>{step}</GlossaryText>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const renderRoadmapCard = (item: V2Item, key?: string): React.JSX.Element => {
+  const IconComponent = ROADMAP_ICONS[item.icon] ?? HelpCircle;
+
+  return (
+    <section key={key ?? item.id} className={styles.v2Card}>
+      <IconComponent size={24} className={styles.v2CardIcon} />
+      <h3 className={styles.v2CardTitle}>{item.title}</h3>
+      <p className={styles.v2CardBody}>
+        <GlossaryText>{item.body}</GlossaryText>
+      </p>
+    </section>
+  );
 };
 
 export const ContributingPage: React.FC = () => {
@@ -150,6 +220,35 @@ export const ContributingPage: React.FC = () => {
     };
   }, [language, refreshKey, t]);
 
+  // Prepare contribution and roadmap sections for mobile slider
+  const contentSliderSections = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+
+    const sections: { id: string; title: string; content: React.JSX.Element }[] = [];
+
+    // Add contribution area items as swipeable sections
+    data.sections.forEach((section) => {
+      sections.push({
+        id: `section-${section.id}`,
+        title: section.title,
+        content: renderContributionSection(section, { itemLimit: 2, showSteps: false }),
+      });
+    });
+
+    // Add roadmap items as swipeable sections
+    data.v2_items.forEach((item) => {
+      sections.push({
+        id: `roadmap-${item.id}`,
+        title: item.title,
+        content: renderRoadmapCard(item),
+      });
+    });
+
+    return sections;
+  }, [data]);
+
   if (error) {
     return (
       <div className={styles.page}>
@@ -179,19 +278,46 @@ export const ContributingPage: React.FC = () => {
 
   return (
     <div className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      {/* ── Hero ── */}
-      <section className={styles.hero}>
-        <span className={styles.heroBadge}>{data.hero_badge}</span>
-        <h1 className={styles.heroTitle}>{data.hero_title}</h1>
-        <p className={styles.heroSubtitle}>
-          <GlossaryText>{data.hero_subtitle}</GlossaryText>
-        </p>
+      {/* Mobile View - Static Hero + Slider + Static Recognition */}
+      <div className={styles.mobileSwipeView} data-testid="contributing-mobile-view">
+        {/* Static Hero */}
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>{data.hero_badge}</span>
+          <h1 className={styles.heroTitle}>{data.hero_title}</h1>
+          <p className={styles.heroSubtitle}>
+            <GlossaryText>{data.hero_subtitle}</GlossaryText>
+          </p>
+          <div className={styles.ossNote}>
+            <GlossaryText>{data.oss_note}</GlossaryText>
+          </div>
+          <div className={styles.ctaLinks}>
+            <a
+              href={data.github_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ctaButton}
+            >
+              <Github size={18} />
+              <span>{data.github_link_label}</span>
+            </a>
+          </div>
+        </section>
 
-        <div className={styles.ossNote}>
-          <GlossaryText>{data.oss_note}</GlossaryText>
+        {/* Content Slider Section */}
+        <div className={styles.sliderSection}>
+          <h2 className={styles.sliderSectionTitle}>
+            {t('contributing.areas_title', 'Contribution Areas')}
+          </h2>
+          <MobileSwipeableSections sections={contentSliderSections} />
         </div>
 
-        <div className={styles.ctaLinks}>
+        {/* Static Recognition Section */}
+        <section className={styles.recognitionSection}>
+          <Heart size={24} className={styles.recognitionIcon} />
+          <h2 className={styles.recognitionTitle}>{data.recognition_title}</h2>
+          <p className={styles.recognitionBody}>
+            <GlossaryText>{data.recognition_body}</GlossaryText>
+          </p>
           <a
             href={data.github_link}
             target="_blank"
@@ -199,128 +325,103 @@ export const ContributingPage: React.FC = () => {
             className={styles.ctaButton}
           >
             <Github size={18} />
-            <span>{data.github_link_label}</span>
+            <span>{data.recognition_cta}</span>
           </a>
+        </section>
+      </div>
+
+      {/* Desktop Scroll View */}
+      <div className={styles.desktopScrollView} data-testid="contributing-desktop-view">
+        {/* ── Hero ── */}
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>{data.hero_badge}</span>
+          <h1 className={styles.heroTitle}>{data.hero_title}</h1>
+          <p className={styles.heroSubtitle}>
+            <GlossaryText>{data.hero_subtitle}</GlossaryText>
+          </p>
+
+          <div className={styles.ossNote}>
+            <GlossaryText>{data.oss_note}</GlossaryText>
+          </div>
+
+          <div className={styles.ctaLinks}>
+            <a
+              href={data.github_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ctaButton}
+            >
+              <Github size={18} />
+              <span>{data.github_link_label}</span>
+            </a>
+            <a
+              href={data.contact_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ctaButtonSecondary}
+            >
+              <Linkedin size={18} />
+              <span>{data.contact_label}</span>
+            </a>
+          </div>
+        </section>
+
+        {/* ── Contribution Areas ── */}
+        {data.sections.map((section) => renderContributionSection(section, {}, section.id))}
+
+        {/* ── How to Submit a PR ── */}
+        <section className={styles.prSection}>
+          <h2 className={styles.sectionTitle}>{data.pr_title}</h2>
+          <p className={styles.sectionBody}>
+            <GlossaryText>{data.pr_intro}</GlossaryText>
+          </p>
+
+          <ol className={styles.prStepList}>
+            {data.pr_steps.map((step) => (
+              <li key={step.step} className={styles.prStep}>
+                <span className={styles.prStepNumber}>{step.step}</span>
+                <div className={styles.prStepContent}>
+                  <h3 className={styles.prStepTitle}>{step.title}</h3>
+                  <p className={styles.prStepBody}>
+                    <GlossaryText>{step.body}</GlossaryText>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ── v2 Roadmap ── */}
+        <section className={styles.v2Section}>
+          <span className={`${styles.badge} ${styles.badgePrimary}`}>{data.v2_badge}</span>
+          <h2 className={styles.sectionTitle}>{data.v2_title}</h2>
+          <p className={styles.sectionBody}>
+            <GlossaryText>{data.v2_intro}</GlossaryText>
+          </p>
+
+          <div className={styles.v2Grid}>
+            {data.v2_items.map((item) => renderRoadmapCard(item, item.id))}
+          </div>
+        </section>
+
+        {/* ── Recognition ── */}
+        <section className={styles.recognitionSection}>
+          <Heart size={24} className={styles.recognitionIcon} />
+          <h2 className={styles.recognitionTitle}>{data.recognition_title}</h2>
+          <p className={styles.recognitionBody}>
+            <GlossaryText>{data.recognition_body}</GlossaryText>
+          </p>
           <a
-            href={data.contact_link}
+            href={data.github_link}
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.ctaButtonSecondary}
+            className={styles.ctaButton}
           >
-            <Linkedin size={18} />
-            <span>{data.contact_label}</span>
+            <Github size={18} />
+            <span>{data.recognition_cta}</span>
           </a>
-        </div>
-      </section>
-
-      {/* ── Contribution Areas ── */}
-      {data.sections.map((section) => {
-        const IconComponent = CONTRIBUTION_ICONS[section.icon] ?? HelpCircle;
-
-        return (
-          <section key={section.id} className={styles.contributionSection}>
-            <div className={styles.sectionHeader}>
-              <span className={`${styles.badge} ${badgeVariantClass[section.badge_variant]}`}>
-                {section.badge}
-              </span>
-              <div className={styles.sectionTitleRow}>
-                <IconComponent size={22} className={styles.sectionIcon} />
-                <h2 className={styles.sectionTitle}>{section.title}</h2>
-              </div>
-              <p className={styles.sectionBody}>
-                <GlossaryText>{section.body}</GlossaryText>
-              </p>
-            </div>
-
-            <div className={styles.itemList}>
-              {section.items.map((item) => (
-                <div key={item.id} className={styles.itemCard}>
-                  <h3 className={styles.itemTitle}>{item.title}</h3>
-                  <p className={styles.itemDescription}>
-                    <GlossaryText>{item.description}</GlossaryText>
-                  </p>
-                  {item.steps && item.steps.length > 0 && (
-                    <ol className={styles.stepList}>
-                      {item.steps.map((step, i) => (
-                        <li key={i} className={styles.stepItem}>
-                          <span className={styles.stepNumber}>{i + 1}</span>
-                          <span className={styles.stepText}>
-                            <GlossaryText>{step}</GlossaryText>
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
-
-      {/* ── How to Submit a PR ── */}
-      <section className={styles.prSection}>
-        <h2 className={styles.sectionTitle}>{data.pr_title}</h2>
-        <p className={styles.sectionBody}>
-          <GlossaryText>{data.pr_intro}</GlossaryText>
-        </p>
-
-        <ol className={styles.prStepList}>
-          {data.pr_steps.map((step) => (
-            <li key={step.step} className={styles.prStep}>
-              <span className={styles.prStepNumber}>{step.step}</span>
-              <div className={styles.prStepContent}>
-                <h3 className={styles.prStepTitle}>{step.title}</h3>
-                <p className={styles.prStepBody}>
-                  <GlossaryText>{step.body}</GlossaryText>
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ── v2 Roadmap ── */}
-      <section className={styles.v2Section}>
-        <span className={`${styles.badge} ${styles.badgePrimary}`}>{data.v2_badge}</span>
-        <h2 className={styles.sectionTitle}>{data.v2_title}</h2>
-        <p className={styles.sectionBody}>
-          <GlossaryText>{data.v2_intro}</GlossaryText>
-        </p>
-
-        <div className={styles.v2Grid}>
-          {data.v2_items.map((item) => {
-            const IconComponent = ROADMAP_ICONS[item.icon] ?? HelpCircle;
-            return (
-              <div key={item.id} className={styles.v2Card}>
-                <IconComponent size={20} className={styles.v2CardIcon} />
-                <h3 className={styles.v2CardTitle}>{item.title}</h3>
-                <p className={styles.v2CardBody}>
-                  <GlossaryText>{item.body}</GlossaryText>
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Recognition ── */}
-      <section className={styles.recognitionSection}>
-        <Heart size={24} className={styles.recognitionIcon} />
-        <h2 className={styles.recognitionTitle}>{data.recognition_title}</h2>
-        <p className={styles.recognitionBody}>
-          <GlossaryText>{data.recognition_body}</GlossaryText>
-        </p>
-        <a
-          href={data.github_link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.ctaButton}
-        >
-          <Github size={18} />
-          <span>{data.recognition_cta}</span>
-        </a>
-      </section>
+        </section>
+      </div>
     </div>
   );
 };

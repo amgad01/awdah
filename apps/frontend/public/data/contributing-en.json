@@ -96,7 +96,7 @@
       "badge_variant": "primary",
       "icon": "Server",
       "title": "Backend Improvements",
-      "body": "The backend is Node.js with TypeScript, deployed as AWS Lambda functions. It follows Clean Architecture and DDD. Domain logic is strictly separated from AWS infrastructure. All religious calculations run exclusively in the backend.",
+      "body": "The backend is Node.js with TypeScript, deployed as serverless cloud functions. It follows Clean Architecture and DDD. Domain logic is strictly separated from cloud infrastructure. All religious calculations run exclusively in the backend.",
       "items": [
         {
           "id": "test_coverage",
@@ -106,12 +106,12 @@
         {
           "id": "integration_tests",
           "title": "Add integration tests for Lambda handlers",
-          "description": "Lambda handlers should have integration tests that mock the AWS SDK and test the full request-response cycle including validation, error handling, and correct status codes. Follow the pattern of existing handler tests in apps/backend/src/__tests__/."
+          "description": "Serverless handlers should have integration tests that mock the cloud provider SDK and test the full request-response cycle including validation, error handling, and correct status codes. Follow the pattern of existing handler tests in apps/backend/src/__tests__/."
         },
         {
           "id": "validation_hardening",
           "title": "Input validation hardening",
-          "description": "All Lambda handlers validate input at the boundary. Review each handler for edge cases: overlapping practicing periods, practicing periods after today, bulugh dates in the future, and Ramadan dates in far-future Hijri years. Each missing validation should be a separate, focused PR."
+          "description": "All serverless handlers validate input at the boundary. Review each handler for edge cases: overlapping practicing periods, practicing periods after today, bulugh dates in the future, and Ramadan dates in far-future Hijri years. Each missing validation should be a separate, focused PR."
         },
         {
           "id": "error_messages",
@@ -207,7 +207,7 @@
     {
       "step": 3,
       "title": "Install dependencies and start the local environment",
-      "body": "Run npm install to install all dependencies. Then start LocalStack for the AWS simulation with docker compose up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
+      "body": "Run npm install to install all dependencies. Then start LocalStack for cloud service simulation with docker compose up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
     },
     {
       "step": 4,
@@ -261,7 +261,7 @@
       "id": "notifications",
       "icon": "Bell",
       "title": "Push notifications and reminders",
-      "body": "Daily reminders for logging prayers, qadaa streaks, and Ramadan alerts. Requires additional AWS infrastructure and user-controlled notification settings."
+      "body": "Daily reminders for logging prayers, qadaa streaks, and Ramadan alerts. Requires additional cloud infrastructure and user-controlled notification settings."
     },
     {
       "id": "offline_pwa",

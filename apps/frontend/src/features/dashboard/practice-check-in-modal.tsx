@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Minus, Plus, Loader2 } from 'lucide-react';
 import { PRAYERS } from '@/lib/constants';
+import { DualDateLabel } from '@/components/ui/dual-date-label/dual-date-label';
 import styles from './practice-check-in.module.css';
 
 type PrayerName = (typeof PRAYERS)[number];
@@ -13,7 +14,7 @@ interface PracticeCheckInModalProps {
   done: boolean;
   submitError: boolean;
   totalToLog: number;
-  lastEntryLabel: string | null;
+  lastEntryDate: string | null;
   onClose: () => void;
   onIncrement: (prayer: PrayerName) => void;
   onDecrement: (prayer: PrayerName) => void;
@@ -28,7 +29,7 @@ export const PracticeCheckInModal: React.FC<PracticeCheckInModalProps> = ({
   done,
   submitError,
   totalToLog,
-  lastEntryLabel,
+  lastEntryDate,
   onClose,
   onIncrement,
   onDecrement,
@@ -58,9 +59,14 @@ export const PracticeCheckInModal: React.FC<PracticeCheckInModalProps> = ({
             {t('dashboard.check_in_modal_title')}
           </h2>
           <p className={styles.dialogSub}>
-            {lastEntryLabel
-              ? t('dashboard.check_in_since', { date: lastEntryLabel })
-              : t('dashboard.check_in_no_prior')}
+            {lastEntryDate ? (
+              <>
+                {t('dashboard.check_in_since')}{' '}
+                <DualDateLabel date={lastEntryDate} layout="inline" />
+              </>
+            ) : (
+              t('dashboard.check_in_no_prior')
+            )}
           </p>
         </header>
 

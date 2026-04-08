@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -13,11 +13,15 @@ import {
   Server,
   Shield,
   Sun,
+  Tag,
+  Layers,
+  Users,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import { loadLocalizedContent } from '@/utils/localized-content';
+import { MobileSwipeableSections } from '@/components/ui/mobile-swipeable-sections/mobile-swipeable-sections';
 import styles from './about-page.module.css';
 
 interface SocialLink {
@@ -60,9 +64,21 @@ interface AboutData {
   team_title: string;
   team: TeamMember[];
   privacy_title: string;
+  version_title?: string;
+  version_body?: string;
+  stack_title?: string;
+  stack_items?: string[];
+  contribute_title?: string;
+  contribute_body?: string;
 }
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
+interface ExpertiseGroup {
+  id: string;
+  title: string;
+  items: string[];
+}
 
 const FEATURE_ICONS: Record<string, IconComponent> = {
   Moon,
@@ -77,6 +93,92 @@ const FEATURE_ICONS: Record<string, IconComponent> = {
 const SOCIAL_ICONS: Record<string, IconComponent> = {
   linkedin: Linkedin,
 };
+
+const getFounderExpertiseGroups = (member: TeamMember): ExpertiseGroup[] =>
+  [
+    {
+      id: 'tech',
+      title: member.tech_title,
+      items: member.tech,
+    },
+    member.languages && member.languages.length > 0
+      ? {
+          id: 'languages',
+          title: member.languages_title ?? '',
+          items: member.languages,
+        }
+      : null,
+    member.certifications && member.certifications.length > 0
+      ? {
+          id: 'certifications',
+          title: member.certifications_title ?? '',
+          items: member.certifications,
+        }
+      : null,
+  ].filter(
+    (group): group is ExpertiseGroup =>
+      group !== null && group.title.length > 0 && group.items.length > 0,
+  );
+
+const renderExpertiseGroup = (group: ExpertiseGroup, isMobile: boolean): React.JSX.Element => {
+  const titleClass = isMobile ? styles.expertiseSlideTitle : styles.devTechTitle;
+  const containerClass = isMobile ? styles.expertiseSlide : styles.expertiseBlock;
+  const pillsClass = isMobile ? styles.expertiseSlidePills : styles.techPills;
+  const pillClass = isMobile ? styles.expertiseSlidePill : styles.techPill;
+
+  return (
+    <div key={group.id} className={containerClass}>
+      <h3 className={titleClass}>{group.title}</h3>
+      <div className={pillsClass}>
+        {group.items.map((item) => (
+          <span key={item} className={pillClass}>
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const renderBioParagraphs = (bio: string, memberId: string): React.JSX.Element[] =>
+  bio
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph, index) => (
+      <p key={`${memberId}-bio-${index}`} className={styles.devBio}>
+        <GlossaryText>{paragraph}</GlossaryText>
+      </p>
+    ));
+
+const renderMemberLinks = (member: TeamMember): React.JSX.Element => (
+  <div className={styles.founderLinks}>
+    <a
+      href={`https://github.com/${member.github}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.devLink}
+    >
+      <Github size={18} />
+      <span>GitHub</span>
+    </a>
+    {member.socials.map((link) => {
+      const Icon = SOCIAL_ICONS[link.type] ?? LinkIcon;
+      return (
+        <a
+          key={link.type}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.devLink}
+        >
+          <Icon size={18} />
+          <span>{link.type.charAt(0).toUpperCase() + link.type.slice(1)}</span>
+        </a>
+      );
+    })}
+  </div>
+);
 
 export const AboutPage: React.FC = () => {
   const { language, t } = useLanguage();
@@ -123,6 +225,99 @@ export const AboutPage: React.FC = () => {
     };
   }, [language, refreshKey, t]);
 
+  // Prepare feature/mission/audience sections for mobile slider
+  const contentSliderSections = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+
+    const sections = [
+      {
+        id: 'mission',
+        title: data.why_title,
+        content: (
+          <section className={styles.missionSection}>
+            <div className={styles.missionCard}>
+              <Heart size={20} className={styles.missionIcon} />
+              <h2 className={styles.sectionTitle}>{data.why_title}</h2>
+              <p className={styles.sectionBody}>
+                <GlossaryText>{data.why_body}</GlossaryText>
+              </p>
+            </div>
+          </section>
+        ),
+      },
+      {
+        id: 'audience',
+        title: data.who_title,
+        content: (
+          <section className={styles.audienceSection}>
+            <h2 className={styles.sectionTitle}>{data.who_title}</h2>
+            <p className={styles.sectionBody}>
+              <GlossaryText>{data.who_body}</GlossaryText>
+            </p>
+          </section>
+        ),
+      },
+      ...data.features.map((feature) => {
+        const IconComponent = FEATURE_ICONS[feature.icon] ?? HelpCircle;
+        return {
+          id: `feature-${feature.id}`,
+          title: feature.title,
+          content: (
+            <section className={styles.featureCard}>
+              <IconComponent size={24} className={styles.featureIcon} />
+              <h3>{feature.title}</h3>
+              <p>
+                <GlossaryText>{feature.body}</GlossaryText>
+              </p>
+            </section>
+          ),
+        };
+      }),
+    ];
+
+    return sections;
+  }, [data]);
+
+  const founderExpertiseSections = useMemo(() => {
+    if (!data || !data.team || data.team.length === 0) {
+      return [];
+    }
+
+    const member = data.team[0];
+    const groups = getFounderExpertiseGroups(member);
+
+    return [
+      {
+        id: 'profile',
+        title: t('about.about_me', 'About Me'),
+        content: (
+          <section className={styles.founderCard}>
+            <div className={styles.founderHeader}>
+              <div className={styles.founderAvatar}>
+                <Github size={48} />
+              </div>
+              <div className={styles.founderInfo}>
+                <h2 className={styles.devTitle}>{member.name}</h2>
+                <p className={styles.devHeadline}>{member.role}</p>
+              </div>
+            </div>
+
+            <div className={styles.founderBio}>{renderBioParagraphs(member.bio, member.id)}</div>
+
+            {renderMemberLinks(member)}
+          </section>
+        ),
+      },
+      ...groups.map((group) => ({
+        id: group.id,
+        title: group.title,
+        content: renderExpertiseGroup(group, true),
+      })),
+    ];
+  }, [data, t]);
+
   if (error) {
     return <ErrorState message={error} onRetry={() => setRefreshKey((v) => v + 1)} />;
   }
@@ -132,149 +327,228 @@ export const AboutPage: React.FC = () => {
   }
 
   return (
-    <div className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      {/* ── Project Section ── */}
-      <section className={styles.hero}>
-        <span className={styles.heroBadge}>{data.project_badge}</span>
-        <h1 className={styles.heroTitle}>{data.project_title}</h1>
-        <p className={styles.heroSubtitle}>
-          <GlossaryText>{data.project_subtitle}</GlossaryText>
-        </p>
-      </section>
-
-      <section className={styles.missionSection}>
-        <div className={styles.missionCard}>
-          <Heart size={20} className={styles.missionIcon} />
-          <h2 className={styles.sectionTitle}>{data.why_title}</h2>
-          <p className={styles.sectionBody}>
-            <GlossaryText>{data.why_body}</GlossaryText>
+    <main className={styles.page} dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Mobile View - Static Header + Slider + Static Footer */}
+      <div className={styles.mobileSwipeView} data-testid="about-mobile-view">
+        {/* Static Hero */}
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>{data.project_badge}</span>
+          <h1 className={styles.heroTitle}>{data.project_title}</h1>
+          <p className={styles.heroSubtitle}>
+            <GlossaryText>{data.project_subtitle}</GlossaryText>
           </p>
+        </section>
+
+        {/* Content Slider: Mission, Audience, Features */}
+        <div className={styles.sliderSection}>
+          <MobileSwipeableSections sections={contentSliderSections} />
         </div>
-      </section>
 
-      <section className={styles.audienceSection}>
-        <h2 className={styles.sectionTitle}>{data.who_title}</h2>
-        <p className={styles.sectionBody}>
-          <GlossaryText>{data.who_body}</GlossaryText>
-        </p>
-      </section>
+        {/* Founder Expertise Slider - Mobile Only */}
+        <div className={styles.founderExpertiseSlider}>
+          <MobileSwipeableSections sections={founderExpertiseSections} />
+        </div>
 
-      <section className={styles.featuresSection}>
-        <h2 className={styles.sectionTitle}>{data.features_title}</h2>
-        <div className={styles.featureGrid}>
-          {data.features.map((feature) => {
-            const IconComponent = FEATURE_ICONS[feature.icon] ?? HelpCircle;
-            return (
-              <div key={feature.id} className={styles.featureCard}>
-                <IconComponent size={20} className={styles.featureIcon} />
-                <h3>{feature.title}</h3>
-                <p>
-                  <GlossaryText>{feature.body}</GlossaryText>
-                </p>
+        {/* Static Footer Sections */}
+        {data.contribute_title ? (
+          <section className={styles.legalSection}>
+            <div className={styles.legalCard}>
+              <Users size={20} className={styles.legalIcon} />
+              <h2 className={styles.sectionTitle}>{data.contribute_title}</h2>
+              <p className={styles.sectionBody}>{data.contribute_body}</p>
+              <div className={styles.legalLinks}>
+                <Link to="/contribute" className={styles.legalLink}>
+                  <Users size={18} />
+                  <span>{t('nav.contributing')}</span>
+                </Link>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+          </section>
+        ) : null}
 
-      {/* ── Team Section ── */}
-      {data.team.map((member) => (
-        <section key={member.id} className={styles.devSection}>
-          <span className={styles.heroBadge}>{data.team_title}</span>
-          <h2 className={styles.devTitle}>{member.name}</h2>
-          <p className={styles.devHeadline}>{member.role}</p>
-          {member.bio
-            .split(/\n\s*\n/)
-            .map((paragraph) => paragraph.trim())
-            .filter(Boolean)
-            .map((paragraph, index) => (
-              <p key={`${member.id}-bio-${index}`} className={styles.devBio}>
-                <GlossaryText>{paragraph}</GlossaryText>
-              </p>
-            ))}
+        <section className={styles.legalSection}>
+          <div className={styles.legalCard}>
+            <Tag size={20} className={styles.legalIcon} />
+            <h2 className={styles.sectionTitle}>
+              {data.version_title || t('about.version_title', 'Version')}
+            </h2>
+            <p className={styles.sectionBody}>
+              {data.version_body || import.meta.env.VITE_APP_VERSION || '1.1.0'}
+            </p>
+            <div className={styles.devTech}>
+              <h3 className={styles.devTechTitle}>
+                <Layers size={16} className={styles.devTechTitleIcon} />
+                {data.stack_title || t('about.stack_title', 'Stack')}
+              </h3>
+              <div className={styles.techPills}>
+                {(data.stack_items || ['React', 'TypeScript', 'AWS CDK', 'DynamoDB', 'Lambda']).map(
+                  (item) => (
+                    <span key={item} className={styles.techPill}>
+                      {item}
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <div className={styles.devLinks}>
-            <a
-              href={`https://github.com/${member.github}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.devLink}
-            >
-              <Github size={18} />
-              <span>GitHub</span>
-            </a>
-            {member.socials.map((link) => {
-              const Icon = SOCIAL_ICONS[link.type] ?? LinkIcon;
+        <section className={styles.legalSection}>
+          <div className={styles.legalCard}>
+            <Shield size={20} className={styles.legalIcon} />
+            <h2 className={styles.sectionTitle}>{data.privacy_title}</h2>
+            <p className={styles.sectionBody}>
+              {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
+            </p>
+            <div className={styles.legalLinks}>
+              <Link to="/privacy" className={styles.legalLink}>
+                <Shield size={18} />
+                <span>{t('nav.privacy')}</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Desktop Scroll View */}
+      <div className={styles.desktopScrollView} data-testid="about-desktop-view">
+        {/* ── Project Section ── */}
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>{data.project_badge}</span>
+          <h1 className={styles.heroTitle}>{data.project_title}</h1>
+          <p className={styles.heroSubtitle}>
+            <GlossaryText>{data.project_subtitle}</GlossaryText>
+          </p>
+        </section>
+
+        <section className={styles.missionSection}>
+          <div className={styles.missionCard}>
+            <Heart size={20} className={styles.missionIcon} />
+            <h2 className={styles.sectionTitle}>{data.why_title}</h2>
+            <p className={styles.sectionBody}>
+              <GlossaryText>{data.why_body}</GlossaryText>
+            </p>
+          </div>
+        </section>
+
+        <section className={styles.audienceSection}>
+          <h2 className={styles.sectionTitle}>{data.who_title}</h2>
+          <p className={styles.sectionBody}>
+            <GlossaryText>{data.who_body}</GlossaryText>
+          </p>
+        </section>
+
+        <section className={styles.featuresSection}>
+          <h2 className={styles.sectionTitle}>{data.features_title}</h2>
+          <div className={styles.featureGrid}>
+            {data.features.map((feature) => {
+              const IconComponent = FEATURE_ICONS[feature.icon] ?? HelpCircle;
               return (
-                <a
-                  key={link.type}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.devLink}
-                >
-                  <Icon size={18} />
-                  <span>{link.type.charAt(0).toUpperCase() + link.type.slice(1)}</span>
-                </a>
+                <div key={feature.id} className={styles.featureCard}>
+                  <IconComponent size={20} className={styles.featureIcon} />
+                  <h3>{feature.title}</h3>
+                  <p>
+                    <GlossaryText>{feature.body}</GlossaryText>
+                  </p>
+                </div>
               );
             })}
           </div>
-
-          <div className={styles.devTech}>
-            <h3 className={styles.devTechTitle}>{member.tech_title}</h3>
-            <div className={styles.techPills}>
-              {member.tech.map((tech) => (
-                <span key={tech} className={styles.techPill}>
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {member.languages && member.languages.length > 0 ? (
-            <div className={styles.devTech}>
-              <h3 className={styles.devTechTitle}>{member.languages_title}</h3>
-              <div className={styles.techPills}>
-                {member.languages.map((languageName) => (
-                  <span key={languageName} className={styles.techPill}>
-                    {languageName}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {member.certifications && member.certifications.length > 0 ? (
-            <div className={styles.devTech}>
-              <h3 className={styles.devTechTitle}>{member.certifications_title}</h3>
-              <div className={styles.techPills}>
-                {member.certifications.map((certification) => (
-                  <span key={certification} className={styles.techPill}>
-                    {certification}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </section>
-      ))}
 
-      {/* ── Privacy/Legal Section ── */}
-      <section className={styles.legalSection}>
-        <div className={styles.legalCard}>
-          <Shield size={20} className={styles.legalIcon} />
-          <h2 className={styles.sectionTitle}>{data.privacy_title}</h2>
-          <p className={styles.sectionBody}>
-            {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
-          </p>
-          <div className={styles.legalLinks}>
-            <Link to="/privacy" className={styles.legalLink}>
-              <Shield size={18} />
-              <span>{t('nav.privacy')}</span>
-            </Link>
+        {/* ── Team Section ── */}
+        <section className={styles.devSection}>
+          <span className={styles.heroBadge}>{data.team_title}</span>
+          {data.team.map((member) => {
+            const memberExpertiseGroups = getFounderExpertiseGroups(member);
+            return (
+              <div key={member.id} className={styles.founderCard}>
+                <div className={styles.founderHeader}>
+                  <div className={styles.founderAvatar}>
+                    <Github size={48} />
+                  </div>
+                  <div className={styles.founderInfo}>
+                    <h2 className={styles.devTitle}>{member.name}</h2>
+                    <p className={styles.devHeadline}>{member.role}</p>
+                  </div>
+                </div>
+
+                <div className={styles.founderBio}>
+                  {renderBioParagraphs(member.bio, member.id)}
+                </div>
+
+                {renderMemberLinks(member)}
+
+                <div className={styles.founderExpertise}>
+                  {memberExpertiseGroups.map((group) => renderExpertiseGroup(group, false))}
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
+        {/* ── Contribute Section ── */}
+        {data.contribute_title ? (
+          <section className={styles.legalSection}>
+            <div className={styles.legalCard}>
+              <Users size={20} className={styles.legalIcon} />
+              <h2 className={styles.sectionTitle}>{data.contribute_title}</h2>
+              <p className={styles.sectionBody}>{data.contribute_body}</p>
+              <div className={styles.legalLinks}>
+                <Link to="/contribute" className={styles.legalLink}>
+                  <Users size={18} />
+                  <span>{t('nav.contributing')}</span>
+                </Link>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* ── Version & Stack Metadata Section ── */}
+        <section className={styles.legalSection}>
+          <div className={styles.legalCard}>
+            <Tag size={20} className={styles.legalIcon} />
+            <h2 className={styles.sectionTitle}>
+              {data.version_title || t('about.version_title', 'Version')}
+            </h2>
+            <p className={styles.sectionBody}>
+              {data.version_body || import.meta.env.VITE_APP_VERSION || '1.1.0'}
+            </p>
+            <div className={styles.devTech}>
+              <h3 className={styles.devTechTitle}>
+                <Layers size={16} className={styles.devTechTitleIcon} />
+                {data.stack_title || t('about.stack_title', 'Stack')}
+              </h3>
+              <div className={styles.techPills}>
+                {(data.stack_items || ['React', 'TypeScript', 'AWS CDK', 'DynamoDB', 'Lambda']).map(
+                  (item) => (
+                    <span key={item} className={styles.techPill}>
+                      {item}
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+
+        {/* ── Privacy/Legal Section ── */}
+        <section className={styles.legalSection}>
+          <div className={styles.legalCard}>
+            <Shield size={20} className={styles.legalIcon} />
+            <h2 className={styles.sectionTitle}>{data.privacy_title}</h2>
+            <p className={styles.sectionBody}>
+              {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
+            </p>
+            <div className={styles.legalLinks}>
+              <Link to="/privacy" className={styles.legalLink}>
+                <Shield size={18} />
+                <span>{t('nav.privacy')}</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 };

@@ -59,21 +59,30 @@ See [docs/architecture/overview.md](docs/architecture/overview.md) for system di
 
 ## Local Development
 
-### Prerequisites
+Awdah supports three local development modes — pick the one that fits your goal.
 
-- [Node.js](https://nodejs.org) (version in `.nvmrc`)
-- npm
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) (for LocalStack)
-- [AWS CLI](https://aws.amazon.com/cli/) (optional, for manual LocalStack inspection)
+### Mode 1 — Cloudless (no Docker, no AWS account)
 
-No AWS account or real credentials needed locally.
-
-### Quick Start
+The fastest way to start contributing to UI, translations, or public-page content. The frontend runs entirely in-memory with a built-in mock auth backend. No LocalStack, no Docker, no credentials needed.
 
 ```bash
 npm install
+npm run dev:local      # sets VITE_AUTH_MODE=local in .env.local
+npm run dev:frontend   # http://localhost:5173
+```
 
-# Start LocalStack for backend-backed development
+The app boots in local auth mode: you can sign up / log in with any email and password, and your data is stored in memory until you close the tab. The `/demo` route also works without any extra setup.
+
+### Mode 2 — Full stack with LocalStack (no AWS account)
+
+Use this when your change needs real auth, tracker data, settings, or any API route. LocalStack simulates DynamoDB, S3, SQS, and Cognito locally.
+
+```bash
+# Prerequisites: Node.js (version in .nvmrc), Docker
+
+npm install
+
+# Start LocalStack
 docker compose up -d localstack
 
 # Start dev servers in separate terminals
@@ -89,6 +98,23 @@ AWS_SECRET_ACCESS_KEY=test
 AWS_DEFAULT_REGION=eu-west-1
 LOCALSTACK_ENDPOINT=http://localhost:4566
 ```
+
+### Mode 3 — AWS staging / dev environment
+
+For full end-to-end testing against a real AWS account. Requires valid AWS credentials and a deployed dev stack.
+
+```bash
+./scripts/check-aws-session.sh   # verify credentials
+./scripts/deploy-all.sh          # deploy all CDK stacks to dev
+npm run dev:frontend             # point against the deployed API
+```
+
+### Prerequisites (modes 2 and 3)
+
+- [Node.js](https://nodejs.org) (version in `.nvmrc`)
+- npm
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (for LocalStack, mode 2 only)
+- [AWS CLI](https://aws.amazon.com/cli/) (optional, for manual LocalStack inspection)
 
 ### Pages Check
 
@@ -142,12 +168,17 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger                           | Purpose                                                                     |
-| ------------------ | --------------------------------- | --------------------------------------------------------------------------- |
-| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, security audit                              |
-| `e2e.yml`          | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack                             |
-| `deploy.yml`       | Manual                            | Deploy backend CDK stacks to AWS and smoke-test the API                     |
-| `deploy-pages.yml` | Manual or after `deploy.yml`      | Build frontend, create semver release tag, deploy to Pages, smoke-test site |
+| Workflow                | Trigger              | Purpose                                                                                     |
+| ----------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `ci.yml`                | Every push, manual   | Lint, typecheck, builds, tests, audit, and the full automatic release lane for `release/**` |
+| `e2e.yml`               | Manual               | Ad hoc Dockerized Playwright E2E against the full local stack                               |
+| `deploy-validation.yml` | PRs targeting `main` | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish        |
+| `deploy.yml`            | Manual               | Controlled backend production deploy from an exact ref/SHA, with approval + smoke test      |
+| `deploy-pages.yml`      | Manual               | Controlled Pages deploy from an exact ref/SHA, tag/release publish, and Pages smoke test    |
+
+`main` is validation only. Production publishing happens automatically only inside the `CI` workflow when a push lands on a branch whose name begins with `release/vX.Y.Z-*`. That single run performs quality checks, resolves the release context, runs Dockerized E2E on the same commit, waits for backend approval/deploy, then waits for Pages approval/deploy. The release version is derived from the branch name prefix, not auto-incremented from older tags.
+
+Manual `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` runs still exist for debugging, reruns, and controlled recovery. For manual deploys, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
 
 ## Contributing
 

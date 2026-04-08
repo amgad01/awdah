@@ -48,14 +48,21 @@
   min-width: 220px;
   max-width: 300px;
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-surface-elevated, var(--color-surface));
+  background: color-mix(
+    in srgb,
+    var(--color-surface-elevated, var(--color-surface)) 96%,
+    transparent
+  );
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md, 8px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--color-text-primary) 18%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   gap: 6px;
   pointer-events: none;
+  overflow-wrap: anywhere;
 }
 
 /* Tooltip arrow */

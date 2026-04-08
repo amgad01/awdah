@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import path from 'path';
 
 const apiTarget =
@@ -13,8 +12,10 @@ const basePath = process.env.VITE_BASE_PATH || '/';
 // https://vite.dev/config/
 export default defineConfig({
   base: basePath,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  plugins: [react() as any],
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

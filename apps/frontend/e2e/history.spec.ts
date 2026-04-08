@@ -7,7 +7,18 @@ const TEST_PASSWORD = 'TestPassword1!';
 test.describe('History Page', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await page.getByTestId('nav-history').click();
+    await page
+      .getByTestId('nav-burger')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLButtonElement).click();
+      });
+    await page
+      .getByTestId('nav-history')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLAnchorElement).click();
+      });
   });
 
   test('loads the history page', async ({ page }) => {

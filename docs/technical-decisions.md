@@ -62,3 +62,70 @@ Tombstone records are pruned by **DynamoDB TTL** using the `expiresAt` attribute
 ## 4. Environment Validation
 
 To allow operational scripts such as restore sanitization to run with minimal configuration, we support a `SKIP_ENV_VALIDATION` flag in `settings.ts`. This bypasses the mandatory check for all DynamoDB table names, allowing a script to run with only the tables it actually needs.
+
+---
+
+## 5. Auth Token Storage — In-Memory Module Variable
+
+Auth session tokens (Cognito access token, ID token, refresh token) are stored in a **module-level variable** (`inMemorySession`) in `auth-service.ts`, not in `localStorage` or `sessionStorage`.
+
+### Why not `localStorage`?
+
+`localStorage` persists across browser sessions. If a user closes the browser and another person opens it on the same device, the first user's tokens are still present and will silently authenticate as them on the next page load. This is a security risk on shared devices.
+
+### Why not `sessionStorage` only?
+
+`sessionStorage` is cleared when the tab closes, which is the correct lifetime for auth tokens. However, React's state (and module variables) are reset on a hard page refresh (`F5`), while `sessionStorage` survives it. Using `sessionStorage` as the sole store would cause a sign-out on every page refresh, which is unusable.
+
+### The hybrid approach
+
+- **Primary**: module-level variable — fast, zero serialization cost, automatically cleared when the tab closes.
+- **Fallback**: `sessionStorage` — read-only on cold load (page refresh) to restore the session without forcing re-login within the same tab session.
+- `sessionStorage` is written only when a new session is established and cleared immediately on sign-out.
+
+### Why not React state?
+
+React state is reset by Hot Module Replacement (HMR) during development, causing spurious sign-out loops. Module-level variables survive HMR. The session value is not display state — it is a singleton resource that belongs outside the component tree.
+
+---
+
+## 6. Password Re-Verification — `verifyPassword` vs `signIn`
+
+### The problem
+
+Destructive settings actions (data export, prayer reset, fast reset, account deletion) require the user to confirm their password before proceeding. The original implementation called `signIn(username, password)` for this check. `signIn` has an unacceptable side effect: it replaces the active Cognito session tokens, resetting the user's session mid-operation.
+
+### The solution
+
+A dedicated `verifyPassword(username, password): Promise<void>` method was added to the `AuthService` interface. It runs the full Cognito SRP authentication challenge to confirm credentials, but discards the resulting session tokens — it is a read-only credential check.
+
+```typescript
+async verifyPassword(username: string, password: string): Promise<void> {
+  await this.cognitoClient.initiateAuth({ username, password });
+  // Intentionally discard the response — credentials confirmed, session not replaced.
+}
+```
+
+Both `CognitoAuthService` and `LocalAuthService` implement this method. The method throws if the credentials are wrong (Cognito raises `NotAuthorizedException`), which is all the caller needs to know.
+
+---
+
+## 7. Centralized API Client — Retry and Interceptor Pattern
+
+All frontend HTTP requests go through a single `ApiClient` class instance rather than inline `fetch` calls.
+
+### Why centralize?
+
+- Retry logic (full-jitter exponential backoff for 408, 429, 5xx) must be consistent across all call sites.
+- Auth headers must be injected from one place.
+- Request and response logging should not be copy-pasted.
+- Future cross-cutting concerns (correlation IDs, request signing) need a single hook point.
+
+### Retry strategy
+
+Full-jitter exponential backoff (`Math.floor(Math.random() * Math.min(base * 2^attempt, max))`) is used rather than fixed intervals. This prevents the thundering-herd effect — when many clients experience the same transient failure simultaneously, they spread their retries randomly across the backoff window instead of all retrying at the same instant. See "Exponential Backoff And Jitter" (AWS Engineering Blog, 2015).
+
+### What is retried vs not retried
+
+- **Retried**: `408` (request timeout), `429` (rate limited), `5xx` (server error).
+- **Not retried**: `401`, `403`, `404` — these reflect stable state; retrying will not help and would amplify load.

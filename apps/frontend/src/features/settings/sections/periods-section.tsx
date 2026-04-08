@@ -10,19 +10,15 @@ import {
 import { getPracticingPeriodValidationError } from '@/lib/practicing-periods';
 import { todayHijriDate } from '@/utils/date-utils';
 import { BookOpen, Pencil, Plus, X } from 'lucide-react';
+import { DualDateLabel } from '@/components/ui/dual-date-label/dual-date-label';
 import { SettingsSection, SectionNotice, PeriodForm } from '../components';
-import {
-  buildDebtPreview,
-  formatHijriDisplay,
-  formatGregorianDisplay,
-  getErrorMessage,
-} from '../helpers';
+import { buildDebtPreview, getErrorMessage } from '../helpers';
 import { useToast } from '@/hooks/use-toast';
 import type { FeedbackState, PeriodLike, DebtPreview } from '../types';
 import styles from '../settings-page.module.css';
 
 export const PeriodsSection: React.FC = () => {
-  const { t, language, fmtNumber } = useLanguage();
+  const { t, fmtNumber } = useLanguage();
   const { data: profile } = useProfile();
   const { data: periods } = usePracticingPeriods();
   const addPeriod = useAddPracticingPeriod();
@@ -51,11 +47,6 @@ export const PeriodsSection: React.FC = () => {
   const persistedBulughDate = profile?.bulughDate;
   const persistedDobDate = profile?.dateOfBirth;
   const persistedPeriods = useMemo(() => (periods ?? []) as PeriodLike[], [periods]);
-
-  const fmtHijri = (hijriStr: string, invert = false) =>
-    formatHijriDisplay(hijriStr, language, t, fmtNumber, invert);
-
-  const fmtGreg = (hijriStr: string) => formatGregorianDisplay(hijriStr, language);
 
   const describeDebtPreview = (preview: DebtPreview) => {
     if (preview.delta < 0)
@@ -398,12 +389,13 @@ export const PeriodsSection: React.FC = () => {
                 <div className={styles.periodInfo}>
                   <div className={styles.periodRowTitle}>
                     <span className={styles.periodDates}>
-                      {fmtHijri(p.startDate)} {t('onboarding.period_to')}{' '}
-                      {p.endDate ? fmtHijri(p.endDate) : t('settings.period_ongoing')}
-                    </span>
-                    <span className={styles.periodDatesSecondary}>
-                      {fmtGreg(p.startDate)} {t('onboarding.period_to')}{' '}
-                      {p.endDate ? fmtGreg(p.endDate) : t('settings.period_ongoing')}
+                      <DualDateLabel date={p.startDate} layout="inline" />{' '}
+                      {t('onboarding.period_to')}{' '}
+                      {p.endDate ? (
+                        <DualDateLabel date={p.endDate} layout="inline" />
+                      ) : (
+                        t('settings.period_ongoing')
+                      )}
                     </span>
                   </div>
                   <span className={styles.periodType}>{t(`onboarding.period_type_${p.type}`)}</span>

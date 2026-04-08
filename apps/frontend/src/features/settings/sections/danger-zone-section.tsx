@@ -3,17 +3,17 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useDeleteAccount } from '@/hooks/use-profile';
 import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import { deleteLocalUser } from '@/lib/local-auth.service';
 import { clearOnboardingLocalState } from '@/lib/onboarding-state';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { SettingsSection } from '../components';
-import { getErrorMessage } from '../helpers';
 import { useToast } from '@/hooks/use-toast';
 import styles from '../settings-page.module.css';
 
 export const DangerZoneSection: React.FC = () => {
   const { t } = useLanguage();
-  const { user, signIn, signOut } = useAuth();
+  const { user, verifyPassword, signOut } = useAuth();
   const resetPrayerLogs = useResetPrayerLogs();
   const resetFastLogs = useResetFastLogs();
   const { toast } = useToast();
@@ -25,13 +25,15 @@ export const DangerZoneSection: React.FC = () => {
   const deleteAccount = useDeleteAccount();
 
   const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetError, setResetError] = useState('');
 
   const handleDeleteAccount = async () => {
     setDeleteError('');
     setIsDeleting(true);
     try {
       const email = user?.email || user?.username || '';
-      await signIn(email, deletePassword);
+      await verifyPassword(email, deletePassword);
       const result = await deleteAccount.mutateAsync();
       if (import.meta.env.VITE_AUTH_MODE === 'local' && email) {
         deleteLocalUser(email);
@@ -42,24 +44,30 @@ export const DangerZoneSection: React.FC = () => {
       await signOut();
     } catch (err: unknown) {
       setIsDeleting(false);
-      setDeleteError(err instanceof Error ? err.message : t('settings.delete_error'));
+      setDeleteError(t(getAuthErrorKey(err, 'settings.delete_error')));
     }
   };
 
   const handleResetData = (type: 'prayers' | 'fasts') => {
     setConfirmReset(type);
+    setResetPassword('');
+    setResetError('');
   };
 
   const executeReset = async (type: 'prayers' | 'fasts') => {
-    setConfirmReset(null);
+    setResetError('');
     try {
+      const email = user?.email || user?.username || '';
+      await verifyPassword(email, resetPassword);
       if (type === 'prayers') {
         await resetPrayerLogs.mutateAsync();
       } else {
         await resetFastLogs.mutateAsync();
       }
+      setConfirmReset(null);
+      setResetPassword('');
     } catch (err) {
-      toast.error(t(getErrorMessage(err, 'common.error')));
+      setResetError(t(getAuthErrorKey(err, 'settings.verify_password_failed')));
     }
   };
 
@@ -73,22 +81,49 @@ export const DangerZoneSection: React.FC = () => {
             <span className={styles.resetItemHint}>{t('settings.reset_prayers_hint')}</span>
           </div>
           {confirmReset === 'prayers' ? (
-            <div className={styles.resetConfirmBtns}>
-              <button
-                type="button"
-                className={styles.cancelAddBtn}
-                onClick={() => setConfirmReset(null)}
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                className={styles.resetConfirmBtn}
-                onClick={() => void executeReset('prayers')}
-                disabled={resetPrayerLogs.isPending}
-              >
-                {resetPrayerLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-              </button>
+            <div className={styles.deleteConfirm}>
+              <p className={styles.deleteConfirmText}>{t('settings.reset_confirm_prayers')}</p>
+              <input
+                type="password"
+                className={styles.deletePasswordInput}
+                placeholder={t('settings.delete_confirm_password')}
+                value={resetPassword}
+                onChange={(e) => {
+                  setResetPassword(e.target.value);
+                  setResetError('');
+                }}
+                aria-label={t('settings.delete_confirm_password')}
+              />
+              {resetError && (
+                <p
+                  className={styles.deleteErrorText}
+                  role="alert"
+                  data-testid="settings-reset-error"
+                >
+                  {resetError}
+                </p>
+              )}
+              <div className={styles.resetConfirmBtns}>
+                <button
+                  type="button"
+                  className={styles.cancelAddBtn}
+                  onClick={() => {
+                    setConfirmReset(null);
+                    setResetPassword('');
+                    setResetError('');
+                  }}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.resetConfirmBtn}
+                  onClick={() => void executeReset('prayers')}
+                  disabled={resetPrayerLogs.isPending || !resetPassword}
+                >
+                  {resetPrayerLogs.isPending ? t('settings.resetting') : t('common.confirm')}
+                </button>
+              </div>
             </div>
           ) : (
             <button
@@ -109,22 +144,49 @@ export const DangerZoneSection: React.FC = () => {
             <span className={styles.resetItemHint}>{t('settings.reset_fasts_hint')}</span>
           </div>
           {confirmReset === 'fasts' ? (
-            <div className={styles.resetConfirmBtns}>
-              <button
-                type="button"
-                className={styles.cancelAddBtn}
-                onClick={() => setConfirmReset(null)}
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                className={styles.resetConfirmBtn}
-                onClick={() => void executeReset('fasts')}
-                disabled={resetFastLogs.isPending}
-              >
-                {resetFastLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-              </button>
+            <div className={styles.deleteConfirm}>
+              <p className={styles.deleteConfirmText}>{t('settings.reset_confirm_fasts')}</p>
+              <input
+                type="password"
+                className={styles.deletePasswordInput}
+                placeholder={t('settings.delete_confirm_password')}
+                value={resetPassword}
+                onChange={(e) => {
+                  setResetPassword(e.target.value);
+                  setResetError('');
+                }}
+                aria-label={t('settings.delete_confirm_password')}
+              />
+              {resetError && (
+                <p
+                  className={styles.deleteErrorText}
+                  role="alert"
+                  data-testid="settings-reset-error"
+                >
+                  {resetError}
+                </p>
+              )}
+              <div className={styles.resetConfirmBtns}>
+                <button
+                  type="button"
+                  className={styles.cancelAddBtn}
+                  onClick={() => {
+                    setConfirmReset(null);
+                    setResetPassword('');
+                    setResetError('');
+                  }}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.resetConfirmBtn}
+                  onClick={() => void executeReset('fasts')}
+                  disabled={resetFastLogs.isPending || !resetPassword}
+                >
+                  {resetFastLogs.isPending ? t('settings.resetting') : t('common.confirm')}
+                </button>
+              </div>
             </div>
           ) : (
             <button
@@ -169,7 +231,11 @@ export const DangerZoneSection: React.FC = () => {
               aria-label={t('settings.delete_confirm_password')}
             />
             {deleteError && (
-              <p className={styles.deleteErrorText} role="alert">
+              <p
+                className={styles.deleteErrorText}
+                role="alert"
+                data-testid="settings-delete-error"
+              >
                 {deleteError}
               </p>
             )}

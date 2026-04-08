@@ -87,7 +87,7 @@ describe('LoginForm', () => {
     fireEvent.click(screen.getByTestId('login-submit'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Invalid credentials');
+      expect(mockToastError).toHaveBeenCalledWith('auth.login_error');
     });
   });
 

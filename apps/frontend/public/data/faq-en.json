@@ -1,21 +1,5 @@
 [
   {
-    "id": "hijri",
-    "title": "Hijri Calendar & Date Calculations",
-    "items": [
-      {
-        "id": "hijri_calc",
-        "question": "How are Hijri dates calculated?",
-        "answer": "We use the Umm al-Qura calendar system, the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally."
-      },
-      {
-        "id": "hijri_30days",
-        "question": "Why not assume every month is 30 days?",
-        "answer": "Assuming 30 days per month leads to significant cumulative errors. A real Hijri year is approximately 354–355 days, not 360. Using the Umm al-Qura calendar ensures months are correctly 29 or 30 days, Ramadan is identified accurately, and your qadaa is counted precisely."
-      }
-    ]
-  },
-  {
     "id": "product",
     "title": "About Awdah",
     "items": [
@@ -29,6 +13,22 @@
             "url": "/about"
           }
         ]
+      }
+    ]
+  },
+  {
+    "id": "hijri",
+    "title": "Hijri Calendar & Date Calculations",
+    "items": [
+      {
+        "id": "hijri_calc",
+        "question": "How are Hijri dates calculated?",
+        "answer": "We use the Umm al-Qura calendar system, the official civil Hijri calendar of Saudi Arabia and the most widely used standardised Hijri calendar globally."
+      },
+      {
+        "id": "hijri_30days",
+        "question": "Why not assume every month is 30 days?",
+        "answer": "Assuming 30 days per month leads to significant cumulative errors. A real Hijri year is approximately 354–355 days, not 360. Using the Umm al-Qura calendar ensures months are correctly 29 or 30 days, Ramadan is identified accurately, and your qadaa is counted precisely."
       }
     ]
   },

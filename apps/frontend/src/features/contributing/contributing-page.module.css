@@ -5,6 +5,123 @@
   animation: fadeIn 0.4s ease;
 }
 
+/* Mobile/Desktop View Switching */
+.mobileSwipeView {
+  display: block;
+}
+
+.desktopScrollView {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobileSwipeView {
+    display: none;
+  }
+
+  .desktopScrollView {
+    display: block;
+  }
+}
+
+/* Slider Section Container */
+.sliderSection {
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.sliderSectionTitle {
+  text-align: center;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Compact mobile cards - ONLY for mobile */
+@media (max-width: 767px) {
+  .contributionSection {
+    padding: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .contributionSection .sectionHeader {
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .contributionSection .sectionTitleRow {
+    justify-content: center;
+  }
+
+  .contributionSection .sectionTitle {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .contributionSection .sectionBody {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .contributionSection .itemList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .contributionSection .itemCard {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-surface);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .contributionSection .itemTitle {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+    text-align: center;
+  }
+
+  .contributionSection .itemDescription {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin: 0;
+    text-align: center;
+  }
+
+  /* Compact roadmap cards for mobile */
+  .v2Card {
+    padding: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .v2CardIcon {
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-primary);
+  }
+
+  .v2CardTitle {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .v2CardBody {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    text-align: center;
+  }
+}
+
 /* ── Loading ── */
 .loading {
   text-align: center;
@@ -143,10 +260,13 @@
 /* ── Contribution Section ── */
 .contributionSection {
   margin: var(--spacing-xxl) 0;
+  max-width: 960px;
+  margin-inline: auto;
 }
 
 .sectionHeader {
   margin-bottom: var(--spacing-lg);
+  text-align: center;
 }
 
 .sectionTitleRow {
@@ -154,6 +274,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xs);
+  justify-content: center;
 }
 
 .sectionIcon {
@@ -172,6 +293,7 @@
   color: var(--color-text-secondary);
   line-height: 1.7;
   max-width: 680px;
+  margin-inline: auto;
 }
 
 /* ── Item Cards ── */

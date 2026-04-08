@@ -79,6 +79,8 @@ export class FrontendStack extends BaseStack {
         compress: true,
       },
       errorResponses: [
+        // SPA routing: S3 returns 403 (access denied) for paths that are not real objects.
+        // Both 403 and 404 are rewritten to 200 + index.html so React Router can handle them.
         {
           httpStatus: 403,
           responseHttpStatus: 200,

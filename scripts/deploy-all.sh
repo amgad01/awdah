@@ -20,7 +20,7 @@ TARGET="${FRONTEND_DEPLOY_TARGET:-$(frontend_target_for_env "$ENV")}"
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 FAILED=false
-trap 'if [ "$FAILED" = true ] || [ $? -ne 0 ]; then echo ""; echo "✗ Deploy FAILED — check the output above for errors."; exit 1; fi' EXIT
+trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Deploy FAILED — check the output above for errors."; exit 1; fi' EXIT
 
 echo "╔══════════════════════════════════════════╗"
 echo "║    Awdah — Deploy ALL (Backend + FE)     ║"

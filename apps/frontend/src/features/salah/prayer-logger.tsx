@@ -7,7 +7,7 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Check, Loader2, Minus, Plus } from 'lucide-react';
 import { DayNav } from '@/components/ui/day-nav/day-nav';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateSalahQueries } from '@/utils/query-invalidation';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
 import styles from './prayer-logger.module.css';
@@ -56,7 +56,6 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   const birthDate = profile?.dateOfBirth;
 
   const { data: logs, isLoading, error, isError } = useDailyPrayerLogs(activeDate);
-  const { data: todayLogs } = useDailyPrayerLogs(today);
   const logMutation = useLogPrayer();
   const deleteMutation = useDeletePrayer();
 
@@ -82,12 +81,6 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
         return acc;
       }, {});
   }, [logs, tab]);
-
-  // Check if today's obligatory prayers are all complete
-  const isTodayComplete = useMemo(() => {
-    const todayObligatory = (todayLogs ?? []).filter((l) => l.type === 'obligatory');
-    return PRAYERS.every((p) => todayObligatory.some((l) => l.prayerName === p));
-  }, [todayLogs]);
 
   const isPending = logMutation.isPending || deleteMutation.isPending;
   const isFuture = selectedDate > today;
@@ -128,10 +121,10 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   // ── Qadaa increment / decrement ──
   const handleQadaaIncrement = useCallback(
     (prayerName: string) => {
-      if (isPending || isFuture || !isTodayComplete) return;
+      if (isPending || isFuture) return;
       logMutation.mutate({ date: selectedDate, prayerName, type: 'qadaa' });
     },
-    [isPending, isFuture, isTodayComplete, selectedDate, logMutation],
+    [isPending, isFuture, selectedDate, logMutation],
   );
 
   const handleQadaaDecrement = useCallback(
@@ -226,9 +219,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
         <ErrorState
           compact
           message={error instanceof Error ? error.message : t('common.error')}
-          onRetry={() =>
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDailyLogs(activeDate) })
-          }
+          onRetry={() => invalidateSalahQueries(queryClient, activeDate)}
         />
       ) : isBeforeBirth ? (
         <div className={styles.beforeBirthPlaceholder}>
@@ -350,8 +341,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
                   <button
                     className={styles.qadaaBtn}
                     onClick={() => handleQadaaIncrement(prayer)}
-                    disabled={isPending || isFuture || isBeforeBirth || !isTodayComplete}
-                    title={!isTodayComplete ? t('salah.obligatory_first_hint') : undefined}
+                    disabled={isPending || isFuture || isBeforeBirth}
                     aria-label={`${t('salah.qadaa_increment')} ${t(`prayers.${prayer}`)}`}
                     type="button"
                   >
@@ -361,9 +351,6 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
               </div>
             );
           })}
-          {!isTodayComplete && (
-            <p className={styles.qadaaRestrictionNote}>{t('salah.obligatory_first_hint')}</p>
-          )}
           {totalQadaaCount > 0 && (
             <p className={styles.qadaaTotalNote}>
               {fmtNumber(totalQadaaCount)} {t('salah.qadaa_total_logged')}

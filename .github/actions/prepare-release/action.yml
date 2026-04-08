@@ -1,0 +1,53 @@
+name: 'Prepare Release'
+description: 'Resolve the source ref, source SHA, and release tag for deployment workflows'
+
+inputs:
+  release-tag-input:
+    description: 'Optional manual release tag override'
+    required: false
+    default: ''
+  confirm-branch-release-tag:
+    description: 'Manual confirmation for using the release tag parsed from the selected branch'
+    required: false
+    type: boolean
+    default: false
+  source-ref:
+    description: 'Source branch/ref to deploy'
+    required: false
+    default: ''
+  source-sha:
+    description: 'Exact commit SHA to deploy'
+    required: false
+    default: ''
+  require-branch-release-tag-confirmation:
+    description: 'Require manual confirmation when release_tag is omitted'
+    required: false
+    default: 'false'
+
+outputs:
+  source_ref:
+    description: 'Source branch/ref'
+    value: ${{ steps.release_context.outputs.source_ref }}
+  source_sha:
+    description: 'Resolved source SHA'
+    value: ${{ steps.release_context.outputs.source_sha }}
+  release_tag:
+    description: 'Resolved release tag'
+    value: ${{ steps.release_context.outputs.release_tag }}
+  release_tag_source:
+    description: 'Source of release tag determination'
+    value: ${{ steps.release_context.outputs.release_tag_source }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Resolve release context
+      id: release_context
+      shell: bash
+      env:
+        INPUT_RELEASE_TAG: ${{ inputs.release-tag-input }}
+        INPUT_CONFIRM_BRANCH_RELEASE_TAG: ${{ inputs.confirm-branch-release-tag }}
+        REQUIRE_BRANCH_RELEASE_TAG_CONFIRMATION: ${{ inputs.require-branch-release-tag-confirmation }}
+        TRIGGERING_SOURCE_REF: ${{ inputs.source-ref }}
+        TRIGGERING_SOURCE_SHA: ${{ inputs.source-sha }}
+      run: ./scripts/release/resolve-release-context.sh

@@ -7,7 +7,7 @@ import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
 import { SawmLogger } from '@/features/sawm/sawm-logger';
-import { QUERY_KEYS } from '@/lib/query-keys';
+import { invalidateSawmQueries } from '@/utils/query-invalidation';
 import { todayHijriDate } from '@/utils/date-utils';
 import { Sun, CheckCircle2, Circle, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import styles from './sawm-page.module.css';
@@ -35,7 +35,7 @@ export const SawmPage: React.FC = () => {
     return (
       <ErrorState
         message={error instanceof Error ? error.message : t('common.error')}
-        onRetry={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt })}
+        onRetry={() => invalidateSawmQueries(queryClient)}
       />
     );
   }

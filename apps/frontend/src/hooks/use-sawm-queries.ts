@@ -4,7 +4,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  type QueryClient,
 } from '@tanstack/react-query';
 import { api, type FastLogResponse, type HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
@@ -13,13 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useProfile } from '@/hooks/use-profile';
 import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
+import { invalidateSawmQueries } from '@/utils/query-invalidation';
 
-export function invalidateSawmQueries(queryClient: QueryClient, date?: string) {
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDebt });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmHistoryPrefix });
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combinedHistoryPrefix });
-  if (date) queryClient.invalidateQueries({ queryKey: QUERY_KEYS.sawmDailyLog(date) });
-}
+export { invalidateSawmQueries } from '@/utils/query-invalidation';
 
 export async function fetchFastHistoryPage(
   startDate: string,

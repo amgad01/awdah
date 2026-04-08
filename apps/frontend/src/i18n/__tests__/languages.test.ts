@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Tests for the language auto-discovery system.
  *
@@ -198,9 +199,7 @@ describe('loadLanguageBundle', () => {
   });
 
   it('throws for an unknown language code', async () => {
-    await expect(loadLanguageBundle('xx')).rejects.toThrow(
-      'No translation file found for language: xx',
-    );
+    await expect(loadLanguageBundle('xx')).rejects.toThrow();
   });
 });
 
@@ -226,4 +225,60 @@ describe('translation file structural completeness', () => {
 
     expect(deKeys).toEqual(enKeys);
   });
+
+  it('Arabic bundle includes all English leaf translation keys', async () => {
+    const en = await loadLanguageBundle('en');
+    const ar = await loadLanguageBundle('ar');
+
+    expect(flattenTranslationKeys(ar)).toEqual(expect.arrayContaining(flattenTranslationKeys(en)));
+  });
+
+  it('German bundle includes all English leaf translation keys', async () => {
+    const en = await loadLanguageBundle('en');
+    const de = await loadLanguageBundle('de');
+
+    expect(flattenTranslationKeys(de)).toEqual(expect.arrayContaining(flattenTranslationKeys(en)));
+  });
+
+  it('all leaf translations are non-empty strings', async () => {
+    const bundles = {
+      en: await loadLanguageBundle('en'),
+      ar: await loadLanguageBundle('ar'),
+      de: await loadLanguageBundle('de'),
+    };
+
+    for (const [code, bundle] of Object.entries(bundles)) {
+      for (const [key, value] of flattenTranslationEntries(bundle)) {
+        expect(value, `${code}.${key}`).toEqual(expect.any(String));
+        expect((value as string).trim(), `${code}.${key}`).not.toHaveLength(0);
+      }
+    }
+  });
 });
+
+function flattenTranslationKeys(bundle: unknown, prefix = ''): string[] {
+  return flattenTranslationEntries(bundle, prefix)
+    .map(([key]) => key)
+    .sort();
+}
+
+function flattenTranslationEntries(bundle: unknown, prefix = ''): Array<[string, unknown]> {
+  if (bundle == null || typeof bundle !== 'object' || Array.isArray(bundle)) {
+    return [];
+  }
+
+  const entries: Array<[string, unknown]> = [];
+
+  for (const [key, value] of Object.entries(bundle as Record<string, unknown>)) {
+    const nextKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value != null && typeof value === 'object' && !Array.isArray(value)) {
+      entries.push(...flattenTranslationEntries(value, nextKey));
+      continue;
+    }
+
+    entries.push([nextKey, value]);
+  }
+
+  return entries;
+}

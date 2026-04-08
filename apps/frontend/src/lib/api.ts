@@ -4,10 +4,11 @@ import {
   publishAuthNotice,
   readPersistedSession,
 } from '@/lib/auth-service';
+import { getApiClient } from '@/lib/api-client';
 import type { ApiErrorResponse } from '@awdah/shared';
 
 const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+let signingOut = false;
 const SALAH_BASE = '/v1/salah';
 const SAWM_BASE = '/v1/sawm';
 const USER_BASE = '/v1/user';
@@ -38,7 +39,7 @@ export interface FastLogResponse {
   eventId: string;
   date: string;
   type: string;
-  action?: 'prayed' | 'deselected';
+  action?: 'fasted' | 'deselected';
   loggedAt: string;
 }
 
@@ -152,18 +153,26 @@ async function request<T>(
     headers['x-user-id'] = session.userId;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await getApiClient().fetch(path, {
     ...options,
     headers,
   });
 
   if (response.status === 401) {
-    // Token expired or invalid — clear the session and return to the auth screen
-    if (authService) {
-      await authService.signOut();
-      publishAuthNotice('session-expired');
-    } else {
-      clearPersistedSession('session-expired');
+    // Token expired or invalid — clear the session and return to the auth screen.
+    // Guard against concurrent 401s triggering multiple sign-out calls.
+    if (!signingOut) {
+      signingOut = true;
+      try {
+        if (authService) {
+          await authService.signOut();
+          publishAuthNotice('session-expired');
+        } else {
+          clearPersistedSession('session-expired');
+        }
+      } finally {
+        signingOut = false;
+      }
     }
     throw new ApiRequestError(SESSION_EXPIRED_MESSAGE, 401, 'UNAUTHENTICATED');
   }

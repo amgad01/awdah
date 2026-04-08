@@ -187,7 +187,7 @@
   padding: 0.35rem 0.6rem;
   border: 1.5px solid var(--color-primary);
   border-radius: var(--border-radius-md);
-  background: var(--color-surface);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -322,6 +322,58 @@
   line-height: 1.6;
 }
 
+/* ── Profile Collapsible Summary ── */
+.profileSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.profileSummaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.profileSummaryStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.profileSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+}
+
+.profileExpandBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: none;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s;
+}
+
+.profileExpandBtn:hover {
+  background: var(--color-primary-ghost);
+}
+
+.profileCollapseHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-end: var(--spacing-sm);
+}
+
 /* ── Profile Fields (ProfileSection) ── */
 .profileFields {
   display: flex;
@@ -333,9 +385,9 @@
 .textInput {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-input-border);
   border-radius: var(--border-radius-md);
-  background: var(--color-surface);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   box-sizing: border-box;
@@ -389,9 +441,9 @@
 .ageInput {
   width: 72px;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-input-border);
   border-radius: var(--border-radius-md);
-  background: var(--color-surface);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: 1rem;
   font-weight: var(--font-weight-semibold);
@@ -618,9 +670,9 @@
 
 .typeSelect {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-input-border);
   border-radius: var(--border-radius-md);
-  background: var(--color-surface);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   width: 100%;
@@ -911,6 +963,65 @@
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
+.exportConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-block-start: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
+.exportConfirmText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.exportPasswordRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.exportPasswordIcon {
+  position: absolute;
+  inset-inline-start: var(--spacing-sm);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.exportPasswordInput {
+  padding: var(--spacing-sm) var(--spacing-md);
+  padding-inline-start: var(--spacing-xxl);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.exportPasswordInput:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px var(--color-primary-alpha-10);
+}
+
+.exportErrorText {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin: 0;
+}
+
+.exportConfirmBtns {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
 .deleteConfirm {
   display: flex;
   flex-direction: column;
@@ -930,9 +1041,9 @@
 
 .deletePasswordInput {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-input-border);
   border-radius: var(--border-radius-md);
-  background: var(--color-surface);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   width: 100%;

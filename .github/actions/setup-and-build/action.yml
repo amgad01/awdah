@@ -1,0 +1,45 @@
+name: 'Setup and Build'
+description: 'Checkout code, setup Node.js, install dependencies, and build the shared package'
+
+inputs:
+  ref:
+    description: 'Git ref to checkout (optional - defaults to current HEAD)'
+    required: false
+    default: ''
+  fetch-depth:
+    description: 'Number of commits to fetch (0 = all history, 1 = latest only)'
+    required: false
+    default: '1'
+  skip-checkout:
+    description: 'Skip checkout if already done'
+    required: false
+    default: 'false'
+  build-shared:
+    description: 'Build shared package'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      if: inputs.skip-checkout != 'true'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+        ref: ${{ inputs.ref }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Build shared package
+      if: inputs.build-shared == 'true'
+      shell: bash
+      run: npm run build --workspace=packages/shared

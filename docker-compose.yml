@@ -11,7 +11,7 @@ services:
       - DEBUG=0
       - PERSISTENCE=1
     volumes:
-      - ./docker/data:/var/lib/localstack
+      - localstack-data:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
       - ./docker/localstack/init:/etc/localstack/init/ready.d
     healthcheck:
@@ -88,3 +88,6 @@ services:
       timeout: 5s
       retries: 12
       start_period: 10s
+
+volumes:
+  localstack-data:

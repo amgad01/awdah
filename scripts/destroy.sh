@@ -5,6 +5,29 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
+# --- Help ---
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  cat <<'EOF'
+Usage: destroy.sh [OPTIONS]
+
+Destroy all stacks in the specified environment.
+⚠️  WARNING: This will delete ALL resources including databases!
+
+Options:
+  --help, -h    Show this help message
+
+Environment:
+  DEPLOY_ENV          Target environment (dev/staging/prod, default: dev)
+  AWS_DEFAULT_REGION  AWS region (default: eu-west-1)
+
+Examples:
+  destroy.sh                    # Destroy dev environment (with confirmation)
+  DEPLOY_ENV=prod destroy.sh    # Destroy production (requires 'destroy-prod' confirmation)
+
+EOF
+  exit 0
+fi
+
 # ── AWS Session Check ──
 "$SCRIPT_DIR/check-aws-session.sh" || exit 1
 
@@ -15,7 +38,7 @@ if [ -f "$ROOT_DIR/.env" ]; then
   set +a
 fi
 
-ENV="${DEPLOY_ENV:-staging}"
+ENV="${DEPLOY_ENV:-dev}"
 AWS_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
 
 export AWS_DEFAULT_REGION="$AWS_REGION"

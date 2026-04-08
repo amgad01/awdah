@@ -13,10 +13,36 @@
   box-shadow: var(--shadow-md);
 }
 
+.menuPanel {
+  display: contents;
+}
+
 .navHeader {
   display: flex;
   align-items: center;
   width: 100%;
+  justify-content: space-between;
+}
+
+.burgerBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-overlay-medium);
+  background: var(--color-overlay-subtle);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.burgerBtn:hover {
+  background: var(--color-overlay-hover);
+  border-color: var(--color-overlay-strong);
 }
 
 .sections {
@@ -140,7 +166,21 @@
   border-color: var(--color-accent-alpha-38);
 }
 
-.footer {
+.headerControls {
+  display: none;
+}
+
+.headerControlsInner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.mobileFooter {
+  display: none;
+}
+
+.desktopFooter {
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
@@ -214,69 +254,120 @@
 @media (max-width: 1023px) {
   .nav {
     position: sticky;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    column-gap: var(--spacing-sm);
-    row-gap: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
   }
 
   .navHeader {
-    grid-column: 1;
+    width: 100%;
+    padding: var(--spacing-xs) 0;
+  }
+
+  .burgerBtn {
+    display: flex;
+    width: 44px;
+    height: 44px;
+  }
+
+  .logoLink {
+    margin-inline-end: 0;
+  }
+
+  .menuPanel {
+    display: none;
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    inline-size: min(20rem, calc(100vw - 2rem));
+    z-index: 1001;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+    background: var(--nav-bg);
+    border: 1px solid var(--color-overlay-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .menuPanelOpen {
+    display: flex;
   }
 
   .links {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: var(--spacing-xs);
-    padding-bottom: var(--spacing-2xs);
-  }
-
-  .sections {
-    display: grid;
-    grid-column: 1 / -1;
-    order: 3;
-    gap: var(--spacing-sm);
+    padding-bottom: 0;
   }
 
   .section {
-    gap: var(--spacing-2xs);
+    gap: var(--spacing-sm);
   }
 
   .sectionLabel {
     padding-inline: 0;
+    margin-bottom: var(--spacing-xs);
   }
 
   .link,
   .logoutBtn {
-    white-space: nowrap;
+    white-space: normal;
+    min-height: 48px;
   }
 
   .link {
-    justify-content: center;
+    justify-content: flex-start;
     min-width: 0;
-    padding-inline: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 
   .link span {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
   }
 
-  .footer {
-    grid-column: 1 / -1;
-    justify-content: space-between;
-    gap: var(--spacing-xs);
+  .headerControls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .headerControlsInner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .desktopFooter {
+    display: none;
+  }
+
+  .mobileFooter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-overlay-subtle);
+    margin-top: var(--spacing-xs);
   }
 
   .footerMeta {
+    width: 100%;
     gap: var(--spacing-xs);
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .footerLinks {
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: var(--spacing-2xs);
+    width: 100%;
+    overflow: visible;
+    padding: var(--spacing-xs) 0;
   }
 
   .footerLinks::-webkit-scrollbar {
@@ -284,7 +375,10 @@
   }
 
   .footerControls {
-    gap: var(--spacing-2xs);
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-xs);
   }
 }
 
@@ -341,7 +435,7 @@
     justify-content: flex-start;
   }
 
-  .footer {
+  .desktopFooter {
     flex-direction: column;
     width: 100%;
     margin-top: auto;

@@ -5,6 +5,7 @@ import {
 } from '@awdah/shared';
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 import { decodeCursor, encodeCursor } from '../../../../shared/infrastructure/persistence/cursor';
+import { createPrayerSlotKey } from '../../../../shared/utils/prayer-slot-key';
 
 export interface GetPrayerHistoryPageCommand {
   userId: string;
@@ -49,18 +50,40 @@ export class GetPrayerHistoryPageUseCase {
       rawItems = skipSuppressedSlotLogs(page.items, decodedCursor.suppressedSlotKey);
     }
 
-    // Per-page deduplication. Results are sorted newest-first, so for any
-    // (date, prayerName, type) slot the deselected entry (newer ULID) always
-    // precedes its prayed counterpart within the same page.
-    // First occurrence of a slot decides the effective action; skip later dupes.
-    const seenSlots = new Set<string>();
+    // Per-page deduplication.
+    // Obligatory: First occurrence of a slot decides the effective action; skip later dupes.
+    // Qadaa: net count per (date, prayerName) — return one entry per net unit.
+    const seenObligatorySlots = new Set<string>();
+    const qadaaBuckets = new Map<
+      string,
+      { prayed: (typeof rawItems)[number][]; deselected: number }
+    >();
     const effectiveItems: (typeof rawItems)[number][] = [];
+
     for (const log of rawItems) {
-      const key = getPrayerSlotKey(log);
-      if (seenSlots.has(key)) continue;
-      seenSlots.add(key);
-      if (log.action === 'prayed') {
-        effectiveItems.push(log);
+      if (log.type.getValue() === 'qadaa') {
+        const key = createPrayerSlotKey(log.date.toString(), log.prayerName.getValue());
+        const bucket = qadaaBuckets.get(key) ?? { prayed: [], deselected: 0 };
+        if (log.action === 'prayed') {
+          bucket.prayed.push(log);
+        } else {
+          bucket.deselected++;
+        }
+        qadaaBuckets.set(key, bucket);
+      } else {
+        const key = getPrayerSlotKey(log);
+        if (seenObligatorySlots.has(key)) continue;
+        seenObligatorySlots.add(key);
+        if (log.action === 'prayed') {
+          effectiveItems.push(log);
+        }
+      }
+    }
+
+    for (const [, bucket] of qadaaBuckets) {
+      const net = Math.max(0, bucket.prayed.length - bucket.deselected);
+      for (let i = 0; i < net && i < bucket.prayed.length; i++) {
+        effectiveItems.push(bucket.prayed[i]!);
       }
     }
 

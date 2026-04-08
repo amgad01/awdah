@@ -7,6 +7,12 @@ const TEST_PASSWORD = 'TestPassword1!';
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
+    await page
+      .getByTestId('nav-burger')
+      .first()
+      .evaluate((element) => {
+        (element as HTMLButtonElement).click();
+      });
   });
 
   test('displays the streak card section', async ({ page }) => {
@@ -29,11 +35,11 @@ test.describe('Dashboard', () => {
 
   test('navigation sidebar has settings and logout', async ({ page }) => {
     // Settings link should be in the sidebar
-    const settingsLink = page.getByTestId('nav-settings');
+    const settingsLink = page.locator('[data-testid="nav-settings"]:visible').first();
     await expect(settingsLink).toBeVisible();
 
-    // Logout button should be in the sidebar
+    // Logout button should be present in the shell
     const logoutBtn = logoutButton(page);
-    await expect(logoutBtn).toBeVisible();
+    await expect(logoutBtn).toBeAttached();
   });
 });

@@ -9,6 +9,35 @@ DIST_DIR="$FRONTEND_DIR/dist"
 # shellcheck source=./lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
+# --- Help ---
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  cat <<'EOF'
+Usage: build-frontend.sh [ENV] [OPTIONS]
+
+Build the frontend application for the specified environment.
+
+Arguments:
+  ENV                 Target environment (dev/staging/prod, default: dev or DEPLOY_ENV)
+
+Options:
+  --help, -h          Show this help message
+
+Environment:
+  DEPLOY_ENV          Target environment (default: dev)
+  FRONTEND_DEPLOY_TARGET  Deployment target (pages/cloudfront, auto-detected from env)
+  VITE_AWS_REGION     AWS region (default: eu-west-1)
+  VITE_AUTH_MODE      Authentication mode (cognito/local, default: cognito)
+  SKIP_SHARED_BUILD   Skip building shared package (default: 0)
+
+Examples:
+  build-frontend.sh              # Build for dev environment
+  build-frontend.sh prod           # Build for production
+  build-frontend.sh --help         # Show this help
+
+EOF
+  exit 0
+fi
+
 load_env_defaults "$ROOT_DIR/.env"
 
 ENV="${1:-${DEPLOY_ENV:-dev}}"
