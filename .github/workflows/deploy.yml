@@ -54,7 +54,8 @@ jobs:
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
         with:
-          skip-checkout: 'true'
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          fetch-depth: 0
 
       - name: Build infra
         run: cd infra && npm run build
