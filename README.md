@@ -178,6 +178,8 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 `main` is validation only. Production publishing happens from branches whose names begin with the `release/vX.Y.Z-*` prefix. The release version is derived from that branch name prefix — no auto-increment.
 
+For automatic release runs, the `workflow_run` stages explicitly check out the upstream run's `head_sha`, so the deploy chain uses the exact tested commit from the release branch instead of falling back to default-branch context. For manual runs, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
+
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, language support, and content-update guidance. For current work areas and roadmap items, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page.

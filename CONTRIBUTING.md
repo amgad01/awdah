@@ -164,22 +164,28 @@ Production deploys happen through GitHub Actions:
 1. **CI** (`ci.yml`) — lint, typecheck, build, test, audit on every push/PR
 2. **E2E** (`e2e.yml`) — Docker-based Playwright tests after CI passes
 3. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
-4. **Deploy Backend** (`deploy.yml`) — for `release/vX.Y.Z-*` branches, deploy the exact triggering branch SHA to prod and smoke test `/health`
-5. **Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, resolve the release version, build, verify CSP, push to GitHub Pages, and publish the GitHub release
+4. **Deploy Backend** (`deploy.yml`) — for `release/vX.Y.Z-*` branches, resolve the exact tested source SHA plus release tag, surface both in the approval gate, deploy to prod, and smoke test `/health`
+5. **Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, create or verify the release tag on that commit, build for Pages, publish the GitHub release, and smoke test the live site
 
 `main` is validation only. Production publishing happens from a release branch or an explicit tagged release, not from an ordinary merge to `main`.
 
 ### Release versioning
 
-Release tags follow `vX.Y.Z` format. Branch names matching `release/vX.Y.Z-*` are the source of truth for automated production releases. When you manually run `deploy-pages.yml` from a release branch, leave `release_tag` blank unless you need an emergency override.
+Release tags follow `vX.Y.Z` format. Branch names matching `release/vX.Y.Z-*` are the source of truth for automated production releases. Automatic `workflow_run` deploys use the upstream run's exact `head_sha`, so the release chain publishes the same commit that passed the previous gate.
+
+When you run `deploy.yml` or `deploy-pages.yml` manually from a release branch:
+
+- leave `release_tag` blank and set `confirm_branch_release_tag=true` if you want to use the branch-derived version
+- provide `release_tag` if you want to override the branch-derived version
 
 The workflow resolves the version in this order:
 
 1. Manual `release_tag` input, if you provide one
 2. The selected branch name if it matches `release/vX.Y.Z-*`
 3. An existing semver tag already attached to the exact source commit
+4. Otherwise fail closed
 
-If none of those are available, the workflow fails instead of guessing. This is intentional: it prevents the Pages release from silently using an older tag lineage.
+If none of those are available, the workflow fails instead of guessing. This is intentional: it prevents a production release from silently drifting onto an older tag lineage.
 
 GitHub Actions cannot dynamically prefill the environment approval dialog with a computed suggestion. Instead, the workflow computes the release version before the protected deploy job starts and shows it in the run summary and deploy job name.
 
@@ -257,7 +263,7 @@ Every push and PR triggers `ci.yml`:
 8. Run all unit tests (vitest)
 9. Security audit (high severity)
 
-After CI passes, `e2e.yml` runs Docker-based Playwright tests. After E2E passes on `main`, `deploy.yml` deploys the backend and `deploy-pages.yml` deploys the frontend.
+After CI passes, `e2e.yml` runs Docker-based Playwright tests. Automatic production publishing then chains only for `release/**`: `E2E -> Deploy Backend -> Deploy Pages`, with manual approvals on both deploy workflows.
 
 ### Running tests locally
 
@@ -406,14 +412,15 @@ v1.1.0 → v2.0.0   Breaking: replace Cognito with a new auth provider (token fo
 
 ### Branch naming
 
-Feature work targeting a minor release uses a `release/vX.Y.Z` branch prefix. This prefix is read by the deploy pipeline to set the app version automatically:
+Feature work targeting a release uses a `release/vX.Y.Z` branch prefix. The deploy pipeline parses the semantic version from that prefix and ignores the descriptive suffix:
 
 ```
 release/v1.1.0         Minor release branch
+release/v1.1.0-auth-security-api-hardening   Descriptive release branch
 release/v1.1.0-beta1   Pre-release variant of the same version
 ```
 
-Regular feature branches do not need the `release/` prefix; they merge into `main` and the version increments on the next release cut.
+Regular feature branches do not need the `release/` prefix; they merge into `main` and stay in the validation lane until an explicit release branch is cut.
 
 ### CHANGELOG
 

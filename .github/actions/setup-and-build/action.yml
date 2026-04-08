@@ -1,5 +1,5 @@
 name: 'Setup and Build'
-description: 'Checkout code, setup Node.js, install dependencies, and build shared package'
+description: 'Checkout code, setup Node.js, install dependencies, and build the shared package'
 
 inputs:
   ref:
@@ -27,7 +27,7 @@ runs:
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
-        ref: ${{ inputs.ref != '' && inputs.ref || github.sha }}
+        ref: ${{ inputs.ref }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v4

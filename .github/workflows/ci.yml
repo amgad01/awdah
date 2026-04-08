@@ -74,3 +74,45 @@ jobs:
 
       - name: Security audit
         run: npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra
+
+  release-e2e:
+    name: E2E (Release Gate)
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: quality
+    uses: ./.github/workflows/e2e.yml
+    with:
+      source_ref: ${{ github.ref_name }}
+      source_sha: ${{ github.sha }}
+
+  release-backend:
+    name: Deploy Backend (Release)
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: release-e2e
+    permissions:
+      contents: read
+      id-token: write
+    secrets: inherit
+    uses: ./.github/workflows/deploy.yml
+    with:
+      confirm_branch_release_tag: true
+      release_tag: ''
+      source_ref: ${{ github.ref_name }}
+      source_sha: ${{ github.sha }}
+
+  release-pages:
+    name: Deploy Pages (Release)
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: release-backend
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    secrets: inherit
+    uses: ./.github/workflows/deploy-pages.yml
+    with:
+      confirm_branch_release_tag: true
+      release_tag: ''
+      release_tagger_name: ''
+      release_tagger_email: ''
+      source_ref: ${{ github.ref_name }}
+      source_sha: ${{ github.sha }}

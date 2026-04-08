@@ -1,19 +1,28 @@
 name: 'Prepare Release'
-description: 'Checkout code, fetch latest SHA, and resolve release context for deployment workflows'
+description: 'Resolve the source ref, source SHA, and release tag for deployment workflows'
 
 inputs:
   release-tag-input:
     description: 'Optional manual release tag override'
     required: false
     default: ''
-  workflow-head-branch:
-    description: 'Branch from workflow_run event'
+  confirm-branch-release-tag:
+    description: 'Manual confirmation for using the release tag parsed from the selected branch'
+    required: false
+    type: boolean
+    default: false
+  source-ref:
+    description: 'Source branch/ref to deploy'
     required: false
     default: ''
-  workflow-head-sha:
-    description: 'SHA from workflow_run event'
+  source-sha:
+    description: 'Exact commit SHA to deploy'
     required: false
     default: ''
+  require-branch-release-tag-confirmation:
+    description: 'Require manual confirmation when release_tag is omitted'
+    required: false
+    default: 'false'
 
 outputs:
   source_ref:
@@ -32,24 +41,13 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
-    - name: Fetch latest commit SHA
-      id: fetch_latest
-      uses: ./.github/actions/fetch-latest-sha
-      with:
-        branch: ${{ inputs.workflow-head-branch }}
-        workflow-head-sha: ${{ inputs.workflow-head-sha }}
-
     - name: Resolve release context
       id: release_context
       shell: bash
       env:
         INPUT_RELEASE_TAG: ${{ inputs.release-tag-input }}
-        TRIGGERING_HEAD_BRANCH: ${{ inputs.workflow-head-branch }}
-        TRIGGERING_HEAD_SHA: ${{ steps.fetch_latest.outputs.sha }}
+        INPUT_CONFIRM_BRANCH_RELEASE_TAG: ${{ inputs.confirm-branch-release-tag }}
+        REQUIRE_BRANCH_RELEASE_TAG_CONFIRMATION: ${{ inputs.require-branch-release-tag-confirmation }}
+        TRIGGERING_SOURCE_REF: ${{ inputs.source-ref }}
+        TRIGGERING_SOURCE_SHA: ${{ inputs.source-sha }}
       run: ./scripts/release/resolve-release-context.sh
