@@ -2,26 +2,59 @@ name: Deploy Backend
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional semver override. Leave blank to use the selected release/vX.Y.Z-* branch version.'
+        required: false
   workflow_run:
     workflows: ['E2E']
     types:
       - completed
+    branches:
+      - 'release/**'
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  deploy:
-    name: CDK Deploy (prod)
+  prepare:
+    name: Prepare backend release context
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    outputs:
+      source_ref: ${{ steps.release_context.outputs.source_ref }}
+      source_sha: ${{ steps.release_context.outputs.source_sha }}
+      release_tag: ${{ steps.release_context.outputs.release_tag }}
+      release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Resolve release context
+        id: release_context
+        env:
+          INPUT_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+          TRIGGERING_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TRIGGERING_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: ./scripts/resolve-release-context.sh
+
+  deploy:
+    name: CDK Deploy (prod, ${{ needs.prepare.outputs.release_tag }})
+    runs-on: ubuntu-latest
+    needs: prepare
     environment: prod
     env:
       TARGET_ENV: prod
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.source_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,19 +77,11 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_DEFAULT_REGION }}
 
-      - name: Determine release tag
-        id: release_tag
-        run: |
-          git fetch --tags --force
-          tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
-          echo "release_tag=${tag}" >> "$GITHUB_OUTPUT"
-
       - name: CDK deploy
         run: |
           cd infra
           CONTEXT_ARGS=(--context env=prod)
-          [ -n "${{ steps.release_tag.outputs.release_tag }}" ] && \
-            CONTEXT_ARGS+=(--context "releaseTag=${{ steps.release_tag.outputs.release_tag }}")
+          [ -n "$RELEASE_TAG" ] && CONTEXT_ARGS+=(--context "releaseTag=$RELEASE_TAG")
           npx cdk deploy \
             Awdah-data-stack-prod \
             Awdah-auth-stack-prod \

@@ -163,12 +163,27 @@ Production deploys happen through GitHub Actions:
 
 1. **CI** (`ci.yml`) — lint, typecheck, build, test, audit on every push/PR
 2. **E2E** (`e2e.yml`) — Docker-based Playwright tests after CI passes
-3. **Deploy Backend** (`deploy.yml`) — CDK deploy to prod, smoke test `/health`
-4. **Deploy Frontend** (`deploy-pages.yml`) — build, verify CSP, push to GitHub Pages, publish release
+3. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing
+4. **Deploy Backend** (`deploy.yml`) — for `release/vX.Y.Z-*` branches, deploy the exact triggering branch SHA to prod and smoke test `/health`
+5. **Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, resolve the release version, build, verify CSP, push to GitHub Pages, and publish the GitHub release
+
+`main` is validation only. Production publishing happens from a release branch or an explicit tagged release, not from an ordinary merge to `main`.
 
 ### Release versioning
 
-Release tags follow `vX.Y.Z` format. The deploy-pages workflow auto-increments the patch version unless a manual override is provided. Branch names matching `release/vX.Y.Z-*` automatically set the app version.
+Release tags follow `vX.Y.Z` format. Branch names matching `release/vX.Y.Z-*` are the source of truth for automated production releases. When you manually run `deploy-pages.yml` from a release branch, leave `release_tag` blank unless you need an emergency override.
+
+The workflow resolves the version in this order:
+
+1. Manual `release_tag` input, if you provide one
+2. The selected branch name if it matches `release/vX.Y.Z-*`
+3. An existing semver tag already attached to the exact source commit
+
+If none of those are available, the workflow fails instead of guessing. This is intentional: it prevents the Pages release from silently using an older tag lineage.
+
+GitHub Actions cannot dynamically prefill the environment approval dialog with a computed suggestion. Instead, the workflow computes the release version before the protected deploy job starts and shows it in the run summary and deploy job name.
+
+Deploy validation is only for pull requests into `main`. It is not part of the production publish chain.
 
 ---
 

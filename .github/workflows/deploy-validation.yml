@@ -1,0 +1,112 @@
+name: Deploy Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate-backend-deploy:
+    name: Validate Backend Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
+
+      - name: Build infra
+        run: cd infra && npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+
+      - name: CDK synth (validate templates)
+        run: |
+          cd infra
+          npx cdk synth \
+            Awdah-data-stack-prod \
+            Awdah-auth-stack-prod \
+            Awdah-api-stack-prod \
+            Awdah-backup-stack-prod \
+            Awdah-alarm-stack-prod \
+            --context env=prod
+
+      - name: Check CDK diff (dry-run)
+        run: |
+          cd infra
+          npx cdk diff \
+            Awdah-data-stack-prod \
+            Awdah-auth-stack-prod \
+            Awdah-api-stack-prod \
+            Awdah-backup-stack-prod \
+            Awdah-alarm-stack-prod \
+            --context env=prod || true
+
+  validate-pages-deploy:
+    name: Validate Pages Deploy
+    runs-on: ubuntu-latest
+    needs: validate-backend-deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+
+      - name: Build frontend for GitHub Pages
+        run: ./scripts/build-frontend.sh prod
+        env:
+          VITE_AUTH_MODE: cognito
+          VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+          VITE_APP_VERSION: pr-${{ github.event.pull_request.number }}
+          VITE_APP_RELEASE_TAG: pr-${{ github.event.pull_request.number }}
+          VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
+          PAGES_BASE_PATH: /awdah/
+          PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
+          PAGES_SITE_URL: https://amgad01.github.io/awdah/
+          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
+          SKIP_SHARED_BUILD: '1'
+
+      - name: Verify Pages bundle paths
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist https://amgad01.github.io/awdah/ /awdah/
+
+      - name: Upload build artifact (for inspection)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-build-pr-${{ github.event.pull_request.number }}
+          path: apps/frontend/dist
+          retention-days: 1

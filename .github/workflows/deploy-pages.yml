@@ -8,7 +8,7 @@ on:
         required: false
         default: 'pages'
       release_tag:
-        description: 'Optional semver tag override (example: v1.2.3)'
+        description: 'Optional semver override. Leave blank to use the selected release/vX.Y.Z-* branch version.'
         required: false
       release_tagger_name:
         description: 'Optional Git tagger name to use for the release tag'
@@ -20,6 +20,8 @@ on:
     workflows: ['Deploy Backend']
     types:
       - completed
+    branches:
+      - 'release/**'
 
 permissions:
   contents: write
@@ -30,22 +32,46 @@ concurrency:
   group: deploy-pages
   cancel-in-progress: false
 
-env:
-  # The version tag created on the very first pipeline run (when no git tags exist).
-  # Change this before the initial release if you want a different starting version.
-  DEFAULT_FIRST_VERSION: v1.0.0
-
 jobs:
-  deploy:
-    name: Build and deploy to GitHub Pages
+  prepare:
+    name: Prepare Pages release context
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    outputs:
+      source_ref: ${{ steps.release_context.outputs.source_ref }}
+      source_sha: ${{ steps.release_context.outputs.source_sha }}
+      release_tag: ${{ steps.release_context.outputs.release_tag }}
+      release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Resolve release context
+        id: release_context
+        env:
+          INPUT_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+          TRIGGERING_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TRIGGERING_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: ./scripts/resolve-release-context.sh
+
+  deploy:
+    name: Build and deploy to GitHub Pages (${{ needs.prepare.outputs.release_tag }})
+    runs-on: ubuntu-latest
+    needs: prepare
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.source_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -55,42 +81,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Determine release tag
-        id: release_tag
-        run: |
-          git fetch --tags --force
-
-          input_tag='${{ github.event.inputs.release_tag }}'
-          semver_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
-
-          if [ -n "$input_tag" ]; then
-            if ! printf '%s' "$input_tag" | grep -Eq "$semver_pattern"; then
-              echo "Invalid release_tag '$input_tag'. Expected format vX.Y.Z" >&2
-              exit 1
-            fi
-            release_tag="$input_tag"
-          else
-            latest_tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
-
-            if [ -z "$latest_tag" ]; then
-              release_tag="${DEFAULT_FIRST_VERSION}"
-            else
-              major=${latest_tag#v}
-              major=${major%%.*}
-
-              rest=${latest_tag#v${major}.}
-              minor=${rest%%.*}
-
-              patch=${latest_tag##*.}
-              next_patch=$((patch + 1))
-
-              release_tag="v${major}.${minor}.${next_patch}"
-            fi
-          fi
-
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
 
       - name: Create and push release tag
         run: |
@@ -111,7 +101,7 @@ jobs:
           if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists locally."
           else
-            git tag -a "$RELEASE_TAG" "$GITHUB_SHA" -m "GitHub Pages release $RELEASE_TAG"
+            git tag -a "$RELEASE_TAG" "$SOURCE_SHA" -m "GitHub Pages release $RELEASE_TAG"
           fi
 
           if git ls-remote --tags origin | grep -Fq "refs/tags/${RELEASE_TAG}"; then
@@ -134,8 +124,8 @@ jobs:
         env:
           VITE_AUTH_MODE: cognito
           VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-          VITE_APP_VERSION: ${{ steps.release_tag.outputs.release_tag }}
-          VITE_APP_RELEASE_TAG: ${{ steps.release_tag.outputs.release_tag }}
+          VITE_APP_VERSION: ${{ needs.prepare.outputs.release_tag }}
+          VITE_APP_RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
           PAGES_BASE_PATH: /awdah/
           PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
@@ -161,9 +151,9 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release_tag.outputs.release_tag }}
-          name: Awdah ${{ steps.release_tag.outputs.release_tag }}
-          target_commitish: ${{ github.sha }}
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          name: Awdah ${{ needs.prepare.outputs.release_tag }}
+          target_commitish: ${{ needs.prepare.outputs.source_sha }}
           generate_release_notes: true
           make_latest: true
 
