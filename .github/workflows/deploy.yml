@@ -20,28 +20,6 @@ on:
         description: '[Internal] Exact commit SHA to deploy. Leave blank for manual runs.'
         required: false
         type: string
-  workflow_call:
-    inputs:
-      confirm_branch_release_tag:
-        description: 'Use the release tag parsed from the selected release branch'
-        required: false
-        type: boolean
-        default: false
-      release_tag:
-        description: 'Optional semver override'
-        required: false
-        type: string
-        default: ''
-      source_ref:
-        description: 'Source branch/ref to deploy'
-        required: false
-        type: string
-        default: ''
-      source_sha:
-        description: 'Exact commit SHA to deploy'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -90,6 +68,7 @@ jobs:
     name: CDK Deploy (prod)
     runs-on: ubuntu-latest
     needs: [prepare, approve]
+    environment: prod
     permissions:
       contents: read
       id-token: write

@@ -75,44 +75,299 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra
 
+  release-prepare:
+    name: Prepare Release Context
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: quality
+    runs-on: ubuntu-latest
+    outputs:
+      source_ref: ${{ steps.context.outputs.source_ref }}
+      source_sha: ${{ steps.context.outputs.source_sha }}
+      release_tag: ${{ steps.context.outputs.release_tag }}
+    steps:
+      - name: Checkout release workflow code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.sha }}
+
+      - name: Resolve source ref, SHA, and release tag
+        id: context
+        uses: ./.github/actions/prepare-release
+        with:
+          source-ref: ${{ github.ref_name }}
+          source-sha: ${{ github.sha }}
+
   release-e2e:
     name: E2E (Release Gate)
     if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
-    needs: quality
-    uses: ./.github/workflows/e2e.yml
-    with:
-      source_ref: ${{ github.ref_name }}
-      source_sha: ${{ github.sha }}
+    needs: release-prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ needs.release-prepare.outputs.source_sha }}
+
+      - name: Setup and install dependencies
+        uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
+          build-shared: 'false'
+
+      - name: Start Awdah Stack (Docker)
+        run: docker compose up -d localstack backend frontend
+
+      - name: Wait for services
+        run: |
+          # Wait for LocalStack
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:4566/_localstack/health | grep -Eq '"dynamodb"[[:space:]]*:[[:space:]]*"(running|available)"'; then
+              break
+            fi
+            sleep 2
+          done
+          # Wait for Backend
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Seed E2E users
+        run: |
+          curl -fsS -X POST http://localhost:3000/v1/e2e/seed \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "users": [
+                {"email": "history@example.com"},
+                {"email": "settings@example.com"},
+                {"email": "tracker@example.com"}
+              ]
+            }'
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests
+        run: npx playwright test --project=chromium
+        working-directory: apps/frontend
+        env:
+          E2E_BASE_URL: http://localhost:8080
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-artifacts-${{ github.run_id }}
+          path: |
+            apps/frontend/playwright-report
+            apps/frontend/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
+
+  release-backend-approve:
+    name: 'Approve Backend: ${{ needs.release-prepare.outputs.release_tag }} @ ${{ needs.release-prepare.outputs.source_sha }}'
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: [release-prepare, release-e2e]
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Approval granted
+        run: echo "Approved backend deploy"
 
   release-backend:
     name: Deploy Backend (Release)
     if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
-    needs: release-e2e
+    needs: [release-prepare, release-backend-approve]
+    runs-on: ubuntu-latest
+    environment: prod
     permissions:
       contents: read
       id-token: write
-    secrets: inherit
-    uses: ./.github/workflows/deploy.yml
-    with:
-      confirm_branch_release_tag: true
-      release_tag: ''
-      source_ref: ${{ github.ref_name }}
-      source_sha: ${{ github.sha }}
+    env:
+      TARGET_ENV: prod
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      RELEASE_TAG: ${{ needs.release-prepare.outputs.release_tag }}
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-prepare.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
+
+      - name: Build infra
+        run: cd infra && npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
+
+      - name: CDK deploy
+        run: |
+          cd infra
+          CONTEXT_ARGS=(--context env=prod --context "releaseTag=$RELEASE_TAG")
+          npx cdk deploy \
+            Awdah-data-stack-prod \
+            Awdah-auth-stack-prod \
+            Awdah-api-stack-prod \
+            Awdah-backup-stack-prod \
+            Awdah-alarm-stack-prod \
+            "${CONTEXT_ARGS[@]}" \
+            --require-approval never
+
+      - name: Smoke test deployed API
+        run: |
+          api_url=$(aws ssm get-parameter --name /awdah/prod/api/url --query 'Parameter.Value' --output text)
+          health_body=$(curl --fail --silent --show-error --retry 6 --retry-all-errors "${api_url}/health")
+          printf '%s' "$health_body" | grep -q '"status":"UP"'
+
+          protected_status=$(curl --silent --show-error --output /tmp/protected-route.json --write-out '%{http_code}' "${api_url}/v1/user/profile")
+          test "$protected_status" = "401"
+
+  release-pages-approve:
+    name: 'Approve Pages: ${{ needs.release-prepare.outputs.release_tag }} @ ${{ needs.release-prepare.outputs.source_sha }}'
+    if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
+    needs: [release-prepare, release-backend]
+    runs-on: ubuntu-latest
+    environment: github-pages
+    steps:
+      - name: Approval granted
+        run: echo "Approved pages deploy"
 
   release-pages:
     name: Deploy Pages (Release)
     if: ${{ github.event_name == 'push' && startsWith(github.ref_name, 'release/') }}
-    needs: release-backend
+    needs: [release-prepare, release-pages-approve]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pages: write
       id-token: write
-    secrets: inherit
-    uses: ./.github/workflows/deploy-pages.yml
-    with:
-      confirm_branch_release_tag: true
-      release_tag: ''
-      release_tagger_name: ''
-      release_tagger_email: ''
-      source_ref: ${{ github.ref_name }}
-      source_sha: ${{ github.sha }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      RELEASE_TAG: ${{ needs.release-prepare.outputs.release_tag }}
+      SOURCE_SHA: ${{ needs.release-prepare.outputs.source_sha }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN }}
+      PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+      PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL }}
+      PAGES_CNAME: ${{ vars.PAGES_CNAME }}
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-prepare.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
+
+      - name: Create and push release tag
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch --tags --force
+
+          if git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            tagged_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+            if [ "$tagged_sha" != "$SOURCE_SHA" ]; then
+              echo "Tag $RELEASE_TAG already points to $tagged_sha, expected $SOURCE_SHA."
+              exit 1
+            fi
+            echo "Tag $RELEASE_TAG already exists locally on the correct commit."
+          else
+            git tag -a "$RELEASE_TAG" "$SOURCE_SHA" -m "GitHub Pages release $RELEASE_TAG"
+          fi
+
+          remote_tag_sha="$(git ls-remote origin "refs/tags/${RELEASE_TAG}^{}" | awk '{print $1}' | head -n 1)"
+          if [ -n "$remote_tag_sha" ]; then
+            if [ "$remote_tag_sha" != "$SOURCE_SHA" ]; then
+              echo "Remote tag $RELEASE_TAG already points to $remote_tag_sha, expected $SOURCE_SHA."
+              exit 1
+            fi
+            echo "Tag $RELEASE_TAG already exists on origin for the correct commit."
+          else
+            git push origin "$RELEASE_TAG"
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Build frontend for GitHub Pages
+        run: ./scripts/build-frontend.sh prod
+        env:
+          VITE_AUTH_MODE: cognito
+          VITE_AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          VITE_APP_VERSION: ${{ needs.release-prepare.outputs.release_tag }}
+          VITE_APP_RELEASE_TAG: ${{ needs.release-prepare.outputs.release_tag }}
+          VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
+          PAGES_BASE_PATH: ${{ env.PAGES_BASE_PATH }}
+          PAGES_ORIGIN: ${{ env.PAGES_ORIGIN }}
+          PAGES_SITE_URL: ${{ env.PAGES_SITE_URL }}
+          PAGES_CNAME: ${{ env.PAGES_CNAME }}
+          SKIP_SHARED_BUILD: '1'
+
+      - name: Verify Pages bundle paths
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist ${{ env.PAGES_SITE_URL }} ${{ env.PAGES_BASE_PATH }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/frontend/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-prepare.outputs.release_tag }}
+          name: Awdah ${{ needs.release-prepare.outputs.release_tag }}
+          target_commitish: ${{ needs.release-prepare.outputs.source_sha }}
+          generate_release_notes: true
+          make_latest: true
+
+      - name: Smoke test deployed Pages site
+        run: |
+          expected_url="${{ env.PAGES_SITE_URL }}"
+          page_url="${{ steps.deployment.outputs.page_url }}"
+
+          case "$page_url" in
+            "$expected_url"|"$expected_url"*)
+              ;;
+            *)
+              echo "Unexpected GitHub Pages URL: $page_url"
+              exit 1
+              ;;
+          esac
+
+          body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
+          printf '%s' "$body" | grep -q 'Awdah'
+          printf '%s' "$body" | grep -q "${{ env.PAGES_BASE_PATH }}assets/"
+          printf '%s' "$body" | grep -q "${{ env.PAGES_SITE_URL }}"

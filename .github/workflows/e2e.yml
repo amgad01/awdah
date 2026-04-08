@@ -11,18 +11,6 @@ on:
         description: '[Internal] Exact commit SHA to test. Leave blank for manual runs.'
         required: false
         type: string
-  workflow_call:
-    inputs:
-      source_ref:
-        description: 'Source branch/ref to test'
-        required: false
-        type: string
-        default: ''
-      source_sha:
-        description: 'Exact commit SHA to test'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read

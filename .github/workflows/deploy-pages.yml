@@ -26,38 +26,6 @@ on:
         description: '[Internal] Exact commit SHA to deploy. Leave blank for manual runs.'
         required: false
         type: string
-  workflow_call:
-    inputs:
-      confirm_branch_release_tag:
-        description: 'Use the release tag parsed from the selected release branch'
-        required: false
-        type: boolean
-        default: false
-      release_tag:
-        description: 'Optional semver override'
-        required: false
-        type: string
-        default: ''
-      release_tagger_name:
-        description: 'Optional Git tagger name to use for the release tag'
-        required: false
-        type: string
-        default: ''
-      release_tagger_email:
-        description: 'Optional Git tagger email to use for the release tag'
-        required: false
-        type: string
-        default: ''
-      source_ref:
-        description: 'Source branch/ref to deploy'
-        required: false
-        type: string
-        default: ''
-      source_sha:
-        description: 'Exact commit SHA to deploy'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -116,9 +84,12 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
       SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
-      AWS_DEFAULT_REGION: eu-west-1
-      PAGES_ORIGIN: https://amgad01.github.io
-      PAGES_CNAME: ''
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN }}
+      PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+      PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL }}
+      PAGES_CNAME: ${{ vars.PAGES_CNAME }}
 
     steps:
       - name: Checkout release commit
@@ -174,7 +145,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Build frontend for GitHub Pages
@@ -185,14 +156,14 @@ jobs:
           VITE_APP_VERSION: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
-          PAGES_BASE_PATH: /awdah/
+          PAGES_BASE_PATH: ${{ env.PAGES_BASE_PATH }}
           PAGES_ORIGIN: ${{ env.PAGES_ORIGIN }}
-          PAGES_SITE_URL: https://amgad01.github.io/awdah/
+          PAGES_SITE_URL: ${{ env.PAGES_SITE_URL }}
           PAGES_CNAME: ${{ env.PAGES_CNAME }}
           SKIP_SHARED_BUILD: '1'
 
       - name: Verify Pages bundle paths
-        run: ./scripts/verify-pages-dist.sh apps/frontend/dist https://amgad01.github.io/awdah/ /awdah/
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist ${{ env.PAGES_SITE_URL }} ${{ env.PAGES_BASE_PATH }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
@@ -217,7 +188,7 @@ jobs:
 
       - name: Smoke test deployed Pages site
         run: |
-          expected_url="https://amgad01.github.io/awdah/"
+          expected_url="${{ env.PAGES_SITE_URL }}"
           page_url="${{ steps.deployment.outputs.page_url }}"
 
           case "$page_url" in
@@ -231,5 +202,5 @@ jobs:
 
           body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
           printf '%s' "$body" | grep -q 'Awdah'
-          printf '%s' "$body" | grep -q '/awdah/assets/'
-          printf '%s' "$body" | grep -q 'https://amgad01.github.io/awdah/'
+          printf '%s' "$body" | grep -q "${{ env.PAGES_BASE_PATH }}assets/"
+          printf '%s' "$body" | grep -q "${{ env.PAGES_SITE_URL }}"

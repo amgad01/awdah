@@ -161,17 +161,17 @@ npm run dev:backend               # localhost:3000
 
 Production deploys happen through GitHub Actions:
 
-1. **CI** (`ci.yml`) — lint, typecheck, build, test, audit on every push/PR
-2. **E2E** (`e2e.yml`) — Docker-based Playwright tests after CI passes
-3. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
-4. **Deploy Backend** (`deploy.yml`) — for `release/vX.Y.Z-*` branches, resolve the exact tested source SHA plus release tag, surface both in the approval gate, deploy to prod, and smoke test `/health`
-5. **Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, create or verify the release tag on that commit, build for Pages, publish the GitHub release, and smoke test the live site
+1. **CI** (`ci.yml`) — lint, typecheck, build, test, and audit on every push; on `release/vX.Y.Z-*` pushes it also runs the full automatic release lane inside the same workflow run
+2. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
+3. **Manual E2E** (`e2e.yml`) — Docker-based Playwright tests you can run manually against the selected ref/SHA
+4. **Manual Deploy Backend** (`deploy.yml`) — resolve the exact source SHA plus release tag, surface both in the approval gate, deploy to prod, and smoke test `/health`
+5. **Manual Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, create or verify the release tag on that commit, build for Pages, publish the GitHub release, and smoke test the live site
 
 `main` is validation only. Production publishing happens from a release branch or an explicit tagged release, not from an ordinary merge to `main`.
 
 ### Release versioning
 
-Release tags follow `vX.Y.Z` format. Branch names matching `release/vX.Y.Z-*` are the source of truth for automated production releases. Automatic `workflow_run` deploys use the upstream run's exact `head_sha`, so the release chain publishes the same commit that passed the previous gate.
+Release tags follow `vX.Y.Z` format. Branch names matching `release/vX.Y.Z-*` are the source of truth for automated production releases. The automatic release lane now stays inside `ci.yml`, so the same workflow run carries the exact pushed commit through quality checks, release preparation, E2E, backend deploy, and Pages deploy without spawning separate child workflow runs.
 
 When you run `deploy.yml` or `deploy-pages.yml` manually from a release branch:
 
@@ -263,7 +263,7 @@ Every push and PR triggers `ci.yml`:
 8. Run all unit tests (vitest)
 9. Security audit (high severity)
 
-After CI passes, `e2e.yml` runs Docker-based Playwright tests. Automatic production publishing then chains only for `release/**`: `E2E -> Deploy Backend -> Deploy Pages`, with manual approvals on both deploy workflows.
+On ordinary branches, CI stops there. On `release/**` pushes, the same `ci.yml` run continues through `Prepare Release Context -> E2E -> Approve Backend -> Deploy Backend -> Approve Pages -> Deploy Pages`. The standalone `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` workflows are reserved for manual debugging or controlled reruns.
 
 ### Running tests locally
 

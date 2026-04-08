@@ -168,17 +168,17 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow                | Trigger                                    | Purpose                                                                                      |
-| ----------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `ci.yml`                | Every push, PRs, manual                    | Lint, typecheck, builds, tests, security audit                                               |
-| `e2e.yml`               | After `ci.yml` succeeds, or manual         | Dockerized Playwright E2E against the full local stack                                       |
-| `deploy-validation.yml` | PRs targeting `main`                       | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish         |
-| `deploy.yml`            | After `e2e.yml` on `release/**`, or manual | Resolve source SHA + version from branch name, CDK deploy to prod, smoke-test API            |
-| `deploy-pages.yml`      | After `deploy.yml` on `release/**`, manual | Build frontend from same source SHA, create release tag, deploy to Pages, publish GH release |
+| Workflow                | Trigger              | Purpose                                                                                     |
+| ----------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `ci.yml`                | Every push, manual   | Lint, typecheck, builds, tests, audit, and the full automatic release lane for `release/**` |
+| `e2e.yml`               | Manual               | Ad hoc Dockerized Playwright E2E against the full local stack                               |
+| `deploy-validation.yml` | PRs targeting `main` | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish        |
+| `deploy.yml`            | Manual               | Controlled backend production deploy from an exact ref/SHA, with approval + smoke test      |
+| `deploy-pages.yml`      | Manual               | Controlled Pages deploy from an exact ref/SHA, tag/release publish, and Pages smoke test    |
 
-`main` is validation only. Production publishing happens from branches whose names begin with the `release/vX.Y.Z-*` prefix. The release version is derived from that branch name prefix — no auto-increment.
+`main` is validation only. Production publishing happens automatically only inside the `CI` workflow when a push lands on a branch whose name begins with `release/vX.Y.Z-*`. That single run performs quality checks, resolves the release context, runs Dockerized E2E on the same commit, waits for backend approval/deploy, then waits for Pages approval/deploy. The release version is derived from the branch name prefix, not auto-incremented from older tags.
 
-For automatic release runs, the `workflow_run` stages explicitly check out the upstream run's `head_sha`, so the deploy chain uses the exact tested commit from the release branch instead of falling back to default-branch context. For manual runs, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
+Manual `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` runs still exist for debugging, reruns, and controlled recovery. For manual deploys, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
 
 ## Contributing
 
