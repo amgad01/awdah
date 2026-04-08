@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: deploy-validation-${{ github.event.pull_request.number }}
@@ -33,12 +32,6 @@ jobs:
 
       - name: Build infra
         run: cd infra && npm run build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
 
       - name: CDK synth (validate templates)
         run: |
@@ -81,24 +74,20 @@ jobs:
       - name: Build shared package
         run: npm run build --workspace=packages/shared
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod
         env:
           VITE_AUTH_MODE: cognito
-          VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+          VITE_AWS_REGION: eu-west-1
+          VITE_API_BASE_URL: https://validation.invalid
+          VITE_COGNITO_USER_POOL_ID: validation-user-pool
+          VITE_COGNITO_CLIENT_ID: validation-client
           VITE_APP_VERSION: pr-${{ github.event.pull_request.number }}
           VITE_APP_RELEASE_TAG: pr-${{ github.event.pull_request.number }}
-          VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
+          VITE_APP_EMAIL: validation@example.invalid
           PAGES_BASE_PATH: /awdah/
-          PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
+          PAGES_ORIGIN: https://amgad01.github.io
           PAGES_SITE_URL: https://amgad01.github.io/awdah/
-          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
           SKIP_SHARED_BUILD: '1'
 
       - name: Verify Pages bundle paths

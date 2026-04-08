@@ -163,7 +163,7 @@ Production deploys happen through GitHub Actions:
 
 1. **CI** (`ci.yml`) — lint, typecheck, build, test, audit on every push/PR
 2. **E2E** (`e2e.yml`) — Docker-based Playwright tests after CI passes
-3. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing
+3. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
 4. **Deploy Backend** (`deploy.yml`) — for `release/vX.Y.Z-*` branches, deploy the exact triggering branch SHA to prod and smoke test `/health`
 5. **Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, resolve the release version, build, verify CSP, push to GitHub Pages, and publish the GitHub release
 
@@ -183,7 +183,7 @@ If none of those are available, the workflow fails instead of guessing. This is 
 
 GitHub Actions cannot dynamically prefill the environment approval dialog with a computed suggestion. Instead, the workflow computes the release version before the protected deploy job starts and shows it in the run summary and deploy job name.
 
-Deploy validation is only for pull requests into `main`. It is not part of the production publish chain.
+Deploy validation is only for pull requests into `main`. It is not part of the production publish chain, and it avoids live AWS access by using local build inputs.
 
 ---
 

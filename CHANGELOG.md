@@ -43,6 +43,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Production deploy workflows now resolve the exact source branch and SHA before deploying, instead of relying on the default-branch context of `workflow_run`
 - Production release numbering now prefers the `release/vX.Y.Z-*` branch prefix and reuses the same resolved version across backend deploy, Pages deploy, Git tag creation, and GitHub release publication
 - Automatic production deploy chaining is now limited to `release/**` branches so release intent is explicit
+- Deploy validation now runs as a credential-free pull-request dry run with placeholder frontend inputs instead of assuming an AWS role
 
 #### Frontend
 
