@@ -43,6 +43,11 @@ jobs:
       release_tag: ${{ steps.release_context.outputs.release_tag }}
       release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Prepare release
         id: release_context
         uses: ./.github/actions/prepare-release
@@ -61,16 +66,22 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
       SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
-      PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
-      PAGES_CNAME: ${{ vars.PAGES_CNAME || '' }}
+      AWS_DEFAULT_REGION: eu-west-1
+      PAGES_ORIGIN: https://amgad01.github.io
+      PAGES_CNAME: ''
 
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           fetch-depth: 0
+          skip-checkout: 'true'
 
       - name: Create and push release tag
         run: |

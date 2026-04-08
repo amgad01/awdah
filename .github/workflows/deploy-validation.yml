@@ -16,8 +16,15 @@ jobs:
     name: Validate Backend Deploy
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
 
       - name: Build infra
         run: cd infra && npm run build
@@ -49,8 +56,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-backend-deploy
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
 
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod

@@ -20,10 +20,19 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
         with:
           build-shared: 'false'
+          # The explicit checkout above is required so this workflow can load the local action
+          # definition from ./.github/actions/setup-and-build; the action's own checkout is
+          # skipped here to avoid performing the same repository checkout twice.
+          skip-checkout: 'true'
 
       - name: Start Awdah Stack (Docker)
         run: docker compose up -d localstack backend frontend

@@ -16,8 +16,15 @@ jobs:
     name: Lint, Typecheck, Build, Test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout for local action access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Setup and build
         uses: ./.github/actions/setup-and-build
+        with:
+          skip-checkout: 'true'
 
       - name: ESLint
         run: npm run lint
