@@ -44,6 +44,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Production release numbering now prefers the `release/vX.Y.Z-*` branch prefix and reuses the same resolved version across backend deploy, Pages deploy, Git tag creation, and GitHub release publication
 - Automatic production deploy chaining is now limited to `release/**` branches so release intent is explicit
 - Deploy validation now runs as a credential-free pull-request dry run with placeholder frontend inputs instead of assuming an AWS role
+- Shared composite actions now centralize release preparation and setup/build behavior across CI, deploy validation, backend deploy, and Pages deploy so SHA resolution cannot drift between workflows.
+- Pages and backend release workflows now surface the computed release tag in the prepare job before environment approval, which makes the approved version visible in the Actions UI
 
 #### Frontend
 
@@ -76,6 +78,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - GitHub Pages releases no longer auto-increment from unrelated historic tags when deploying a release branch
 - Release tags and GitHub releases now target the actual branch commit being deployed instead of the default branch HEAD during chained workflow runs
 - GitHub Pages release tagging now falls back safely when the current ref is not a `release/vX.Y.Z-*` branch, which prevents empty-tag pipeline failures
+- `workflow_run` release workflows now explicitly resolve the branch HEAD through a shared helper instead of trusting the stale queued SHA, which fixed the repeated `v1.0.1` and `v1.0.2` drift
 - Deploy scripts no longer print false failure banners after a successful frontend deploy
 - Fixed `deploy-frontend.sh` false failure detection bug
 - Fixed `deploy.sh` syntax error from duplicate lines

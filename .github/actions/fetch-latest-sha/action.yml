@@ -1,0 +1,46 @@
+name: 'Fetch Latest SHA'
+description: 'Fetches the actual latest commit SHA from a branch, falling back to github.sha when branch is not available'
+
+inputs:
+  branch:
+    description: 'Branch name to fetch latest SHA from'
+    required: true
+  workflow-head-sha:
+    description: 'SHA from workflow_run event (for comparison/logging)'
+    required: false
+    default: ''
+
+outputs:
+  sha:
+    description: 'Resolved SHA (latest from branch or fallback)'
+    value: ${{ steps.fetch.outputs.sha }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Fetch latest commit SHA
+      id: fetch
+      shell: bash
+      run: |
+        branch="${{ inputs.branch }}"
+        workflow_head_sha="${{ inputs.workflow-head-sha }}"
+        fallback_sha="${{ github.sha }}"
+
+        if [ -n "$branch" ] && [ "$branch" != "" ]; then
+          git fetch origin "$branch" || true
+          if git rev-parse --verify --quiet "origin/${branch}" >/dev/null 2>&1; then
+            actual_sha=$(git rev-parse "origin/${branch}")
+            echo "Workflow run SHA: ${workflow_head_sha:-N/A}"
+            echo "Actual branch HEAD: $actual_sha"
+            if [ -n "$workflow_head_sha" ] && [ "$actual_sha" != "$workflow_head_sha" ]; then
+              echo "WARNING: workflow_run.head_sha is stale. Using actual branch HEAD."
+            fi
+            echo "sha=$actual_sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "Could not fetch branch $branch, using fallback SHA"
+            echo "sha=$fallback_sha" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "No branch provided, using fallback SHA: $fallback_sha"
+          echo "sha=$fallback_sha" >> "$GITHUB_OUTPUT"
+        fi

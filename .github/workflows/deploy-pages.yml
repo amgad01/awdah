@@ -43,18 +43,13 @@ jobs:
       release_tag: ${{ steps.release_context.outputs.release_tag }}
       release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
-      - name: Resolve release context
+      - name: Prepare release
         id: release_context
-        env:
-          INPUT_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
-          TRIGGERING_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          TRIGGERING_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: ./scripts/resolve-release-context.sh
+        uses: ./.github/actions/prepare-release
+        with:
+          release-tag-input: ${{ github.event.inputs.release_tag }}
+          workflow-head-branch: ${{ github.event.workflow_run.head_branch }}
+          workflow-head-sha: ${{ github.event.workflow_run.head_sha }}
 
   deploy:
     name: Build and deploy to GitHub Pages (${{ needs.prepare.outputs.release_tag }})
@@ -66,21 +61,16 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
       SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+      PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
+      PAGES_CNAME: ${{ vars.PAGES_CNAME || '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
         with:
-          fetch-depth: 0
           ref: ${{ needs.prepare.outputs.source_sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
+          fetch-depth: 0
 
       - name: Create and push release tag
         run: |
@@ -110,27 +100,24 @@ jobs:
             git push origin "$RELEASE_TAG"
           fi
 
-      - name: Build shared package
-        run: npm run build --workspace=packages/shared
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod
         env:
           VITE_AUTH_MODE: cognito
-          VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION || 'eu-west-1' }}
+          VITE_AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
           VITE_APP_VERSION: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
           PAGES_BASE_PATH: /awdah/
-          PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN || 'https://amgad01.github.io' }}
+          PAGES_ORIGIN: ${{ env.PAGES_ORIGIN }}
           PAGES_SITE_URL: https://amgad01.github.io/awdah/
-          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
+          PAGES_CNAME: ${{ env.PAGES_CNAME }}
           SKIP_SHARED_BUILD: '1'
 
       - name: Verify Pages bundle paths

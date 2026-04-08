@@ -16,19 +16,8 @@ jobs:
     name: Validate Backend Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared
-        run: npm run build --workspace=packages/shared
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
 
       - name: Build infra
         run: cd infra && npm run build
@@ -60,19 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-backend-deploy
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared package
-        run: npm run build --workspace=packages/shared
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
 
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod

@@ -16,19 +16,8 @@ jobs:
     name: Lint, Typecheck, Build, Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared
-        run: npm run build --workspace=packages/shared
+      - name: Setup and build
+        uses: ./.github/actions/setup-and-build
 
       - name: ESLint
         run: npm run lint

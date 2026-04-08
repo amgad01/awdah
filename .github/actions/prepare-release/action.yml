@@ -1,0 +1,55 @@
+name: 'Prepare Release'
+description: 'Checkout code, fetch latest SHA, and resolve release context for deployment workflows'
+
+inputs:
+  release-tag-input:
+    description: 'Optional manual release tag override'
+    required: false
+    default: ''
+  workflow-head-branch:
+    description: 'Branch from workflow_run event'
+    required: false
+    default: ''
+  workflow-head-sha:
+    description: 'SHA from workflow_run event'
+    required: false
+    default: ''
+
+outputs:
+  source_ref:
+    description: 'Source branch/ref'
+    value: ${{ steps.release_context.outputs.source_ref }}
+  source_sha:
+    description: 'Resolved source SHA'
+    value: ${{ steps.release_context.outputs.source_sha }}
+  release_tag:
+    description: 'Resolved release tag'
+    value: ${{ steps.release_context.outputs.release_tag }}
+  release_tag_source:
+    description: 'Source of release tag determination'
+    value: ${{ steps.release_context.outputs.release_tag_source }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+    - name: Fetch latest commit SHA
+      id: fetch_latest
+      uses: ./.github/actions/fetch-latest-sha
+      with:
+        branch: ${{ inputs.workflow-head-branch }}
+        workflow-head-sha: ${{ inputs.workflow-head-sha }}
+
+    - name: Resolve release context
+      id: release_context
+      shell: bash
+      env:
+        INPUT_RELEASE_TAG: ${{ inputs.release-tag-input }}
+        TRIGGERING_HEAD_BRANCH: ${{ inputs.workflow-head-branch }}
+        TRIGGERING_HEAD_SHA: ${{ steps.fetch_latest.outputs.sha }}
+      run: ./scripts/resolve-release-context.sh

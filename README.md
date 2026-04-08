@@ -168,12 +168,15 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow           | Trigger                           | Purpose                                                                     |
-| ------------------ | --------------------------------- | --------------------------------------------------------------------------- |
-| `ci.yml`           | PRs, main, manual                 | Lint, typecheck, builds, tests, security audit                              |
-| `e2e.yml`          | After `ci.yml` succeeds or manual | Dockerized Playwright E2E against the dev stack                             |
-| `deploy.yml`       | Manual                            | Deploy backend CDK stacks to AWS and smoke-test the API                     |
-| `deploy-pages.yml` | Manual or after `deploy.yml`      | Build frontend, create semver release tag, deploy to Pages, smoke-test site |
+| Workflow                | Trigger                                    | Purpose                                                                                      |
+| ----------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `ci.yml`                | Every push, PRs, manual                    | Lint, typecheck, builds, tests, security audit                                               |
+| `e2e.yml`               | After `ci.yml` succeeds, or manual         | Dockerized Playwright E2E against the full local stack                                       |
+| `deploy-validation.yml` | PRs targeting `main`                       | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish         |
+| `deploy.yml`            | After `e2e.yml` on `release/**`, or manual | Resolve source SHA + version from branch name, CDK deploy to prod, smoke-test API            |
+| `deploy-pages.yml`      | After `deploy.yml` on `release/**`, manual | Build frontend from same source SHA, create release tag, deploy to Pages, publish GH release |
+
+`main` is validation only. Production publishing happens from branches whose names begin with the `release/vX.Y.Z-*` prefix. The release version is derived from that branch name prefix — no auto-increment.
 
 ## Contributing
 
