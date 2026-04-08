@@ -145,25 +145,25 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_DEFAULT_REGION }}
 
       - name: Build frontend for GitHub Pages
         run: ./scripts/build-frontend.sh prod
         env:
           VITE_AUTH_MODE: cognito
-          VITE_AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          VITE_AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
           VITE_APP_VERSION: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
           VITE_APP_EMAIL: ${{ secrets.VITE_APP_EMAIL }}
-          PAGES_BASE_PATH: ${{ env.PAGES_BASE_PATH }}
-          PAGES_ORIGIN: ${{ env.PAGES_ORIGIN }}
-          PAGES_SITE_URL: ${{ env.PAGES_SITE_URL }}
-          PAGES_CNAME: ${{ env.PAGES_CNAME }}
+          PAGES_BASE_PATH: ${{ vars.PAGES_BASE_PATH }}
+          PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN }}
+          PAGES_SITE_URL: ${{ vars.PAGES_SITE_URL }}
+          PAGES_CNAME: ${{ vars.PAGES_CNAME }}
           SKIP_SHARED_BUILD: '1'
 
       - name: Verify Pages bundle paths
-        run: ./scripts/verify-pages-dist.sh apps/frontend/dist ${{ env.PAGES_SITE_URL }} ${{ env.PAGES_BASE_PATH }}
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist ${{ vars.PAGES_SITE_URL }} ${{ vars.PAGES_BASE_PATH }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
@@ -188,7 +188,7 @@ jobs:
 
       - name: Smoke test deployed Pages site
         run: |
-          expected_url="${{ env.PAGES_SITE_URL }}"
+          expected_url="${{ vars.PAGES_SITE_URL }}"
           page_url="${{ steps.deployment.outputs.page_url }}"
 
           case "$page_url" in
@@ -202,5 +202,5 @@ jobs:
 
           body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
           printf '%s' "$body" | grep -q 'Awdah'
-          printf '%s' "$body" | grep -q "${{ env.PAGES_BASE_PATH }}assets/"
-          printf '%s' "$body" | grep -q "${{ env.PAGES_SITE_URL }}"
+          printf '%s' "$body" | grep -q "${{ vars.PAGES_BASE_PATH }}assets/"
+          printf '%s' "$body" | grep -q "${{ vars.PAGES_SITE_URL }}"
