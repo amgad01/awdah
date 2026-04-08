@@ -1,18 +1,18 @@
 name: 'Fetch Latest SHA'
-description: 'Fetches the actual latest commit SHA from a branch, falling back to github.sha when branch is not available'
+description: 'Resolves the commit SHA to deploy. Uses workflow_head_sha when provided (the exact commit E2E validated); only falls back to live branch HEAD when no SHA is supplied.'
 
 inputs:
   branch:
-    description: 'Branch name to fetch latest SHA from'
+    description: 'Branch name (used only as a fallback when workflow-head-sha is empty)'
     required: true
   workflow-head-sha:
-    description: 'SHA from workflow_run event (for comparison/logging)'
+    description: 'SHA from workflow_run event — the exact commit CI/E2E ran against. When present this is used directly; the live branch HEAD is NOT fetched.'
     required: false
     default: ''
 
 outputs:
   sha:
-    description: 'Resolved SHA (latest from branch or fallback)'
+    description: 'Resolved SHA'
     value: ${{ steps.fetch.outputs.sha }}
 
 runs:
@@ -26,18 +26,24 @@ runs:
         workflow_head_sha="${{ inputs.workflow-head-sha }}"
         fallback_sha="${{ github.sha }}"
 
-        if [ -n "$branch" ] && [ "$branch" != "" ]; then
+        # Prefer the SHA that CI/E2E actually validated.
+        # Fetching the live branch HEAD risks deploying a commit that was never tested.
+        if [ -n "$workflow_head_sha" ]; then
+          echo "Using workflow_run SHA (the exact commit E2E validated): $workflow_head_sha"
+          echo "sha=$workflow_head_sha" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # No workflow SHA supplied (e.g. manual workflow_dispatch without a prior run).
+        # Fall back to the live branch HEAD.
+        if [ -n "$branch" ]; then
           git fetch origin "$branch" || true
           if git rev-parse --verify --quiet "origin/${branch}" >/dev/null 2>&1; then
             actual_sha=$(git rev-parse "origin/${branch}")
-            echo "Workflow run SHA: ${workflow_head_sha:-N/A}"
-            echo "Actual branch HEAD: $actual_sha"
-            if [ -n "$workflow_head_sha" ] && [ "$actual_sha" != "$workflow_head_sha" ]; then
-              echo "WARNING: workflow_run.head_sha is stale. Using actual branch HEAD."
-            fi
+            echo "No workflow_run SHA provided. Using live branch HEAD: $actual_sha"
             echo "sha=$actual_sha" >> "$GITHUB_OUTPUT"
           else
-            echo "Could not fetch branch $branch, using fallback SHA"
+            echo "Could not fetch branch $branch, using fallback SHA: $fallback_sha"
             echo "sha=$fallback_sha" >> "$GITHUB_OUTPUT"
           fi
         else

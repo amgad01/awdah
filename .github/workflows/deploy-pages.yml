@@ -136,7 +136,6 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           fetch-depth: 0
-          skip-checkout: 'true'
 
       - name: Create and push release tag
         run: |
