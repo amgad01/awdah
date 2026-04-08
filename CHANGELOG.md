@@ -46,6 +46,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Deploy validation now runs as a credential-free pull-request dry run with placeholder frontend inputs instead of assuming an AWS role
 - Shared composite actions now centralize release preparation and setup/build behavior across CI, deploy validation, backend deploy, and Pages deploy so SHA resolution cannot drift between workflows.
 - Pages and backend release workflows now surface the computed release tag in the prepare job before environment approval, which makes the approved version visible in the Actions UI
+- Deploy backend and Pages release workflows now scope concurrency to the source commit and split the protected approval into a dedicated gate job, so the approval screen shows the resolved tag and SHA before deployment starts
+- Deploy Pages now waits for the matching backend deploy on the same commit before it proceeds, preventing Pages from racing ahead of the backend release
 
 #### Frontend
 

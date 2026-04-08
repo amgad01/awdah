@@ -17,7 +17,7 @@ on:
         description: 'Optional Git tagger email to use for the release tag'
         required: false
   workflow_run:
-    workflows: ['Deploy Backend']
+    workflows: ['E2E']          # Same 1-hop source as Deploy Backend — preserves head_branch/head_sha
     types:
       - completed
     branches:
@@ -28,8 +28,11 @@ permissions:
   pages: write
   id-token: write
 
+# Scoped to the triggering commit — same strategy as deploy.yml.
+# Pages deployments must not cancel each other (cancel-in-progress: false) because
+# a partially-uploaded Pages artifact leaves the site in a broken state.
 concurrency:
-  group: deploy-pages
+  group: deploy-pages-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: false
 
 jobs:
@@ -56,10 +59,62 @@ jobs:
           workflow-head-branch: ${{ github.event.workflow_run.head_branch }}
           workflow-head-sha: ${{ github.event.workflow_run.head_sha }}
 
-  deploy:
-    name: Build and deploy to GitHub Pages (${{ needs.prepare.outputs.release_tag }})
+      - name: Wait for Deploy Backend to succeed on this commit
+        # Skipped on manual dispatch — caller is responsible for ensuring backend is live.
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.release_context.outputs.source_sha }}
+        run: |
+          echo "Waiting for Deploy Backend (deploy.yml) to succeed on commit $SOURCE_SHA..."
+
+          for i in $(seq 1 30); do
+            # --commit does not work for workflow_run-triggered workflows because GitHub
+            # indexes runs by the SHA that directly triggered them, not the release commit.
+            # We fetch the last 20 runs and filter by headSha in jq instead.
+            # Both Deploy Backend and Deploy Pages are triggered by the same E2E run, so
+            # their headSha values are identical — this filter is commit-specific.
+            conclusion=$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow="deploy.yml" \
+              --limit 20 \
+              --json headSha,conclusion,status \
+              --jq --arg sha "$SOURCE_SHA" \
+                'map(select(.headSha == $sha)) | .[0] | .conclusion // .status // ""')
+
+            echo "Attempt $i/30: conclusion=${conclusion:-not_found}"
+
+            if [ "$conclusion" = "success" ]; then
+              echo "Deploy Backend succeeded on $SOURCE_SHA. Proceeding with Pages deploy."
+              exit 0
+            elif [ "$conclusion" = "failure" ] || [ "$conclusion" = "cancelled" ]; then
+              echo "Deploy Backend failed or was cancelled on $SOURCE_SHA. Aborting Pages deploy." >&2
+              exit 1
+            fi
+            # conclusion is blank, "in_progress", "queued", or "waiting" — keep polling
+            sleep 20
+          done
+
+          echo "Timed out (10 min) waiting for Deploy Backend on $SOURCE_SHA." >&2
+          exit 1
+
+  # Dedicated approval gate job. Runs after prepare and the backend gate have both passed,
+  # so its name — shown in the GitHub environment approval dialog — contains the actual
+  # tag and SHA. Move the 'github-pages' environment protection rule here (remove it from deploy).
+  approve:
+    name: 'Approve: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}'
     runs-on: ubuntu-latest
     needs: prepare
+    environment: github-pages
+    steps:
+      - name: Approval granted
+        run: |
+          echo "Approved: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}"
+
+  deploy:
+    name: Build and deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [prepare, approve]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
