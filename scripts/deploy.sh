@@ -160,8 +160,34 @@ echo "=> [4/6] Synthesizing all stacks..."
 cd "$INFRA_DIR"
 CONTEXT_ARGS=(--context "env=${ENV}")
 [ -n "$ALERT_EMAIL" ] && CONTEXT_ARGS+=("--context=alertEmail=${ALERT_EMAIL}")
-RELEASE_TAG="$(git -C "$ROOT_DIR" describe --tags --exact-match 2>/dev/null || git -C "$ROOT_DIR" tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
-[ -n "$RELEASE_TAG" ] && CONTEXT_ARGS+=("--context=releaseTag=${RELEASE_TAG}")
+
+CURRENT_BRANCH="$(git -C "$ROOT_DIR" branch --show-current || true)"
+CURRENT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD)"
+RELEASE_TAG_OVERRIDE="${RELEASE_TAG_OVERRIDE:-${RELEASE_TAG:-}}"
+
+# Resolve release tag deterministically from explicit input, release branch, or commit tag.
+# Never fall back to the globally newest tag because that can point at another branch.
+release_output_file="$(mktemp)"
+if (
+  cd "$ROOT_DIR"
+  INPUT_RELEASE_TAG="$RELEASE_TAG_OVERRIDE" \
+  TRIGGERING_HEAD_BRANCH="$CURRENT_BRANCH" \
+  TRIGGERING_HEAD_SHA="$CURRENT_SHA" \
+  GITHUB_OUTPUT="$release_output_file" \
+  ./scripts/release/resolve-release-context.sh >/dev/null
+); then
+  RELEASE_TAG="$(grep '^release_tag=' "$release_output_file" | head -n 1 | cut -d= -f2-)"
+  [ -n "$RELEASE_TAG" ] && CONTEXT_ARGS+=("--context=releaseTag=${RELEASE_TAG}")
+  echo "Resolved release tag: ${RELEASE_TAG}"
+else
+  if [ "$ENV" = "prod" ]; then
+    echo "Unable to resolve a deterministic release tag for prod deploy." >&2
+    rm -f "$release_output_file"
+    exit 1
+  fi
+  echo "No deterministic release tag found for env '$ENV'; continuing without releaseTag context."
+fi
+rm -f "$release_output_file"
 
 if ! npx cdk synth --all "${CONTEXT_ARGS[@]}"; then
   exit 1

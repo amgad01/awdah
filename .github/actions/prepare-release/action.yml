@@ -52,4 +52,4 @@ runs:
         INPUT_RELEASE_TAG: ${{ inputs.release-tag-input }}
         TRIGGERING_HEAD_BRANCH: ${{ inputs.workflow-head-branch }}
         TRIGGERING_HEAD_SHA: ${{ steps.fetch_latest.outputs.sha }}
-      run: ./scripts/resolve-release-context.sh
+      run: ./scripts/release/resolve-release-context.sh

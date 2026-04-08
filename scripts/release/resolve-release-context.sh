@@ -29,10 +29,7 @@ if [[ "$source_ref" =~ $release_branch_pattern ]]; then
   branch_release_tag="${BASH_REMATCH[1]}"
 fi
 
-commit_release_tag=""
-if git tag --points-at "$source_sha" --list 'v[0-9]*.[0-9]*.[0-9]*' >/dev/null 2>&1; then
-  commit_release_tag="$(git tag --points-at "$source_sha" --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
-fi
+commit_release_tag="$(git tag --points-at "$source_sha" --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
 
 release_tag_source=""
 release_tag=""
@@ -91,22 +88,10 @@ if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
   {
     echo "## Release Context"
     echo
-    echo "- Source ref: \
-
-
-  $source_ref"
-    echo "- Source SHA: \
-
-
-  $source_sha"
-    echo "- Resolved release tag: \
-
-
-  $release_tag"
-    echo "- Release tag source: \
-
-
-  $release_tag_source"
+    echo "- Source ref: $source_ref"
+    echo "- Source SHA: $source_sha"
+    echo "- Resolved release tag: $release_tag"
+    echo "- Release tag source: $release_tag_source"
     echo
     echo "GitHub Actions cannot dynamically prefill the workflow approval dialog with a computed value."
     echo "This workflow resolves the version before the protected deploy job starts and exposes it in the run summary and job name instead."
