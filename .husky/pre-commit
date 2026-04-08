@@ -10,7 +10,7 @@ cd "$ROOT"
 STAGED=$(git diff --name-only --cached --diff-filter=ACMR 2>/dev/null || true)
 [ -z "$STAGED" ] && exit 0   # nothing staged → nothing to check
 
-STAGED_FMT=$(printf '%s\n' "$STAGED" | grep -E '\.(ts|tsx|js|jsx|json|css|md)$' || true)
+STAGED_FMT=$(printf '%s\n' "$STAGED" | grep -E '\.(ts|tsx|js|jsx|json|css|md|yml|yaml)$' || true)
 STAGED_TS=$(printf '%s\n' "$STAGED" | grep -E '\.(ts|tsx)$' || true)
 
 # ── 1. Format staged files in-place then re-stage ────────────────────────────
