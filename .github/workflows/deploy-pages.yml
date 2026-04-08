@@ -3,12 +3,8 @@ name: Deploy to GitHub Pages
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Target environment (pages deployments are always public)'
-        required: false
-        default: 'pages'
       release_tag:
-        description: 'Optional semver override. Leave blank to use the selected release/vX.Y.Z-* branch version.'
+        description: 'Optional semver override for manual runs (example: v1.1.0)'
         required: false
       release_tagger_name:
         description: 'Optional Git tagger name to use for the release tag'
@@ -17,7 +13,7 @@ on:
         description: 'Optional Git tagger email to use for the release tag'
         required: false
   workflow_run:
-    workflows: ['E2E'] # Same 1-hop source as Deploy Backend — preserves head_branch/head_sha
+    workflows: ['Deploy Backend']
     types:
       - completed
     branches:
@@ -28,79 +24,63 @@ permissions:
   pages: write
   id-token: write
 
-# Scoped to the triggering commit — same strategy as deploy.yml.
-# Pages deployments must not cancel each other (cancel-in-progress: false) because
-# a partially-uploaded Pages artifact leaves the site in a broken state.
 concurrency:
   group: deploy-pages-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: false
 
 jobs:
   prepare:
-    name: Prepare Pages release context
+    name: Prepare pages release context
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository && startsWith(github.event.workflow_run.head_branch, 'release/')) }}
     outputs:
-      source_ref: ${{ steps.release_context.outputs.source_ref }}
-      source_sha: ${{ steps.release_context.outputs.source_sha }}
-      release_tag: ${{ steps.release_context.outputs.release_tag }}
-      release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
+      source_ref: ${{ steps.context.outputs.source_ref }}
+      source_sha: ${{ steps.context.outputs.source_sha }}
+      release_tag: ${{ steps.context.outputs.release_tag }}
     steps:
-      - name: Checkout for local action access
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Prepare release
-        id: release_context
-        uses: ./.github/actions/prepare-release
-        with:
-          release-tag-input: ${{ github.event.inputs.release_tag }}
-          workflow-head-branch: ${{ github.event.workflow_run.head_branch }}
-          workflow-head-sha: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Wait for Deploy Backend to succeed on this commit
-        # Skipped on manual dispatch — caller is responsible for ensuring backend is live.
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ steps.release_context.outputs.source_sha }}
+      - name: Resolve source ref, SHA, and release tag
+        id: context
+        shell: bash
         run: |
-          echo "Waiting for Deploy Backend (deploy.yml) to succeed on commit $SOURCE_SHA..."
+          set -euo pipefail
 
-          for i in $(seq 1 30); do
-            # --commit does not work for workflow_run-triggered workflows because GitHub
-            # indexes runs by the SHA that directly triggered them, not the release commit.
-            # We fetch the last 20 runs and filter by headSha in jq instead.
-            # Both Deploy Backend and Deploy Pages are triggered by the same E2E run, so
-            # their headSha values are identical — this filter is commit-specific.
-            conclusion=$(gh run list \
-              --repo "$GITHUB_REPOSITORY" \
-              --workflow="deploy.yml" \
-              --limit 20 \
-              --json headSha,conclusion,status \
-              --jq --arg sha "$SOURCE_SHA" \
-                'map(select(.headSha == $sha)) | .[0] | .conclusion // .status // ""')
+          semver_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
+          release_branch_pattern='^release/(v[0-9]+\.[0-9]+\.[0-9]+)([-/].*)?$'
+          input_release_tag='${{ github.event.inputs.release_tag }}'
 
-            echo "Attempt $i/30: conclusion=${conclusion:-not_found}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            source_ref='${{ github.event.workflow_run.head_branch }}'
+            git fetch origin "$source_ref" --depth=1
+            source_sha="$(git rev-parse "origin/$source_ref")"
+          else
+            source_ref='${{ github.ref_name }}'
+            source_sha='${{ github.sha }}'
+          fi
 
-            if [ "$conclusion" = "success" ]; then
-              echo "Deploy Backend succeeded on $SOURCE_SHA. Proceeding with Pages deploy."
-              exit 0
-            elif [ "$conclusion" = "failure" ] || [ "$conclusion" = "cancelled" ]; then
-              echo "Deploy Backend failed or was cancelled on $SOURCE_SHA. Aborting Pages deploy." >&2
+          if [ -n "$input_release_tag" ]; then
+            if ! printf '%s' "$input_release_tag" | grep -Eq "$semver_pattern"; then
+              echo "Invalid manual release_tag '$input_release_tag'. Expected format vX.Y.Z" >&2
               exit 1
             fi
-            # conclusion is blank, "in_progress", "queued", or "waiting" — keep polling
-            sleep 20
-          done
+            release_tag="$input_release_tag"
+          elif [[ "$source_ref" =~ $release_branch_pattern ]]; then
+            release_tag="${BASH_REMATCH[1]}"
+          else
+            echo "Could not derive release tag from branch '$source_ref'. Provide workflow input release_tag (vX.Y.Z)." >&2
+            exit 1
+          fi
 
-          echo "Timed out (10 min) waiting for Deploy Backend on $SOURCE_SHA." >&2
-          exit 1
+          {
+            echo "source_ref=$source_ref"
+            echo "source_sha=$source_sha"
+            echo "release_tag=$release_tag"
+          } >> "$GITHUB_OUTPUT"
 
-  # Dedicated approval gate job. Runs after prepare and the backend gate have both passed,
-  # so its name — shown in the GitHub environment approval dialog — contains the actual
-  # tag and SHA. Move the 'github-pages' environment protection rule here (remove it from deploy).
   approve:
     name: 'Approve: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}'
     runs-on: ubuntu-latest
@@ -108,8 +88,7 @@ jobs:
     environment: github-pages
     steps:
       - name: Approval granted
-        run: |
-          echo "Approved: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}"
+        run: echo "Approved pages deploy"
 
   deploy:
     name: Build and deploy to GitHub Pages
@@ -126,16 +105,23 @@ jobs:
       PAGES_CNAME: ''
 
     steps:
-      - name: Checkout for local action access
+      - name: Checkout release commit
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Setup and build
-        uses: ./.github/actions/setup-and-build
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
 
       - name: Create and push release tag
         run: |
@@ -172,7 +158,7 @@ jobs:
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Build frontend for GitHub Pages
-        run: ./scripts/deploy/build-frontend.sh prod
+        run: ./scripts/build-frontend.sh prod
         env:
           VITE_AUTH_MODE: cognito
           VITE_AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
@@ -186,7 +172,7 @@ jobs:
           SKIP_SHARED_BUILD: '1'
 
       - name: Verify Pages bundle paths
-        run: ./scripts/ci/verify-pages-dist.sh apps/frontend/dist https://amgad01.github.io/awdah/ /awdah/
+        run: ./scripts/verify-pages-dist.sh apps/frontend/dist https://amgad01.github.io/awdah/ /awdah/
 
       - name: Configure Pages
         uses: actions/configure-pages@v4
@@ -223,4 +209,7 @@ jobs:
               ;;
           esac
 
-          ./scripts/ci/smoke-test-pages.sh "$expected_url"
+          body=$(curl --fail --silent --show-error --location --retry 6 --retry-all-errors "$expected_url")
+          printf '%s' "$body" | grep -q 'Awdah'
+          printf '%s' "$body" | grep -q '/awdah/assets/'
+          printf '%s' "$body" | grep -q 'https://amgad01.github.io/awdah/'

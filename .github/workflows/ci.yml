@@ -16,15 +16,19 @@ jobs:
     name: Lint, Typecheck, Build, Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout for local action access
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - uses: actions/checkout@v4
 
-      - name: Setup and build
-        uses: ./.github/actions/setup-and-build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          skip-checkout: 'true'
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
 
       - name: ESLint
         run: npm run lint

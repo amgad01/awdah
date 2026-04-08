@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional semver override. Leave blank to use the selected release/vX.Y.Z-* branch version.'
+        description: 'Optional semver override for manual runs (example: v1.1.0)'
         required: false
   workflow_run:
     workflows: ['E2E']
@@ -17,8 +17,6 @@ permissions:
   contents: read
   id-token: write
 
-# Scoped to the triggering commit so parallel release branches never block each other,
-# and required-check status is always tied to the specific commit being deployed.
 concurrency:
   group: deploy-backend-${{ github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: false
@@ -27,30 +25,55 @@ jobs:
   prepare:
     name: Prepare backend release context
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository && startsWith(github.event.workflow_run.head_branch, 'release/')) }}
     outputs:
-      source_ref: ${{ steps.release_context.outputs.source_ref }}
-      source_sha: ${{ steps.release_context.outputs.source_sha }}
-      release_tag: ${{ steps.release_context.outputs.release_tag }}
-      release_tag_source: ${{ steps.release_context.outputs.release_tag_source }}
+      source_ref: ${{ steps.context.outputs.source_ref }}
+      source_sha: ${{ steps.context.outputs.source_sha }}
+      release_tag: ${{ steps.context.outputs.release_tag }}
     steps:
-      - name: Checkout for local action access
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Prepare release
-        id: release_context
-        uses: ./.github/actions/prepare-release
-        with:
-          release-tag-input: ${{ github.event.inputs.release_tag }}
-          workflow-head-branch: ${{ github.event.workflow_run.head_branch }}
-          workflow-head-sha: ${{ github.event.workflow_run.head_sha }}
+      - name: Resolve source ref, SHA, and release tag
+        id: context
+        shell: bash
+        run: |
+          set -euo pipefail
 
-  # Dedicated approval gate job. Runs after prepare has resolved the release context,
-  # so its name — shown in the GitHub environment approval dialog — contains the actual
-  # tag and SHA. Move the 'prod' environment protection rule here (remove it from deploy).
-  # The reviewer sees exactly what they are approving before clicking Approve.
+          semver_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
+          release_branch_pattern='^release/(v[0-9]+\.[0-9]+\.[0-9]+)([-/].*)?$'
+          input_release_tag='${{ github.event.inputs.release_tag }}'
+
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            source_ref='${{ github.event.workflow_run.head_branch }}'
+            git fetch origin "$source_ref" --depth=1
+            source_sha="$(git rev-parse "origin/$source_ref")"
+          else
+            source_ref='${{ github.ref_name }}'
+            source_sha='${{ github.sha }}'
+          fi
+
+          if [ -n "$input_release_tag" ]; then
+            if ! printf '%s' "$input_release_tag" | grep -Eq "$semver_pattern"; then
+              echo "Invalid manual release_tag '$input_release_tag'. Expected format vX.Y.Z" >&2
+              exit 1
+            fi
+            release_tag="$input_release_tag"
+          elif [[ "$source_ref" =~ $release_branch_pattern ]]; then
+            release_tag="${BASH_REMATCH[1]}"
+          else
+            echo "Could not derive release tag from branch '$source_ref'. Provide workflow input release_tag (vX.Y.Z)." >&2
+            exit 1
+          fi
+
+          {
+            echo "source_ref=$source_ref"
+            echo "source_sha=$source_sha"
+            echo "release_tag=$release_tag"
+          } >> "$GITHUB_OUTPUT"
+
   approve:
     name: 'Approve: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}'
     runs-on: ubuntu-latest
@@ -58,8 +81,7 @@ jobs:
     environment: prod
     steps:
       - name: Approval granted
-        run: |
-          echo "Approved: ${{ needs.prepare.outputs.release_tag }} @ ${{ needs.prepare.outputs.source_sha }}"
+        run: echo "Approved backend deploy"
 
   deploy:
     name: CDK Deploy (prod)
@@ -70,16 +92,22 @@ jobs:
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
-      - name: Checkout for local action access
+      - name: Checkout release commit
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-
-      - name: Setup and build
-        uses: ./.github/actions/setup-and-build
-        with:
           ref: ${{ needs.prepare.outputs.source_sha }}
-          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared
+        run: npm run build --workspace=packages/shared
 
       - name: Build infra
         run: cd infra && npm run build
@@ -93,8 +121,7 @@ jobs:
       - name: CDK deploy
         run: |
           cd infra
-          CONTEXT_ARGS=(--context env=prod)
-          [ -n "$RELEASE_TAG" ] && CONTEXT_ARGS+=(--context "releaseTag=$RELEASE_TAG")
+          CONTEXT_ARGS=(--context env=prod --context "releaseTag=$RELEASE_TAG")
           npx cdk deploy \
             Awdah-data-stack-prod \
             Awdah-auth-stack-prod \
