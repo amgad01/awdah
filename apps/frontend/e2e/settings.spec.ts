@@ -60,7 +60,7 @@ test.describe('Settings Page', () => {
     const downloadPromise = page.waitForEvent('download', { timeout: 1500 }).catch(() => null);
     await page.getByRole('button', { name: /^confirm$/i }).click();
 
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByTestId('settings-export-error')).toBeVisible();
     await expect(await downloadPromise).toBeNull();
   });
 
@@ -80,7 +80,7 @@ test.describe('Settings Page', () => {
 
       await page.getByRole('button', { name: /^confirm$/i }).click();
 
-      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(page.getByTestId('settings-reset-error')).toBeVisible();
       await expect(passwordInput).toBeVisible();
       await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
     });
@@ -97,7 +97,7 @@ test.describe('Settings Page', () => {
 
     await page.getByRole('button', { name: /delete my account/i }).click();
 
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByTestId('settings-delete-error')).toBeVisible();
     await expect(page.getByRole('heading', { name: /settings/i })).toBeVisible();
   });
 });

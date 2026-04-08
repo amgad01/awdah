@@ -95,7 +95,11 @@ export const DangerZoneSection: React.FC = () => {
                 aria-label={t('settings.delete_confirm_password')}
               />
               {resetError && (
-                <p className={styles.deleteErrorText} role="alert">
+                <p
+                  className={styles.deleteErrorText}
+                  role="alert"
+                  data-testid="settings-reset-error"
+                >
                   {resetError}
                 </p>
               )}
@@ -154,7 +158,11 @@ export const DangerZoneSection: React.FC = () => {
                 aria-label={t('settings.delete_confirm_password')}
               />
               {resetError && (
-                <p className={styles.deleteErrorText} role="alert">
+                <p
+                  className={styles.deleteErrorText}
+                  role="alert"
+                  data-testid="settings-reset-error"
+                >
                   {resetError}
                 </p>
               )}
@@ -223,7 +231,11 @@ export const DangerZoneSection: React.FC = () => {
               aria-label={t('settings.delete_confirm_password')}
             />
             {deleteError && (
-              <p className={styles.deleteErrorText} role="alert">
+              <p
+                className={styles.deleteErrorText}
+                role="alert"
+                data-testid="settings-delete-error"
+              >
                 {deleteError}
               </p>
             )}

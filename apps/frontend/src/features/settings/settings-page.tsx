@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { getAuthErrorKey } from '@/lib/auth-errors';
 import {
   useExportData,
   useProfile,
@@ -49,9 +50,16 @@ export const SettingsPage: React.FC = () => {
 
   const handleExportData = async () => {
     setExportError(null);
+    const email = user?.email || user?.username || '';
+
     try {
-      const email = user?.email || user?.username || '';
       await verifyPassword(email, exportPassword);
+    } catch (error) {
+      setExportError(t(getAuthErrorKey(error, 'settings.verify_password_failed')));
+      return;
+    }
+
+    try {
       await exportData.mutateAsync();
       setShowExportConfirm(false);
       setExportPassword('');
@@ -215,7 +223,11 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
             {exportError && (
-              <p className={styles.exportErrorText} role="alert">
+              <p
+                className={styles.exportErrorText}
+                role="alert"
+                data-testid="settings-export-error"
+              >
                 {exportError}
               </p>
             )}
