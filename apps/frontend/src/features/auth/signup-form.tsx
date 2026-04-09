@@ -14,6 +14,8 @@ interface SignupFormProps {
 
 type SignupPhase = 'register' | 'verify';
 
+const PASSWORD_MIN_LENGTH = 12;
+
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLogin }) => {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
@@ -26,7 +28,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
 
   const passwordChecks = useMemo(
     () => ({
-      length: password.length >= 8,
+      length: password.length >= PASSWORD_MIN_LENGTH,
       lowercase: /[a-z]/.test(password),
       uppercase: /[A-Z]/.test(password),
       number: /\d/.test(password),
@@ -56,7 +58,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       if (needsVerification) {
         setPhase('verify');
       } else {
-        // Local auth — no verification needed, sign in directly
+        // Local auth, no verification needed, sign in directly
         await authService.signIn(email, password);
         onSuccess();
       }

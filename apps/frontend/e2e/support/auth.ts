@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 export function logoutButton(page: Page) {
   return page.getByTestId('logout-button').first();
@@ -56,6 +57,8 @@ export async function switchToSignup(page: Page): Promise<void> {
     .getByRole('button', { name: /^(create account|sign up)$/i })
     .last()
     .click();
+
+  await expect(confirmPasswordField(page)).toBeVisible({ timeout: 10_000 });
 }
 
 export async function submitLogin(page: Page): Promise<void> {

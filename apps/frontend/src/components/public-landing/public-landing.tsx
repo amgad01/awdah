@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
@@ -39,6 +39,15 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   ForgotPasswordForm,
 }) => {
   const { t } = useLanguage();
+  const authPanelRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 767px)').matches) {
+      return;
+    }
+
+    authPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [authView]);
 
   return (
     <div className={styles.authScreen}>
@@ -80,7 +89,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
             </div>
           </section>
 
-          <section className={styles.authPanel}>
+          <section ref={authPanelRef} className={styles.authPanel}>
             <div className={styles.authBranding}>
               <BrandLockup tone="light" size="sm" className={styles.authPanelBrand} />
               <p className={styles.authKicker}>{t('marketing.panel_kicker')}</p>

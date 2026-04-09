@@ -29,6 +29,7 @@ interface PeriodFormProps {
   onEndError: (message: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  onDelete?: () => void;
 }
 
 export const PeriodForm: React.FC<PeriodFormProps> = ({
@@ -52,6 +53,7 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
   onEndError,
   onSubmit,
   onCancel,
+  onDelete,
 }) => {
   const { t } = useLanguage();
 
@@ -119,6 +121,11 @@ export const PeriodForm: React.FC<PeriodFormProps> = ({
         <button type="button" className={styles.cancelAddBtn} onClick={onCancel}>
           {t('common.cancel')}
         </button>
+        {mode === 'edit' && onDelete ? (
+          <button type="button" className={styles.periodDeleteActionBtn} onClick={onDelete}>
+            {t('settings.period_delete')}
+          </button>
+        ) : null}
         <button
           type="button"
           className={styles.confirmAddBtn}

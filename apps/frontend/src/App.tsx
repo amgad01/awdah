@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { lazy, Suspense, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useTheme } from '@/hooks/use-theme';
@@ -162,8 +162,8 @@ function PublicPrivacyPage({
 }
 
 /**
- * The unauthenticated shell supports an initial auth view hint via ?auth=login|signup|forgot.
- * We read the query parameter once on mount and use it only to choose the first panel.
+ * The unauthenticated shell follows the auth query string so buttons and direct links
+ * always reopen the requested form, even after the user navigates elsewhere.
  */
 function UnauthenticatedRoutes({
   authNotice,
@@ -173,11 +173,16 @@ function UnauthenticatedRoutes({
   checkUser: () => void;
 }) {
   const location = useLocation();
-  const initialAuthView = (() => {
+  const navigate = useNavigate();
+
+  const authView = (() => {
     const next = new URLSearchParams(location.search).get('auth');
     return next === 'login' || next === 'signup' || next === 'forgot' ? next : 'login';
   })();
-  const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>(initialAuthView);
+
+  const showLogin = () => navigate('/?auth=login');
+  const showSignup = () => navigate('/?auth=signup');
+  const showForgot = () => navigate('/?auth=forgot');
 
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -188,9 +193,9 @@ function UnauthenticatedRoutes({
             <PublicLanding
               authNotice={authNotice}
               authView={authView}
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-              onShowForgot={() => setAuthView('forgot')}
+              onShowLogin={showLogin}
+              onShowSignup={showSignup}
+              onShowForgot={showForgot}
               onAuthSuccess={checkUser}
               LoginForm={LoginForm}
               SignupForm={SignupForm}
@@ -200,48 +205,23 @@ function UnauthenticatedRoutes({
         />
         <Route
           path="/learn"
-          element={
-            <PublicLearnPage
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-            />
-          }
+          element={<PublicLearnPage onShowLogin={showLogin} onShowSignup={showSignup} />}
         />
         <Route
           path="/demo"
-          element={
-            <PublicDemoPage
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-            />
-          }
+          element={<PublicDemoPage onShowLogin={showLogin} onShowSignup={showSignup} />}
         />
         <Route
           path="/about"
-          element={
-            <PublicAboutPage
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-            />
-          }
+          element={<PublicAboutPage onShowLogin={showLogin} onShowSignup={showSignup} />}
         />
         <Route
           path="/contribute"
-          element={
-            <PublicContributingPage
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-            />
-          }
+          element={<PublicContributingPage onShowLogin={showLogin} onShowSignup={showSignup} />}
         />
         <Route
           path="/privacy"
-          element={
-            <PublicPrivacyPage
-              onShowLogin={() => setAuthView('login')}
-              onShowSignup={() => setAuthView('signup')}
-            />
-          }
+          element={<PublicPrivacyPage onShowLogin={showLogin} onShowSignup={showSignup} />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

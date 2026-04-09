@@ -7,7 +7,7 @@ import styles from './term-tooltip.module.css';
 interface TermTooltipProps {
   /**
    * A glossary key defined in src/content/glossary/glossary.ts.
-   * Any string is accepted — if no entry is found, the children are
+   * Any string is accepted: if no entry is found, the children are
    * rendered as plain text with no badge or tooltip.
    */
   termId: string;
@@ -17,7 +17,7 @@ interface TermTooltipProps {
 /**
  * Wraps a word or phrase and shows a glossary tooltip on hover, focus, or tap.
  * Content comes from src/content/glossary/glossary.ts so adding a new term
- * requires no changes here — just add an entry to the glossary file.
+ * requires no changes here: just add an entry to the glossary file.
  *
  * If the term has no glossary entry, or the active language has no synonyms
  * or definition defined (and there is no English fallback), the children are
@@ -32,25 +32,39 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
   const id = useId();
   const [open, setOpen] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [flip, setFlip] = useState<'up' | 'down'>('down');
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const touchToggleRef = useRef(false);
 
   const computeAndOpen = useCallback(() => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
+      const maxWidth = Math.min(300, window.innerWidth - 16);
+      const estimatedHeight = 160;
       const style: React.CSSProperties = {
         position: 'fixed',
-        // Place tooltip above the trigger: distance from viewport bottom to trigger top, plus gap
-        bottom: window.innerHeight - rect.top + 8,
+        maxWidth,
         zIndex: 9999,
       };
+
+      let direction: 'up' | 'down';
+      if (rect.top > estimatedHeight + 16) {
+        style.bottom = window.innerHeight - rect.top + 8;
+        direction = 'down';
+      } else {
+        style.top = Math.min(window.innerHeight - 8, rect.bottom + 8);
+        direction = 'up';
+      }
+
       if (isRTL) {
         // Align tooltip's right edge with trigger's right edge
         style.right = window.innerWidth - rect.right;
       } else {
         // Align tooltip's left edge with trigger's left edge, clamped to viewport
-        style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 316));
+        style.left = Math.max(8, Math.min(rect.left, window.innerWidth - maxWidth - 8));
       }
       setTooltipStyle(style);
+      setFlip(direction);
     }
     setOpen(true);
   }, [isRTL]);
@@ -59,7 +73,7 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
   const synonyms = entry ? resolveGlossaryText(entry.synonyms, language) : undefined;
   const definition = entry ? resolveGlossaryText(entry.definition, language) : undefined;
 
-  // No content available — render children as plain text, no tooltip, no badge
+  // No content available: render children as plain text, no tooltip, no badge
   if (!entry || (!synonyms && !definition)) {
     return <>{children}</>;
   }
@@ -77,8 +91,28 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
         type="button"
         className={styles.trigger}
         aria-describedby={id}
-        aria-label={`${typeof children === 'string' ? children : termId} — tap for definition`}
+        aria-label={`${typeof children === 'string' ? children : termId}: tap for definition`}
+        onPointerDown={(event) => {
+          if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+            return;
+          }
+
+          event.preventDefault();
+          touchToggleRef.current = true;
+
+          if (open) {
+            setOpen(false);
+            return;
+          }
+
+          computeAndOpen();
+        }}
         onClick={() => {
+          if (touchToggleRef.current) {
+            touchToggleRef.current = false;
+            return;
+          }
+
           if (!open) computeAndOpen();
           else setOpen(false);
         }}
@@ -96,6 +130,7 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
             role="tooltip"
             className={styles.tooltip}
             dir={isRTL ? 'rtl' : 'ltr'}
+            data-flip={flip}
             style={tooltipStyle}
           >
             {entry.arabic && <span className={styles.arabic}>{entry.arabic}</span>}
