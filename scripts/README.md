@@ -218,8 +218,8 @@ All options are set via environment variables:
 | `LOAD_TEST_REQUESTS`       | `25`                    | Total requests across the whole run   |
 | `LOAD_TEST_BURSTS`         | `3`                     | Number of bursts                      |
 | `LOAD_TEST_BURST_PAUSE_MS` | `1000`                  | Pause between bursts in milliseconds  |
-| `LOAD_TEST_JWT`            | ,                       | Bearer token for authenticated routes |
-| `LOAD_TEST_BODY`           | ,                       | JSON string body for POST/PUT/DELETE  |
+| `LOAD_TEST_JWT`            | —                       | Bearer token for authenticated routes |
+| `LOAD_TEST_BODY`           | —                       | JSON string body for POST/PUT/DELETE  |
 
 Outputs p50 and p95 latency, status code breakdown, and network failure count. Exits with code 1 if any server errors or network failures occurred.
 
