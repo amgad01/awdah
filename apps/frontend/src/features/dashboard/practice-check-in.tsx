@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLogPrayer, useSalahHistory } from '@/hooks/use-worship';
+import { isLocalStorageExpiryActive, writeLocalStorageExpiry } from '@/utils/local-storage';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
 import { PracticeCheckInModal } from './practice-check-in-modal';
@@ -14,20 +15,11 @@ const MIN_PERIOD_AGE_DAYS = 14;
 const QADAA_LOG_BATCH_SIZE = 5;
 
 function isDismissed(): boolean {
-  try {
-    const stored = localStorage.getItem(DISMISS_KEY);
-    return stored ? Date.now() < parseInt(stored, 10) : false;
-  } catch {
-    return false;
-  }
+  return isLocalStorageExpiryActive(DISMISS_KEY);
 }
 
 function setDismissedUntil(): void {
-  try {
-    localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_DAYS * 86_400_000));
-  } catch {
-    // Ignore storage errors — worst case the banner simply shows again next visit.
-  }
+  writeLocalStorageExpiry(DISMISS_KEY, DISMISS_DAYS * 86_400_000);
 }
 
 type PrayerName = (typeof PRAYERS)[number];
@@ -53,9 +45,9 @@ async function runInBatches<T>(tasks: Array<() => Promise<T>>, batchSize: number
  * that started 14+ days ago. Shown once every 30 days.
  *
  * Three actions:
- *   — "Quick-add prayers" — opens a modal to log any missed qadaa prayers on the spot.
- *   — "Update my periods" — navigates to Settings to adjust the practicing period.
- *   — "Still going" — dismisses for 30 days with no changes.
+ *   "Quick-add prayers" opens a modal to log any missed qadaa prayers on the spot.
+ *   "Update my periods" navigates to Settings to adjust the practicing period.
+ *   "Still going" dismisses for 30 days with no changes.
  *
  * The quick-add modal shows the 5 prayers with +/- counters. On submit it logs
  * each prayer as qadaa for today, then dismisses the banner.

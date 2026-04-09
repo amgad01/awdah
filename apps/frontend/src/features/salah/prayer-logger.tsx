@@ -7,21 +7,22 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Check, Loader2, Minus, Plus } from 'lucide-react';
 import { DayNav } from '@/components/ui/day-nav/day-nav';
+import { isLocalStorageExpiryActive, writeLocalStorageExpiry } from '@/utils/local-storage';
 import { invalidateSalahQueries } from '@/utils/query-invalidation';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { PRAYERS } from '@/lib/constants';
 import styles from './prayer-logger.module.css';
 import type { PrayerLogResponse } from '@/lib/api';
+
 const SUPPRESS_KEY = 'awdah_prayer_uncheck_suppress';
 const SUPPRESS_MS = 10 * 60 * 1000;
 
 function isSuppressed(): boolean {
-  const stored = localStorage.getItem(SUPPRESS_KEY);
-  return stored ? Date.now() < parseInt(stored, 10) : false;
+  return isLocalStorageExpiryActive(SUPPRESS_KEY);
 }
 
 function setSuppressed(): void {
-  localStorage.setItem(SUPPRESS_KEY, String(Date.now() + SUPPRESS_MS));
+  writeLocalStorageExpiry(SUPPRESS_KEY, SUPPRESS_MS);
 }
 
 type Tab = 'daily' | 'qadaa';
@@ -59,7 +60,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   const logMutation = useLogPrayer();
   const deleteMutation = useDeletePrayer();
 
-  // Daily mode — single obligatory entry per prayer
+  // Daily mode: single obligatory entry per prayer
   const loggedMap = useMemo(() => {
     if (tab !== 'daily') return {} as Record<string, PrayerLogResponse>;
     return (logs ?? [])
@@ -70,7 +71,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
       }, {});
   }, [logs, tab]);
 
-  // Qadaa mode — all entries grouped by prayer name (supports multiple per prayer per day)
+  // Qadaa mode: all entries grouped by prayer name (supports multiple per prayer per day)
   const qadaaLogsMap = useMemo(() => {
     if (tab !== 'qadaa') return {} as Record<string, PrayerLogResponse[]>;
     return (logs ?? [])

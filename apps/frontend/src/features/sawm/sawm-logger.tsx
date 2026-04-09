@@ -7,6 +7,7 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Check, Loader2, Sun, Moon } from 'lucide-react';
 import { DayNav } from '@/components/ui/day-nav/day-nav';
+import { isLocalStorageExpiryActive, writeLocalStorageExpiry } from '@/utils/local-storage';
 import { invalidateSawmQueries } from '@/utils/query-invalidation';
 import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
 import { HijriDate } from '@awdah/shared';
@@ -17,12 +18,11 @@ const SUPPRESS_KEY = 'awdah_fast_uncheck_suppress';
 const SUPPRESS_MS = 10 * 60 * 1000;
 
 function isSuppressed(): boolean {
-  const stored = localStorage.getItem(SUPPRESS_KEY);
-  return stored ? Date.now() < parseInt(stored, 10) : false;
+  return isLocalStorageExpiryActive(SUPPRESS_KEY);
 }
 
 function setSuppressed(): void {
-  localStorage.setItem(SUPPRESS_KEY, String(Date.now() + SUPPRESS_MS));
+  writeLocalStorageExpiry(SUPPRESS_KEY, SUPPRESS_MS);
 }
 
 interface SawmLoggerProps {
@@ -51,7 +51,7 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
     return selectedDate <= birthDate;
   }, [selectedDate, birthDate]);
 
-  // Derive mode from the selected date — Hijri month 9 = Ramadan
+  // Derive mode from the selected date: Hijri month 9 = Ramadan
   const isSelectedRamadan = useMemo(() => {
     return HijriDate.fromString(selectedDate).month === 9;
   }, [selectedDate]);

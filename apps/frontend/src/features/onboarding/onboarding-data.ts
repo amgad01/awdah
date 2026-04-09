@@ -2,6 +2,7 @@ import type { PracticingPeriodResponse, UserProfileResponse } from '@/lib/api';
 import { DEFAULT_DAILY_INTENTION } from '@/lib/constants';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { readPersistedSession } from '@/lib/auth-service';
+import { readLocalStorage, removeLocalStorage, writeLocalStorage } from '@/utils/local-storage';
 
 export const TOTAL_ONBOARDING_STEPS = 6;
 
@@ -74,9 +75,9 @@ export async function saveOnboardingDraft(
   try {
     const payload = JSON.stringify({ step, data });
     const encrypted = await encrypt(payload, draftSecret);
-    localStorage.setItem(draftKey, encrypted);
+    writeLocalStorage(draftKey, encrypted);
   } catch {
-    // Silently fail if draft save fails — not critical, user can re-enter.
+    // Silently fail if draft save fails, not critical, user can re-enter.
   }
 }
 
@@ -89,7 +90,7 @@ export async function loadOnboardingDraft(
   }
 
   try {
-    const raw = localStorage.getItem(draftKey);
+    const raw = readLocalStorage(draftKey);
     if (!raw) return null;
 
     let decrypted: string;
@@ -99,10 +100,10 @@ export async function loadOnboardingDraft(
       try {
         JSON.parse(raw);
       } catch {
-        // Old clear-text or unreadable drafts are ignored
+        // Old clear-text or unreadable drafts are ignored.
       }
 
-      localStorage.removeItem(draftKey);
+      removeLocalStorage(draftKey);
       return null;
     }
 
