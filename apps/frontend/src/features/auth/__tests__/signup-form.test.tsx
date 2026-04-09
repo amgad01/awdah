@@ -176,6 +176,48 @@ describe('SignupForm', () => {
     await waitFor(() => {
       expect(screen.getByText('auth.verify_title')).toBeInTheDocument();
     });
+    expect(screen.getByTestId('verify-email')).toHaveValue('test@example.com');
+  });
+
+  it('uses the updated email for verification and resend actions', async () => {
+    mockSignUp.mockResolvedValue({ needsVerification: true });
+    mockConfirmSignUp.mockResolvedValue(undefined);
+    mockSignIn.mockResolvedValue({ userId: 'user-1', token: 'tok' });
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-email'), {
+      target: { value: 'wrong@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.click(screen.getByTestId('signup-submit'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('verify-email')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('verify-email'), {
+      target: { value: 'right@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('verify-code'), {
+      target: { value: '123456' },
+    });
+    fireEvent.submit(screen.getByTestId('verify-code').closest('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      expect(mockConfirmSignUp).toHaveBeenCalledWith('right@example.com', '123456');
+    });
+    expect(mockSignIn).toHaveBeenCalledWith('right@example.com', STRONG_PASSWORD);
+
+    fireEvent.click(screen.getByTestId('verify-resend'));
+
+    await waitFor(() => {
+      expect(mockSignUp).toHaveBeenLastCalledWith('right@example.com', STRONG_PASSWORD);
+    });
   });
 
   it('navigates to login form when switch link is clicked', () => {

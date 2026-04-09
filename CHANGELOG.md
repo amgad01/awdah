@@ -22,6 +22,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 #### Frontend
 
 - Practice-check-in, prayer uncheck suppression, and fast uncheck suppression now share the same safe expiry handling path instead of each implementing slightly different local storage logic
+- Signup verification now keeps the entered email visible and editable on the code-entry step, so users can confirm or correct the address before resending or submitting the code
 
 ## v1.1.1
 

@@ -103,6 +103,26 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
 
         <form onSubmit={handleVerify} className={styles.form}>
           <div className={styles.inputGroup}>
+            <label htmlFor="verifyEmail">{t('auth.email')}</label>
+            <div className={styles.inputWrapper}>
+              <Mail className={styles.inputIcon} size={18} />
+              <input
+                id="verifyEmail"
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setVerifyCode('');
+                }}
+                placeholder={t('auth.email_placeholder')}
+                autoComplete="email"
+                required
+                data-testid="verify-email"
+              />
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
             <label htmlFor="verifyCode">{t('auth.verify_code')}</label>
             <div className={styles.inputWrapper}>
               <ShieldCheck className={styles.inputIcon} size={18} />
@@ -115,6 +135,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
                 onChange={(e) => setVerifyCode(e.target.value)}
                 placeholder={t('auth.verify_code_placeholder')}
                 required
+                data-testid="verify-code"
               />
             </div>
           </div>
@@ -125,7 +146,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         </form>
 
         <div className={styles.footer}>
-          <button type="button" onClick={handleResend} className={styles.switchBtn}>
+          <button
+            type="button"
+            onClick={handleResend}
+            className={styles.switchBtn}
+            disabled={loading}
+            data-testid="verify-resend"
+          >
             {t('auth.verify_resend')}
           </button>
         </div>
