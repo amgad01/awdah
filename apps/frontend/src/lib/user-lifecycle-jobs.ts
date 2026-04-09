@@ -1,4 +1,5 @@
-import { api, type UserLifecycleJobResponse, type UserLifecycleJobType } from '@/lib/api';
+import type { UserLifecycleJobResponse, UserLifecycleJobType } from '@/lib/api';
+import { userRepository } from '@/domains/user/user-repository';
 
 const USER_JOB_POLL_INTERVAL_MS = 1_500;
 const USER_JOB_POLL_TIMEOUT_MS = 90_000;
@@ -14,7 +15,7 @@ export async function waitForLifecycleJob(
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < USER_JOB_POLL_TIMEOUT_MS) {
-    const response = await api.user.getJobStatus(jobId);
+    const response = await userRepository.getJobStatus(jobId);
     const job = response?.job;
 
     if (!job) {

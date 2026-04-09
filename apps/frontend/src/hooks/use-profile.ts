@@ -1,14 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, ApiRequestError } from '@/lib/api';
+import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
 import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
+import type {
+  CreatePracticingPeriodInput,
+  UpdatePracticingPeriodInput,
+} from '@/domains/salah/salah-repository';
+import type { UpdateUserProfileInput } from '@/domains/user/user-repository';
 import {
   invalidateUserProfile,
   invalidatePracticingPeriods,
   invalidateAllWorshipQueries,
 } from '@/utils/query-invalidation';
+import { salahRepository } from '@/domains/salah/salah-repository';
+import { userRepository } from '@/domains/user/user-repository';
 
 function invalidatePeriodRelatedQueries(queryClient: ReturnType<typeof useQueryClient>) {
   invalidatePracticingPeriods(queryClient);
@@ -19,7 +26,7 @@ export const useProfile = () => {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: QUERY_KEYS.userProfile,
-    queryFn: () => api.user.getProfile(),
+    queryFn: () => userRepository.getProfile(),
     enabled: isAuthenticated,
     retry: false,
     staleTime: PROFILE_STALE_TIME_MS,
@@ -40,14 +47,8 @@ export const useOnboardingStatus = () => {
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      username?: string;
-      bulughDate: string;
-      gender: string;
-      dateOfBirth?: string;
-      revertDate?: string;
-    }) => api.user.updateProfile(data),
+  return useMutation<unknown, Error, UpdateUserProfileInput>({
+    mutationFn: (data) => userRepository.updateProfile(data),
     onSuccess: () => {
       invalidateUserProfile(queryClient);
       invalidateAllWorshipQueries(queryClient);
@@ -58,16 +59,15 @@ export const useUpdateProfile = () => {
 export const usePracticingPeriods = () => {
   return useQuery({
     queryKey: QUERY_KEYS.practicingPeriods,
-    queryFn: () => api.salah.getPeriods(),
+    queryFn: () => salahRepository.getPracticingPeriods(),
     retry: false,
   });
 };
 
 export const useAddPracticingPeriod = () => {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { startDate: string; endDate?: string; type: string }) =>
-      api.salah.addPeriod(data),
+  return useMutation<unknown, Error, CreatePracticingPeriodInput>({
+    mutationFn: (data) => salahRepository.addPracticingPeriod(data),
     onSuccess: () => {
       invalidatePeriodRelatedQueries(queryClient);
     },
@@ -76,9 +76,8 @@ export const useAddPracticingPeriod = () => {
 
 export const useUpdatePracticingPeriod = () => {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { periodId: string; startDate: string; endDate?: string; type: string }) =>
-      api.salah.updatePeriod(data),
+  return useMutation<unknown, Error, UpdatePracticingPeriodInput>({
+    mutationFn: (data) => salahRepository.updatePracticingPeriod(data),
     onSuccess: () => {
       invalidatePeriodRelatedQueries(queryClient);
     },
@@ -88,7 +87,7 @@ export const useUpdatePracticingPeriod = () => {
 export const useDeletePracticingPeriod = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (periodId: string) => api.salah.deletePeriod(periodId),
+    mutationFn: (periodId: string) => salahRepository.deletePracticingPeriod(periodId),
     onSuccess: () => {
       invalidatePeriodRelatedQueries(queryClient);
     },
@@ -98,7 +97,7 @@ export const useDeletePracticingPeriod = () => {
 export const useDeleteAccount = () => {
   return useMutation({
     mutationFn: async () => {
-      const started = await api.user.startDeleteAccount();
+      const started = await userRepository.startDeleteAccount();
       const job = started?.job;
 
       if (!job) {
@@ -106,7 +105,7 @@ export const useDeleteAccount = () => {
       }
 
       await waitForLifecycleJob(job.jobId, 'delete-account');
-      return api.user.finalizeDeleteAccount(job.jobId);
+      return userRepository.finalizeDeleteAccount(job.jobId);
     },
   });
 };
@@ -117,7 +116,7 @@ const EXPORT_DOWNLOAD_RETRY_DELAY_MS = 1000;
 export const useExportData = () => {
   return useMutation({
     mutationFn: async () => {
-      const started = await api.user.startExportData();
+      const started = await userRepository.startExportData();
       const job = started?.job;
 
       if (!job) {
@@ -130,7 +129,7 @@ export const useExportData = () => {
       let lastError: Error | null = null;
       for (let attempt = 0; attempt <= EXPORT_DOWNLOAD_RETRY_ATTEMPTS; attempt++) {
         try {
-          return await api.user.downloadExportData(job.jobId);
+          return await userRepository.downloadExportData(job.jobId);
         } catch (err) {
           lastError = err instanceof Error ? err : new Error(String(err));
           // Only retry on 404 (artifact still propagating)

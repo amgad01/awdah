@@ -1,18 +1,17 @@
-import {
-  type InfiniteData,
-  useInfiniteQuery,
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { api, type FastLogResponse, type HistoryPageResponse } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import type { FastLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
-import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/hooks/use-language';
 import { useProfile } from '@/hooks/use-profile';
-import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 import { invalidateSawmQueries } from '@/utils/query-invalidation';
+import { sawmRepository } from '@/domains/sawm/sawm-repository';
+import {
+  useDailyHistoryQuery,
+  useInfiniteHistoryQuery,
+  useLifecycleResetMutation,
+  useRangeHistoryQuery,
+  useWorshipLogMutation,
+} from './worship-query-helpers';
 
 export { invalidateSawmQueries } from '@/utils/query-invalidation';
 
@@ -22,7 +21,7 @@ export async function fetchFastHistoryPage(
   cursor?: string,
 ): Promise<HistoryPageResponse<FastLogResponse>> {
   return (
-    (await api.sawm.getHistoryPage({
+    (await sawmRepository.getHistoryPage({
       startDate,
       endDate,
       limit: HISTORY_PAGE_SIZE,
@@ -36,97 +35,49 @@ export const useSawmDebt = () => {
 
   return useQuery({
     queryKey: QUERY_KEYS.sawmDebt,
-    queryFn: () => api.sawm.getDebt(),
+    queryFn: () => sawmRepository.getDebt(),
     enabled: !!profile?.bulughDate,
   });
 };
 
 export const useLogFast = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: api.sawm.logFast,
-    onSuccess: (_data, variables) => {
-      invalidateSawmQueries(queryClient, variables.date);
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
+  return useWorshipLogMutation(sawmRepository.logFast, (queryClient, variables) => {
+    invalidateSawmQueries(queryClient, variables.date);
   });
 };
 
 export const useDeleteFast = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: api.sawm.deleteLog,
-    onSuccess: (_data, variables) => {
-      invalidateSawmQueries(queryClient, variables.date);
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
+  return useWorshipLogMutation(sawmRepository.deleteFastLog, (queryClient, variables) => {
+    invalidateSawmQueries(queryClient, variables.date);
   });
 };
 
 export const useDailySawmLog = (date: string) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.sawmDailyLog(date),
-    queryFn: () => api.sawm.getHistory({ startDate: date, endDate: date }),
-  });
+  return useDailyHistoryQuery(QUERY_KEYS.sawmDailyLog(date), sawmRepository.getHistory, date);
 };
 
 export const useSawmHistory = (startDate: string, endDate: string) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.sawmHistory(startDate, endDate),
-    queryFn: () => api.sawm.getHistory({ startDate, endDate }),
-    enabled: !!startDate && !!endDate,
-  });
+  return useRangeHistoryQuery(
+    QUERY_KEYS.sawmHistory(startDate, endDate),
+    sawmRepository.getHistory,
+    startDate,
+    endDate,
+  );
 };
 
 export const useInfiniteSawmHistory = (startDate: string, endDate: string, enabled = true) => {
-  return useInfiniteQuery<
-    HistoryPageResponse<FastLogResponse>,
-    Error,
-    InfiniteData<HistoryPageResponse<FastLogResponse>, string | undefined>,
-    ReturnType<typeof QUERY_KEYS.sawmHistoryPage>,
-    string | undefined
-  >({
-    queryKey: QUERY_KEYS.sawmHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
-    queryFn: ({ pageParam }) => fetchFastHistoryPage(startDate, endDate, pageParam),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: enabled && !!startDate && !!endDate,
-  });
+  return useInfiniteHistoryQuery<FastLogResponse>(
+    QUERY_KEYS.sawmHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
+    (pageParam) => fetchFastHistoryPage(startDate, endDate, pageParam),
+    enabled && !!startDate && !!endDate,
+  );
 };
 
 export const useResetFastLogs = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: async () => {
-      const started = await api.sawm.resetLogs();
-      const job = started?.job;
-
-      if (!job) {
-        throw new Error('Fast log reset could not be started.');
-      }
-
-      await waitForLifecycleJob(job.jobId, 'reset-fasts');
-      return job;
-    },
-    onSuccess: () => {
-      invalidateSawmQueries(queryClient);
-      toast.success(t('settings.reset_done'));
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
-  });
+  return useLifecycleResetMutation(
+    sawmRepository.resetLogs,
+    'reset-fasts',
+    invalidateSawmQueries,
+    'settings.reset_done',
+  );
 };

@@ -1,18 +1,17 @@
-import {
-  type InfiniteData,
-  useInfiniteQuery,
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { api, type PrayerLogResponse, type HistoryPageResponse } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import type { PrayerLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
-import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/hooks/use-language';
 import { useProfile } from '@/hooks/use-profile';
-import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 import { invalidateSalahQueries } from '@/utils/query-invalidation';
+import { salahRepository } from '@/domains/salah/salah-repository';
+import {
+  useDailyHistoryQuery,
+  useInfiniteHistoryQuery,
+  useLifecycleResetMutation,
+  useRangeHistoryQuery,
+  useWorshipLogMutation,
+} from './worship-query-helpers';
 
 export { invalidateSalahQueries } from '@/utils/query-invalidation';
 
@@ -22,7 +21,7 @@ export async function fetchPrayerHistoryPage(
   cursor?: string,
 ): Promise<HistoryPageResponse<PrayerLogResponse>> {
   return (
-    (await api.salah.getHistoryPage({
+    (await salahRepository.getHistoryPage({
       startDate,
       endDate,
       limit: HISTORY_PAGE_SIZE,
@@ -36,99 +35,49 @@ export const useSalahDebt = () => {
 
   return useQuery({
     queryKey: QUERY_KEYS.salahDebt,
-    queryFn: () => api.salah.getDebt(),
+    queryFn: () => salahRepository.getDebt(),
     enabled: !!profile?.bulughDate,
   });
 };
 
 export const useLogPrayer = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: api.salah.logPrayer,
-    onSuccess: (_data, variables) => {
-      invalidateSalahQueries(queryClient, variables.date);
-      // Optional: tiny toast for confirmation? User said "where possible"
-      // Maybe not too noisy for individual prayers, but errors definitely need it.
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
+  return useWorshipLogMutation(salahRepository.logPrayer, (queryClient, variables) => {
+    invalidateSalahQueries(queryClient, variables.date);
   });
 };
 
 export const useDeletePrayer = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: api.salah.deleteLog,
-    onSuccess: (_data, variables) => {
-      invalidateSalahQueries(queryClient, variables.date);
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
+  return useWorshipLogMutation(salahRepository.deletePrayerLog, (queryClient, variables) => {
+    invalidateSalahQueries(queryClient, variables.date);
   });
 };
 
 export const useDailyPrayerLogs = (date: string) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.salahDailyLogs(date),
-    queryFn: () => api.salah.getHistory({ startDate: date, endDate: date }),
-  });
+  return useDailyHistoryQuery(QUERY_KEYS.salahDailyLogs(date), salahRepository.getHistory, date);
 };
 
 export const useSalahHistory = (startDate: string, endDate: string) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.salahHistory(startDate, endDate),
-    queryFn: () => api.salah.getHistory({ startDate, endDate }),
-    enabled: !!startDate && !!endDate,
-  });
+  return useRangeHistoryQuery(
+    QUERY_KEYS.salahHistory(startDate, endDate),
+    salahRepository.getHistory,
+    startDate,
+    endDate,
+  );
 };
 
 export const useInfiniteSalahHistory = (startDate: string, endDate: string, enabled = true) => {
-  return useInfiniteQuery<
-    HistoryPageResponse<PrayerLogResponse>,
-    Error,
-    InfiniteData<HistoryPageResponse<PrayerLogResponse>, string | undefined>,
-    ReturnType<typeof QUERY_KEYS.salahHistoryPage>,
-    string | undefined
-  >({
-    queryKey: QUERY_KEYS.salahHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
-    queryFn: ({ pageParam }) => fetchPrayerHistoryPage(startDate, endDate, pageParam),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: enabled && !!startDate && !!endDate,
-  });
+  return useInfiniteHistoryQuery<PrayerLogResponse>(
+    QUERY_KEYS.salahHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
+    (pageParam) => fetchPrayerHistoryPage(startDate, endDate, pageParam),
+    enabled && !!startDate && !!endDate,
+  );
 };
 
 export const useResetPrayerLogs = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  return useMutation({
-    mutationFn: async () => {
-      const started = await api.salah.resetLogs();
-      const job = started?.job;
-
-      if (!job) {
-        throw new Error('Prayer log reset could not be started.');
-      }
-
-      await waitForLifecycleJob(job.jobId, 'reset-prayers');
-      return job;
-    },
-    onSuccess: () => {
-      invalidateSalahQueries(queryClient);
-      toast.success(t('settings.reset_done'));
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
-    },
-  });
+  return useLifecycleResetMutation(
+    salahRepository.resetLogs,
+    'reset-prayers',
+    invalidateSalahQueries,
+    'settings.reset_done',
+  );
 };
