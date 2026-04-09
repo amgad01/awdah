@@ -7,6 +7,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.1.2
+
+### Changed
+
+#### Frontend
+
+- Public unauthenticated routes now use a shared shell-route config in `App.tsx`, which removes repetitive wrapper components while keeping the existing public-page UX intact
+- The demo experience is now split into focused modules for data loading, section rendering, and shared date-display primitives instead of keeping everything inside one large page component
+- Local browser-expiry flags now flow through a shared frontend storage helper, reducing repeated `localStorage` timestamp logic across Salah, Sawm, practice check-in, and onboarding draft handling
+
+### Fixed
+
+#### Frontend
+
+- Practice-check-in, prayer uncheck suppression, and fast uncheck suppression now share the same safe expiry handling path instead of each implementing slightly different local storage logic
+
 ## v1.1.1
 
 ### Changed
