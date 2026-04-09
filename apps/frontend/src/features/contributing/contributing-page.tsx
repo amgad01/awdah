@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   Bell,
   BookOpen,
@@ -19,9 +19,9 @@ import {
   Wifi,
 } from 'lucide-react';
 import { GlossaryText } from '@/components/ui/term-tooltip';
+import { SwiperSections } from '@/components/ui/swiper-sections';
+import { useLocalizedContent } from '@/hooks/use-localized-content';
 import { useLanguage } from '@/hooks/use-language';
-import { loadLocalizedContent } from '@/utils/localized-content';
-import { MobileSwipeableSections } from '@/components/ui/mobile-swipeable-sections/mobile-swipeable-sections';
 import styles from './contributing-page.module.css';
 
 interface ContributingItem {
@@ -63,6 +63,7 @@ interface ContributingData {
   github_link_label: string;
   contact_link: string;
   contact_label: string;
+  areas_title: string;
   sections: ContributingSection[];
   pr_title: string;
   pr_intro: string;
@@ -77,11 +78,6 @@ interface ContributingData {
 }
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
-
-interface ContributionSectionOptions {
-  itemLimit?: number;
-  showSteps?: boolean;
-}
 
 const badgeVariantClass: Record<ContributingSection['badge_variant'], string> = {
   accent: styles.badgeAccent,
@@ -111,17 +107,14 @@ const ROADMAP_ICONS: Record<string, IconComponent> = {
   Star,
 };
 
-const renderContributionSection = (
+const renderContributionItemCard = (
   section: ContributingSection,
-  options: ContributionSectionOptions = {},
-  key?: string,
+  item: ContributingItem,
 ): React.JSX.Element => {
-  const { itemLimit, showSteps = true } = options;
   const IconComponent = CONTRIBUTION_ICONS[section.icon] ?? HelpCircle;
-  const items = typeof itemLimit === 'number' ? section.items.slice(0, itemLimit) : section.items;
 
   return (
-    <section key={key ?? section.id} className={styles.contributionSection}>
+    <section className={styles.contributionSection}>
       <div className={styles.sectionHeader}>
         <span className={`${styles.badge} ${badgeVariantClass[section.badge_variant]}`}>
           {section.badge}
@@ -135,27 +128,23 @@ const renderContributionSection = (
         </p>
       </div>
 
-      <div className={styles.itemList}>
-        {items.map((item) => (
-          <div key={item.id} className={styles.itemCard}>
-            <h3 className={styles.itemTitle}>{item.title}</h3>
-            <p className={styles.itemDescription}>
-              <GlossaryText>{item.description}</GlossaryText>
-            </p>
-            {showSteps && item.steps && item.steps.length > 0 && (
-              <ol className={styles.stepList}>
-                {item.steps.map((step, index) => (
-                  <li key={`${item.id}-${step}`} className={styles.stepItem}>
-                    <span className={styles.stepNumber}>{index + 1}</span>
-                    <span className={styles.stepText}>
-                      <GlossaryText>{step}</GlossaryText>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        ))}
+      <div className={styles.itemCard}>
+        <h3 className={styles.itemTitle}>{item.title}</h3>
+        <p className={styles.itemDescription}>
+          <GlossaryText>{item.description}</GlossaryText>
+        </p>
+        {item.steps && item.steps.length > 0 && (
+          <ol className={styles.stepList}>
+            {item.steps.map((step, index) => (
+              <li key={`${item.id}-${step}`} className={styles.stepItem}>
+                <span className={styles.stepNumber}>{index + 1}</span>
+                <span className={styles.stepText}>
+                  <GlossaryText>{step}</GlossaryText>
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
     </section>
   );
@@ -175,79 +164,52 @@ const renderRoadmapCard = (item: V2Item, key?: string): React.JSX.Element => {
   );
 };
 
+const renderPrStepCard = (step: PRStep): React.JSX.Element => (
+  <section className={styles.prMobileCard}>
+    <span className={styles.prMobileStep}>{step.step}</span>
+    <h3 className={styles.prMobileTitle}>{step.title}</h3>
+    <p className={styles.prMobileBody}>
+      <GlossaryText>{step.body}</GlossaryText>
+    </p>
+  </section>
+);
+
 export const ContributingPage: React.FC = () => {
   const { language, t } = useLanguage();
-  const [data, setData] = useState<ContributingData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-
-    const loadData = async () => {
-      try {
-        const json = await loadLocalizedContent<ContributingData>('contributing', language, {
-          signal: controller.signal,
-        });
-        if (!cancelled) {
-          setData(json);
-        }
-      } catch (err: unknown) {
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          return;
-        }
-        if (!cancelled) {
-          setData(null);
-          setError(err instanceof Error ? err.message : t('common.error'));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [language, refreshKey, t]);
+  const { data, error, loadedLanguage, loading, reload } = useLocalizedContent<ContributingData>(
+    'contributing',
+    language,
+  );
 
   // Prepare contribution and roadmap sections for mobile slider
-  const contentSliderSections = useMemo(() => {
-    if (!data) {
-      return [];
-    }
+  const mobileV1Sections = useMemo(() => {
+    if (!data) return [];
 
-    const sections: { id: string; title: string; content: React.JSX.Element }[] = [];
+    return data.sections.flatMap((section) =>
+      section.items.map((item) => ({
+        id: `${language}-section-${section.id}-${item.id}`,
+        content: renderContributionItemCard(section, item),
+      })),
+    );
+  }, [data, language]);
 
-    // Add contribution area items as swipeable sections
-    data.sections.forEach((section) => {
-      sections.push({
-        id: `section-${section.id}`,
-        title: section.title,
-        content: renderContributionSection(section, { itemLimit: 2, showSteps: false }),
-      });
-    });
+  const mobilePrSections = useMemo(() => {
+    if (!data) return [];
 
-    // Add roadmap items as swipeable sections
-    data.v2_items.forEach((item) => {
-      sections.push({
-        id: `roadmap-${item.id}`,
-        title: item.title,
-        content: renderRoadmapCard(item),
-      });
-    });
+    return data.pr_steps.map((step) => ({
+      id: `${language}-pr-step-${step.step}`,
+      content: renderPrStepCard(step),
+    }));
+  }, [data, language]);
 
-    return sections;
-  }, [data]);
+  const mobileV2Sections = useMemo(() => {
+    if (!data) return [];
+
+    return data.v2_items.map((item) => ({
+      id: `${language}-roadmap-${item.id}`,
+      content: renderRoadmapCard(item),
+    }));
+  }, [data, language]);
 
   if (error) {
     return (
@@ -257,22 +219,18 @@ export const ContributingPage: React.FC = () => {
           <h1 className={styles.heroTitle}>{t('contributing.project_title')}</h1>
         </section>
         <div style={{ marginTop: '2rem' }}>
-          <button
-            type="button"
-            className={styles.ctaButton}
-            onClick={() => setRefreshKey((v) => v + 1)}
-          >
+          <button type="button" className={styles.ctaButton} onClick={reload}>
             {t('common.retry')}
           </button>
           <p className={styles.sectionBody} style={{ marginTop: '1rem' }}>
-            {error}
+            {error.message || t('common.error')}
           </p>
         </div>
       </div>
     );
   }
 
-  if (loading || !data) {
+  if (loading || loadedLanguage !== language || !data) {
     return <div className={styles.loading}>{t('common.loading')}</div>;
   }
 
@@ -303,12 +261,28 @@ export const ContributingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Content Slider Section */}
+        {/* v1 Content Slider Section */}
         <div className={styles.sliderSection}>
-          <h2 className={styles.sliderSectionTitle}>
-            {t('contributing.areas_title', 'Contribution Areas')}
-          </h2>
-          <MobileSwipeableSections sections={contentSliderSections} />
+          <h2 className={styles.sliderSectionTitle}>{data.areas_title}</h2>
+          <SwiperSections sections={mobileV1Sections} className={styles.sliderSwiper} />
+        </div>
+
+        {/* How to Submit a PR - Mobile Slider */}
+        <div className={styles.sliderSection}>
+          <h2 className={styles.sliderSectionTitle}>{data.pr_title}</h2>
+          <p className={styles.sliderIntro}>
+            <GlossaryText>{data.pr_intro}</GlossaryText>
+          </p>
+          <SwiperSections sections={mobilePrSections} className={styles.sliderSwiper} />
+        </div>
+
+        {/* v2 Roadmap Slider */}
+        <div className={styles.sliderSection}>
+          <h2 className={styles.sliderSectionTitle}>{data.v2_title}</h2>
+          <p className={styles.sliderIntro}>
+            <GlossaryText>{data.v2_intro}</GlossaryText>
+          </p>
+          <SwiperSections sections={mobileV2Sections} className={styles.sliderSwiper} />
         </div>
 
         {/* Static Recognition Section */}
@@ -366,43 +340,30 @@ export const ContributingPage: React.FC = () => {
           </div>
         </section>
 
-        {/* ── Contribution Areas ── */}
-        {data.sections.map((section) => renderContributionSection(section, {}, section.id))}
+        {/* ── Contribution Areas ── Tab-slider on desktop ── */}
+        <div className={styles.desktopSliderSection}>
+          <h2 className={styles.desktopSliderTitle}>{data.areas_title}</h2>
+          <SwiperSections sections={mobileV1Sections} className={styles.desktopSliderSwiper} />
+        </div>
 
-        {/* ── How to Submit a PR ── */}
-        <section className={styles.prSection}>
-          <h2 className={styles.sectionTitle}>{data.pr_title}</h2>
-          <p className={styles.sectionBody}>
+        {/* ── How to Submit a PR ── Tab-slider on desktop ── */}
+        <div className={styles.desktopSliderSection}>
+          <h2 className={styles.desktopSliderTitle}>{data.pr_title}</h2>
+          <p className={styles.desktopSliderIntro}>
             <GlossaryText>{data.pr_intro}</GlossaryText>
           </p>
+          <SwiperSections sections={mobilePrSections} className={styles.desktopSliderSwiper} />
+        </div>
 
-          <ol className={styles.prStepList}>
-            {data.pr_steps.map((step) => (
-              <li key={step.step} className={styles.prStep}>
-                <span className={styles.prStepNumber}>{step.step}</span>
-                <div className={styles.prStepContent}>
-                  <h3 className={styles.prStepTitle}>{step.title}</h3>
-                  <p className={styles.prStepBody}>
-                    <GlossaryText>{step.body}</GlossaryText>
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {/* ── v2 Roadmap ── */}
-        <section className={styles.v2Section}>
+        {/* ── v2 Roadmap ── Tab-slider on desktop ── */}
+        <div className={styles.desktopSliderSection}>
           <span className={`${styles.badge} ${styles.badgePrimary}`}>{data.v2_badge}</span>
-          <h2 className={styles.sectionTitle}>{data.v2_title}</h2>
-          <p className={styles.sectionBody}>
+          <h2 className={styles.desktopSliderTitle}>{data.v2_title}</h2>
+          <p className={styles.desktopSliderIntro}>
             <GlossaryText>{data.v2_intro}</GlossaryText>
           </p>
-
-          <div className={styles.v2Grid}>
-            {data.v2_items.map((item) => renderRoadmapCard(item, item.id))}
-          </div>
-        </section>
+          <SwiperSections sections={mobileV2Sections} className={styles.desktopSliderSwiper} />
+        </div>
 
         {/* ── Recognition ── */}
         <section className={styles.recognitionSection}>

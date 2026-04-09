@@ -1,0 +1,125 @@
+.container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--border-radius-xl);
+}
+
+.swiper {
+  width: 100%;
+  height: auto;
+}
+
+.swiper :global(.swiper-wrapper) {
+  align-items: flex-start;
+}
+
+.swiper :global(.swiper-slide) {
+  height: auto;
+  align-self: flex-start;
+}
+
+.slide {
+  height: auto !important;
+  align-self: flex-start;
+}
+
+.slideContent {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+  /* Hidden by default, shown on hover */
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Show buttons when hovering over the container */
+.container:hover .navButton,
+.container:focus-within .navButton {
+  opacity: 1;
+  visibility: visible;
+}
+
+.navButton:hover {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.navButtonLeft {
+  left: var(--spacing-xs);
+}
+
+.navButtonRight {
+  right: var(--spacing-xs);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+}
+
+.paginationBullet {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.paginationBulletActive {
+  background: var(--color-primary);
+  transform: scale(1.2);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .navButton {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+[dir='rtl'] .navButtonLeft {
+  left: auto;
+  right: var(--spacing-xs);
+}
+
+[dir='rtl'] .navButtonRight {
+  right: auto;
+  left: var(--spacing-xs);
+}

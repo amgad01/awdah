@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card/card';
+import { useLocalizedContent } from '@/hooks/use-localized-content';
 import { GlossaryText } from '@/components/ui/term-tooltip';
 import {
   glossary,
@@ -10,7 +11,6 @@ import {
 } from '@/content/glossary/glossary';
 import { ReferenceLinks } from '@/components/ui/reference-links/reference-links';
 import type { ReferenceLink } from '@/content/references/reference-links';
-import { loadLocalizedContent } from '@/utils/localized-content';
 import styles from './learn-page.module.css';
 
 interface FaqItem {
@@ -91,39 +91,21 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   const { t, language } = useLanguage();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [faqData, setFaqData] = useState<FaqSection[] | null>(null);
-  const [faqLoadedLanguage, setFaqLoadedLanguage] = useState<string | null>(null);
-  const [faqError, setFaqError] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadLocalizedContent<FaqSection[]>('faq', language, { signal: controller.signal })
-      .then((json) => {
-        setFaqData(Array.isArray(json) ? json : []);
-        setFaqLoadedLanguage(language);
-        setFaqError(false);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-        setFaqData([]);
-        setFaqLoadedLanguage(language);
-        setFaqError(true);
-      });
-
-    return () => controller.abort();
-  }, [language, reloadKey]);
+  const {
+    data: faqData,
+    error: faqError,
+    loadedLanguage: faqLoadedLanguage,
+    loading: faqLoading,
+    reload,
+  } = useLocalizedContent<FaqSection[]>('faq', language);
 
   const handleToggle = (key: string) => {
     setOpenKey((prev) => (prev === key ? null : key));
   };
 
   const normalizedQuery = query.trim().toLowerCase();
-  const faqLoading = faqLoadedLanguage !== language && !faqError;
   const activeFaqData = useMemo(
-    () => (faqLoadedLanguage === language ? (faqData ?? []) : []),
+    () => (faqLoadedLanguage === language ? (Array.isArray(faqData) ? faqData : []) : []),
     [faqData, faqLoadedLanguage, language],
   );
 
@@ -166,7 +148,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
   }, [language, normalizedQuery]);
 
   const hasResults = sections.length > 0 || glossaryEntries.length > 0;
-  const showFaqErrorState = faqError;
+  const showFaqErrorState = faqError !== null;
   const showNoResultsState = !faqLoading && !showFaqErrorState && !hasResults;
 
   return (
@@ -216,10 +198,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ showHeading = true }) => {
             type="button"
             className={styles.retryButton}
             onClick={() => {
-              setFaqData(null);
-              setFaqLoadedLanguage(null);
-              setFaqError(false);
-              setReloadKey((value) => value + 1);
+              reload();
             }}
           >
             {t('common.retry')}

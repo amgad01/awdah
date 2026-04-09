@@ -7,6 +7,7 @@
   "github_link_label": "View contributing guide on GitHub",
   "contact_link": "https://www.linkedin.com/in/amgad-m/",
   "contact_label": "Contact on LinkedIn",
+  "areas_title": "v1 Contribution Areas",
   "sections": [
     {
       "id": "scholars",
@@ -307,6 +308,6 @@
     }
   ],
   "recognition_title": "Contributor Recognition",
-  "recognition_body": "Every contributor with a merged PR can be listed in the README on GitHub and on the About page of the app with their name, GitHub profile, and a short description of what they contributed. Translation contributors and scholar reviewers can be credited by name and role.",
+  "recognition_body": "Every contributor with a merged PR can be listed on GitHub and on the About page of the app with their name, GitHub profile, and a short description of what they contributed. Translation contributors and scholar reviewers can be credited by name and role.",
   "recognition_cta": "After your PR is merged, open a small follow-up PR to add yourself to the contributors array in the public About page data files. See CONTRIBUTING.md for the expected format."
 }

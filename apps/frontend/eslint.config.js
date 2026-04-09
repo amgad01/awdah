@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['coverage', 'dist']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -29,7 +29,7 @@ export default defineConfig([
       ],
     },
   },
-  // Relax some rules for test files — `any` casts are acceptable in mock setup.
+  // Relax some rules for test files, `any` casts are acceptable in mock setup.
   {
     files: ['**/*.{test,spec}.{ts,tsx}', '**/test/**/*.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
     rules: {

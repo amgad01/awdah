@@ -7,6 +7,7 @@
   "github_link_label": "Beitragsleitfaden auf GitHub ansehen",
   "contact_link": "https://www.linkedin.com/in/amgad-m/",
   "contact_label": "Kontakt auf LinkedIn",
+  "areas_title": "v1-Beitragsbereiche",
   "sections": [
     {
       "id": "scholars",
@@ -101,7 +102,7 @@
         {
           "id": "test_coverage",
           "title": "Unit-Test-Abdeckung erweitern",
-          "description": "Domänenobjekte und Use Cases haben bei der Testabdeckung die höchste Priorität. Führe npm run test --workspace=apps/backend aus, um zu sehen, was bereits abgedeckt ist, und ergänze dann Tests für jeden Use Case, dem noch Abdeckung fehlt. Tests liegen in __tests__/Ordnern direkt neben dem Code, den sie prüfen. Keine Snapshot-Tests — teste Verhalten, nicht Implementierungsdetails."
+          "description": "Domänenobjekte und Use Cases haben bei der Testabdeckung die höchste Priorität. Führe npm run test --workspace=apps/backend aus, um zu sehen, was bereits abgedeckt ist, und ergänze dann Tests für jeden Use Case, dem noch Abdeckung fehlt. Tests liegen in __tests__/Ordnern direkt neben dem Code, den sie prüfen. Keine Snapshot-Tests, teste Verhalten, nicht Implementierungsdetails."
         },
         {
           "id": "integration_tests",
@@ -170,10 +171,10 @@
           "description": "Halte dich genau an diese Schritte. Wenn du Fragen hast oder dich abstimmen möchtest, erreichst du mich auf LinkedIn: linkedin.com/in/amgad-m/",
           "steps": [
             "Forke das Repository auf GitHub und klone deinen Fork lokal",
-            "Kopiere apps/frontend/src/i18n/en.json und benenne die Datei mit deinem Sprachcode — zum Beispiel fr.json für Französisch, tr.json für Türkisch oder ur.json für Urdu",
-            "Übersetze alle String-Werte in der neuen Datei. Ändere keine Keys — übersetze nur die Werte. Behalte {{variable}}-Platzhalter exakt so bei",
+            "Kopiere apps/frontend/src/i18n/en.json und benenne die Datei mit deinem Sprachcode, zum Beispiel fr.json für Französisch, tr.json für Türkisch oder ur.json für Urdu",
+            "Übersetze alle String-Werte in der neuen Datei. Ändere keine Keys, übersetze nur die Werte. Behalte {{variable}}-Platzhalter exakt so bei",
             "Ergänze dieselbe Datei um eine _meta-Karte auf oberster Ebene. Beispiel für Französisch: { \"code\": \"fr\", \"name\": \"French\", \"nativeName\": \"Français\", \"shortLabel\": \"FR\", \"dir\": \"ltr\" }. Für Sprachen von rechts nach links wie Urdu setze dir: \"rtl\"",
-            "Starte npm run dev:frontend — der Sprachschalter zeigt deine neue Sprache dann automatisch an",
+            "Starte npm run dev:frontend, der Sprachschalter zeigt deine neue Sprache dann automatisch an",
             "Gehe die App Bildschirm für Bildschirm in deiner neuen Sprache durch und korrigiere jede Übersetzung, die im Kontext falsch wirkt",
             "Übersetze auch die öffentlichen Inhaltsdateien: kopiere apps/frontend/public/data/about-en.json nach apps/frontend/public/data/about-fr.json (oder mit deinem Sprachcode), apps/frontend/public/data/contributing-en.json nach apps/frontend/public/data/contributing-fr.json und apps/frontend/public/data/faq-en.json nach apps/frontend/public/data/faq-fr.json, und übersetze alle Werte. Wenn die Übersetzung nur teilweise vorhanden ist, fällt die App für fehlende Inhalte auf Englisch zurück",
             "Prüfe und aktualisiere apps/frontend/src/content/glossary/glossary.json, wenn ein Begriff native Synonyme, Definitionen oder Quellen braucht",
@@ -192,7 +193,7 @@
     }
   ],
   "pr_title": "Wie man Änderungen beiträgt",
-  "pr_intro": "Alle Beiträge laufen über einen Pull Request auf GitHub. Vor dem Start gibt es keine Freigabeschranke — fork das Repository und leg los. Die folgenden Schritte decken den gesamten Ablauf ab.",
+  "pr_intro": "Alle Beiträge laufen über einen Pull Request auf GitHub. Vor dem Start gibt es keine Freigabeschranke, fork das Repository und leg los. Die folgenden Schritte decken den gesamten Ablauf ab.",
   "pr_steps": [
     {
       "step": 1,
@@ -212,7 +213,7 @@
     {
       "step": 4,
       "title": "Änderungen umsetzen",
-      "body": "Halte dich an die Konventionen in CONTRIBUTING.md — kein console.log, keine hart codierten Anzeigetexte (nutze die Übersetzungsschicht), kein richtungsabhängiges CSS, keine nackten any-Typen. Bei Änderungen an religiösen Inhalten gehört die gelehrte Quelle in die Commit-Nachricht oder die PR-Beschreibung."
+      "body": "Halte dich an die Konventionen in CONTRIBUTING.md, kein console.log, keine hart codierten Anzeigetexte (nutze die Übersetzungsschicht), kein richtungsabhängiges CSS, keine nackten any-Typen. Bei Änderungen an religiösen Inhalten gehört die gelehrte Quelle in die Commit-Nachricht oder die PR-Beschreibung."
     },
     {
       "step": 5,
@@ -227,7 +228,7 @@
     {
       "step": 7,
       "title": "Pushen und PR öffnen",
-      "body": "Pushe deinen Branch: git push origin feat/dein-feature-name. Öffne dann auf GitHub einen Pull Request gegen den main-Branch von amgad01/awdah. Fülle die PR-Beschreibung aus — was du geändert hast, warum und wie du es getestet hast."
+      "body": "Pushe deinen Branch: git push origin feat/dein-feature-name. Öffne dann auf GitHub einen Pull Request gegen den main-Branch von amgad01/awdah. Fülle die PR-Beschreibung aus, was du geändert hast, warum und wie du es getestet hast."
     },
     {
       "step": 8,
@@ -267,7 +268,7 @@
       "id": "offline_pwa",
       "icon": "Wifi",
       "title": "Vollständige Offline-PWA mit Service Worker",
-      "body": "Ermöglicht das Erfassen von Gebeten ohne Internetverbindung und synchronisiert, sobald die Verbindung zurück ist. manifest.json ist bereits vorhanden — Service Worker und Sync-Logik sind die v2-Ergänzung."
+      "body": "Ermöglicht das Erfassen von Gebeten ohne Internetverbindung und synchronisiert, sobald die Verbindung zurück ist. manifest.json ist bereits vorhanden, Service Worker und Sync-Logik sind die v2-Ergänzung."
     },
     {
       "id": "moon_sighting",
@@ -297,7 +298,7 @@
       "id": "sunnah_tracker",
       "icon": "Star",
       "title": "Sunnah- und Witr-Gebete verfolgen",
-      "body": "Optionale Erfassung von Rawatib-Sunnah-Gebeten (Mu'akkadah und Ghayr Mu'akkadah) sowie Witr. Das ist vollständig vom qadaa-Verpflichtungssystem getrennt — eine freiwillige Erfassung für Menschen, die in ihrem freiwilligen Gebet Beständigkeit aufbauen möchten."
+      "body": "Optionale Erfassung von Rawatib-Sunnah-Gebeten (Mu'akkadah und Ghayr Mu'akkadah) sowie Witr. Das ist vollständig vom qadaa-Verpflichtungssystem getrennt, eine freiwillige Erfassung für Menschen, die in ihrem freiwilligen Gebet Beständigkeit aufbauen möchten."
     },
     {
       "id": "quran_khatma",
@@ -307,6 +308,6 @@
     }
   ],
   "recognition_title": "Mitwirkende werden genannt",
-  "recognition_body": "Jede Person mit einem gemergten PR wird in der README auf GitHub und auf der About-Seite der App mit ihrem Namen, ihrem GitHub-Profil und einer Beschreibung ihres Beitrags aufgeführt. Mitwirkende an Übersetzungen und geprüfte Gelehrte werden namentlich und mit ihrer Rolle genannt.",
-  "recognition_cta": "Wenn dein PR gemergt ist, öffne einen kleinen Folge-PR, um dich im contributors-Array in apps/frontend/public/data/about-en.json und about-ar.json einzutragen — das genaue Format steht in CONTRIBUTING.md."
+  "recognition_body": "Jede Person mit einem gemergten PR wird auf GitHub und auf der About-Seite der App mit ihrem Namen, ihrem GitHub-Profil und einer Beschreibung ihres Beitrags aufgeführt. Mitwirkende an Übersetzungen und geprüfte Gelehrte werden namentlich und mit ihrer Rolle genannt.",
+  "recognition_cta": "Wenn dein PR gemergt ist, öffne einen kleinen Folge-PR, um dich im contributors-Array in apps/frontend/public/data/about-en.json und about-ar.json einzutragen, das genaue Format steht in CONTRIBUTING.md."
 }

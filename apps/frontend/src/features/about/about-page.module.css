@@ -33,43 +33,6 @@
   border: 1px solid var(--color-border);
 }
 
-.sliderSectionTitle {
-  text-align: center;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-md);
-}
-
-/* Static Team Section on Mobile */
-.teamSection {
-  margin: var(--spacing-lg) 0;
-  padding: var(--spacing-md);
-  background: var(--color-surface);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-border);
-}
-
-.teamMember {
-  padding: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-  background: var(--color-surface-elevated);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-border);
-}
-
-.teamMemberName {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-xs);
-}
-
-.teamMemberRole {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xs);
-}
-
 /* ── Hero ── */
 .hero {
   text-align: center;
@@ -310,14 +273,6 @@
   margin-bottom: 0;
 }
 
-.devLinks {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xl);
-}
-
 .devLink {
   display: inline-flex;
   align-items: center;
@@ -421,38 +376,224 @@
   box-shadow: var(--shadow-md);
 }
 
+/* ── Content Slider - Compact Cards ── */
+.sliderSection :global(.swiper-slide) {
+  height: auto;
+}
+
+.sliderSection .missionCard,
+.sliderSection .audienceSection,
+.sliderSection .featureCard {
+  padding: var(--spacing-lg);
+  margin: 0 var(--spacing-xs);
+}
+
+.sliderSection .missionCard h2,
+.sliderSection .audienceSection h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.sliderSection .sectionBody {
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.sliderSection .featureCard h3 {
+  font-size: var(--font-size-base);
+}
+
+.sliderSection .featureCard p {
+  font-size: var(--font-size-sm);
+}
+
 /* ── Founder Expertise Slider (Mobile) ── */
 .founderExpertiseSlider {
-  margin: var(--spacing-lg) 0 var(--spacing-xl);
+  margin: var(--spacing-md) 0;
+}
+
+/* Full founder card (single contributor - no slider) */
+.founderCardFull {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-lg);
+  margin: 0 var(--spacing-xs);
+}
+
+.founderCardFull .founderHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.founderCardFull .founderAvatar {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 20%, var(--color-surface)) 0%,
+    color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)) 100%
+  );
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-circle);
+  color: var(--color-primary);
+}
+
+.founderCardFull .founderInfo {
+  text-align: center;
+}
+
+.founderCardFull .founderBio {
+  max-width: 650px;
+  margin: 0 auto var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  text-align: start;
+}
+
+.founderCardFull .founderBio p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-md);
+}
+
+.founderCardFull .founderLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Mobile expertise display (grid for single contributor) */
+.founderExpertiseMobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.founderExpertiseMobile .expertiseBlock {
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
+.founderExpertiseMobile .devTechTitle {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.founderExpertiseMobile .techPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.founderExpertiseMobile .techPill {
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Swiper-specific styles for multi-contributor slider */
+.founderSlider :global(.swiper-wrapper) {
+  align-items: stretch;
+}
+
+.founderSlider :global(.swiper-slide) {
+  height: auto;
+}
+
+.founderSlider .founderCard {
+  padding: var(--spacing-md);
+  margin: 0;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.founderSlider .founderHeader {
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.founderSlider .founderAvatar {
+  width: 60px;
+  height: 60px;
+}
+
+.founderSlider .founderAvatar svg {
+  width: 32px;
+  height: 32px;
+}
+
+.founderSlider .founderBio {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  flex: 1;
+}
+
+.founderSlider .founderBio p {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+}
+
+.founderSlider .founderLinks {
+  margin-bottom: var(--spacing-md);
+}
+
+.founderSlider .devTitle {
+  font-size: var(--font-size-lg);
 }
 
 .expertiseSlide {
   text-align: center;
   padding: var(--spacing-md);
+  height: 100%;
 }
 
 .expertiseSlideTitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .expertiseSlidePills {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .expertiseSlidePill {
-  padding: 0.4rem 0.8rem;
+  padding: 0.3rem 0.7rem;
   border-radius: var(--border-radius-pill);
   background: var(--color-primary-alpha-10);
   color: var(--color-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
 }
 
