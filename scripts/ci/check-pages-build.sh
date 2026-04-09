@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 PAGES_SITE_URL="${PAGES_SITE_URL:-https://amgad01.github.io/awdah/}"
 PAGES_BASE_PATH="${PAGES_BASE_PATH:-/awdah/}"
@@ -10,7 +10,7 @@ PAGES_BASE_PATH="${PAGES_BASE_PATH:-/awdah/}"
 cd "$ROOT_DIR"
 
 echo "▸ Verifying source HTML CSP hashes..."
-node ./scripts/verify-inline-script-csp.mjs \
+node ./scripts/test/verify-inline-script-csp.mjs \
   "$ROOT_DIR/apps/frontend/index.html" \
   "$ROOT_DIR/apps/frontend/public/404.html"
 
@@ -23,14 +23,14 @@ VITE_AUTH_MODE="${VITE_AUTH_MODE:-local}" \
 VITE_API_BASE_URL="${VITE_API_BASE_URL:-http://localhost:3000}" \
 VITE_AWS_REGION="${VITE_AWS_REGION:-eu-west-1}" \
 VITE_APP_VERSION="${VITE_APP_VERSION:-local-pages-check}" \
-./scripts/build-frontend.sh prod
+./scripts/deploy/build-frontend.sh prod
 
 echo ""
 echo "▸ Verifying the built Pages bundle..."
-./scripts/verify-pages-dist.sh "$ROOT_DIR/apps/frontend/dist" "$PAGES_SITE_URL" "$PAGES_BASE_PATH"
+./scripts/ci/verify-pages-dist.sh "$ROOT_DIR/apps/frontend/dist" "$PAGES_SITE_URL" "$PAGES_BASE_PATH"
 
 echo ""
 echo "▸ Verifying built HTML CSP hashes..."
-node ./scripts/verify-inline-script-csp.mjs \
+node ./scripts/test/verify-inline-script-csp.mjs \
   "$ROOT_DIR/apps/frontend/dist/index.html" \
   "$ROOT_DIR/apps/frontend/dist/404.html"

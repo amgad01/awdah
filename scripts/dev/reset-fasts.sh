@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# reset-fasts.sh — Deletes all fast log entries from the local DynamoDB
+# reset-fasts.sh: Deletes all fast log entries from the local DynamoDB
 # (LocalStack). Useful during development to reset fasting history without
 # touching the user profile or practicing periods.
 #
 # Usage:
-#   ./scripts/reset-fasts.sh [USER_ID]
+#   ./scripts/dev/reset-fasts.sh [USER_ID]
 #
 # If USER_ID is omitted, ALL fast log entries are removed.
 # Run from the repo root. Requires Docker and the AWS CLI.

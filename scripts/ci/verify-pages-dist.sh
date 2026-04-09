@@ -2,10 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 DIST_DIR="${1:-$ROOT_DIR/apps/frontend/dist}"
 EXPECTED_SITE_URL="${2:-https://amgad01.github.io/awdah/}"

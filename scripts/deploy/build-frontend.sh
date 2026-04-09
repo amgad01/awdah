@@ -2,12 +2,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/apps/frontend"
 DIST_DIR="$FRONTEND_DIR/dist"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # --- Help ---
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then

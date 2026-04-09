@@ -5,7 +5,7 @@ set -euo pipefail
 trap 'status=$?; if [ "$status" -ne 0 ]; then echo ""; echo "x Deploy FAILED - check output above for errors."; fi' EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
 # --- Help ---

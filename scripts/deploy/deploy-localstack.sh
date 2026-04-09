@@ -2,13 +2,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 LOCALSTACK_ENDPOINT="${LOCALSTACK_ENDPOINT:-http://localhost:4566}"
 LOCALSTACK_HEALTH_URL="$LOCALSTACK_ENDPOINT/_localstack/health"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # --- Help ---
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then

@@ -2,11 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 load_env_defaults "$ROOT_DIR/.env"
 
@@ -20,10 +20,10 @@ TARGET="${FRONTEND_DEPLOY_TARGET:-$(frontend_target_for_env "$ENV")}"
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 FAILED=false
-trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Deploy FAILED — check the output above for errors."; exit 1; fi' EXIT
+trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Deploy FAILED, check the output above for errors."; exit 1; fi' EXIT
 
 echo "╔══════════════════════════════════════════╗"
-echo "║    Awdah — Deploy ALL (Backend + FE)     ║"
+echo "║    Awdah: Deploy ALL (Backend + FE)     ║"
 echo "╠══════════════════════════════════════════╣"
 echo "║  Environment : $ENV"
 echo "║  Region      : $AWS_REGION"

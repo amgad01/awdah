@@ -42,7 +42,7 @@ export default defineConfig({
           timeout: 120_000,
         },
         {
-          command: `bash ${path.join(repoRoot, 'scripts/run-e2e-backend-dev.sh')}`,
+          command: `bash ${path.join(repoRoot, 'scripts/dev/run-e2e-backend-dev.sh')}`,
           env: {
             ...process.env,
             NODE_ENV: 'test',

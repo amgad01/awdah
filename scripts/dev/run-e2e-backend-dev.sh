@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOCALSTACK_HEALTHCHECK_URL="${LOCALSTACK_HEALTHCHECK_URL:-http://localhost:4566/_localstack/health}"
 
 cd "$ROOT_DIR"

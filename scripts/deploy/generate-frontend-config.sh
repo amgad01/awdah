@@ -2,14 +2,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 FRONTEND_DIR="$ROOT_DIR/apps/frontend"
 OUTPUT_JSON="$INFRA_DIR/outputs.json"
 ENV_FILE="$FRONTEND_DIR/.env.production"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 load_env_defaults "$ROOT_DIR/.env"
 

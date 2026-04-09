@@ -59,9 +59,9 @@ See [docs/architecture/overview.md](docs/architecture/overview.md) for system di
 
 ## Local Development
 
-Awdah supports three local development modes — pick the one that fits your goal.
+Awdah supports three local development modes. Pick the one that fits your goal.
 
-### Mode 1 — Cloudless (no Docker, no AWS account)
+### Mode 1: Cloudless (no Docker, no AWS account)
 
 The fastest way to start contributing to UI, translations, or public-page content. The frontend runs entirely in-memory with a built-in mock auth backend. No LocalStack, no Docker, no credentials needed.
 
@@ -73,7 +73,7 @@ npm run dev:frontend   # http://localhost:5173
 
 The app boots in local auth mode: you can sign up / log in with any email and password, and your data is stored in memory until you close the tab. The `/demo` route also works without any extra setup.
 
-### Mode 2 — Full stack with LocalStack (no AWS account)
+### Mode 2: Full stack with LocalStack (no AWS account)
 
 Use this when your change needs real auth, tracker data, settings, or any API route. LocalStack simulates DynamoDB, S3, SQS, and Cognito locally.
 
@@ -99,13 +99,13 @@ AWS_DEFAULT_REGION=eu-west-1
 LOCALSTACK_ENDPOINT=http://localhost:4566
 ```
 
-### Mode 3 — AWS staging / dev environment
+### Mode 3: AWS staging / dev environment
 
 For full end-to-end testing against a real AWS account. Requires valid AWS credentials and a deployed dev stack.
 
 ```bash
-./scripts/check-aws-session.sh   # verify credentials
-./scripts/deploy-all.sh          # deploy all CDK stacks to dev
+./scripts/deploy/check-aws-session.sh   # verify credentials
+./scripts/deploy/deploy-all.sh          # deploy all CDK stacks to dev
 npm run dev:frontend             # point against the deployed API
 ```
 
@@ -155,7 +155,7 @@ awdah/
 | ------------- | --------------------------------------------------------------------------- |
 | DataStack     | 6 DynamoDB tables (PAY_PER_REQUEST, PITR where needed, GSIs for log access) |
 | AuthStack     | Cognito User Pool and Client                                                |
-| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64)                               |
+| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64), selective warmers in prod    |
 | BackupStack   | S3 backup bucket, EventBridge daily export                                  |
 | AlarmStack    | CloudWatch alarms, SNS alerts                                               |
 | FrontendStack | S3 + CloudFront for non-Pages hosting, previews, or custom domains          |
@@ -168,17 +168,19 @@ Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 ## CI/CD
 
-| Workflow                | Trigger              | Purpose                                                                                     |
-| ----------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
-| `ci.yml`                | Every push, manual   | Lint, typecheck, builds, tests, audit, and the full automatic release lane for `release/**` |
-| `e2e.yml`               | Manual               | Ad hoc Dockerized Playwright E2E against the full local stack                               |
-| `deploy-validation.yml` | PRs targeting `main` | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish        |
-| `deploy.yml`            | Manual               | Controlled backend production deploy from an exact ref/SHA, with approval + smoke test      |
-| `deploy-pages.yml`      | Manual               | Controlled Pages deploy from an exact ref/SHA, tag/release publish, and Pages smoke test    |
+| Workflow                | Trigger                                                | Purpose                                                                                      |
+| ----------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `ci.yml`                | PRs to `main`, pushes to `main` / `release/**`, manual | Quality gate for normal development, plus the automatic release lane for `release/**` pushes |
+| `e2e.yml`               | Manual                                                 | Ad hoc Dockerized Playwright E2E against the full local stack                                |
+| `deploy-validation.yml` | PRs targeting `main`                                   | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish         |
+| `deploy.yml`            | Manual                                                 | Controlled backend production deploy from an exact ref/SHA, with approval + smoke test       |
+| `deploy-pages.yml`      | Manual                                                 | Controlled Pages deploy from an exact ref/SHA, tag/release publish, and Pages smoke test     |
 
-`main` is validation only. Production publishing happens automatically only inside the `CI` workflow when a push lands on a branch whose name begins with `release/vX.Y.Z-*`. That single run performs quality checks, resolves the release context, runs Dockerized E2E on the same commit, waits for backend approval/deploy, then waits for Pages approval/deploy. The release version is derived from the branch name prefix, not auto-incremented from older tags.
+Pull requests into `main` now get both the standard `CI` quality gate and the credential-free deploy rehearsal. After a merge into `main`, only `ci.yml` reruns as the post-merge validation lane. Production publishing still happens automatically only inside the `CI` workflow when a push lands on a branch whose name begins with `release/vX.Y.Z-*`. That same run performs quality checks, resolves the release context, runs Dockerized E2E on the same commit, and then proceeds through the protected backend and Pages deploy jobs. The release version is derived from the branch name prefix, not auto-incremented from older tags.
 
 Manual `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` runs still exist for debugging, reruns, and controlled recovery. For manual deploys, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
+
+To improve first-load UX without paying for provisioned concurrency, production now keeps only the key dashboard and settings read Lambdas warm on a 15-minute EventBridge schedule. The scope is intentionally narrow so it stays free-tier friendly.
 
 ## Contributing
 

@@ -7,6 +7,47 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.1.1
+
+### Changed
+
+#### Frontend
+
+- Public auth CTAs now use query-driven routing, so Sign In and Create Account always reopen the dashboard auth forms even after navigating across public pages
+- About and Contributing now use the new Swiper-based section slider where it matters most, with localized section IDs and more compact card layouts across mobile and desktop
+- About now prefers the injected release version over duplicated content data, reducing drift between the live app version and the public metadata card
+- Weekly overview wording was refreshed in English, German, and Arabic for a clearer explanation of recent rhythm vs total balance
+- Settings practicing-period editing now uses an explicit Delete action with confirmation instead of the fragile inline `×` button
+- The dashboard celebration hook no longer performs synchronous state updates inside an effect
+
+#### Pipeline
+
+- CI now runs on pull requests into `main`, on post-merge pushes to `main`, and on `release/**` pushes, while automatic production publishing remains limited to release branches
+- Script-path cleanup is now complete across workflows, package scripts, infra package scripts, and contributor docs after the move to `scripts/ci`, `scripts/deploy`, `scripts/dev`, `scripts/test`, and `scripts/release`
+- Deprecated deploy helper scripts were removed instead of being kept as redundant shell wrappers
+- Production now keeps only the key dashboard and settings read Lambdas warm on a 15-minute schedule, which improves first-load latency without provisioned concurrency
+
+### Fixed
+
+#### Frontend
+
+- Contributing sliders no longer stop after the first card in Arabic because each slider now receives the full localized item set instead of truncating to the first item
+- The privacy page keeps its translated storage-copy content in English, German, and Arabic instead of hardcoding English replacements
+- Tooltip placement now stays visible on mobile and flips correctly when shown above the trigger, including RTL Arabic layouts
+- About and Contributing localized-content loaders no longer refetch repeatedly because they no longer depend on an unstable translation-function identity
+- About, Contributing, and Learn now share the same localized-content loading flow instead of maintaining three slightly different implementations
+- Signup password guidance now matches the enforced 12-character minimum instead of promising shorter passwords that still fail
+- The unauthenticated mobile shell now centers the auth panel more cleanly and scrolls it into view when public CTAs forward the user to a form
+
+#### Docs
+
+- CI/CD documentation now reflects the actual post-merge `main` flow and the release-only publish lane
+
+### Removed
+
+- Deprecated `scripts/deploy/build-and-upload-frontend.sh` after the deploy flow was fully consolidated around `deploy-frontend.sh`
+- Unused `MobileSwipeableSections` now that About and Contributing have moved to the shared Swiper-based section slider
+
 ## v1.1.0
 
 ### Added
