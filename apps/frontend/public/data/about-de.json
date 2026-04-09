@@ -56,8 +56,8 @@
     {
       "id": "amgad01",
       "name": "Amgad Mahmoud",
-      "role": "Gründer · Architekt · Lead-Entwickler",
-      "bio": "Awdah entstand aus einem persönlichen Bedürfnis: nach etwas Strukturiertem und Ruhigem, das eine spirituelle Reise unterstützen kann, ohne zusätzlichen Druck aufzubauen. Deshalb habe ich es als produktionsorientiertes Produkt entworfen und gebaut, nicht nur als Prototyp.\n\nMit Awdah habe ich End-to-End-Produktentwicklung verantwortet: Domänenmodellierung für Salah- und Sawm-Workflows, Hijri-first-Logik für Berechnungen, mehrsprachige UX-Architektur und datenschutzbewusste Nutzerflüsse. Die Plattform basiert auf einem serverlosen AWS-Stack (Lambda, API Gateway, DynamoDB, Cognito) mit per CDK verwalteter Infrastruktur, CI/CD-Automatisierung, Beobachtbarkeits-Leitplanken und kostenbewussten Designentscheidungen für einen nachhaltigen Betrieb.\n\nIch arbeite als Cloud Engineer an cloud-nativen Transformationsvorhaben für große Unternehmen, an Multi-Account-Plattformintegration, IaC-Automatisierung mit CDKTF und AWS CDK sowie an sicherheitsgesteuerten Delivery-Pipelines. Mein Fokus liegt auf Clean Architecture, skalierbaren Systemen und darauf, bedeutungsvolle Ideen in zuverlässige Produkte zu verwandeln, denen echte Nutzer vertrauen können.",
+      "role": "Gründer · Cloud Engineer",
+      "bio": "Awdah entstand aus einem persönlichen Bedürfnis: nach etwas Strukturiertem und Ruhigem, das eine spirituelle Reise begleiten kann, ohne zusätzlichen Druck zu erzeugen. Ich habe es deshalb als echtes Produkt entworfen und gebaut, nicht als Prototyp.\n\nIm Rahmen von Awdah habe ich die gesamte Produktentwicklung verantwortet: Domänenmodellierung für Salah- und Sawm-Workflows, Hijri-first-Berechnungslogik, mehrsprachige UX-Architektur und datenschutzkonforme Nutzerflüsse. Die Plattform basiert auf einem serverlosen AWS-Stack, Lambda, API Gateway, DynamoDB, Cognito, mit CDK-verwalteter Infrastruktur, CI/CD-Automatisierung, Observability und bewusstem Kostendesign.\n\nDarüber hinaus liegen meine Schwerpunkte in cloud-nativer Architektur und digitaler Transformation: Multi-Account-Plattformintegration für Unternehmen, Infrastructure-as-Code mit AWS CDK und CDKTF sowie sicherheitsgeprüfte Delivery-Pipelines. Mir liegt saubere Architektur am Herzen, Backend-Systeme, die skalieren, und die Frage, wie aus einer guten Idee ein Produkt wird, dem Nutzer wirklich vertrauen können.",
       "github": "amgad01",
       "socials": [
         {
@@ -70,7 +70,7 @@
         },
         {
           "type": "stackoverflow",
-          "url": "https://stackoverflow.com/users/14566143/amgad"
+          "url": "https://stackoverflow.com/users/8991200/amgad-mahmoud"
         },
         {
           "type": "substack",
@@ -112,7 +112,7 @@
   "contributors_empty": "",
   "contributors": [],
   "version_title": "Version",
-  "version_body": "v1.1.0",
+  "version_body": "v1.1.1",
   "stack_title": "Erstellt mit",
   "stack_items": ["React", "TypeScript", "AWS CDK", "DynamoDB", "Lambda", "Docker"],
   "contribute_title": "Mitwirken",

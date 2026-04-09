@@ -56,8 +56,8 @@
     {
       "id": "amgad01",
       "name": "Amgad Mahmoud",
-      "role": "Founder · Architect · Lead Developer",
-      "bio": "Awdah came from a personal place: a need for something structured and calm that could support a spiritual journey without adding pressure. So I designed and built it as a production-minded product, not just a prototype.\n\nThrough Awdah, I have led end-to-end product engineering: domain modeling for Salah and Sawm workflows, Hijri-first calculation logic, multilingual UX architecture, and privacy-aware user journeys. I built the platform on a serverless AWS stack (Lambda, API Gateway, DynamoDB, Cognito) with CDK-managed infrastructure, CI/CD automation, observability guardrails, and cost-aware design decisions for sustainable operation.\n\nI work as a cloud engineer on cloud-native transformation initiatives across multi-account platform integration for large enterprises, IaC automation with CDKTF and AWS CDK, and security-gated delivery pipelines. My focus is clean architecture, scalable systems, and turning meaningful ideas into reliable products that real users can trust.",
+      "role": "Founder · Cloud Engineer",
+      "bio": "Awdah came from a personal place: a need for something structured and calm that could support a spiritual journey without adding pressure. So I designed and built it, not as a prototype, but as a real product meant to last.\n\nThrough Awdah, I led end-to-end product engineering: domain modeling for Salah and Sawm workflows, Hijri-first calculation logic, multilingual UX architecture, and privacy-aware user journeys. The platform runs on a serverless AWS stack, Lambda, API Gateway, DynamoDB, Cognito, with CDK-managed infrastructure, CI/CD automation, observability, and deliberate cost design.\n\nOutside of Awdah, my work sits at the intersection of cloud-native architecture and digital transformation: multi-account platform integration for enterprises, infrastructure-as-code with AWS CDK and CDKTF, and security-gated delivery pipelines. I care about clean architecture, backend systems that scale, and turning meaningful ideas into products that people can actually rely on.",
       "github": "amgad01",
       "socials": [
         {
@@ -70,7 +70,7 @@
         },
         {
           "type": "stackoverflow",
-          "url": "https://stackoverflow.com/users/14566143/amgad"
+          "url": "https://stackoverflow.com/users/8991200/amgad-mahmoud"
         },
         {
           "type": "substack",
@@ -112,7 +112,7 @@
   "contributors_empty": "",
   "contributors": [],
   "version_title": "Version",
-  "version_body": "v1.1.0",
+  "version_body": "v1.1.1",
   "stack_title": "Built With",
   "stack_items": ["React", "TypeScript", "AWS CDK", "DynamoDB", "Lambda", "Docker"],
   "contribute_title": "Contribute",
