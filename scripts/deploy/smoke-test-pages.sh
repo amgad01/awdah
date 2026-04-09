@@ -5,12 +5,12 @@
 # respond correctly and the bundle is intact. Run after a Pages deploy.
 #
 # Usage:
-#   ./scripts/smoke-test-pages.sh <site-url> [options]
-#   ./scripts/smoke-test-pages.sh https://amgad01.github.io/awdah/
+#   ./scripts/deploy/smoke-test-pages.sh <site-url> [options]
+#   ./scripts/deploy/smoke-test-pages.sh https://amgad01.github.io/awdah/
 #
 # Exit code:
-#   0 — all checks passed
-#   1 — one or more checks failed
+#   0: all checks passed
+#   1: one or more checks failed
 set -euo pipefail
 
 SITE_URL="${1:-${PAGES_SITE_URL:-https://amgad01.github.io/awdah/}}"
@@ -79,7 +79,7 @@ check_url "GET / (root index)" "$SITE_URL" "Awdah"
 # 2. Root index should contain the base path in asset references
 check_url "/ contains bundled assets" "$SITE_URL" "/awdah/assets/"
 
-# 3. SPA 404 fallback — GitHub Pages serves 404.html for unknown paths,
+# 3. SPA 404 fallback, GitHub Pages serves 404.html for unknown paths,
 #    the SPA then re-hydrates and routes to the correct page.
 status_404=$(curl --silent --output /dev/null --write-out '%{http_code}' \
   --location --retry 2 --retry-delay 2 \

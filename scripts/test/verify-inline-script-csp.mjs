@@ -49,7 +49,9 @@ function sha256Base64(value) {
 const files = process.argv.slice(2);
 
 if (files.length === 0) {
-  console.error('Usage: node scripts/verify-inline-script-csp.mjs <html-file> [more-files...]');
+  console.error(
+    'Usage: node scripts/test/verify-inline-script-csp.mjs <html-file> [more-files...]',
+  );
   process.exit(1);
 }
 

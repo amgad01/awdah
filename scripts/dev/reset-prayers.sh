@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# reset-prayers.sh — Deletes all prayer log entries from the local DynamoDB
+# reset-prayers.sh: Deletes all prayer log entries from the local DynamoDB
 # (LocalStack). Useful during development to reset prayer history without
 # touching the user profile or practicing periods.
 #
 # Usage:
-#   ./scripts/reset-prayers.sh [USER_ID]
+#   ./scripts/dev/reset-prayers.sh [USER_ID]
 #
 # If USER_ID is omitted, ALL prayer log entries are removed.
 # Run from the repo root. Requires Docker and the AWS CLI.

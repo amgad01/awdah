@@ -2,11 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # --- Help ---
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
@@ -85,7 +85,7 @@ STACK_NAME="Awdah-${STACK}-stack-${ENV}"
 
 if [ "$STACK" = "frontend" ] && [ "$(frontend_target_for_env "$ENV")" = "pages" ]; then
   echo "✗ The prod frontend is published through GitHub Pages, not the FrontendStack."
-  echo "  Use ./scripts/deploy-frontend.sh $ENV instead."
+  echo "  Use ./scripts/deploy/deploy-frontend.sh $ENV instead."
   exit 1
 fi
 

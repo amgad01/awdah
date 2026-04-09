@@ -8,10 +8,10 @@
 # Independent steps within each phase run in parallel to reduce wall-clock time.
 #
 # Usage:
-#   ./scripts/pre-push-checks.sh                    # run all checks
-#   SKIP_TESTS=1 ./scripts/pre-push-checks.sh       # skip tests
-#   RUN_E2E=1 ./scripts/pre-push-checks.sh          # include frontend Playwright E2E
-#   SKIP_BUILDS=1 ./scripts/pre-push-checks.sh      # skip app builds (lint/typecheck/test only)
+#   ./scripts/ci/pre-push-checks.sh                    # run all checks
+#   SKIP_TESTS=1 ./scripts/ci/pre-push-checks.sh       # skip tests
+#   RUN_E2E=1 ./scripts/ci/pre-push-checks.sh          # include frontend Playwright E2E
+#   SKIP_BUILDS=1 ./scripts/ci/pre-push-checks.sh      # skip app builds (lint/typecheck/test only)
 set -e
 
 BOLD='\033[1m'
@@ -79,13 +79,13 @@ ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 
 # ── Phase 1: Build shared package (dependency for later phases) ──────────────
-step "Phase 1/4 — Build shared package"
+step "Phase 1/4: Build shared package"
 npm run build --workspace=packages/shared
 success "Shared package built"
 
-# ── Phase 2: Lint, format & TypeScript (all independent — run together) ──────
+# ── Phase 2: Lint, format & TypeScript (all independent, run together) ──────
 # Root ESLint covers backend/infra/packages; frontend ESLint uses its own config.
-step "Phase 2/4 — Lint, format & TypeScript (parallel)"
+step "Phase 2/4: Lint, format & TypeScript (parallel)"
 run_parallel \
   "ESLint: backend / infra / packages" \
     "npm run lint -- --cache --cache-location .eslintcache" \
@@ -104,9 +104,9 @@ run_parallel \
 
 # ── Phase 3: Tests ────────────────────────────────────────────────────────────
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
-  warn "SKIP_TESTS=1 — skipping tests (do not push without running tests first)"
+  warn "SKIP_TESTS=1, skipping tests (do not push without running tests first)"
 else
-  step "Phase 3/4 — Tests (parallel)"
+  step "Phase 3/4: Tests (parallel)"
   run_parallel \
     "Tests: backend" \
       "npm run test --workspace=apps/backend" \
@@ -117,23 +117,23 @@ else
 fi
 
 if [ "${SKIP_E2E:-0}" = "1" ]; then
-  warn "SKIP_E2E=1 — skipping frontend Playwright E2E"
+  warn "SKIP_E2E=1, skipping frontend Playwright E2E"
 elif [ "${RUN_E2E:-0}" = "1" ]; then
-  step "Phase 3.5/4 — Frontend E2E"
+  step "Phase 3.5/4: Frontend E2E"
   npm run test:e2e --workspace=apps/frontend
   success "Frontend E2E passed"
 else
-  warn "RUN_E2E=1 not set — skipping frontend Playwright E2E"
+  warn "RUN_E2E=1 not set, skipping frontend Playwright E2E"
 fi
 
 # ── Phase 4: Builds + security audit ─────────────────────────────────────────
 if [ "${SKIP_BUILDS:-0}" = "1" ]; then
-  warn "SKIP_BUILDS=1 — skipping app builds"
-  step "Phase 4/4 — Security audit"
+  warn "SKIP_BUILDS=1, skipping app builds"
+  step "Phase 4/4: Security audit"
   npm audit --audit-level=high --workspace=apps/backend --workspace=apps/frontend --workspace=packages/shared --workspace=infra
   success "Security audit passed"
 else
-  step "Phase 4/4 — Builds & audit (parallel)"
+  step "Phase 4/4: Builds & audit (parallel)"
   run_parallel \
     "Build: backend"  "npm run build --workspace=apps/backend" \
     "Build: frontend" "npm run build --workspace=apps/frontend" \

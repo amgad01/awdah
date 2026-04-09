@@ -22,25 +22,41 @@ export type AuthenticatedHandler<TBody extends Record<string, unknown> = Record<
     context: Context,
   ) => Promise<{ statusCode: number; body: unknown }>;
 
+export interface WarmupEvent {
+  warmup?: boolean;
+  source?: string;
+  target?: string;
+}
+
+export type HandlerEvent = APIGatewayProxyEventV2 | WarmupEvent;
+
 export function wrapHandler<TBody extends Record<string, unknown> = Record<string, unknown>>(
   contextName: string,
   handler: AuthenticatedHandler<TBody>,
-): (event: APIGatewayProxyEventV2, context: Context) => Promise<APIGatewayProxyResultV2> {
+): (event: HandlerEvent, context: Context) => Promise<APIGatewayProxyResultV2> {
   // Logger is created once at cold start; a cheap child is forked per invocation to bind requestId.
   const baseLogger = createLogger(contextName);
 
   return async (event, context) => {
     const startTime = Date.now();
+    const path = isHttpApiEvent(event) ? event.rawPath : undefined;
+    const method = isHttpApiEvent(event) ? event.requestContext?.http?.method : undefined;
 
     const logger = baseLogger.child({
       requestId: context.awsRequestId,
-      path: event.rawPath,
-      method: event.requestContext?.http?.method,
+      path,
+      method,
     });
 
     logger.debug('invocation started');
 
     try {
+      if (isWarmupEvent(event)) {
+        const duration = Date.now() - startTime;
+        logger.debug({ duration, target: event.target }, 'warmup invocation completed');
+        return jsonResponse(200, { warmed: true });
+      }
+
       const userId = extractUserId(event);
       const body = parseRequestBody<TBody>(event.body);
 
@@ -67,6 +83,14 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
       return jsonResponse(internalError.statusCode, internalError.toJSON());
     }
   };
+}
+
+function isHttpApiEvent(event: HandlerEvent): event is APIGatewayProxyEventV2 {
+  return 'rawPath' in event && 'requestContext' in event;
+}
+
+function isWarmupEvent(event: HandlerEvent): event is WarmupEvent {
+  return !isHttpApiEvent(event) && event.warmup === true;
 }
 
 function extractUserId(event: APIGatewayProxyEventV2): string {

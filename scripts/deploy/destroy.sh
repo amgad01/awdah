@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
 # --- Help ---
@@ -80,7 +80,7 @@ ERRORS=0
 for STACK in "${STACKS[@]}"; do
   echo "  ▸ Destroying $STACK..."
   if ! npx cdk destroy "$STACK" "${CONTEXT_ARGS[@]}" --force 2>/dev/null; then
-    echo "  ⚠ $STACK — not found or already destroyed"
+    echo "  ⚠ $STACK not found or already destroyed"
   fi
 done
 

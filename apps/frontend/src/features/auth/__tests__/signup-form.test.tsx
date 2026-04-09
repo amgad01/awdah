@@ -30,7 +30,7 @@ vi.mock('@/lib/auth-service', () => ({
 }));
 
 /** A password that satisfies all five signup checks */
-const STRONG_PASSWORD = 'Test1ng!';
+const STRONG_PASSWORD = 'Test1ng!2345';
 
 describe('SignupForm', () => {
   const onSuccess = vi.fn();
@@ -63,6 +63,22 @@ describe('SignupForm', () => {
     });
     fireEvent.change(screen.getByTestId('signup-confirm-password'), {
       target: { value: 'weak' },
+    });
+
+    expect(screen.getByTestId('signup-submit')).toBeDisabled();
+  });
+
+  it('rejects passwords shorter than the Cognito minimum even when they satisfy the other checks', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-email'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: 'Tota@789' },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: 'Tota@789' },
     });
 
     expect(screen.getByTestId('signup-submit')).toBeDisabled();

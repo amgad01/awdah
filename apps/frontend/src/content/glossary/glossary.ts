@@ -1,11 +1,11 @@
 /**
- * Glossary — term definitions for the hover tooltip.
+ * Glossary: term definitions for the hover tooltip.
  *
- * To add or edit a term, update glossary.json in this directory — no TypeScript
+ * To add or edit a term, update glossary.json in this directory: no TypeScript
  * changes needed. Each entry has:
  *   - "arabic": Arabic script (shown in every language)
- *   - "synonyms": { "en": "...", "ar": "..." }  — alternative names per language
- *   - "definition": { "en": "...", "ar": "..." }  — brief definition per language
+ *   - "synonyms": { "en": "...", "ar": "..." } : alternative names per language
+ *   - "definition": { "en": "...", "ar": "..." } : brief definition per language
  *   - "references": optional source links that can be rendered in the Learn page
  *
  * If a language code is missing, the component falls back to English.
@@ -22,7 +22,7 @@ import {
 } from '../references/reference-links';
 
 export interface GlossaryEntry {
-  /** Arabic script for the term — displayed in every language */
+  /** Arabic script for the term, displayed in every language */
   arabic: string;
   /** Short synonyms / alternative names, keyed by language code */
   synonyms: Partial<Record<string, string>>;

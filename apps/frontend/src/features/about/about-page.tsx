@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -19,9 +19,9 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ErrorState } from '@/components/ui/error-state/error-state';
+import { useLocalizedContent } from '@/hooks/use-localized-content';
 import { GlossaryText } from '@/components/ui/term-tooltip';
-import { loadLocalizedContent } from '@/utils/localized-content';
-import { MobileSwipeableSections } from '@/components/ui/mobile-swipeable-sections/mobile-swipeable-sections';
+import { SwiperSections } from '@/components/ui/swiper-sections';
 import styles from './about-page.module.css';
 
 interface SocialLink {
@@ -182,48 +182,10 @@ const renderMemberLinks = (member: TeamMember): React.JSX.Element => (
 
 export const AboutPage: React.FC = () => {
   const { language, t } = useLanguage();
-  const [data, setData] = useState<AboutData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-
-    const loadData = async () => {
-      try {
-        const json = await loadLocalizedContent<AboutData>('about', language, {
-          signal: controller.signal,
-        });
-        if (!cancelled) {
-          setData(json);
-        }
-      } catch (err: unknown) {
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          return;
-        }
-        if (!cancelled) {
-          setData(null);
-          setError(err instanceof Error ? err.message : t('common.error'));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [language, refreshKey, t]);
+  const { data, error, loadedLanguage, loading, reload } = useLocalizedContent<AboutData>(
+    'about',
+    language,
+  );
 
   // Prepare feature/mission/audience sections for mobile slider
   const contentSliderSections = useMemo(() => {
@@ -234,7 +196,6 @@ export const AboutPage: React.FC = () => {
     const sections = [
       {
         id: 'mission',
-        title: data.why_title,
         content: (
           <section className={styles.missionSection}>
             <div className={styles.missionCard}>
@@ -249,7 +210,6 @@ export const AboutPage: React.FC = () => {
       },
       {
         id: 'audience',
-        title: data.who_title,
         content: (
           <section className={styles.audienceSection}>
             <h2 className={styles.sectionTitle}>{data.who_title}</h2>
@@ -263,7 +223,6 @@ export const AboutPage: React.FC = () => {
         const IconComponent = FEATURE_ICONS[feature.icon] ?? HelpCircle;
         return {
           id: `feature-${feature.id}`,
-          title: feature.title,
           content: (
             <section className={styles.featureCard}>
               <IconComponent size={24} className={styles.featureIcon} />
@@ -280,18 +239,44 @@ export const AboutPage: React.FC = () => {
     return sections;
   }, [data]);
 
-  const founderExpertiseSections = useMemo(() => {
+  // For mobile: if only 1 team member, show all details listed; if multiple, show slider with 1 card per member
+  const renderMobileTeamSection = () => {
     if (!data || !data.team || data.team.length === 0) {
-      return [];
+      return null;
     }
 
-    const member = data.team[0];
-    const groups = getFounderExpertiseGroups(member);
+    // Single contributor: show everything listed without slider
+    if (data.team.length === 1) {
+      const member = data.team[0];
+      const groups = getFounderExpertiseGroups(member);
+      return (
+        <section className={styles.founderCardFull}>
+          <div className={styles.founderHeader}>
+            <div className={styles.founderAvatar}>
+              <Github size={48} />
+            </div>
+            <div className={styles.founderInfo}>
+              <h2 className={styles.devTitle}>{member.name}</h2>
+              <p className={styles.devHeadline}>{member.role}</p>
+            </div>
+          </div>
 
-    return [
-      {
-        id: 'profile',
-        title: t('about.about_me', 'About Me'),
+          <div className={styles.founderBio}>{renderBioParagraphs(member.bio, member.id)}</div>
+
+          {renderMemberLinks(member)}
+
+          <div className={styles.founderExpertiseMobile}>
+            {groups.map((group) => renderExpertiseGroup(group, true))}
+          </div>
+        </section>
+      );
+    }
+
+    // Multiple contributors: slider with one card per member
+    const memberSections = data.team.map((member) => {
+      const groups = getFounderExpertiseGroups(member);
+      return {
+        id: `${language}-${member.id}`,
         content: (
           <section className={styles.founderCard}>
             <div className={styles.founderHeader}>
@@ -307,22 +292,23 @@ export const AboutPage: React.FC = () => {
             <div className={styles.founderBio}>{renderBioParagraphs(member.bio, member.id)}</div>
 
             {renderMemberLinks(member)}
+
+            <div className={styles.founderExpertiseMobile}>
+              {groups.map((group) => renderExpertiseGroup(group, true))}
+            </div>
           </section>
         ),
-      },
-      ...groups.map((group) => ({
-        id: group.id,
-        title: group.title,
-        content: renderExpertiseGroup(group, true),
-      })),
-    ];
-  }, [data, t]);
+      };
+    });
+
+    return <SwiperSections sections={memberSections} className={styles.founderSlider} />;
+  };
 
   if (error) {
-    return <ErrorState message={error} onRetry={() => setRefreshKey((v) => v + 1)} />;
+    return <ErrorState message={error.message || t('common.error')} onRetry={reload} />;
   }
 
-  if (loading || !data) {
+  if (loading || loadedLanguage !== language || !data) {
     return <div className={styles.loading}>{t('common.loading')}</div>;
   }
 
@@ -341,13 +327,11 @@ export const AboutPage: React.FC = () => {
 
         {/* Content Slider: Mission, Audience, Features */}
         <div className={styles.sliderSection}>
-          <MobileSwipeableSections sections={contentSliderSections} />
+          <SwiperSections sections={contentSliderSections} />
         </div>
 
-        {/* Founder Expertise Slider - Mobile Only */}
-        <div className={styles.founderExpertiseSlider}>
-          <MobileSwipeableSections sections={founderExpertiseSections} />
-        </div>
+        {/* Team Section - Mobile Only */}
+        <div className={styles.founderExpertiseSlider}>{renderMobileTeamSection()}</div>
 
         {/* Static Footer Sections */}
         {data.contribute_title ? (
@@ -373,7 +357,7 @@ export const AboutPage: React.FC = () => {
               {data.version_title || t('about.version_title', 'Version')}
             </h2>
             <p className={styles.sectionBody}>
-              {data.version_body || import.meta.env.VITE_APP_VERSION || '1.1.0'}
+              {import.meta.env.VITE_APP_VERSION || data.version_body || 'v1.1.1'}
             </p>
             <div className={styles.devTech}>
               <h3 className={styles.devTechTitle}>
@@ -512,7 +496,7 @@ export const AboutPage: React.FC = () => {
               {data.version_title || t('about.version_title', 'Version')}
             </h2>
             <p className={styles.sectionBody}>
-              {data.version_body || import.meta.env.VITE_APP_VERSION || '1.1.0'}
+              {import.meta.env.VITE_APP_VERSION || data.version_body || 'v1.1.1'}
             </p>
             <div className={styles.devTech}>
               <h3 className={styles.devTechTitle}>

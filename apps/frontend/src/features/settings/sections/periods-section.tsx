@@ -281,10 +281,6 @@ export const PeriodsSection: React.FC = () => {
     }
   };
 
-  const handleDeletePeriod = (periodId: string) => {
-    setDeletingPeriodId(periodId);
-  };
-
   const handleConfirmDelete = async (periodId: string) => {
     const preview = getDeletePeriodPreview(periodId);
     setDeletingPeriodId(null);
@@ -328,31 +324,7 @@ export const PeriodsSection: React.FC = () => {
       {(periods ?? []).length > 0 && (
         <div className={styles.periodsList}>
           {(periods ?? []).map((p) =>
-            editingPeriodId === p.periodId ? (
-              <PeriodForm
-                key={p.periodId}
-                mode="edit"
-                startDate={editStart}
-                endDate={editEnd}
-                isOngoing={editOngoing}
-                periodType={editType}
-                startError={editStartError}
-                endError={editEndError}
-                preview={editPeriodPreview}
-                feedback={periodFeedback}
-                isPending={updatePeriod.isPending}
-                minDate={persistedDobDate ?? ''}
-                maxDate={todayHijriDate()}
-                onStartChange={setEditStart}
-                onEndChange={setEditEnd}
-                onOngoingChange={setEditOngoing}
-                onTypeChange={setEditType}
-                onStartError={setEditStartError}
-                onEndError={setEditEndError}
-                onSubmit={() => handleSaveEdit(p.periodId)}
-                onCancel={handleCancelEdit}
-              />
-            ) : deletingPeriodId === p.periodId ? (
+            deletingPeriodId === p.periodId ? (
               <div key={p.periodId} className={styles.periodDeleteConfirm}>
                 <p className={styles.periodDeleteConfirmMsg}>
                   {t('settings.period_delete_confirm')}
@@ -384,6 +356,31 @@ export const PeriodsSection: React.FC = () => {
                   </button>
                 </div>
               </div>
+            ) : editingPeriodId === p.periodId ? (
+              <PeriodForm
+                key={p.periodId}
+                mode="edit"
+                startDate={editStart}
+                endDate={editEnd}
+                isOngoing={editOngoing}
+                periodType={editType}
+                startError={editStartError}
+                endError={editEndError}
+                preview={editPeriodPreview}
+                feedback={periodFeedback}
+                isPending={updatePeriod.isPending}
+                minDate={persistedDobDate ?? ''}
+                maxDate={todayHijriDate()}
+                onStartChange={setEditStart}
+                onEndChange={setEditEnd}
+                onOngoingChange={setEditOngoing}
+                onTypeChange={setEditType}
+                onStartError={setEditStartError}
+                onEndError={setEditEndError}
+                onSubmit={() => handleSaveEdit(p.periodId)}
+                onCancel={handleCancelEdit}
+                onDelete={() => setDeletingPeriodId(p.periodId)}
+              />
             ) : (
               <div key={p.periodId} className={styles.periodRow}>
                 <div className={styles.periodInfo}>
@@ -407,13 +404,6 @@ export const PeriodsSection: React.FC = () => {
                     aria-label={t('settings.period_edit')}
                   >
                     <Pencil size={14} />
-                  </button>
-                  <button
-                    className={styles.periodDeleteBtn}
-                    onClick={() => handleDeletePeriod(p.periodId)}
-                    aria-label={t('settings.period_delete')}
-                  >
-                    <X size={16} />
                   </button>
                 </div>
               </div>

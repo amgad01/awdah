@@ -4,6 +4,8 @@ import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambda_event_sources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -46,6 +48,13 @@ interface RouteDefinition {
 
 const MUTATION_ROUTE_RATE_DIVISOR = 5;
 const ADMIN_ROUTE_RATE_DIVISOR = 20;
+const WARM_LAMBDA_INTERVAL_MINUTES = 15;
+const WARM_LAMBDA_IDS = [
+  'GetUserSettingsFn',
+  'GetSalahDebtFn',
+  'GetSawmDebtFn',
+  'GetPeriodsFn',
+] as const;
 
 export class ApiStack extends BaseStack {
   public readonly httpApi: apigatewayv2.HttpApi;
@@ -104,6 +113,7 @@ export class ApiStack extends BaseStack {
     // 4. Configure Specific Lambda Wiring
     this.wireLambdaPermissions(props, lambdas);
     this.wireEventSources(props, lambdas);
+    this.registerWarmLambdaRule(lambdas);
 
     // 5. Register Routes (must happen before applying throttles)
     const routes = this.registerRoutes(api, authorizer, lambdas);
@@ -319,6 +329,33 @@ export class ApiStack extends BaseStack {
         }),
       );
     }
+  }
+
+  private registerWarmLambdaRule(lambdas: Map<string, lambda.IFunction>): void {
+    if (this.projectEnv !== 'prod') {
+      return;
+    }
+
+    new events.Rule(this, 'CriticalReadWarmupRule', {
+      ruleName: this.fullResourceName('CriticalReadWarmup'),
+      description:
+        'Keeps the key dashboard and settings read Lambdas warm without provisioned concurrency.',
+      schedule: events.Schedule.rate(cdk.Duration.minutes(WARM_LAMBDA_INTERVAL_MINUTES)),
+      targets: WARM_LAMBDA_IDS.map((lambdaId) => {
+        const fn = lambdas.get(lambdaId);
+        if (!fn) {
+          throw new Error(`Missing warmup Lambda function: ${lambdaId}`);
+        }
+
+        return new targets.LambdaFunction(fn, {
+          event: events.RuleTargetInput.fromObject({
+            warmup: true,
+            source: 'awdah.lambda-warmer',
+            target: lambdaId,
+          }),
+        });
+      }),
+    });
   }
 
   private registerRoutes(

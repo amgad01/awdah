@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Awdah Stack Outputs — readable summary
-# Usage: ./scripts/list-outputs.sh [env]
+# Awdah Stack Outputs, readable summary
+# Usage: ./scripts/deploy/list-outputs.sh [env]
 
 SET_ENV=${1:-dev}
 REGION=${AWS_DEFAULT_REGION:-eu-west-1}
@@ -13,7 +13,7 @@ DIM='\033[2m'
 NC='\033[0m'
 
 echo -e "${YELLOW}====================================================${NC}"
-echo -e "${YELLOW}  Awdah Stack Outputs — ${SET_ENV}${NC}"
+echo -e "${YELLOW}  Awdah Stack Outputs: ${SET_ENV}${NC}"
 echo -e "${YELLOW}====================================================${NC}"
 
 STACKS=("auth" "api" "frontend" "data" "alarm")
@@ -35,7 +35,7 @@ for STACK_TYPE in "${STACKS[@]}"; do
     echo -e "${DIM}  $(printf '%.0s─' {1..46})${NC}"
 
     while IFS=$'\t' read -r key value; do
-        # Skip CDK internal export keys — they're noise
+        # Skip CDK internal export keys, they're noise
         [[ "$key" == ExportsOutput* ]] && continue
         printf "  ${GREEN}%-35s${NC}  %s\n" "$key" "$value"
     done <<< "$RAW"

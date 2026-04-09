@@ -524,10 +524,24 @@
     padding: var(--spacing-md);
   }
 
+  .authShell {
+    justify-items: center;
+  }
+
   .heroPanel,
   .authPanel,
   .learnSurface {
     padding: var(--spacing-lg);
+  }
+
+  .heroPanel {
+    align-items: center;
+    text-align: center;
+  }
+
+  .authPanel {
+    width: min(100%, 420px);
+    margin-inline: auto;
   }
 
   .publicTopBar,

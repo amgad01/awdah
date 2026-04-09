@@ -2,11 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INFRA_DIR="$ROOT_DIR/infra"
 
-# shellcheck source=./lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 load_env_defaults "$ROOT_DIR/.env"
 
@@ -24,7 +24,7 @@ PAGES_SITE_URL="${PAGES_SITE_URL:-$(compute_site_url "$PAGES_ORIGIN" "$PAGES_BAS
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
 FAILED=false
-trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Frontend deploy FAILED — check the output above."; exit 1; fi' EXIT
+trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; echo "✗ Frontend deploy FAILED, check the output above."; exit 1; fi' EXIT
 
 echo "▸ [1/3] Building frontend for $TARGET..."
 cd "$ROOT_DIR"

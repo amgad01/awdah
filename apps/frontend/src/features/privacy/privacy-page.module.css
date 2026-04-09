@@ -1,7 +1,8 @@
 .wrapper {
-  max-width: 720px;
+  max-width: var(--max-content-width);
   margin: 0 auto;
-  padding: var(--spacing-12) var(--spacing-6);
+  padding: var(--spacing-xl) var(--spacing-md);
+  animation: fadeIn 0.4s ease;
 }
 
 .embedded {
@@ -9,114 +10,110 @@
   padding: 0;
 }
 
-/* Header */
+/* ── Hero ── */
 .header {
   text-align: center;
-  margin-bottom: var(--spacing-16);
+  padding: var(--spacing-xxl) var(--spacing-md) var(--spacing-xl);
 }
 
 .overline {
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.12em;
+  display: inline-block;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--border-radius-pill);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-bottom: var(--spacing-4);
-  display: block;
+  margin-bottom: var(--spacing-sm);
 }
 
 .title {
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: var(--font-weight-bold);
+  font-size: 2rem;
+  font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-5);
+  margin-bottom: var(--spacing-sm);
   line-height: 1.2;
 }
 
 .lead {
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
+  max-width: 600px;
   margin: 0 auto;
-  max-width: 540px;
+  line-height: 1.6;
 }
 
-/* Content */
+/* ── Content ── */
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-12);
+  gap: var(--spacing-xl);
+  margin: var(--spacing-xl) 0;
 }
 
-/* Section Card */
+/* ── Section Cards ── */
 .section {
-  padding: var(--spacing-8);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-surface);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 8%, var(--color-surface)) 0%,
+    var(--color-surface) 60%,
+    color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)) 100%
+  );
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .sectionIcon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--border-radius-lg);
-  background: var(--color-accent-alpha-10);
-  color: var(--color-accent);
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
 .sectionTitle {
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin: 0;
 }
 
 .sectionBody {
-  padding-inline-start: 0;
-  text-align: center;
+  padding-left: calc(24px + var(--spacing-sm));
 }
 
 .paragraph {
-  font-size: 1rem;
-  line-height: 1.8;
+  font-size: var(--font-size-md);
   color: var(--color-text-secondary);
-  margin: 0 0 var(--spacing-5);
-  text-align: center;
+  line-height: 1.7;
+  margin: 0;
 }
 
-.paragraph:last-child {
-  margin-bottom: 0;
-}
-
-/* Data Items */
+/* ── Data List (What we store) ── */
 .dataList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
 .dataItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
   background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 }
 
 .dataItem::before {
@@ -126,26 +123,26 @@
   border-radius: 50%;
   background: var(--color-accent);
   flex-shrink: 0;
-  margin-inline-end: var(--spacing-2);
 }
 
-/* Rights */
+/* ── Rights Grid ── */
 .rightsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
 .rightItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
   background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
 }
 
 .rightItem svg {
@@ -153,73 +150,71 @@
   flex-shrink: 0;
 }
 
-/* Link Button */
+/* ── Link Button ── */
 .linkButton {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-4);
-  padding: 0.75rem 1.25rem;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  padding: 0.6rem 1rem;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--color-border);
-  background: transparent;
+  background: var(--color-surface);
   color: var(--color-text-primary);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   transition: all 0.15s ease;
 }
 
 .linkButton:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
+  background: var(--color-surface-elevated);
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 600px) {
   .wrapper {
-    padding: var(--spacing-8) var(--spacing-4);
+    padding: var(--spacing-lg) var(--spacing-sm);
   }
 
   .header {
-    margin-bottom: var(--spacing-10);
+    padding: var(--spacing-xl) var(--spacing-sm) var(--spacing-lg);
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
   }
 
   .content {
-    gap: var(--spacing-8);
+    gap: var(--spacing-lg);
   }
 
   .section {
-    padding: var(--spacing-5);
-  }
-
-  .sectionHeader {
-    margin-bottom: var(--spacing-4);
-  }
-
-  .sectionIcon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .sectionIcon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .sectionTitle {
-    font-size: 1.1rem;
+    padding: var(--spacing-lg);
   }
 
   .sectionBody {
-    padding-inline-start: 0;
+    padding-left: 0;
   }
 
-  .paragraph {
-    font-size: 0.95rem;
+  .dataList {
+    grid-template-columns: 1fr;
+  }
+
+  .rightsList {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

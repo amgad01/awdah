@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/use-language';
-import { Shield, Lock, Eye, Trash2, Download, Mail } from 'lucide-react';
+import { Shield, Lock, Eye, Trash2, Download, Mail, Pencil } from 'lucide-react';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import styles from './privacy-page.module.css';
 
 interface PrivacyPageProps {
@@ -19,7 +20,9 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
       <header className={styles.header}>
         <span className={styles.overline}>{t('privacy.last_updated')}</span>
         <h1 className={styles.title}>{t('privacy.title')}</h1>
-        <p className={styles.lead}>{t('privacy.intro_body')}</p>
+        <p className={styles.lead}>
+          <GlossaryText>{t('privacy.intro_body')}</GlossaryText>
+        </p>
       </header>
 
       <div className={styles.content}>
@@ -27,17 +30,27 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Shield size={22} />
+              <Shield size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.what_we_store_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
             <div className={styles.dataList}>
-              <div className={styles.dataItem}>{t('onboarding.privacy_data_dob')}</div>
-              <div className={styles.dataItem}>{t('onboarding.privacy_data_bulugh')}</div>
-              <div className={styles.dataItem}>{t('onboarding.privacy_data_periods')}</div>
-              <div className={styles.dataItem}>{t('onboarding.privacy_data_logs')}</div>
-              <div className={styles.dataItem}>{t('onboarding.privacy_data_email')}</div>
+              <div className={styles.dataItem}>
+                <GlossaryText>{t('onboarding.privacy_data_dob')}</GlossaryText>
+              </div>
+              <div className={styles.dataItem}>
+                <GlossaryText>{t('onboarding.privacy_data_bulugh')}</GlossaryText>
+              </div>
+              <div className={styles.dataItem}>
+                <GlossaryText>{t('onboarding.privacy_data_periods')}</GlossaryText>
+              </div>
+              <div className={styles.dataItem}>
+                <GlossaryText>{t('onboarding.privacy_data_logs')}</GlossaryText>
+              </div>
+              <div className={styles.dataItem}>
+                <GlossaryText>{t('onboarding.privacy_data_email')}</GlossaryText>
+              </div>
             </div>
           </div>
         </section>
@@ -46,12 +59,14 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Lock size={22} />
+              <Lock size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.how_stored_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <p className={styles.paragraph}>{t('privacy.how_stored_body')}</p>
+            <p className={styles.paragraph}>
+              <GlossaryText>{t('privacy.how_stored_body')}</GlossaryText>
+            </p>
           </div>
         </section>
 
@@ -59,12 +74,14 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Eye size={22} />
+              <Eye size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.sharing_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <p className={styles.paragraph}>{t('privacy.sharing_body')}</p>
+            <p className={styles.paragraph}>
+              <GlossaryText>{t('privacy.sharing_body')}</GlossaryText>
+            </p>
           </div>
         </section>
 
@@ -72,24 +89,30 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Download size={22} />
+              <Download size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.rights_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <p className={styles.paragraph}>{t('privacy.rights_body')}</p>
+            <p className={styles.paragraph}>
+              <GlossaryText>{t('privacy.rights_body')}</GlossaryText>
+            </p>
             <div className={styles.rightsList}>
               <div className={styles.rightItem}>
-                <Eye size={16} />
+                <Eye size={18} />
                 <span>{t('privacy.right_access')}</span>
               </div>
               <div className={styles.rightItem}>
-                <Trash2 size={16} />
-                <span>{t('privacy.right_delete')}</span>
+                <Pencil size={18} />
+                <span>{t('privacy.right_rectify')}</span>
               </div>
               <div className={styles.rightItem}>
-                <Download size={16} />
+                <Download size={18} />
                 <span>{t('privacy.right_export')}</span>
+              </div>
+              <div className={styles.rightItem}>
+                <Trash2 size={18} />
+                <span>{t('privacy.right_delete')}</span>
               </div>
             </div>
           </div>
@@ -99,12 +122,14 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Lock size={22} />
+              <Lock size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.cookies_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
-            <p className={styles.paragraph}>{t('privacy.cookies_body')}</p>
+            <p className={styles.paragraph}>
+              <GlossaryText>{t('privacy.cookies_body')}</GlossaryText>
+            </p>
           </div>
         </section>
 
@@ -112,13 +137,15 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ embedded = false }) =>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIcon}>
-              <Mail size={22} />
+              <Mail size={20} />
             </div>
             <h2 className={styles.sectionTitle}>{t('privacy.contact_title')}</h2>
           </div>
           <div className={styles.sectionBody}>
             <p className={styles.paragraph}>
-              {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
+              <GlossaryText>
+                {t('privacy.contact_body', { email: import.meta.env.VITE_APP_EMAIL })}
+              </GlossaryText>
             </p>
             <Link to="/about" className={styles.linkButton}>
               {t('about.nav_link')}

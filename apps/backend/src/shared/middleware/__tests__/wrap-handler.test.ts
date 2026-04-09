@@ -114,6 +114,26 @@ describe('wrap-handler', () => {
       );
     });
 
+    it('returns early for warmup invocations without requiring auth context', async () => {
+      const handler = vi.fn();
+      const wrapped = wrapHandler('TestContext', handler);
+
+      const result = await wrapped(
+        {
+          warmup: true,
+          source: 'awdah.lambda-warmer',
+          target: 'GetUserSettingsFn',
+        },
+        mockContext,
+      );
+      const res = result as { statusCode: number; body: string; headers: Record<string, string> };
+
+      expect(res.statusCode).toBe(200);
+      expect(JSON.parse(res.body)).toEqual({ warmed: true });
+      expect(res.headers).toMatchObject(SECURITY_HEADERS);
+      expect(handler).not.toHaveBeenCalled();
+    });
+
     it('should handle body parsing errors', async () => {
       const handler = vi.fn();
       const wrapped = wrapHandler('TestContext', handler);

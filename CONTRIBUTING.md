@@ -21,7 +21,7 @@ You do not need a real AWS account for normal contribution work.
 ### Prerequisites
 
 - Node.js (version in `.nvmrc`)
-- Docker (for LocalStack — mode 2 only)
+- Docker (for LocalStack, mode 2 only)
 - AWS CLI (optional, for direct LocalStack inspection)
 
 You do not need a real AWS account for normal contribution work.
@@ -30,7 +30,7 @@ You do not need a real AWS account for normal contribution work.
 
 ### 1. Cloudless path (no Docker, no AWS)
 
-Use this for UI, translations, public-page content, and any work that doesn't need real auth or database calls. The frontend runs entirely with a built-in in-memory auth backend — no LocalStack needed.
+Use this for UI, translations, public-page content, and any work that doesn't need real auth or database calls. The frontend runs entirely with a built-in in-memory auth backend, so no LocalStack is needed.
 
 ```bash
 # Clone and install
@@ -78,16 +78,16 @@ npm install
 docker compose up -d localstack
 
 # Deploy infrastructure to LocalStack (data tables, auth, API)
-./scripts/deploy-localstack.sh data
-./scripts/deploy-localstack.sh auth
-./scripts/deploy-localstack.sh api
+./scripts/deploy/deploy-localstack.sh data
+./scripts/deploy/deploy-localstack.sh auth
+./scripts/deploy/deploy-localstack.sh api
 
 # Start the dev servers in separate terminals
 npm run dev:frontend   # http://localhost:5173
 npm run dev:backend    # Lambda runner on http://localhost:3000
 ```
 
-Copy `.env.example` to `.env.local` — LocalStack doesn't need real credentials:
+Copy `.env.example` to `.env.local`. LocalStack doesn't need real credentials:
 
 ```bash
 AWS_ACCESS_KEY_ID=test
@@ -114,11 +114,11 @@ Pre-commit hooks run lint and a quick typecheck automatically.
 
 1. Fork `amgad01/awdah` on GitHub and clone your fork
 2. Create a branch: `git checkout -b feat/your-change` (use `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`, or `infra/`)
-3. Make your changes — see the code standards section below
+3. Make your changes. See the code standards section below.
 4. Run `npm run check:quick` and fix any failures
 5. Commit using Conventional Commits: `git commit -m "feat: add French translation"`
 6. Push and open a PR against `main`
-7. CI runs automatically — the PR needs to be green before merge
+7. CI runs automatically, and the PR needs to be green before merge
 
 For religious content changes, include the scholarly source in your commit message or PR description.
 
@@ -153,21 +153,23 @@ npm run dev:backend               # localhost:3000
 ### AWS (dev/staging)
 
 ```bash
-./scripts/check-aws-session.sh    # Validate AWS credentials
-./scripts/deploy-all.sh           # CDK deploy: data → auth → api → backup → alarm → frontend
+./scripts/deploy/check-aws-session.sh    # Validate AWS credentials
+./scripts/deploy/deploy-all.sh           # CDK deploy: data → auth → api → backup → alarm → frontend
 ```
 
 ### Production (GitHub Pages + AWS backend)
 
 Production deploys happen through GitHub Actions:
 
-1. **CI** (`ci.yml`) — lint, typecheck, build, test, and audit on every push; on `release/vX.Y.Z-*` pushes it also runs the full automatic release lane inside the same workflow run
-2. **Deploy Validation** (`deploy-validation.yml`) — PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
-3. **Manual E2E** (`e2e.yml`) — Docker-based Playwright tests you can run manually against the selected ref/SHA
-4. **Manual Deploy Backend** (`deploy.yml`) — resolve the exact source SHA plus release tag, surface both in the approval gate, deploy to prod, and smoke test `/health`
-5. **Manual Deploy Frontend** (`deploy-pages.yml`) — reuse that same source SHA, create or verify the release tag on that commit, build for Pages, publish the GitHub release, and smoke test the live site
+1. **CI** (`ci.yml`): lint, typecheck, build, test, and audit on PRs into `main`, on post-merge pushes to `main`, and on `release/vX.Y.Z-*` pushes; release branches continue into the full automatic release lane inside the same workflow run
+2. **Deploy Validation** (`deploy-validation.yml`): PR-only dry run against `main`; proves the deploy path without publishing and does not need AWS credentials
+3. **Manual E2E** (`e2e.yml`): Docker-based Playwright tests you can run manually against the selected ref/SHA
+4. **Manual Deploy Backend** (`deploy.yml`): resolve the exact source SHA plus release tag, surface both in the approval gate, deploy to prod, and smoke test `/health`
+5. **Manual Deploy Frontend** (`deploy-pages.yml`): reuse that same source SHA, create or verify the release tag on that commit, build for Pages, publish the GitHub release, and smoke test the live site
 
 `main` is validation only. Production publishing happens from a release branch or an explicit tagged release, not from an ordinary merge to `main`.
+
+Production also keeps only the key dashboard and settings read Lambdas warm on a 15-minute schedule. That improves first-load latency without moving to provisioned concurrency.
 
 ### Release versioning
 
@@ -207,7 +209,7 @@ Deploy validation is only for pull requests into `main`. It is not part of the p
 
 All API calls go through `apps/frontend/src/lib/api.ts`, which delegates to the `ApiClient` class in `apps/frontend/src/lib/api-client.ts`. The `ApiClient` provides:
 
-- **Request/response interceptors** — add auth headers, logging, etc.
+- **Request/response interceptors**: add auth headers, logging, etc.
 - **Automatic retry** with exponential backoff + jitter for 5xx, 408, 429, and network errors
 - **Debug logging** in development mode
 
@@ -263,7 +265,7 @@ Every push and PR triggers `ci.yml`:
 8. Run all unit tests (vitest)
 9. Security audit (high severity)
 
-On ordinary branches, CI stops there. On `release/**` pushes, the same `ci.yml` run continues through `Prepare Release Context -> E2E -> Approve Backend -> Deploy Backend -> Approve Pages -> Deploy Pages`. The standalone `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` workflows are reserved for manual debugging or controlled reruns.
+On pull requests into `main`, CI stops after the quality gate and `deploy-validation.yml` runs the dry deploy rehearsal. After a merge into `main`, only the quality gate reruns. On `release/**` pushes, the same `ci.yml` run continues through `Prepare Release Context -> E2E -> Deploy Backend -> Deploy Pages`. The standalone `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` workflows are reserved for manual debugging or controlled reruns.
 
 ### Running tests locally
 
@@ -277,7 +279,7 @@ npm run test --workspace=packages/shared # Shared package tests only
 npx playwright test --config=apps/frontend/playwright.config.ts
 
 # Smoke test (cost-aware burst load):
-LOAD_TEST_BASE_URL=http://localhost:3000 node scripts/load-burst-smoke.mjs
+LOAD_TEST_BASE_URL=http://localhost:3000 node scripts/test/load-burst-smoke.mjs
 
 # Backend resilience verification:
 npx tsx apps/backend/scripts/verify-resilience.ts
@@ -287,7 +289,7 @@ npx tsx apps/backend/scripts/verify-resilience.ts
 
 ## Updating content without code changes
 
-Most of the app's public-facing content lives in JSON files under `apps/frontend/public/data/`. These files are fetched at runtime, so you can update them by editing the JSON, committing, and letting the deploy pipeline run — no TypeScript changes needed.
+Most of the app's public-facing content lives in JSON files under `apps/frontend/public/data/`. These files are fetched at runtime, so you can update them by editing the JSON, committing, and letting the deploy pipeline run. No TypeScript changes are needed.
 
 For current work areas, roadmap items, and the contributor-facing project board, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page. This file stays focused on contribution workflow and repo mechanics.
 
@@ -301,7 +303,7 @@ Edit `apps/frontend/public/data/about-en.json` and `about-ar.json`. Add an entry
   "name": "Your Name",
   "github": "github-username",
   "role": "Frontend",
-  "contribution_summary": "What you contributed — one sentence is enough"
+  "contribution_summary": "What you contributed, one sentence is enough"
 }
 ```
 
@@ -327,10 +329,10 @@ Important boundary:
 
 #### 1. i18n translation bundle
 
-Each language is a single JSON file. The file is self-describing — the language switcher discovers it automatically at build time, so no registration step is needed.
+Each language is a single JSON file. The file is self-describing, and the language switcher discovers it automatically at build time, so no registration step is needed.
 
 1. Copy `apps/frontend/src/i18n/en.json` and name it with the ISO 639-1 code (e.g. `fr.json` for French, `tr.json` for Turkish, `ur.json` for Urdu)
-2. Translate all string values — do not change keys, and keep `{{variable}}` placeholders exactly as they are
+2. Translate all string values, do not change keys, and keep `{{variable}}` placeholders exactly as they are
 3. At the end of the file, add a `_meta` block:
    ```json
    "_meta": {
@@ -383,12 +385,12 @@ If the language is right-to-left, set `_meta.dir` to `rtl` and verify the UI in 
 
 #### 5. Verify and rebuild
 
-1. Run `npm run dev:frontend` — the language switcher will show your new language immediately in dev mode
+1. Run `npm run dev:frontend`; the language switcher will show your new language immediately in dev mode
 2. Go through the app in your new language and check for anything that looks wrong in context
 3. Run `npm run test --workspace=apps/frontend` and `npm run check:quick`
 4. Rebuild and redeploy the frontend for the new language to be available in production
 
-RTL layout switches automatically based on the `dir` value in `_meta` — no component changes are needed.
+RTL layout switches automatically based on the `dir` value in `_meta`; no component changes are needed.
 
 ---
 
@@ -407,6 +409,7 @@ Awdah follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`).
 ```
 v1.0.0 → v1.0.1   Fix: prayer logger crash when debt is zero
 v1.0.1 → v1.1.0   Feat: add history page and German language support
+v1.1.0 → v1.1.1   Patch: frontend polish, cleanup, and release-pipeline alignment
 v1.1.0 → v2.0.0   Breaking: replace Cognito with a new auth provider (token format changes)
 ```
 
@@ -415,16 +418,16 @@ v1.1.0 → v2.0.0   Breaking: replace Cognito with a new auth provider (token fo
 Feature work targeting a release uses a `release/vX.Y.Z` branch prefix. The deploy pipeline parses the semantic version from that prefix and ignores the descriptive suffix:
 
 ```
-release/v1.1.0         Minor release branch
-release/v1.1.0-auth-security-api-hardening   Descriptive release branch
-release/v1.1.0-beta1   Pre-release variant of the same version
+release/v1.1.1         Patch release branch
+release/v1.1.1-frontend-polish-cleanup-pipeline-alignment   Descriptive release branch
+release/v1.1.1-beta1   Pre-release variant of the same version
 ```
 
 Regular feature branches do not need the `release/` prefix; they merge into `main` and stay in the validation lane until an explicit release branch is cut.
 
 ### CHANGELOG
 
-Every PR should update `CHANGELOG.md`, keeping the `[Unreleased]` section at the top. Follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`.
+Every release-bound PR should update `CHANGELOG.md` with a concrete version section near the top. Follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories: `Added`, `Changed`, `Fixed`, `Removed`, `Deprecated`, `Security`.
 
 ---
 
@@ -432,7 +435,7 @@ Every PR should update `CHANGELOG.md`, keeping the `[Unreleased]` section at the
 
 Everyone with a merged PR is listed in the README and on the About page with their name, GitHub profile, and a description of what they contributed. Translation contributors and scholar reviewers are credited by name and role.
 
-After your PR is merged, open a second small PR updating `apps/frontend/public/data/about-en.json` and `about-ar.json` to add yourself to the contributors array (see the section above). If you'd prefer not to update it yourself, a maintainer can do it for you — just ask.
+After your PR is merged, open a second small PR updating `apps/frontend/public/data/about-en.json` and `about-ar.json` to add yourself to the contributors array (see the section above). If you'd prefer not to update it yourself, a maintainer can do it for you, just ask.
 
 ---
 
