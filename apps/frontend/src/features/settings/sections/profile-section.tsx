@@ -24,6 +24,8 @@ import {
 } from '../helpers';
 import { useToast } from '@/hooks/use-toast';
 import type { ProfileFormState, FeedbackState, PeriodLike, DebtPreview } from '../types';
+import { ProfileSaveConfirm } from './profile-save-confirm';
+import { ProfileSummaryCard } from './profile-summary-card';
 import styles from '../settings-page.module.css';
 
 interface ProfileSectionProps {
@@ -257,49 +259,13 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
     <SettingsSection icon={<BookOpen size={18} />} title={t('settings.profile_section')}>
       {/* ── Collapsed summary ── */}
       {!isEditing ? (
-        <div className={styles.periodsList}>
-          <div className={styles.periodRow}>
-            <div className={styles.periodInfo}>
-              <div className={styles.periodRowTitle}>
-                <span className={styles.periodDates}>{t('settings.profile_section')}</span>
-                <span className={styles.periodDatesSecondary}>
-                  {profile?.gender
-                    ? `${t('settings.gender')}: ${profile.gender === 'male' ? t('onboarding.gender_male') : t('onboarding.gender_female')}`
-                    : t('settings.gender')}
-                </span>
-              </div>
-              <div className={styles.profileSummaryStack}>
-                {profile?.dateOfBirth ? (
-                  <span className={styles.periodType}>
-                    {t('settings.dob')}:{' '}
-                    <DualDateLabel date={profile.dateOfBirth} layout="inline" />
-                  </span>
-                ) : null}
-                {profile?.bulughDate ? (
-                  <span className={styles.periodType}>
-                    {t('settings.bulugh_date')}:{' '}
-                    <DualDateLabel date={profile.bulughDate} layout="inline" />
-                  </span>
-                ) : null}
-                {profile?.revertDate ? (
-                  <span className={styles.periodType}>
-                    {t('settings.revert_date')}:{' '}
-                    <DualDateLabel date={profile.revertDate} layout="inline" />
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <div className={styles.periodActions}>
-              <button
-                type="button"
-                className={styles.profileExpandBtn}
-                onClick={() => setIsEditing(true)}
-              >
-                {t('common.edit')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProfileSummaryCard
+          gender={profile?.gender}
+          dateOfBirth={profile?.dateOfBirth}
+          bulughDate={profile?.bulughDate}
+          revertDate={profile?.revertDate}
+          onEdit={() => setIsEditing(true)}
+        />
       ) : (
         <>
           <p className={styles.privacyText}>{t('settings.profile_edit_hint')}</p>
@@ -560,32 +526,13 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({ periods }) => {
           {profileDebtPreview ? <DebtImpactPreview preview={profileDebtPreview} /> : null}
 
           {showSaveConfirm ? (
-            <div className={styles.inlineConfirm} role="alert">
-              <p className={styles.inlineConfirmMsg}>{t('settings.confirm_profile_change_body')}</p>
-              {profileDebtPreview && (
-                <p className={styles.inlineConfirmPreview}>
-                  {describeDebtPreview(profileDebtPreview)}
-                </p>
-              )}
-              <div className={styles.inlineConfirmActions}>
-                <button
-                  type="button"
-                  className={styles.cancelAddBtn}
-                  onClick={() => setShowSaveConfirm(false)}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.saveProfileBtn}
-                  onClick={() => void executeProfileSave()}
-                  disabled={updateProfile.isPending}
-                >
-                  <Save size={14} />
-                  {updateProfile.isPending ? t('settings.saving_profile') : t('common.confirm')}
-                </button>
-              </div>
-            </div>
+            <ProfileSaveConfirm
+              preview={profileDebtPreview}
+              describeDebtPreview={describeDebtPreview}
+              isPending={updateProfile.isPending}
+              onCancel={() => setShowSaveConfirm(false)}
+              onConfirm={() => void executeProfileSave()}
+            />
           ) : (
             <button
               className={styles.saveProfileBtn}
