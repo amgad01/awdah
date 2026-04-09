@@ -10,6 +10,7 @@ interface UseCelebrationArgs {
   monThuStreak: number;
   obligatoryStreak: number;
   fastStreak: number;
+  allDebtCleared: boolean;
   t: (key: string, opts?: Record<string, unknown>) => string;
   fmtNumber: (n: number) => string;
 }
@@ -21,6 +22,7 @@ export function useCelebration({
   monThuStreak,
   obligatoryStreak,
   fastStreak,
+  allDebtCleared,
   t,
   fmtNumber,
 }: UseCelebrationArgs) {
@@ -33,6 +35,8 @@ export function useCelebration({
   const prevFast = useRef(fastStreak);
 
   useEffect(() => {
+    let nextCelebration: string | null = null;
+
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
       prevStreak.current = streak;
@@ -40,43 +44,52 @@ export function useCelebration({
       prevMonThu.current = monThuStreak;
       prevObligatory.current = obligatoryStreak;
       prevFast.current = fastStreak;
-      return;
-    }
 
-    const showCelebration = (key: string, opts?: Record<string, unknown>) => {
-      const msg = t(key, opts);
-      const suffix = t('dashboard.celebration_suffix');
-      setCelebration(`${msg}${suffix}`);
-    };
+      if (allDebtCleared) {
+        nextCelebration = t('dashboard.debt_cleared_title');
+      }
+    } else {
+      const buildCelebration = (key: string, opts?: Record<string, unknown>) => {
+        const msg = t(key, opts);
+        const suffix = t('dashboard.celebration_suffix');
+        return `${msg}${suffix}`;
+      };
 
-    if (streak > prevStreak.current && milestone !== null) {
-      showCelebration('dashboard.celebration_streak', { n: fmtNumber(streak) });
-    } else if (
-      obligatoryStreak > prevObligatory.current &&
-      PRAYER_CELEBRATION_MILESTONES.includes(obligatoryStreak)
-    ) {
-      showCelebration('dashboard.celebration_obligatory_streak', {
-        n: fmtNumber(obligatoryStreak),
-      });
-    } else if (
-      bestPrayerStreak &&
-      bestPrayerStreak.count > prevBestPrayerCount.current &&
-      PRAYER_CELEBRATION_MILESTONES.includes(bestPrayerStreak.count)
-    ) {
-      showCelebration('dashboard.celebration_prayer_streak', {
-        prayer: t(`prayers.${bestPrayerStreak.name}`),
-        n: fmtNumber(bestPrayerStreak.count),
-      });
-    } else if (
-      fastStreak > prevFast.current &&
-      PRAYER_CELEBRATION_MILESTONES.includes(fastStreak)
-    ) {
-      showCelebration('dashboard.celebration_fast_streak', { n: fmtNumber(fastStreak) });
-    } else if (monThuStreak > prevMonThu.current && monThuStreak > 0) {
-      showCelebration('dashboard.celebration_mon_thu', {
-        count: monThuStreak,
-        n: fmtNumber(monThuStreak),
-      });
+      if (streak > prevStreak.current && milestone !== null) {
+        nextCelebration = buildCelebration('dashboard.celebration_streak', {
+          n: fmtNumber(streak),
+        });
+      } else if (
+        obligatoryStreak > prevObligatory.current &&
+        PRAYER_CELEBRATION_MILESTONES.includes(obligatoryStreak)
+      ) {
+        nextCelebration = buildCelebration('dashboard.celebration_obligatory_streak', {
+          n: fmtNumber(obligatoryStreak),
+        });
+      } else if (
+        bestPrayerStreak &&
+        bestPrayerStreak.count > prevBestPrayerCount.current &&
+        PRAYER_CELEBRATION_MILESTONES.includes(bestPrayerStreak.count)
+      ) {
+        nextCelebration = buildCelebration('dashboard.celebration_prayer_streak', {
+          prayer: t(`prayers.${bestPrayerStreak.name}`),
+          n: fmtNumber(bestPrayerStreak.count),
+        });
+      } else if (
+        fastStreak > prevFast.current &&
+        PRAYER_CELEBRATION_MILESTONES.includes(fastStreak)
+      ) {
+        nextCelebration = buildCelebration('dashboard.celebration_fast_streak', {
+          n: fmtNumber(fastStreak),
+        });
+      } else if (monThuStreak > prevMonThu.current && monThuStreak > 0) {
+        nextCelebration = buildCelebration('dashboard.celebration_mon_thu', {
+          count: monThuStreak,
+          n: fmtNumber(monThuStreak),
+        });
+      } else if (allDebtCleared) {
+        nextCelebration = t('dashboard.debt_cleared_title');
+      }
     }
 
     prevStreak.current = streak;
@@ -84,6 +97,16 @@ export function useCelebration({
     prevMonThu.current = monThuStreak;
     prevObligatory.current = obligatoryStreak;
     prevFast.current = fastStreak;
+
+    if (nextCelebration === null) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setCelebration(nextCelebration);
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
   }, [
     streak,
     milestone,
@@ -93,6 +116,7 @@ export function useCelebration({
     monThuStreak,
     obligatoryStreak,
     fastStreak,
+    allDebtCleared,
     t,
     fmtNumber,
   ]);

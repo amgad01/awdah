@@ -31,17 +31,6 @@ export const Dashboard: React.FC = () => {
   const { streak, milestone } = useStreak();
   const { activePrayerStreaks, monThuStreak, obligatoryStreak, fastStreak } = useStreakDetails();
 
-  const { celebration, dismiss: dismissCelebration } = useCelebration({
-    streak,
-    milestone,
-    bestPrayerStreak: activePrayerStreaks[0] || null,
-    monThuStreak,
-    obligatoryStreak,
-    fastStreak,
-    t,
-    fmtNumber,
-  });
-
   const salahRemaining = salahDebt?.remainingPrayers ?? 0;
   const salahCompleted = salahDebt?.completedPrayers ?? 0;
   const salahTotal = salahDebt?.totalPrayersOwed ?? 0;
@@ -50,6 +39,18 @@ export const Dashboard: React.FC = () => {
   const sawmTotal = sawmDebt?.totalDaysOwed ?? 0;
   const allDebtCleared =
     salahTotal > 0 && salahRemaining === 0 && sawmTotal > 0 && sawmRemaining === 0;
+
+  const { celebration, dismiss: dismissCelebration } = useCelebration({
+    streak,
+    milestone,
+    bestPrayerStreak: activePrayerStreaks[0] || null,
+    monThuStreak,
+    obligatoryStreak,
+    fastStreak,
+    allDebtCleared,
+    t,
+    fmtNumber,
+  });
   const salahCompletionRate = salahTotal > 0 ? Math.round((salahCompleted / salahTotal) * 100) : 0;
   const sawmCompletionRate = sawmTotal > 0 ? Math.round((sawmCompleted / sawmTotal) * 100) : 0;
 
