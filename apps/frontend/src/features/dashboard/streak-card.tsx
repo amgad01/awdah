@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { CheckCircle, Moon, Sun, TrendingUp, Utensils } from 'lucide-react';
 import { Card } from '@/components/ui/card/card';
-import { WeeklyPrayerChart } from '@/components/ui/weekly-chart/weekly-chart';
 import type { BestPrayerStreak } from '@/hooks/use-streak';
 import styles from './dashboard.module.css';
+
+const WeeklyPrayerChart = lazy(() =>
+  import('@/components/ui/weekly-chart/weekly-chart').then((module) => ({
+    default: module.WeeklyPrayerChart,
+  })),
+);
 
 interface StreakCardProps {
   streak: number;
@@ -105,8 +110,9 @@ export const StreakCard: React.FC<StreakCardProps> = ({
           )}
         </div>
       )}
-
-      <WeeklyPrayerChart />
+      <Suspense fallback={<div className={styles.streakNone}>{t('common.loading')}</div>}>
+        <WeeklyPrayerChart />
+      </Suspense>
     </Card>
   );
 };

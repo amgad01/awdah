@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   BookOpen,
   CalendarRange,
@@ -13,21 +12,19 @@ import {
   Target,
   UserRound,
 } from 'lucide-react';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import React, { Suspense, lazy } from 'react';
 import type { DualDateFormatOptions, DualDateParts } from '@/hooks/use-dual-date';
 import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
 import { DemoDateStack } from './demo-date-stack';
 import type { DemoData, HistoryKind } from './demo-types';
 import styles from './demo-page.module.css';
+
+const DemoWeeklyChart = lazy(() =>
+  import('./demo-weekly-chart').then((module) => ({
+    default: module.DemoWeeklyChart,
+  })),
+);
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 type FormatNumber = (value: number) => string;
@@ -380,49 +377,9 @@ export const DemoDetailsGrid: React.FC<DemoDetailsGridProps> = ({
           <h3>{t('demo.weekly_title')}</h3>
         </div>
         <div className={styles.weeklyChart}>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={weeklyChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="var(--color-divider, rgba(0,0,0,0.08))"
-              />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                domain={[0, 'dataMax']}
-                allowDecimals={false}
-                tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value: number) => fmtNumber(value)}
-              />
-              <Tooltip
-                cursor={{ stroke: 'var(--color-text-muted)', strokeDasharray: '3 3' }}
-                formatter={(value) => [fmtNumber(value as number)]}
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 8,
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-surface)',
-                  color: 'var(--color-text-primary)',
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                name={t('salah.tab_daily')}
-                stroke="var(--color-primary)"
-                strokeWidth={2}
-                dot={{ r: 3, fill: 'var(--color-primary)' }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div className={styles.settingEmpty}>{t('common.loading')}</div>}>
+            <DemoWeeklyChart data={weeklyChartData} fmtNumber={fmtNumber} t={t} />
+          </Suspense>
         </div>
       </Card>
 

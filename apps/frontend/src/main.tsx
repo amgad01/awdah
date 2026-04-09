@@ -1,10 +1,12 @@
 import '@/assets/globals.css';
 import { validateEnv } from './lib/validate-env';
 import { initializeI18n } from './i18n';
+import { registerBrowserMonitoring } from './lib/browser-monitoring';
 
 // Fail loudly at startup if required env vars are missing — avoids silent
 // Cognito failures that produce confusing runtime errors.
 validateEnv();
+registerBrowserMonitoring();
 
 // ... existing main.tsx content
 import React from 'react';
