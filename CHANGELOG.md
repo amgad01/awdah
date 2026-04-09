@@ -15,6 +15,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 - Public unauthenticated routes now use a shared shell-route config in `App.tsx`, which removes repetitive wrapper components while keeping the existing public-page UX intact
 - The demo experience is now split into focused modules for data loading, section rendering, and shared date-display primitives instead of keeping everything inside one large page component
+- Settings practicing-period management now uses a dedicated controller hook and smaller row components instead of keeping validation, preview, mutation, and list rendering inside one section file
 - Local browser-expiry flags now flow through a shared frontend storage helper, reducing repeated `localStorage` timestamp logic across Salah, Sawm, practice check-in, and onboarding draft handling
 
 ### Fixed
