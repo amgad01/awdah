@@ -124,6 +124,14 @@
   gap: 2px;
 }
 
+.gridFiveRows {
+  grid-template-rows: repeat(5, 1fr);
+}
+
+.gridSixRows {
+  grid-template-rows: repeat(6, 1fr);
+}
+
 .day {
   display: flex;
   align-items: center;

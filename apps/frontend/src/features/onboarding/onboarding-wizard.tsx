@@ -160,7 +160,6 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     t('onboarding.step_result'),
   ];
 
-  const progressPct = ((step - 1) / (TOTAL_ONBOARDING_STEPS - 1)) * 100;
   const estimatedSalahDebt = useMemo(() => {
     if (!data.bulughDateHijri) {
       return 0;
@@ -218,7 +217,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       </header>
 
       <div className={styles.progressBar}>
-        <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+        <div className={`${styles.progressFill} ${styles[`progressStep${step}`]}`} />
       </div>
 
       <main className={styles.stepContent}>

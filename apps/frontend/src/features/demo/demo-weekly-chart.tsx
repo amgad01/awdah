@@ -8,6 +8,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import {
+  CHART_CURSOR_STYLE,
+  CHART_GRID_STROKE,
+  CHART_MARGIN_COMPACT,
+  CHART_SERIES_PRIMARY,
+  CHART_TICK_MEDIUM,
+  CHART_TICK_SMALL,
+  CHART_TOOLTIP_STYLE,
+} from '@/lib/chart-theme';
 
 interface DemoWeeklyChartProps {
   data: Array<{
@@ -21,44 +30,29 @@ interface DemoWeeklyChartProps {
 export const DemoWeeklyChart: React.FC<DemoWeeklyChartProps> = ({ data, fmtNumber, t }) => {
   return (
     <ResponsiveContainer width="100%" height={180}>
-      <LineChart data={data} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-        <CartesianGrid
-          strokeDasharray="3 3"
-          vertical={false}
-          stroke="var(--color-divider, rgba(0,0,0,0.08))"
-        />
-        <XAxis
-          dataKey="day"
-          tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
-          axisLine={false}
-          tickLine={false}
-        />
+      <LineChart data={data} margin={CHART_MARGIN_COMPACT}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
+        <XAxis dataKey="day" tick={CHART_TICK_MEDIUM} axisLine={false} tickLine={false} />
         <YAxis
           domain={[0, 'dataMax']}
           allowDecimals={false}
-          tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
+          tick={CHART_TICK_SMALL}
           axisLine={false}
           tickLine={false}
           tickFormatter={(value: number) => fmtNumber(value)}
         />
         <Tooltip
-          cursor={{ stroke: 'var(--color-text-muted)', strokeDasharray: '3 3' }}
+          cursor={CHART_CURSOR_STYLE}
           formatter={(value) => [fmtNumber(value as number)]}
-          contentStyle={{
-            fontSize: 12,
-            borderRadius: 8,
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-            color: 'var(--color-text-primary)',
-          }}
+          contentStyle={CHART_TOOLTIP_STYLE}
         />
         <Line
           type="monotone"
           dataKey="value"
           name={t('salah.tab_daily')}
-          stroke="var(--color-primary)"
+          stroke={CHART_SERIES_PRIMARY}
           strokeWidth={2}
-          dot={{ r: 3, fill: 'var(--color-primary)' }}
+          dot={{ r: 3, fill: CHART_SERIES_PRIMARY }}
           activeDot={{ r: 5 }}
         />
       </LineChart>

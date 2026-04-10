@@ -88,6 +88,30 @@
   transition: width 0.3s ease;
 }
 
+.progressStep1 {
+  width: 0%;
+}
+
+.progressStep2 {
+  width: 20%;
+}
+
+.progressStep3 {
+  width: 40%;
+}
+
+.progressStep4 {
+  width: 60%;
+}
+
+.progressStep5 {
+  width: 80%;
+}
+
+.progressStep6 {
+  width: 100%;
+}
+
 /* Scrollable step content */
 .stepContent {
   flex: 1;

@@ -56,9 +56,9 @@
 }
 
 .legendDotSecondary {
-  background: var(--color-secondary, #6366f1);
+  background: var(--chart-series-secondary);
 }
 
 .legendDotCovered {
-  background: var(--color-primary-alpha-10, rgba(59, 130, 246, 0.15));
+  background: var(--chart-range-fill);
 }
