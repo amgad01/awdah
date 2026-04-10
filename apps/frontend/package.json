@@ -9,6 +9,7 @@
     "prebuild:prod": "node scripts/generate-language-manifest.mjs && node scripts/convert-og-image.mjs",
     "pretypecheck": "node scripts/generate-language-manifest.mjs",
     "build": "npm run prebuild:prod && tsc -b && vite build",
+    "check:bundle": "node scripts/check-bundle-budget.mjs",
     "prelint": "node scripts/generate-language-manifest.mjs",
     "typecheck": "tsc -b",
     "pretest": "node scripts/generate-language-manifest.mjs",
