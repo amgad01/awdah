@@ -58,4 +58,43 @@ describe('completeOnboarding', () => {
     });
     expect(result).toEqual({ salahDebt: 50, sawmDebt: 7 });
   });
+
+  it('runs independent period mutations without waiting for each one sequentially', async () => {
+    const persistedPeriods: PracticingPeriodResponse[] = [
+      { periodId: 'remove', startDate: '1441-01-01', endDate: '1441-02-01', type: 'salah' },
+    ];
+
+    const data: OnboardingData = {
+      ...createData(),
+      periods: [{ id: 'new', startHijri: '1442-01-01', endHijri: undefined, type: 'sawm' }],
+    };
+
+    let resolveDelete: (() => void) | undefined;
+    const deletePending = new Promise<void>((resolve) => {
+      resolveDelete = resolve;
+    });
+
+    const dependencies = {
+      updateProfile: vi.fn().mockResolvedValue(undefined),
+      addPeriod: vi.fn().mockResolvedValue(undefined),
+      updatePeriod: vi.fn().mockResolvedValue(undefined),
+      deletePeriod: vi.fn().mockReturnValue(deletePending),
+      getSalahDebt: vi.fn().mockResolvedValue({ remainingPrayers: 1 }),
+      getSawmDebt: vi.fn().mockResolvedValue({ remainingDays: 1 }),
+    };
+
+    const completionPromise = completeOnboarding(data, persistedPeriods, dependencies);
+
+    await Promise.resolve();
+
+    expect(dependencies.deletePeriod).toHaveBeenCalledWith('remove');
+    expect(dependencies.addPeriod).toHaveBeenCalledWith({
+      startDate: '1442-01-01',
+      endDate: undefined,
+      type: 'sawm',
+    });
+
+    resolveDelete?.();
+    await completionPromise;
+  });
 });
