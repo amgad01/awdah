@@ -39,7 +39,7 @@ export default defineConfig({
       'X-Frame-Options': 'DENY',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Content-Security-Policy':
-        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:*; frame-ancestors 'none';",
+        "default-src 'self'; script-src 'self' 'sha256-Met0FLFVqROiq/jDyYtlhInoFysISzTul6sZrG/Vad0=' 'sha256-dqXIySKK46KsKOsprg2Grne7/9CQTTLSO9NqASQ/3O4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self';",
     },
   },
 });

@@ -218,11 +218,11 @@ export const ContributingPage: React.FC = () => {
           <span className={styles.heroBadge}>{t('contributing.project_badge')}</span>
           <h1 className={styles.heroTitle}>{t('contributing.project_title')}</h1>
         </section>
-        <div style={{ marginTop: '2rem' }}>
+        <div className={styles.errorActions}>
           <button type="button" className={styles.ctaButton} onClick={reload}>
             {t('common.retry')}
           </button>
-          <p className={styles.sectionBody} style={{ marginTop: '1rem' }}>
+          <p className={`${styles.sectionBody} ${styles.errorBody}`}>
             {error.message || t('common.error')}
           </p>
         </div>

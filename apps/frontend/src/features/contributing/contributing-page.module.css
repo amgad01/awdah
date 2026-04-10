@@ -33,6 +33,14 @@
   border: 1px solid var(--color-border);
 }
 
+.errorActions {
+  margin-top: var(--spacing-xxl);
+}
+
+.errorBody {
+  margin-top: var(--spacing-md);
+}
+
 .sliderSectionTitle {
   text-align: center !important;
   font-size: var(--font-size-base);

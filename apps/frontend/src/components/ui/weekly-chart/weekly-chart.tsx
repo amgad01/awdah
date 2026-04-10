@@ -138,9 +138,7 @@ export const WeeklyPrayerChart: React.FC = () => {
   if (isError || fastError) {
     return (
       <div className={styles.loading}>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-          {t('common.error')}
-        </p>
+        <p className={styles.errorText}>{t('common.error')}</p>
       </div>
     );
   }
@@ -229,36 +227,20 @@ export const WeeklyPrayerChart: React.FC = () => {
 
       <div className={styles.legend} role="list" aria-label={t('dashboard.weekly_overview')}>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-primary)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotPrimary}`} aria-hidden="true" />
           {t('salah.tab_daily')}
         </span>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-accent)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotAccent}`} aria-hidden="true" />
           {t('salah.tab_qadaa')}
         </span>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-secondary, #6366f1)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotSecondary}`} aria-hidden="true" />
           {t('sawm.tab_qadaa')}
         </span>
         {coveredRanges.length > 0 && (
           <span className={styles.legendItem} role="listitem">
-            <span
-              className={styles.legendDot}
-              style={{ background: 'var(--color-primary-alpha-10, rgba(59,130,246,0.15))' }}
-              aria-hidden="true"
-            />
+            <span className={`${styles.legendDot} ${styles.legendDotCovered}`} aria-hidden="true" />
             {t('dashboard.practicing_period_label')}
           </span>
         )}
