@@ -5,7 +5,7 @@ const distDir = path.resolve('dist/assets');
 
 const budgets = [
   { label: 'main app', pattern: /^index-.*\.js$/, maxBytes: 380 * 1024 },
-  { label: 'chart vendor', pattern: /^LineChart-.*\.js$/, maxBytes: 400 * 1024 },
+  { label: 'chart vendor', pattern: /^(LineChart|chart-theme)-.*\.js$/, maxBytes: 400 * 1024 },
   { label: 'swiper vendor', pattern: /^swiper-sections-.*\.js$/, maxBytes: 110 * 1024 },
   { label: 'english locale', pattern: /^en-.*\.js$/, maxBytes: 40 * 1024 },
   { label: 'arabic locale', pattern: /^ar-.*\.js$/, maxBytes: 55 * 1024 },
