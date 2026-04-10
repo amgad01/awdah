@@ -13,7 +13,6 @@ interface HistoryFiltersProps {
   typeFilter: 'all' | 'prayers' | 'fasting';
   logTypeFilter: 'all' | 'qadaa' | 'obligatory';
   prayerFilter: string;
-  onToggleFilters: () => void;
   onStartDateChange: (v: string) => void;
   onEndDateChange: (v: string) => void;
   onTypeFilterChange: (v: 'all' | 'prayers' | 'fasting') => void;
