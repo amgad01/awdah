@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
-import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
+import { waitForLifecycleJob } from '@/domains/user/user-lifecycle-service';
 
 export function useDailyHistoryQuery<TItem>(
   queryKey: QueryKey,

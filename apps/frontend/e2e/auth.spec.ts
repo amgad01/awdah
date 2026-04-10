@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginLocalUser, logoutButton, registerLocalUser, submitLogin } from './support/auth';
+import { loginLocalUser, logoutCurrentUser, registerLocalUser, submitLogin } from './support/auth';
 
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
@@ -14,12 +14,7 @@ test.describe('Authentication', () => {
 
   test('opens the public learn page from landing', async ({ page }) => {
     await page.goto('/');
-    await page
-      .locator('a[href="/learn"]')
-      .first()
-      .evaluate((element) => {
-        (element as HTMLAnchorElement).click();
-      });
+    await page.locator('a[href="/learn"]:visible').first().click();
     await expect(page).toHaveURL(/\/learn(\?lang=en)?$/);
     await expect(page.locator('input[type="search"]')).toBeVisible();
   });
@@ -32,9 +27,7 @@ test.describe('Authentication', () => {
 
   test('logs in with valid credentials', async ({ page }) => {
     await registerLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    await logoutButton(page).evaluate((element) => {
-      (element as HTMLButtonElement).click();
-    });
+    await logoutCurrentUser(page);
     await loginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
     await expect(page).toHaveURL(/\//);
     await expect(page.getByLabel(/email/i).last()).toBeHidden({ timeout: 15_000 });
@@ -49,9 +42,7 @@ test.describe('Authentication', () => {
   test('logs out and returns to login screen', async ({ page }) => {
     await registerLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
 
-    await logoutButton(page).evaluate((element) => {
-      (element as HTMLButtonElement).click();
-    });
+    await logoutCurrentUser(page);
     await expect(page.getByLabel(/email/i).last()).toBeVisible({ timeout: 5_000 });
   });
 

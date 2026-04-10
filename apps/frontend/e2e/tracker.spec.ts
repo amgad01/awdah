@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { seedAndLoginLocalUser } from './support/auth';
+import { navigateFromShell, seedAndLoginLocalUser } from './support/auth';
 
 const TEST_EMAIL = 'tracker@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
@@ -7,18 +7,7 @@ const TEST_PASSWORD = 'TestPassword1!';
 test.describe('Salah Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    const burger = page.getByTestId('nav-burger').first();
-    if (await burger.isVisible().catch(() => false)) {
-      await burger.evaluate((element) => {
-        (element as HTMLButtonElement).click();
-      });
-    }
-    await page
-      .getByTestId('nav-salah')
-      .first()
-      .evaluate((element) => {
-        (element as HTMLAnchorElement).click();
-      });
+    await navigateFromShell(page, 'nav-salah');
     await expect(page).toHaveURL(/\/salah$/);
   });
 
@@ -72,18 +61,7 @@ test.describe('Salah Tracker', () => {
 test.describe('Sawm Tracker', () => {
   test.beforeEach(async ({ page }) => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
-    const burger = page.getByTestId('nav-burger').first();
-    if (await burger.isVisible().catch(() => false)) {
-      await burger.evaluate((element) => {
-        (element as HTMLButtonElement).click();
-      });
-    }
-    await page
-      .getByTestId('nav-sawm')
-      .first()
-      .evaluate((element) => {
-        (element as HTMLAnchorElement).click();
-      });
+    await navigateFromShell(page, 'nav-sawm');
     await expect(page).toHaveURL(/\/sawm$/);
   });
 
