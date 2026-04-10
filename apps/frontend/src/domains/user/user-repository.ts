@@ -6,6 +6,13 @@ import {
   type UserLifecycleJobResponse,
   type UserProfileResponse,
 } from '@/lib/api';
+import {
+  parseDeleteAccountResponse,
+  parseExportDownloadResponse,
+  parseUserJobStatusResponse,
+  parseUserLifecycleEnvelope,
+  parseUserProfileResponse,
+} from './user-response';
 
 export interface UpdateUserProfileInput {
   username?: string;
@@ -16,16 +23,17 @@ export interface UpdateUserProfileInput {
 }
 
 export const userRepository = {
-  getProfile: (signal?: AbortSignal) =>
-    api.user.getProfile({ signal }) as Promise<UserProfileResponse | null>,
+  getProfile: async (signal?: AbortSignal): Promise<UserProfileResponse | null> =>
+    parseUserProfileResponse(await api.user.getProfile({ signal })),
   updateProfile: (data: UpdateUserProfileInput) => api.user.updateProfile(data),
-  startDeleteAccount: () =>
-    api.user.startDeleteAccount() as Promise<UserLifecycleJobEnvelope | null>,
-  finalizeDeleteAccount: (jobId: string) =>
-    api.user.finalizeDeleteAccount(jobId) as Promise<DeleteAccountResponse | null>,
-  getJobStatus: (jobId: string) =>
-    api.user.getJobStatus(jobId) as Promise<{ job: UserLifecycleJobResponse } | null>,
-  startExportData: () => api.user.startExportData() as Promise<UserLifecycleJobEnvelope | null>,
-  downloadExportData: (jobId: string) =>
-    api.user.downloadExportData(jobId) as Promise<ExportDownloadResponse | null>,
+  startDeleteAccount: async (): Promise<UserLifecycleJobEnvelope | null> =>
+    parseUserLifecycleEnvelope(await api.user.startDeleteAccount()),
+  finalizeDeleteAccount: async (jobId: string): Promise<DeleteAccountResponse | null> =>
+    parseDeleteAccountResponse(await api.user.finalizeDeleteAccount(jobId)),
+  getJobStatus: async (jobId: string): Promise<{ job: UserLifecycleJobResponse } | null> =>
+    parseUserJobStatusResponse(await api.user.getJobStatus(jobId)),
+  startExportData: async (): Promise<UserLifecycleJobEnvelope | null> =>
+    parseUserLifecycleEnvelope(await api.user.startExportData()),
+  downloadExportData: async (jobId: string): Promise<ExportDownloadResponse | null> =>
+    parseExportDownloadResponse(await api.user.downloadExportData(jobId)),
 };

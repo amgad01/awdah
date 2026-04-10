@@ -3,12 +3,15 @@ import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
-import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 import type {
   CreatePracticingPeriodInput,
   UpdatePracticingPeriodInput,
 } from '@/domains/salah/salah-repository';
 import type { UpdateUserProfileInput } from '@/domains/user/user-repository';
+import {
+  deleteUserAccountWorkflow,
+  prepareUserDataExportWorkflow,
+} from '@/domains/user/user-lifecycle-service';
 import {
   invalidateUserProfile,
   invalidatePracticingPeriods,
@@ -96,17 +99,7 @@ export const useDeletePracticingPeriod = () => {
 
 export const useDeleteAccount = () => {
   return useMutation({
-    mutationFn: async () => {
-      const started = await userRepository.startDeleteAccount();
-      const job = started?.job;
-
-      if (!job) {
-        throw new Error('Account deletion could not be started.');
-      }
-
-      await waitForLifecycleJob(job.jobId, 'delete-account');
-      return userRepository.finalizeDeleteAccount(job.jobId);
-    },
+    mutationFn: deleteUserAccountWorkflow,
   });
 };
 
@@ -116,20 +109,13 @@ const EXPORT_DOWNLOAD_RETRY_DELAY_MS = 1000;
 export const useExportData = () => {
   return useMutation({
     mutationFn: async () => {
-      const started = await userRepository.startExportData();
-      const job = started?.job;
-
-      if (!job) {
-        throw new Error('Data export could not be started.');
-      }
-
-      await waitForLifecycleJob(job.jobId, 'export');
+      const jobId = await prepareUserDataExportWorkflow();
 
       // Retry download while artifact is still propagating (404s)
       let lastError: Error | null = null;
       for (let attempt = 0; attempt <= EXPORT_DOWNLOAD_RETRY_ATTEMPTS; attempt++) {
         try {
-          return await userRepository.downloadExportData(job.jobId);
+          return await userRepository.downloadExportData(jobId);
         } catch (err) {
           lastError = err instanceof Error ? err : new Error(String(err));
           // Only retry on 404 (artifact still propagating)
