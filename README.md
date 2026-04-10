@@ -126,6 +126,10 @@ npm run check:pages
 
 That builds the frontend locally with the real production base path `/awdah/` and verifies that the generated bundle still points to `https://amgad01.github.io/awdah/`.
 
+### Frontend E2E Scope
+
+The Playwright suite is centered on the flows most likely to break a release: authentication, direct public auth states, dashboard access, tracker logging, history filters, destructive settings safeguards, public content pages, and the offline demo entry path. The tests use shared shell-navigation helpers so the suite follows the real app navigation model across desktop and mobile layouts instead of each spec forcing menu clicks in its own way.
+
 For contributor-specific setup paths, content-only edits, translation work, and PR workflow details, see [CONTRIBUTING.md](CONTRIBUTING.md). The hosted [/contribute](https://amgad01.github.io/awdah/contribute) page is the source of truth for work areas and roadmap items.
 
 ### Demo and About
@@ -189,6 +193,8 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, wor
 Translation note: only `apps/frontend/src/i18n/*.json` files carry `_meta` and participate in language auto-discovery. Public page content under `apps/frontend/public/data/` stays schema-specific and does not use `_meta`, and glossary tooltips live in `apps/frontend/src/content/glossary/glossary.json`.
 
 For a full new-language rollout, add the matching `about-<code>.json`, `contributing-<code>.json`, `faq-<code>.json`, `sample-user.json` story entry, and any glossary entries that should render natively so the demo route and onboarding copy stay localized too.
+
+The generated `apps/frontend/src/i18n/language-manifest.generated.ts` file exists so the app can read lightweight language metadata early without bundling every translation eagerly. You still add a new language by creating one locale JSON file with `_meta`; the frontend scripts generate the manifest automatically before dev, test, lint, typecheck, and build.
 
 ## License
 

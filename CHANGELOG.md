@@ -18,6 +18,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Settings profile editing now routes its stateful rules through a dedicated controller hook and extracted field/render blocks instead of mixing form orchestration with a 600-line section component
 - Settings practicing-period management now uses a dedicated controller hook and smaller row components instead of keeping validation, preview, mutation, and list rendering inside one section file
 - Local browser-expiry flags now flow through a shared frontend storage helper, reducing repeated `localStorage` timestamp logic across Salah, Sawm, practice check-in, and onboarding draft handling
+- The frontend now leans more on domain repositories and services for combined-history shaping, onboarding completion, user lifecycle workflows, and request cancellation instead of leaving those responsibilities inside screen-level hooks
+- Locale metadata is now generated from the translation files during the frontend lifecycle, which preserves the “add one locale file” workflow while keeping full translation bundles lazy-loaded
+- Shared theme tokens now cover more chart, progress, and layout styling so major UI surfaces stop repeating raw visual values inline or per component
+- The authenticated shell, history page, and settings screens now use thinner UI components with more controller-style hooks, which makes the main release-critical screens easier to change and reason about
 
 ### Fixed
 
@@ -25,6 +29,16 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 - Practice-check-in, prayer uncheck suppression, and fast uncheck suppression now share the same safe expiry handling path instead of each implementing slightly different local storage logic
 - Signup verification now keeps the entered email visible and editable on the code-entry step, so users can confirm or correct the address before resending or submitting the code
+- Read-query cancellation now flows through the repository and API-client layers, and aborted requests no longer retry as if they were real failures
+- Public auth entry paths now have direct E2E coverage for `?auth=signup`, `?auth=forgot`, CTA handoff into signup, and the offline demo route
+- Playwright shell navigation now goes through shared visible-target helpers, which stabilizes settings, history, tracker, dashboard, and logout coverage across desktop and mobile layouts
+
+### Removed
+
+#### Frontend
+
+- Unused `useSwipe` hook and its isolated test, because the current frontend no longer imports it in production code
+- Redundant `user-lifecycle-jobs` pass-through module after lifecycle polling moved behind the user domain service layer
 
 ## v1.1.1
 
