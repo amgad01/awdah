@@ -45,4 +45,6 @@ const fileBody = `import type { LanguageDef } from './languages';
 export const GENERATED_LANGUAGE_MANIFEST: LanguageDef[] = ${JSON.stringify(languages, null, 2)};\n`;
 
 fs.writeFileSync(outputFile, fileBody);
-console.log(`Generated ${path.relative(process.cwd(), outputFile)} from ${translationFiles.length} locale files.`);
+console.log(
+  `Generated ${path.relative(process.cwd(), outputFile)} from ${translationFiles.length} locale files.`,
+);
