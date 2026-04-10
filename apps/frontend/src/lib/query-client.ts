@@ -5,8 +5,16 @@ const QUERY_RETRY_LIMIT = 2;
 const QUERY_RETRY_BASE_DELAY_MS = 400;
 const QUERY_RETRY_MAX_DELAY_MS = 5000;
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
 function shouldRetryQuery(failureCount: number, error: unknown): boolean {
   if (failureCount >= QUERY_RETRY_LIMIT) {
+    return false;
+  }
+
+  if (isAbortError(error)) {
     return false;
   }
 
