@@ -17,15 +17,23 @@ export interface DeleteFastInput {
 }
 
 export const sawmRepository = {
-  getDebt: () => api.sawm.getDebt() as Promise<SawmDebtResponse | null>,
+  getDebt: (signal?: AbortSignal) =>
+    api.sawm.getDebt({ signal }) as Promise<SawmDebtResponse | null>,
   logFast: (data: LogFastInput) => api.sawm.logFast(data),
   deleteFastLog: (params: DeleteFastInput) => api.sawm.deleteLog(params),
-  getHistory: (params: { startDate: string; endDate: string }) => api.sawm.getHistory(params),
-  getHistoryPage: (params: {
-    startDate: string;
-    endDate: string;
-    limit: number;
-    cursor?: string;
-  }) => api.sawm.getHistoryPage(params) as Promise<HistoryPageResponse<FastLogResponse> | null>,
+  getHistory: (params: { startDate: string; endDate: string }, signal?: AbortSignal) =>
+    api.sawm.getHistory(params, { signal }),
+  getHistoryPage: (
+    params: {
+      startDate: string;
+      endDate: string;
+      limit: number;
+      cursor?: string;
+    },
+    signal?: AbortSignal,
+  ) =>
+    api.sawm.getHistoryPage(params, {
+      signal,
+    }) as Promise<HistoryPageResponse<FastLogResponse> | null>,
   resetLogs: () => api.sawm.resetLogs() as Promise<UserLifecycleJobEnvelope | null>,
 };

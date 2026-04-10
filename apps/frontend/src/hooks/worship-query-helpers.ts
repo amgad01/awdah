@@ -12,24 +12,30 @@ import { waitForLifecycleJob } from '@/lib/user-lifecycle-jobs';
 
 export function useDailyHistoryQuery<TItem>(
   queryKey: QueryKey,
-  fetchHistory: (params: { startDate: string; endDate: string }) => Promise<TItem[] | null>,
+  fetchHistory: (
+    params: { startDate: string; endDate: string },
+    signal?: AbortSignal,
+  ) => Promise<TItem[] | null>,
   date: string,
 ) {
   return useQuery({
     queryKey,
-    queryFn: () => fetchHistory({ startDate: date, endDate: date }),
+    queryFn: ({ signal }) => fetchHistory({ startDate: date, endDate: date }, signal),
   });
 }
 
 export function useRangeHistoryQuery<TItem>(
   queryKey: QueryKey,
-  fetchHistory: (params: { startDate: string; endDate: string }) => Promise<TItem[] | null>,
+  fetchHistory: (
+    params: { startDate: string; endDate: string },
+    signal?: AbortSignal,
+  ) => Promise<TItem[] | null>,
   startDate: string,
   endDate: string,
 ) {
   return useQuery({
     queryKey,
-    queryFn: () => fetchHistory({ startDate, endDate }),
+    queryFn: ({ signal }) => fetchHistory({ startDate, endDate }, signal),
     enabled: !!startDate && !!endDate,
   });
 }
@@ -38,6 +44,7 @@ export function useInfiniteHistoryQuery<TItem>(
   queryKey: QueryKey,
   fetchPage: (
     cursor?: string,
+    signal?: AbortSignal,
   ) => Promise<{ items: TItem[]; nextCursor?: string; hasMore: boolean }>,
   enabled: boolean,
 ) {
@@ -49,7 +56,7 @@ export function useInfiniteHistoryQuery<TItem>(
     string | undefined
   >({
     queryKey,
-    queryFn: ({ pageParam }) => fetchPage(pageParam),
+    queryFn: ({ pageParam, signal }) => fetchPage(pageParam, signal),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled,

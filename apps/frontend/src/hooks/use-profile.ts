@@ -26,7 +26,7 @@ export const useProfile = () => {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: QUERY_KEYS.userProfile,
-    queryFn: () => userRepository.getProfile(),
+    queryFn: ({ signal }) => userRepository.getProfile(signal),
     enabled: isAuthenticated,
     retry: false,
     staleTime: PROFILE_STALE_TIME_MS,
@@ -59,7 +59,7 @@ export const useUpdateProfile = () => {
 export const usePracticingPeriods = () => {
   return useQuery({
     queryKey: QUERY_KEYS.practicingPeriods,
-    queryFn: () => salahRepository.getPracticingPeriods(),
+    queryFn: ({ signal }) => salahRepository.getPracticingPeriods(signal),
     retry: false,
   });
 };

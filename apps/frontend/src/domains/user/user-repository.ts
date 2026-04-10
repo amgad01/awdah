@@ -16,7 +16,8 @@ export interface UpdateUserProfileInput {
 }
 
 export const userRepository = {
-  getProfile: () => api.user.getProfile() as Promise<UserProfileResponse | null>,
+  getProfile: (signal?: AbortSignal) =>
+    api.user.getProfile({ signal }) as Promise<UserProfileResponse | null>,
   updateProfile: (data: UpdateUserProfileInput) => api.user.updateProfile(data),
   startDeleteAccount: () =>
     api.user.startDeleteAccount() as Promise<UserLifecycleJobEnvelope | null>,

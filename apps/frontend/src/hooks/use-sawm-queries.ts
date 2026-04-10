@@ -19,14 +19,18 @@ export async function fetchFastHistoryPage(
   startDate: string,
   endDate: string,
   cursor?: string,
+  signal?: AbortSignal,
 ): Promise<HistoryPageResponse<FastLogResponse>> {
   return (
-    (await sawmRepository.getHistoryPage({
-      startDate,
-      endDate,
-      limit: HISTORY_PAGE_SIZE,
-      cursor,
-    })) ?? { items: [], hasMore: false }
+    (await sawmRepository.getHistoryPage(
+      {
+        startDate,
+        endDate,
+        limit: HISTORY_PAGE_SIZE,
+        cursor,
+      },
+      signal,
+    )) ?? { items: [], hasMore: false }
   );
 }
 
@@ -35,7 +39,7 @@ export const useSawmDebt = () => {
 
   return useQuery({
     queryKey: QUERY_KEYS.sawmDebt,
-    queryFn: () => sawmRepository.getDebt(),
+    queryFn: ({ signal }) => sawmRepository.getDebt(signal),
     enabled: !!profile?.bulughDate,
   });
 };
@@ -68,7 +72,7 @@ export const useSawmHistory = (startDate: string, endDate: string) => {
 export const useInfiniteSawmHistory = (startDate: string, endDate: string, enabled = true) => {
   return useInfiniteHistoryQuery<FastLogResponse>(
     QUERY_KEYS.sawmHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
-    (pageParam) => fetchFastHistoryPage(startDate, endDate, pageParam),
+    (pageParam, signal) => fetchFastHistoryPage(startDate, endDate, pageParam, signal),
     enabled && !!startDate && !!endDate,
   );
 };

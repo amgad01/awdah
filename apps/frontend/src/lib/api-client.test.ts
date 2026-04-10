@@ -172,4 +172,18 @@ describe('ApiClient', () => {
     expect(debugSpy).not.toHaveBeenCalled();
     debugSpy.mockRestore();
   });
+
+  it('does not retry aborted requests', async () => {
+    fetchMock.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'));
+
+    const client = new ApiClient({
+      baseUrl: '',
+      retryLimit: 2,
+      retryBaseDelayMs: 1,
+      retryMaxDelayMs: 2,
+    });
+
+    await expect(client.fetch('/test')).rejects.toThrow('The operation was aborted.');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

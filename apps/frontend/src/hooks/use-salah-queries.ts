@@ -19,14 +19,18 @@ export async function fetchPrayerHistoryPage(
   startDate: string,
   endDate: string,
   cursor?: string,
+  signal?: AbortSignal,
 ): Promise<HistoryPageResponse<PrayerLogResponse>> {
   return (
-    (await salahRepository.getHistoryPage({
-      startDate,
-      endDate,
-      limit: HISTORY_PAGE_SIZE,
-      cursor,
-    })) ?? { items: [], hasMore: false }
+    (await salahRepository.getHistoryPage(
+      {
+        startDate,
+        endDate,
+        limit: HISTORY_PAGE_SIZE,
+        cursor,
+      },
+      signal,
+    )) ?? { items: [], hasMore: false }
   );
 }
 
@@ -35,7 +39,7 @@ export const useSalahDebt = () => {
 
   return useQuery({
     queryKey: QUERY_KEYS.salahDebt,
-    queryFn: () => salahRepository.getDebt(),
+    queryFn: ({ signal }) => salahRepository.getDebt(signal),
     enabled: !!profile?.bulughDate,
   });
 };
@@ -68,7 +72,7 @@ export const useSalahHistory = (startDate: string, endDate: string) => {
 export const useInfiniteSalahHistory = (startDate: string, endDate: string, enabled = true) => {
   return useInfiniteHistoryQuery<PrayerLogResponse>(
     QUERY_KEYS.salahHistoryPage(startDate, endDate, HISTORY_PAGE_SIZE),
-    (pageParam) => fetchPrayerHistoryPage(startDate, endDate, pageParam),
+    (pageParam, signal) => fetchPrayerHistoryPage(startDate, endDate, pageParam, signal),
     enabled && !!startDate && !!endDate,
   );
 };
