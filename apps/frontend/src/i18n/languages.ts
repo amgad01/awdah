@@ -1,4 +1,4 @@
-import { LANGUAGE_MANIFEST } from './language-manifest';
+import { GENERATED_LANGUAGE_MANIFEST } from './language-manifest.generated';
 
 export interface LanguageDef {
   code: string;
@@ -29,7 +29,7 @@ function sortLanguages(languages: LanguageDef[]): LanguageDef[] {
   );
 }
 
-export const SUPPORTED_LANGUAGES: LanguageDef[] = sortLanguages(LANGUAGE_MANIFEST);
+export const SUPPORTED_LANGUAGES: LanguageDef[] = sortLanguages(GENERATED_LANGUAGE_MANIFEST);
 
 const supportedLanguageMap = new Map(
   SUPPORTED_LANGUAGES.map((language) => [language.code, language]),
