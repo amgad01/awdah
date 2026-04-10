@@ -1,13 +1,9 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/hooks/use-language';
-import { useAuth } from '@/hooks/use-auth';
-import { useOnboardingStatus } from '@/hooks/use-profile';
+import React, { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { ErrorState } from '@/components/ui/error-state/error-state';
-import { invalidateUserProfile, invalidatePracticingPeriods } from '@/utils/query-invalidation';
-import { readOnboardingSkipped, writeOnboardingSkipped } from '@/lib/onboarding-state';
+import { useLanguage } from '@/hooks/use-language';
 import { Loader2 } from 'lucide-react';
+import { useAuthenticatedApp } from './use-authenticated-app';
 import styles from '../../App.module.css';
 
 const Layout = lazy(() =>
@@ -63,29 +59,17 @@ function LoadingScreen() {
 }
 
 export const AuthenticatedApp: React.FC = () => {
-  const { user } = useAuth();
-  const { data: profile, error, isComplete, isError, isLoading } = useOnboardingStatus();
-  const queryClient = useQueryClient();
-  const location = useLocation();
-  const navigate = useNavigate();
   useLanguage();
-  const initialSkip = useMemo(() => readOnboardingSkipped(user?.userId), [user?.userId]);
-  const [isOnboardingSkipped, setIsOnboardingSkipped] = useState(initialSkip);
-  const showOnboardingRoute = location.pathname === '/onboarding';
-  const needsSetup = !profile?.dateOfBirth || !profile?.bulughDate;
-
-  useEffect(() => {
-    setIsOnboardingSkipped(initialSkip);
-  }, [initialSkip]);
-
-  useEffect(() => {
-    if (!isComplete) {
-      return;
-    }
-
-    writeOnboardingSkipped(user?.userId, false);
-    setIsOnboardingSkipped(false);
-  }, [isComplete, user?.userId]);
+  const {
+    error,
+    handleOnboardingComplete,
+    handleOnboardingSkip,
+    isError,
+    isLoading,
+    needsSetup,
+    retryProfileLoad,
+    shouldShowOnboarding,
+  } = useAuthenticatedApp();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -96,36 +80,16 @@ export const AuthenticatedApp: React.FC = () => {
       <div className={styles.statusScreen}>
         <ErrorState
           message={error instanceof Error ? error.message : 'Please try again in a moment.'}
-          onRetry={() => {
-            invalidateUserProfile(queryClient);
-          }}
+          onRetry={retryProfileLoad}
         />
       </div>
     );
   }
 
-  if ((!isComplete && !isOnboardingSkipped) || showOnboardingRoute) {
+  if (shouldShowOnboarding) {
     return (
       <Suspense fallback={<LoadingScreen />}>
-        <OnboardingWizard
-          onComplete={() => {
-            writeOnboardingSkipped(user?.userId, false);
-            invalidateUserProfile(queryClient);
-            invalidatePracticingPeriods(queryClient);
-            if (showOnboardingRoute) {
-              navigate('/', { replace: true });
-            }
-          }}
-          onSkip={() => {
-            if (!isComplete) {
-              writeOnboardingSkipped(user?.userId, true);
-              setIsOnboardingSkipped(true);
-            }
-            if (showOnboardingRoute) {
-              navigate('/', { replace: true });
-            }
-          }}
-        />
+        <OnboardingWizard onComplete={handleOnboardingComplete} onSkip={handleOnboardingSkip} />
       </Suspense>
     );
   }
