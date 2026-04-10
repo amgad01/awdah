@@ -1,5 +1,4 @@
 import React, { useState, useId, useRef, useCallback } from 'react';
-import ReactDOM from 'react-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { getGlossaryEntry, resolveGlossaryText } from '@/content/glossary/glossary';
 import styles from './term-tooltip.module.css';
@@ -31,7 +30,6 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
   const { language, isRTL } = useLanguage();
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const [flip, setFlip] = useState<'up' | 'down'>('down');
   const triggerRef = useRef<HTMLButtonElement>(null);
   const touchToggleRef = useRef(false);
@@ -39,35 +37,11 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
   const computeAndOpen = useCallback(() => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      const maxWidth = Math.min(300, window.innerWidth - 16);
       const estimatedHeight = 160;
-      const style: React.CSSProperties = {
-        position: 'fixed',
-        maxWidth,
-        zIndex: 9999,
-      };
-
-      let direction: 'up' | 'down';
-      if (rect.top > estimatedHeight + 16) {
-        style.bottom = window.innerHeight - rect.top + 8;
-        direction = 'down';
-      } else {
-        style.top = Math.min(window.innerHeight - 8, rect.bottom + 8);
-        direction = 'up';
-      }
-
-      if (isRTL) {
-        // Align tooltip's right edge with trigger's right edge
-        style.right = window.innerWidth - rect.right;
-      } else {
-        // Align tooltip's left edge with trigger's left edge, clamped to viewport
-        style.left = Math.max(8, Math.min(rect.left, window.innerWidth - maxWidth - 8));
-      }
-      setTooltipStyle(style);
-      setFlip(direction);
+      setFlip(rect.top > estimatedHeight + 16 ? 'down' : 'up');
     }
     setOpen(true);
-  }, [isRTL]);
+  }, []);
 
   const entry = getGlossaryEntry(termId);
   const synonyms = entry ? resolveGlossaryText(entry.synonyms, language) : undefined;
@@ -123,22 +97,20 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
         </span>
       </button>
 
-      {open &&
-        ReactDOM.createPortal(
-          <span
-            id={id}
-            role="tooltip"
-            className={styles.tooltip}
-            dir={isRTL ? 'rtl' : 'ltr'}
-            data-flip={flip}
-            style={tooltipStyle}
-          >
-            {entry.arabic && <span className={styles.arabic}>{entry.arabic}</span>}
-            {synonyms && <span className={styles.synonyms}>{synonyms}</span>}
-            {definition && <span className={styles.definition}>{definition}</span>}
-          </span>,
-          document.body,
-        )}
+      {open && (
+        <span
+          id={id}
+          role="tooltip"
+          className={`${styles.tooltip} ${flip === 'up' ? styles.tooltipUp : styles.tooltipDown} ${
+            isRTL ? styles.tooltipRtl : styles.tooltipLtr
+          }`}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          {entry.arabic && <span className={styles.arabic}>{entry.arabic}</span>}
+          {synonyms && <span className={styles.synonyms}>{synonyms}</span>}
+          {definition && <span className={styles.definition}>{definition}</span>}
+        </span>
+      )}
     </span>
   );
 };

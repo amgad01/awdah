@@ -16,7 +16,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   variant = 'primary',
 }) => {
   const { fmtNumber } = useLanguage();
-  const percentage = Math.min(Math.round((value / max) * 100), 100);
+  const percentage = max > 0 ? Math.min(Math.round((value / max) * 100), 100) : 0;
 
   return (
     <div className={styles.wrapper}>
@@ -26,16 +26,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           <span className={styles.percentage}>{fmtNumber(percentage)}%</span>
         </div>
       )}
-      <div
-        className={styles.track}
-        role="progressbar"
-        aria-valuenow={value}
-        aria-valuemin={0}
-        aria-valuemax={max}
+      <progress
+        className={`${styles.track} ${styles[variant]}`}
+        value={percentage}
+        max={100}
         aria-label={label}
-      >
-        <div className={`${styles.bar} ${styles[variant]}`} style={{ width: `${percentage}%` }} />
-      </div>
+      />
       <div className={styles.footer}>
         <span>
           {fmtNumber(value)} / {fmtNumber(max)}
