@@ -3,8 +3,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
 import { Mail, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { getAuthErrorKey } from '@/lib/auth-errors';
+import { AuthNotice } from './auth-notice';
 import styles from './auth-forms.module.css';
 
 interface LoginFormProps {
@@ -22,10 +22,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [statusKey, setStatusKey] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusKey(null);
     setLoading(true);
 
     try {
@@ -33,11 +34,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      const message = getAuthErrorKey(err, 'auth.login_error');
-      toast.error(t(message));
+      setStatusKey(getAuthErrorKey(err, 'auth.login_error'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setStatusKey(null);
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setStatusKey(null);
   };
 
   return (
@@ -53,7 +63,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t('auth.email_placeholder')}
               required
               data-testid="login-email"
@@ -69,13 +79,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => handlePasswordChange(e.target.value)}
               placeholder={t('auth.password_placeholder')}
               required
               data-testid="login-password"
             />
           </div>
         </div>
+
+        {statusKey && <AuthNotice message={t(statusKey)} />}
 
         <button
           type="submit"

@@ -3,17 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LoginForm } from '../login-form';
 
 const mockSignIn = vi.fn();
-const mockToastError = vi.fn();
 
 vi.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
     t: (key: string) => key,
-  }),
-}));
-
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
-    toast: { error: mockToastError, success: vi.fn(), info: vi.fn() },
   }),
 }));
 
@@ -74,7 +67,7 @@ describe('LoginForm', () => {
     });
   });
 
-  it('shows error toast on login failure', async () => {
+  it('shows inline error on login failure', async () => {
     mockSignIn.mockRejectedValue(new Error('Invalid credentials'));
     renderForm();
 
@@ -87,7 +80,7 @@ describe('LoginForm', () => {
     fireEvent.click(screen.getByTestId('login-submit'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('auth.login_error');
+      expect(screen.getByRole('alert')).toHaveTextContent('auth.login_error');
     });
   });
 

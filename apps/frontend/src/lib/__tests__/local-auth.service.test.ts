@@ -24,4 +24,12 @@ describe('localAuthService', () => {
       'auth.login_error',
     );
   });
+
+  it('rejects duplicate local registrations', async () => {
+    await localAuthService.signUp('user@example.com', 'secret');
+
+    await expect(localAuthService.signUp('USER@example.com', 'secret2')).rejects.toThrow(
+      'auth.account_exists_error',
+    );
+  });
 });

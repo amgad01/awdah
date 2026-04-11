@@ -6,6 +6,11 @@ const KNOWN_AUTH_ERRORS: Array<{ pattern: RegExp; key: string }> = [
     pattern: /incorrect\s+username(\s+or\s+password)?/i,
     key: 'auth.incorrect_username_or_password',
   },
+  {
+    pattern:
+      /usernameexists|user\s+already\s+exists|account\s+with\s+the\s+given\s+email\s+already\s+exists/i,
+    key: 'auth.account_exists_error',
+  },
   { pattern: /user\s+not\s+found/i, key: 'auth.user_not_found' },
   { pattern: /password\s+attempts\s+exceeded/i, key: 'auth.attempts_exceeded' },
 ];

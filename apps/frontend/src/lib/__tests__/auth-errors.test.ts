@@ -15,6 +15,15 @@ describe('getAuthErrorKey', () => {
     );
   });
 
+  it('maps duplicate account errors to the signup recovery key', () => {
+    expect(
+      getAuthErrorKey(
+        new Error('UsernameExistsException: An account with the given email already exists.'),
+        'auth.signup_error',
+      ),
+    ).toBe('auth.account_exists_error');
+  });
+
   it('normalizes structured auth errors', () => {
     expect(
       getAuthErrorKey(

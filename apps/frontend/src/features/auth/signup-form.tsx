@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
 import { Loader2, Mail, Lock, ShieldCheck, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getAuthErrorKey } from '@/lib/auth-errors';
+import { AuthNotice } from './auth-notice';
 import styles from './auth-forms.module.css';
 
 interface SignupFormProps {
@@ -18,12 +19,14 @@ const PASSWORD_MIN_LENGTH = 12;
 
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLogin }) => {
   const { t } = useLanguage();
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [phase, setPhase] = useState<SignupPhase>('register');
   const [loading, setLoading] = useState(false);
+  const [statusKey, setStatusKey] = useState<string | null>(null);
   const { toast } = useToast();
 
   const passwordChecks = useMemo(
@@ -45,9 +48,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusKey(null);
     setLoading(true);
     if (password !== confirmPassword) {
-      toast.error(t('auth.password_mismatch'));
+      setStatusKey('auth.password_mismatch');
       setLoading(false);
       return;
     }
@@ -63,7 +67,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         onSuccess();
       }
     } catch (err: unknown) {
-      toast.error(t(getAuthErrorKey(err, 'auth.signup_error')));
+      setStatusKey(getAuthErrorKey(err, 'auth.signup_error'));
     } finally {
       setLoading(false);
     }
@@ -71,6 +75,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusKey(null);
     setLoading(true);
 
     try {
@@ -79,49 +84,80 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
       await authService.signIn(email, password);
       onSuccess();
     } catch (err: unknown) {
-      toast.error(t(getAuthErrorKey(err, 'auth.verify_error')));
+      setStatusKey(getAuthErrorKey(err, 'auth.verify_error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
+    setStatusKey(null);
     try {
       const authService = await getAuthService();
       await authService.signUp(email, password);
       toast.success(t('auth.verify_resend_done'));
     } catch (err: unknown) {
-      toast.error(t(getAuthErrorKey(err, 'auth.signup_error')));
+      setStatusKey(getAuthErrorKey(err, 'auth.signup_error'));
     }
   };
+
+  const handleChangeEmail = () => {
+    setPhase('register');
+    setEmail('');
+    setVerifyCode('');
+    setStatusKey(null);
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setStatusKey(null);
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setStatusKey(null);
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    setStatusKey(null);
+  };
+
+  const handleVerifyCodeChange = (value: string) => {
+    setVerifyCode(value);
+    setStatusKey(null);
+  };
+
+  const handleFocusDifferentEmail = () => {
+    setEmail('');
+    setStatusKey(null);
+    emailInputRef.current?.focus();
+  };
+
+  const duplicateAccountActions =
+    statusKey === 'auth.account_exists_error'
+      ? [
+          {
+            label: t('auth.login'),
+            onClick: onSwitchToLogin,
+            testId: 'signup-error-signin',
+          },
+          {
+            label: t('auth.verify_change_email'),
+            onClick: handleFocusDifferentEmail,
+            testId: 'signup-error-change-email',
+          },
+        ]
+      : undefined;
 
   if (phase === 'verify') {
     return (
       <Card variant="glass" className={styles.container}>
         <h2 className={styles.title}>{t('auth.verify_title')}</h2>
-        <p className={styles.subtitle}>{t('auth.verify_subtitle')}</p>
+        <p className={styles.subtitle}>{t('auth.verify_subtitle', { email })}</p>
+        {statusKey && <AuthNotice message={t(statusKey)} />}
 
         <form onSubmit={handleVerify} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="verifyEmail">{t('auth.email')}</label>
-            <div className={styles.inputWrapper}>
-              <Mail className={styles.inputIcon} size={18} />
-              <input
-                id="verifyEmail"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setVerifyCode('');
-                }}
-                placeholder={t('auth.email_placeholder')}
-                autoComplete="email"
-                required
-                data-testid="verify-email"
-              />
-            </div>
-          </div>
-
           <div className={styles.inputGroup}>
             <label htmlFor="verifyCode">{t('auth.verify_code')}</label>
             <div className={styles.inputWrapper}>
@@ -132,7 +168,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={verifyCode}
-                onChange={(e) => setVerifyCode(e.target.value)}
+                onChange={(e) => handleVerifyCodeChange(e.target.value)}
                 placeholder={t('auth.verify_code_placeholder')}
                 required
                 data-testid="verify-code"
@@ -146,6 +182,15 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
         </form>
 
         <div className={styles.footer}>
+          <button
+            type="button"
+            onClick={handleChangeEmail}
+            className={styles.switchBtn}
+            disabled={loading}
+            data-testid="verify-change-email"
+          >
+            {t('auth.verify_change_email')}
+          </button>
           <button
             type="button"
             onClick={handleResend}
@@ -163,6 +208,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
   return (
     <Card variant="glass" className={styles.container}>
       <h2 className={styles.title}>{t('auth.sign_up')}</h2>
+      {statusKey && <AuthNotice message={t(statusKey)} actions={duplicateAccountActions} />}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.inputGroup}>
@@ -170,10 +216,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
           <div className={styles.inputWrapper}>
             <Mail className={styles.inputIcon} size={18} />
             <input
+              ref={emailInputRef}
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t('auth.email_placeholder')}
               required
               data-testid="signup-email"
@@ -189,7 +236,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => handlePasswordChange(e.target.value)}
               placeholder={t('auth.password_placeholder')}
               required
               data-testid="signup-password"
@@ -232,7 +279,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess, onSwitchToLog
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
               placeholder={t('auth.confirm_password_placeholder')}
               required
               data-testid="signup-confirm-password"
