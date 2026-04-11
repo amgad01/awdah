@@ -27,6 +27,12 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [statusKey, setStatusKey] = useState<string | null>(null);
 
+  const withStatusReset =
+    (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
+      setter(value);
+      setStatusKey(null);
+    };
+
   const handleRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusKey(null);
@@ -65,25 +71,10 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
     }
   };
 
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    setStatusKey(null);
-  };
-
-  const handleVerificationCodeChange = (value: string) => {
-    setVerificationCode(value);
-    setStatusKey(null);
-  };
-
-  const handleNewPasswordChange = (value: string) => {
-    setNewPassword(value);
-    setStatusKey(null);
-  };
-
-  const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
-    setStatusKey(null);
-  };
+  const handleEmailChange = withStatusReset(setEmail);
+  const handleVerificationCodeChange = withStatusReset(setVerificationCode);
+  const handleNewPasswordChange = withStatusReset(setNewPassword);
+  const handleConfirmPasswordChange = withStatusReset(setConfirmPassword);
 
   if (phase === 'confirm') {
     return (
