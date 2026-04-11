@@ -1,25 +1,18 @@
 import { test, expect, type Page } from '@playwright/test';
 import { navigateFromShell, seedAndLoginLocalUser } from './support/auth';
+import { clickRetryIfVisible, expectTransientError, resolvePageState } from './support/page-state';
 
 const TEST_EMAIL = 'tracker@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
 async function expectTrackerOrError(page: Page): Promise<boolean> {
-  const main = page.locator('main').first();
-
-  if (
-    await main
-      .getByText('Connecting...')
-      .first()
-      .isVisible()
-      .catch(() => false)
-  ) {
+  const pageState = await resolvePageState(page);
+  if (pageState === 'connecting') {
     return false;
   }
 
-  const errorAlert = page.getByRole('alert').first();
-  if (await errorAlert.isVisible().catch(() => false)) {
-    await expect(errorAlert).toContainText(/something went wrong|unexpected error/i);
+  if (pageState === 'error') {
+    await expectTransientError(page);
     return false;
   }
 
@@ -31,11 +24,7 @@ test.describe('Salah Tracker', () => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
     await navigateFromShell(page, 'nav-salah');
     await expect(page).toHaveURL(/\/salah(\?lang=en)?$/);
-
-    const retryButton = page.getByRole('button', { name: /retry/i }).first();
-    if (await retryButton.isVisible().catch(() => false)) {
-      await retryButton.click();
-    }
+    await clickRetryIfVisible(page);
   });
 
   test('displays all five prayers', async ({ page }) => {
@@ -123,11 +112,7 @@ test.describe('Sawm Tracker', () => {
     await seedAndLoginLocalUser(page, TEST_EMAIL, TEST_PASSWORD);
     await navigateFromShell(page, 'nav-sawm');
     await expect(page).toHaveURL(/\/sawm(\?lang=en)?$/);
-
-    const retryButton = page.getByRole('button', { name: /retry/i }).first();
-    if (await retryButton.isVisible().catch(() => false)) {
-      await retryButton.click();
-    }
+    await clickRetryIfVisible(page);
   });
 
   test('shows fast log button', async ({ page }) => {

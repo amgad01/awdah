@@ -1,28 +1,24 @@
 import { test, expect, type Page } from '@playwright/test';
 import { logoutButton, openShellNavigation, seedAndLoginLocalUser } from './support/auth';
+import { clickRetryIfVisible, expectTransientError, resolvePageState } from './support/page-state';
 
 const TEST_EMAIL = 'dashboard@example.com';
 const TEST_PASSWORD = 'TestPassword1!';
 
 async function ensureDashboardReady(page: Page) {
-  const retryButton = page.getByRole('button', { name: /retry/i }).first();
-  if (await retryButton.isVisible().catch(() => false)) {
-    await retryButton.click();
-  }
+  await clickRetryIfVisible(page);
 
   await expect(page.locator('main')).not.toContainText('Connecting...', { timeout: 30_000 });
 }
 
 async function expectDashboardContentOrError(page: Page): Promise<void> {
-  const statCard = page.locator('[class*="statCard"]').first();
-  if (await statCard.isVisible().catch(() => false)) {
-    await expect(statCard).toBeVisible();
+  const pageState = await resolvePageState(page);
+  if (pageState === 'error') {
+    await expectTransientError(page);
     return;
   }
 
-  await expect(page.getByRole('alert').first()).toContainText(
-    /something went wrong|unexpected error/i,
-  );
+  await expect(page.locator('[class*="statCard"]').first()).toBeVisible({ timeout: 10_000 });
 }
 
 test.describe('Dashboard', () => {
@@ -37,27 +33,25 @@ test.describe('Dashboard', () => {
   });
 
   test('shows salah debt card', async ({ page }) => {
-    const heading = page.getByRole('heading', { name: /salah debt/i, level: 3 }).first();
-    if (await heading.isVisible().catch(() => false)) {
-      await expect(heading).toBeVisible();
+    const pageState = await resolvePageState(page);
+    if (pageState === 'error') {
+      await expectTransientError(page);
       return;
     }
 
-    await expect(page.getByRole('alert').first()).toContainText(
-      /something went wrong|unexpected error/i,
-    );
+    const heading = page.getByRole('heading', { name: /salah debt/i, level: 3 }).first();
+    await expect(heading).toBeVisible({ timeout: 15_000 });
   });
 
   test('shows sawm summary card', async ({ page }) => {
-    const heading = page.getByRole('heading', { name: /sawm summary/i, level: 3 }).first();
-    if (await heading.isVisible().catch(() => false)) {
-      await expect(heading).toBeVisible();
+    const pageState = await resolvePageState(page);
+    if (pageState === 'error') {
+      await expectTransientError(page);
       return;
     }
 
-    await expect(page.getByRole('alert').first()).toContainText(
-      /something went wrong|unexpected error/i,
-    );
+    const heading = page.getByRole('heading', { name: /sawm summary/i, level: 3 }).first();
+    await expect(heading).toBeVisible({ timeout: 15_000 });
   });
 
   test('renders dashboard without undefined or null text', async ({ page }) => {
