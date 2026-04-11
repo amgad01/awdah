@@ -44,7 +44,16 @@ const fileBody = `import type { LanguageDef } from './languages';
 // Add a new language by adding one new translation JSON file with a valid _meta block.
 export const GENERATED_LANGUAGE_MANIFEST: LanguageDef[] = ${JSON.stringify(languages, null, 2)};\n`;
 
-fs.writeFileSync(outputFile, fileBody);
+const prettier = await import('prettier');
+const formattedFileBody = await prettier.format(fileBody, {
+  parser: 'typescript',
+  semi: true,
+  singleQuote: true,
+  trailingComma: 'all',
+  printWidth: 100,
+});
+
+fs.writeFileSync(outputFile, formattedFileBody);
 console.log(
   `Generated ${path.relative(process.cwd(), outputFile)} from ${translationFiles.length} locale files.`,
 );

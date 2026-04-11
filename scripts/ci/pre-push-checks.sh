@@ -83,6 +83,10 @@ step "Phase 1/4: Build shared package"
 npm run build --workspace=packages/shared
 success "Shared package built"
 
+step "Generate frontend language manifest"
+npm run prelint --workspace=apps/frontend
+success "Frontend language manifest generated"
+
 # ── Phase 2: Lint, format & TypeScript (all independent, run together) ──────
 # Root ESLint covers backend/infra/packages; frontend ESLint uses its own config.
 step "Phase 2/4: Lint, format & TypeScript (parallel)"

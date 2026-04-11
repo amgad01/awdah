@@ -1,11 +1,12 @@
 #!/bin/sh
+set -eu
 
 if [ "${CI:-}" = "true" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-	exit 0
+  exit 0
 fi
 
 if [ "${RUN_FULL_PRE_PUSH:-0}" = "1" ]; then
-  RUN_E2E=1 ./scripts/ci/pre-push-checks.sh
-else
-  ./scripts/ci/pre-push-quick.sh
+  exec env RUN_E2E=1 ./scripts/ci/pre-push-checks.sh
 fi
+
+exec ./scripts/ci/pre-push-quick.sh
