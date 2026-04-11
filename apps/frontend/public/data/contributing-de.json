@@ -15,7 +15,7 @@
       "badge_variant": "accent",
       "icon": "BookOpen",
       "title": "Gelehrtenprüfung & Fiqh-Validierung",
-      "body": "Awdah stützt seine Berechnungslogik auf bekannte Gelehrtenpositionen. Alle Einträge besitzen ein verified-Feld – jeder Eintrag mit verified: false darf Nutzern erst angezeigt werden, wenn ihn eine qualifizierte Gelehrte oder ein qualifizierter Gelehrter bestätigt hat. Wenn du islamwissenschaftliche Erfahrung hast oder Zugang zu einer qualifizierten Lehrperson, ist dies der Bereich mit dem größten Hebel.",
+      "body": "Awdah stützt seine Berechnungslogik auf bekannte Gelehrtenpositionen und liefert bereits live religiöse Hinweise an Nutzer aus.\n\nDie im Lern- und Glossarbereich sichtbaren Gelehrtenreferenzen verwenden ein verified-Feld, und Inhalte mit **verified: false** sollten nicht in der nutzerseitigen Oberfläche landen, bis sie von einer qualifizierten Gelehrtenperson bestätigt wurden.\n\nWenn du islamwissenschaftliche Erfahrung hast oder Zugang zu einer qualifizierten Lehrperson, ist dies weiterhin **einer der wirksamsten Beitragsbereiche**.\n\nWenn du nicht direkt im Code arbeiten möchtest, schick mir die Korrektur und deine Qualifikation einfach über die Kontaktoptionen unten.",
       "items": [
         {
           "id": "validate_references",
@@ -72,7 +72,7 @@
         {
           "id": "prayer_logger_ux",
           "title": "UX des Gebets-Loggers verbessern",
-          "description": "Der tägliche Gebets-Logger wird jeden Tag genutzt. Kleine Verbesserungen haben hier große Wirkung: Wischen zum Markieren auf dem Handy, klareres visuelles Feedback beim Speichern eines Gebets und eine Rückgängig-Funktion für versehentliche Taps. Designvorschläge sind willkommen – bitte öffne vorher ein Issue zur Abstimmung."
+          "description": "Der tägliche Gebets-Logger ist bereits eine der wichtigsten Live-Flächen der App, deshalb haben kleine Verbesserungen hier große Wirkung. Sinnvolle Ideen sind klareres Feedback nach dem Erfassen, sicherere Wege zum Korrigieren versehentlicher Taps und gut begründete mobile Interaktionsideen, die den Ablauf nicht unzuverlässig machen. Designvorschläge sind willkommen – bitte öffne vorher ein Issue zur Abstimmung."
         },
         {
           "id": "responsive_issues",
@@ -163,7 +163,7 @@
       "badge_variant": "info",
       "icon": "Languages",
       "title": "Neue Sprache hinzufügen",
-      "body": "Das Übersetzungs-Setup ist bewusst schlank: Lege eine Übersetzungs-JSON-Datei mit einer _meta-Karte auf oberster Ebene an, und der Sprachschalter erkennt sie automatisch.",
+      "body": "Das Übersetzungs-Setup ist bewusst schlank: Lege eine Übersetzungs-JSON-Datei mit einer _meta-Karte auf oberster Ebene an, und der Sprachschalter erkennt sie automatisch. Der Build erzeugt das kleine Sprachmanifest inzwischen selbst, daher muss keine TypeScript-Datei mehr manuell angepasst werden, nur um eine neue Sprache sichtbar zu machen.",
       "items": [
         {
           "id": "add_language_steps",
@@ -208,7 +208,7 @@
     {
       "step": 3,
       "title": "Abhängigkeiten installieren und lokale Umgebung starten",
-      "body": "Führe npm install aus, um alle Abhängigkeiten zu installieren. Starte dann LocalStack für die Cloud-Service-Simulation mit docker compose up -d. Anschließend starte mit npm run dev:frontend oder npm run dev:backend den Dienst, an dem du arbeitest."
+      "body": "Führe npm install aus, um alle Abhängigkeiten zu installieren. Für Frontend-, Doku-, Übersetzungs- oder Public-Content-Arbeit reicht meist npm run dev:frontend. Starte LocalStack mit docker compose up -d nur dann, wenn deine Änderung das Backend, echte Auth-Flows oder API-gestützte Abläufe braucht, und starte in diesem Fall zusätzlich npm run dev:backend."
     },
     {
       "step": 4,

@@ -93,6 +93,7 @@
   --shadow-accent-lg: 0 28px 60px -48px rgba(180, 140, 30, 0.35);
   --shadow-accent-xl: 0 24px 45px -28px rgba(180, 140, 30, 0.55);
   --shadow-warning: 0 18px 34px -28px rgba(146, 64, 14, 0.4);
+  --shadow-floating-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-toast:
     0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.1),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -131,6 +132,21 @@
 
   --color-backdrop: rgba(0, 0, 0, 0.45);
   --color-surface-hover: color-mix(in srgb, var(--color-primary) 4%, var(--color-surface));
+  --color-bg: var(--color-background);
+  --color-bg-inner: var(--color-surface);
+  --color-text: var(--color-text-primary);
+
+  /* Shared chart tokens so chart-heavy screens inherit theme changes consistently. */
+  --chart-grid-stroke: var(--color-divider);
+  --chart-cursor-stroke: var(--color-text-muted);
+  --chart-tooltip-bg: var(--color-surface);
+  --chart-tooltip-border: var(--color-border);
+  --chart-tooltip-text: var(--color-text-primary);
+  --chart-tick-fill: var(--color-text-muted);
+  --chart-range-fill: var(--color-primary-alpha-10);
+  --chart-series-primary: var(--color-primary);
+  --chart-series-accent: var(--color-accent);
+  --chart-series-secondary: var(--color-secondary);
 
   /* Nav / sidebar background — teal-based, always dark */
   --nav-bg: #00251a;
@@ -235,6 +251,7 @@
     --shadow-accent-lg: 0 28px 60px -48px rgba(230, 195, 73, 0.25);
     --shadow-accent-xl: 0 24px 45px -28px rgba(230, 195, 73, 0.4);
     --shadow-warning: 0 18px 34px -28px rgba(251, 191, 36, 0.3);
+    --shadow-floating-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
     --shadow-toast:
       0 20px 40px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.2),
       inset 0 0 0 1px rgba(255, 255, 255, 0.06);
@@ -314,6 +331,7 @@
   --shadow-accent-lg: 0 28px 60px -48px rgba(230, 195, 73, 0.25);
   --shadow-accent-xl: 0 24px 45px -28px rgba(230, 195, 73, 0.4);
   --shadow-warning: 0 18px 34px -28px rgba(251, 191, 36, 0.3);
+  --shadow-floating-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
   --shadow-toast:
     0 20px 40px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -4px rgba(0, 0, 0, 0.2),
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);

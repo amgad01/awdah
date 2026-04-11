@@ -62,6 +62,15 @@ Deploys CDK stacks to LocalStack for local development.
 
 Builds the React app and runs the correct hosting flow for the selected environment.
 
+### `upload-frontend.sh`
+
+Builds the frontend bundle, syncs it to the existing S3 bucket, and invalidates CloudFront without deploying the stack.
+
+```bash
+./scripts/deploy/upload-frontend.sh dev
+npm run upload:frontend -- dev
+```
+
 ### `build-frontend.sh`
 
 Builds the frontend bundle without deploying it.
@@ -218,8 +227,8 @@ All options are set via environment variables:
 | `LOAD_TEST_REQUESTS`       | `25`                    | Total requests across the whole run   |
 | `LOAD_TEST_BURSTS`         | `3`                     | Number of bursts                      |
 | `LOAD_TEST_BURST_PAUSE_MS` | `1000`                  | Pause between bursts in milliseconds  |
-| `LOAD_TEST_JWT`            | ,                       | Bearer token for authenticated routes |
-| `LOAD_TEST_BODY`           | ,                       | JSON string body for POST/PUT/DELETE  |
+| `LOAD_TEST_JWT`            | —                       | Bearer token for authenticated routes |
+| `LOAD_TEST_BODY`           | —                       | JSON string body for POST/PUT/DELETE  |
 
 Outputs p50 and p95 latency, status code breakdown, and network failure count. Exits with code 1 if any server errors or network failures occurred.
 

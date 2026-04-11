@@ -1,319 +1,167 @@
 # Architecture Overview
 
-Awdah is a serverless SPA. The browser downloads a static React bundle from GitHub Pages, authenticates via AWS Cognito, and communicates with a set of purpose-built Lambda functions behind an HTTP API Gateway. All data is stored in DynamoDB. No servers are maintained.
+This document explains the current runtime architecture and the repo boundaries that support it.
 
----
+Use this page for the written walkthrough. Use [diagrams/README.md](diagrams/README.md) for the focused ASCII and Mermaid diagram set.
 
-## System Context
+## 1. System Context
 
-```
-          ┌──────────────────────────────────────────────────────┐
-          │  User's Browser                                       │
-          │                                                       │
-          │   ┌─────────────────────────────────────────────┐    │
-          │   │   React SPA  (GitHub Pages CDN)             │    │
-          │   │                                             │    │
-          │   │   • All UI rendering                        │    │
-          │   │   • i18n (en / ar, RTL-aware)               │    │
-          │   │   • No business logic — display only        │    │
-          │   └──────────────────┬──────────────────────────┘    │
-          │                      │  HTTPS + Cognito JWT           │
-          └──────────────────────┼──────────────────────────────-┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │   AWS Cognito           │
-                    │   (User Pool)           │
-                    │                         │
-                    │   • Sign-up / sign-in   │
-                    │   • JWT issuance        │
-                    │   • Token refresh       │
-                    └────────────┬────────────┘
-                                 │  Bearer JWT
-                    ┌────────────▼────────────┐
-                    │   API Gateway (HTTP)     │
-                    │                         │
-                    │   • JWT authorizer       │
-                    │   • Rate limiting        │
-                    │   • Route → Lambda       │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-   ┌──────────▼──────┐  ┌────────▼────────┐  ┌─────▼──────────┐
-   │  Salah Lambdas  │  │  Sawm Lambdas   │  │  User Lambdas  │
-   │                 │  │                 │  │                │
-   │  log prayer     │  │  log fast       │  │  profile       │
-   │  delete prayer  │  │  delete fast    │  │  export data   │
-   │  get debt       │  │  get debt       │  │  delete acct   │
-   │  get logs       │  │  get logs       │  │  lifecycle     │
-   │  periods CRUD   │  │                 │  │                │
-   └────────┬────────┘  └────────┬────────┘  └──────┬─────────┘
-            │                    │                   │
-            └────────────────────┼───────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │   DynamoDB              │
-                    │   (PAY_PER_REQUEST)     │
-                    │                         │
-                    │   PrayerLogs            │
-                    │   FastLogs              │
-                    │   PracticingPeriods     │
-                    │   UserSettings          │
-                    │   UserLifecycleJobs     │
-                    │   DeletedUsers          │
-                    └─────────────────────────┘
+At runtime, Awdah is a static SPA plus a serverless backend.
+
+The clearest visual starting point is [diagrams/01-system-context.md](diagrams/01-system-context.md).
+
+The frontend is responsible for presentation, navigation, localized content, and client-side interaction flow. Core business rules live in backend use cases and domain services, not in the browser.
+
+## 2. Deployment Surfaces
+
+### Frontend
+
+- current production host: GitHub Pages at `/awdah/`
+- alternative supported host: S3 + CloudFront via `FrontendStack`
+- public routes: `/about`, `/learn`, `/contribute`, `/demo`
+- authenticated shell: tracker, dashboard, history, settings
+
+### Backend
+
+- production runtime: API Gateway + Lambda
+- local runtime: Express server that calls the same handler/use-case layer
+- auth model: Cognito JWTs in AWS-backed environments, local auth mode for cloudless frontend work
+
+## 3. Codebase Boundaries
+
+```text
+apps/frontend   -> React SPA, public pages, demo, auth shell
+apps/backend    -> handlers, use cases, domain rules, persistence adapters
+infra           -> CDK stacks for AWS runtime
+packages/shared -> shared types and Hijri/date primitives
 ```
 
----
+The backend is a modular monolith with bounded contexts:
 
-## CDK Stack Dependency Graph
+- `salah`
+- `sawm`
+- `user`
+- `shared`
 
-Five stacks deployed in strict dependency order. Each has a single concern. Stacks communicate through exported values (SSM, CFN outputs, CDK references).
+The layering is consistent:
 
-```
-   ┌─────────────┐
-   │  DataStack  │   DynamoDB tables + streams
-   └──────┬──────┘
-          │ provides table refs
-   ┌──────┴──────┐     ┌─────────────┐
-   │  AuthStack  │     │  DataStack  │
-   │  Cognito    │     │  (same)     │
-   └──────┬──────┘     └──────┬──────┘
-          │                   │
-          └──────────┬─────────┘
-                     │ tables + user pool
-              ┌──────▼──────┐
-              │  ApiStack   │   Lambda × 24, HTTP API,
-              │             │   throttle rules, SSM URL
-              └──────┬──────┘
-                     │ table refs (for export Lambda)
-              ┌──────▼──────┐
-              │ BackupStack │   EventBridge + S3 export Lambda
-              └──────┬──────┘
-                     │ DLQ + Lambda refs
-              ┌──────▼──────┐
-              │  AlarmStack │   CloudWatch alarms, SNS alerts
-              └─────────────┘
-
-   (optional)
-   ┌──────────────┐
-   │ FrontendStack│   S3 + CloudFront for non-Pages hosting
-   │ (off by      │   Reads API URL from SSM written by ApiStack
-   │  default)    │
-   └──────────────┘
+```text
+presentation / handlers
+  -> application / use-cases
+    -> domain
+      <- infrastructure adapters
 ```
 
----
+Handlers validate and adapt. Use cases orchestrate. Domain objects hold the rules. Repositories and AWS integrations sit at the boundary.
 
-## Request Lifecycle — Authenticated Write
+## 4. Request Paths
 
-The path a typical POST (e.g. log a prayer) takes from the browser to storage and back.
+### Normal authenticated request
 
-```
-  Browser                Cognito          API Gateway         Lambda            DynamoDB
-     │                      │                  │                  │                 │
-     │──── sign in ─────────►│                  │                  │                 │
-     │◄─── access token ─────│                  │                  │                 │
-     │                      │                  │                  │                 │
-     │──── POST /v1/salah/log ─────────────────►│                  │                 │
-     │     Authorization: Bearer <jwt>          │                  │                 │
-     │                      │                  │                  │                 │
-     │                      │◄── verify JWT ───│                  │                 │
-     │                      │─── claims ───────►│                  │                 │
-     │                      │                  │                  │                 │
-     │                      │                  │── invoke ────────►│                 │
-     │                      │                  │   event.requestContext              │
-     │                      │                  │   .authorizer.jwt.claims.sub        │
-     │                      │                  │                  │                 │
-     │                      │                  │         wrapHandler extracts userId │
-     │                      │                  │         Zod validates body          │
-     │                      │                  │         use case executes           │
-     │                      │                  │                  │─── PutItem ─────►│
-     │                      │                  │                  │◄─── OK ──────────│
-     │                      │                  │                  │                 │
-     │                      │                  │◄── 201 response ─│                 │
-     │◄──────────────────────────────────────── 201 JSON ─────────│                 │
-```
+Example: log a prayer.
 
----
+See [diagrams/02-authenticated-request.md](diagrams/02-authenticated-request.md).
 
-## Lambda Handler Layers
+The handler layer should stay thin. Validation, orchestration, and state changes happen lower in the stack.
 
-Every Lambda follows the same three-layer structure. No layer knows about the layer above it.
+### Lifecycle-job request in AWS
 
-```
-  ┌──────────────────────────────────────────────────────────┐
-  │  Infrastructure Layer  (handlers/)                        │
-  │                                                          │
-  │  createHandler(contextName, useCase, { schema, ... })    │
-  │    └─► wrapHandler: extracts userId from JWT claims,     │
-  │         parses body, calls use case, formats response,   │
-  │         catches AppError subtypes → structured JSON      │
-  └──────────────────────────┬───────────────────────────────┘
-                             │ calls execute(input)
-  ┌──────────────────────────▼───────────────────────────────┐
-  │  Application Layer  (use-cases/)                          │
-  │                                                          │
-  │  Orchestrates domain operations.                         │
-  │  Validates business rules (e.g. no duplicate period).    │
-  │  Calls repository interfaces — never DynamoDB directly.  │
-  └──────────────────────────┬───────────────────────────────┘
-                             │ calls repository port
-  ┌──────────────────────────▼───────────────────────────────┐
-  │  Infrastructure Layer  (repositories/)                    │
-  │                                                          │
-  │  DynamoDB SDK calls.  Maps items to/from domain objects. │
-  │  Implements the repository interface from the domain.    │
-  └──────────────────────────────────────────────────────────┘
+Example: export data or reset logs.
+
+See [diagrams/03-user-lifecycle-jobs.md](diagrams/03-user-lifecycle-jobs.md).
+
+This keeps the request path short for heavy or destructive operations.
+
+### Lifecycle-job request in local dev
+
+In LocalStack-style local development, the dispatcher runs the same use case in-process instead of waiting for the AWS stream path.
+
+```text
+frontend -> local API
+  -> create lifecycle job
+  -> in-process dispatcher schedules use case with setTimeout(0)
+  -> same job repository/state transitions
 ```
 
----
+### Delete-account finalization flow
 
-## DynamoDB Access Patterns
+Delete-account is intentionally split into two stages: app-data deletion and auth cleanup.
 
-Key design: each table uses a composite key (PK = userId, SK = structured string). GSIs provide additional query axes without full scans.
-
-```
-  Table: PrayerLogs
-  ┌────────────────┬──────────────────────────────┬──────────────────────────┐
-  │ PK (userId)    │ SK                            │ typeDate (GSI sort key)  │
-  ├────────────────┼──────────────────────────────┼──────────────────────────┤
-  │ u#abc          │ 1446-09-01#FAJR#01JXX...     │ LOG#2026-03-10           │
-  │ u#abc          │ 1446-09-01#DHUHR#01JXY...    │ LOG#2026-03-10           │
-  │ u#abc          │ 1446-09-02#FAJR#01JXZ...     │ LOG#2026-03-11           │
-  └────────────────┴──────────────────────────────┴──────────────────────────┘
-
-  GSI: typeDateIndex
-  ┌────────────────┬──────────────────────────────┐
-  │ PK (userId)    │ SK (typeDate)                 │  → fetch all logs for a
-  ├────────────────┼──────────────────────────────┤     date range efficiently
-  │ u#abc          │ LOG#2026-03-10               │
-  │ u#abc          │ LOG#2026-03-11               │
-  └────────────────┴──────────────────────────────┘
-
-  Table: PracticingPeriods
-  ┌────────────────┬──────────────────────┐
-  │ PK (userId)    │ SK (periodId / ULID) │  → all periods for a user in
-  ├────────────────┼──────────────────────┤     one Query, sorted by ULID
-  │ u#abc          │ 01JXX...             │     (chronological order)
-  │ u#abc          │ 01JXY...             │
-  └────────────────┴──────────────────────┘
-
-  Table: UserLifecycleJobs  (with DynamoDB Stream → Lambda)
-  ┌────────────────┬──────────────────────────────┬────────────┐
-  │ PK (userId)    │ SK                            │ expiresAt  │
-  ├────────────────┼──────────────────────────────┼────────────┤
-  │ u#abc          │ JOB#01JXX...                 │ TTL epoch  │  job metadata
-  │ u#abc          │ JOB#01JXX...#CHUNK#0         │ TTL epoch  │  export chunk
-  │ u#abc          │ JOB#01JXX...#CHUNK#1         │ TTL epoch  │  export chunk
-  └────────────────┴──────────────────────────────┴────────────┘
-  Stream (NEW_IMAGE) triggers ProcessUserLifecycleJobFn for pending jobs.
-  Chunks expire via TTL after the retention window.
+```text
+1. delete-account job deletes app data and records DeletedUsers tombstone
+2. job completes with authCleanupRequired=true and authDeleted=false
+3. frontend calls finalize-delete-account
+4. Cognito user is deleted or confirmed already absent
+5. job is marked authDeleted=true
 ```
 
----
+## 5. Operational Async Flows
 
-## Environment Topology
+### Scheduled backup export flow
 
-Three fully isolated AWS deployments. No shared resources.
+See [diagrams/04-backup-export.md](diagrams/04-backup-export.md).
 
-```
-  GitHub                  AWS Account
-  ──────────────────────────────────────────────────────────────
-  PR branch  ─────────────►  dev stacks    (manual / hotswap)
-  merge → main ───────────►  staging stacks (auto, mirrors prod)
-  manual approval ────────►  prod stacks   (requires approval)
+### Selective warm-path flow
 
-  Each environment owns its own:
-    Cognito User Pool    DynamoDB tables    Lambda functions
-    API Gateway stage    S3 backup bucket   CloudWatch log groups
-    SSM parameters       IAM roles
+Production keeps a small set of read Lambdas warm without using provisioned concurrency everywhere.
+
+```text
+EventBridge warm rule every 15 minutes
+  -> selected read Lambdas only
+  -> dashboard/settings read paths stay snappier
+  -> no blanket warming for the whole API
 ```
 
----
+## 6. Data Model
 
-## Security Boundaries
+The backend currently uses six DynamoDB tables:
 
-```
-  Internet
-      │
-      │  HTTPS only
-      ▼
-  API Gateway ──── validates Cognito JWT ──────────────────────┐
-      │            rejects unauthenticated (401)               │
-      │            rate-limits per user sub (429)              │
-      ▼                                                        │
-  Lambda ──── least-privilege IAM role ───────────────────────┤
-      │       reads only tables it needs                       │
-      │       never logs sensitive data                        │
-      │       structured error responses only                  │
-      ▼                                                        │
-  DynamoDB ── encrypted at rest (AWS-managed) ────────────────┘
-              PITR enabled on all tables
-              access only from Lambda execution roles
-```
+- `PrayerLogs`
+- `FastLogs`
+- `PracticingPeriods`
+- `UserSettings`
+- `UserLifecycleJobs`
+- `DeletedUsers`
 
----
+Key properties of the data model:
 
-## Async Lifecycle: Account Export and Deletion
+- logs are partitioned by `userId`
+- historical reads use structured sort keys and `typeDateIndex`
+- lifecycle jobs have TTL-backed cleanup
+- deleted-user tombstones survive long enough to support restore sanitization
 
-Heavy operations (data export, account deletion) are decoupled from the HTTP request path using a DynamoDB Stream trigger.
+See [database.md](database.md) for table-level detail.
 
-```
-  POST /v1/user/export
-       │
-  ┌────▼────────────────────────────────────────────────────┐
-  │  InitiateUserLifecycleJobHandler                         │
-  │  Writes JOB item to UserLifecycleJobs → returns 202     │
-  └────────────────────────────────────────────────────────-┘
-                              │  DynamoDB Stream (NEW_IMAGE)
-                    ┌─────────▼──────────┐
-                    │  ProcessUserLife-   │
-                    │  cycleJobFn         │
-                    │                    │
-                    │  Reads job type     │
-                    │  Executes work      │
-                    │  (export / delete)  │
-                    │  Writes result      │
-                    └────────┬────────────┘
-                             │ on failure (after 2 retries)
-                    ┌────────▼────────────┐
-                    │  SQS DLQ            │
-                    │                    │
-                    │  CloudWatch alarm   │
-                    │  SNS email alert    │
-                    └─────────────────────┘
-```
+## 7. Infrastructure Stacks
 
----
+Infrastructure is split by operational concern:
 
-## Data Backup
+- `DataStack`
+- `AuthStack`
+- `ApiStack`
+- `BackupStack`
+- `AlarmStack`
+- `FrontendStack`
 
-```
-  DynamoDB Tables
-       │
-       │  PITR (continuous, 35-day window)
-       │  ─────────────────────────────────► point-in-time restore
-       │
-       │  EventBridge: daily at 02:00 UTC
-       ▼
-  BackupExportLambda
-       │
-       │  DynamoDB Export to S3 (JSON format)
-       ▼
-  S3 Backup Bucket
-  (versioned, private, SSL-only, S3-managed encryption)
-       │
-       ├── 0–90 days  →  S3 Standard
-       └── 90+ days   →  S3 Glacier
-```
+See [diagrams/05-stack-dependencies.md](diagrams/05-stack-dependencies.md).
 
----
+This keeps blast radius smaller than a single all-in-one stack while still letting the repo behave as one system.
 
-## Further Reading
+## 8. Development Modes
 
-| Document                                     | Content                                                  |
-| -------------------------------------------- | -------------------------------------------------------- |
-| [database.md](database.md)                   | Full DynamoDB table schemas, key structures, GSI details |
-| [docs/api/openapi.yaml](../api/openapi.yaml) | Full API contract (all routes, request/response shapes)  |
-| [CONTRIBUTING.md](../../CONTRIBUTING.md)     | Local dev setup, git workflow, code style                |
+The repo intentionally supports three working modes:
+
+1. cloudless frontend work with local auth
+2. LocalStack-backed full local app
+3. AWS-backed dev deployment
+
+That split matters because it lowers contribution cost for UI and content work without weakening the path to realistic backend and release validation.
+
+## 9. Delivery Workflow
+
+- `main` is a validation branch
+- release publishing is driven by `release/**` pushes
+- the automatic release lane lives inside `ci.yml`
+- manual recovery and controlled reruns use `e2e.yml`, `deploy.yml`, and `deploy-pages.yml`
+
+See [../github-actions-architecture.md](../github-actions-architecture.md) for workflow detail.

@@ -1,18 +1,12 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import { useQueryClient } from '@tanstack/react-query';
 import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle/theme-toggle';
 import { estimateSalahDebt } from '@/lib/practicing-periods';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { useUpdateProfile, useProfile, usePracticingPeriods } from '@/hooks/use-profile';
-import { api } from '@/lib/api';
-import {
-  invalidatePracticingPeriods,
-  invalidateAllWorshipQueries,
-} from '@/utils/query-invalidation';
+import { useProfile, usePracticingPeriods } from '@/hooks/use-profile';
 import { getOnboardingDraftKey } from '@/lib/onboarding-state';
 import {
   createEmptyOnboardingData,
@@ -23,6 +17,7 @@ import {
   TOTAL_ONBOARDING_STEPS,
   type OnboardingData,
 } from './onboarding-data';
+import { useCompleteOnboarding } from './use-complete-onboarding';
 import { PrivacyStep } from './steps/privacy-step';
 import { ProfileStep } from './steps/profile-step';
 import { BulughStep } from './steps/bulugh-step';
@@ -39,10 +34,9 @@ interface OnboardingWizardProps {
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, onSkip }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const queryClient = useQueryClient();
-  const updateProfile = useUpdateProfile();
   const { data: profile, isLoading: isProfileLoading } = useProfile();
   const { data: storedPeriods, isLoading: isPeriodsLoading } = usePracticingPeriods();
+  const completeOnboardingMutation = useCompleteOnboarding();
   const persistedPeriods = useMemo(() => storedPeriods ?? [], [storedPeriods]);
   const draftKey = useMemo(() => getOnboardingDraftKey(user?.userId), [user?.userId]);
   const draftSecret = useMemo(() => getOnboardingDraftSecret(user?.userId), [user?.userId]);
@@ -133,62 +127,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     setStep(TOTAL_ONBOARDING_STEPS);
 
     try {
-      await updateProfile.mutateAsync({
-        username: data.username.trim() || undefined,
-        bulughDate: data.bulughDateHijri,
-        gender: data.gender as 'male' | 'female',
-        dateOfBirth: data.dateOfBirthHijri || undefined,
-        revertDate: data.revertDateHijri || undefined,
+      const result = await completeOnboardingMutation.mutateAsync({
+        data,
+        persistedPeriods,
       });
-
-      const persistedById = new Map(persistedPeriods.map((period) => [period.periodId, period]));
-      const nextById = new Map(data.periods.map((period) => [period.id, period]));
-
-      for (const period of persistedPeriods) {
-        if (!nextById.has(period.periodId)) {
-          await api.salah.deletePeriod(period.periodId);
-        }
-      }
-
-      for (const period of data.periods) {
-        const existing = persistedById.get(period.id);
-
-        if (!existing) {
-          await api.salah.addPeriod({
-            startDate: period.startHijri,
-            endDate: period.endHijri,
-            type: period.type,
-          });
-          continue;
-        }
-
-        if (
-          existing.startDate !== period.startHijri ||
-          (existing.endDate ?? '') !== (period.endHijri ?? '') ||
-          existing.type !== period.type
-        ) {
-          await api.salah.updatePeriod({
-            periodId: existing.periodId,
-            startDate: period.startHijri,
-            endDate: period.endHijri,
-            type: period.type,
-          });
-        }
-      }
 
       hasCompletedWizardRef.current = true;
-      await invalidatePracticingPeriods(queryClient);
-      await invalidateAllWorshipQueries(queryClient);
-
-      const [salahResult, sawmResult] = await Promise.all([
-        api.salah.getDebt(),
-        api.sawm.getDebt(),
-      ]);
-
-      setDebtResult({
-        salahDebt: salahResult?.remainingPrayers ?? null,
-        sawmDebt: sawmResult?.remainingDays ?? null,
-      });
+      setDebtResult(result);
 
       try {
         localStorage.removeItem(draftKey);
@@ -215,7 +160,6 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     t('onboarding.step_result'),
   ];
 
-  const progressPct = ((step - 1) / (TOTAL_ONBOARDING_STEPS - 1)) * 100;
   const estimatedSalahDebt = useMemo(() => {
     if (!data.bulughDateHijri) {
       return 0;
@@ -273,7 +217,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
       </header>
 
       <div className={styles.progressBar}>
-        <div className={styles.progressFill} style={{ width: `${progressPct}%` }} />
+        <div className={`${styles.progressFill} ${styles[`progressStep${step}`]}`} />
       </div>
 
       <main className={styles.stepContent}>

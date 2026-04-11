@@ -14,6 +14,18 @@ import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLanguage } from '@/hooks/use-language';
 import { todayHijriDate, addHijriDays, hijriToGregorianDate } from '@/utils/date-utils';
 import { getCoveredPracticingDays } from '@/lib/practicing-periods';
+import {
+  CHART_CURSOR_STYLE,
+  CHART_GRID_STROKE,
+  CHART_MARGIN_DEFAULT,
+  CHART_RANGE_FILL,
+  CHART_SERIES_ACCENT,
+  CHART_SERIES_PRIMARY,
+  CHART_SERIES_SECONDARY,
+  CHART_TICK_FILL,
+  CHART_TICK_SMALL,
+  CHART_TOOLTIP_STYLE,
+} from '@/lib/chart-theme';
 import { Loader2 } from 'lucide-react';
 import styles from './weekly-chart.module.css';
 
@@ -49,7 +61,7 @@ const DateTick: React.FC<TickProps> = ({ x = 0, y = 0, payload, locale, fmtNumbe
 
   return (
     <g transform={`translate(${x},${y + 4})`}>
-      <text textAnchor="middle" fill="var(--color-text-muted)" fontSize={11}>
+      <text textAnchor="middle" fill={CHART_TICK_FILL} fontSize={11}>
         <tspan x={0} dy={0}>
           {dayName}
         </tspan>
@@ -65,7 +77,7 @@ const DateTick: React.FC<TickProps> = ({ x = 0, y = 0, payload, locale, fmtNumbe
 };
 
 export const WeeklyPrayerChart: React.FC = () => {
-  const { t, language, fmtNumber, isRTL } = useLanguage();
+  const { t, language, fmtNumber } = useLanguage();
   const today = todayHijriDate();
   const sevenDaysAgo = addHijriDays(today, -6);
 
@@ -138,9 +150,7 @@ export const WeeklyPrayerChart: React.FC = () => {
   if (isError || fastError) {
     return (
       <div className={styles.loading}>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-          {t('common.error')}
-        </p>
+        <p className={styles.errorText}>{t('common.error')}</p>
       </div>
     );
   }
@@ -148,25 +158,14 @@ export const WeeklyPrayerChart: React.FC = () => {
   return (
     <div className={styles.wrapper}>
       <ResponsiveContainer width="100%" height={260}>
-        <LineChart
-          data={chartData}
-          margin={
-            isRTL
-              ? { top: 4, right: 16, left: 16, bottom: 4 }
-              : { top: 4, right: 16, left: 16, bottom: 4 }
-          }
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            vertical={false}
-            stroke="var(--color-divider, rgba(0,0,0,0.08))"
-          />
+        <LineChart data={chartData} margin={CHART_MARGIN_DEFAULT}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID_STROKE} />
           {coveredRanges.map((range, i) => (
             <ReferenceArea
               key={i}
               x1={range.start}
               x2={range.end}
-              fill="var(--color-primary-alpha-10, rgba(59,130,246,0.08))"
+              fill={CHART_RANGE_FILL}
               fillOpacity={1}
               strokeOpacity={0}
             />
@@ -181,47 +180,41 @@ export const WeeklyPrayerChart: React.FC = () => {
           <YAxis
             domain={[0, 'dataMax']}
             allowDecimals={false}
-            tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
+            tick={CHART_TICK_SMALL}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => fmtNumber(v as number)}
           />
           <Tooltip
-            cursor={{ stroke: 'var(--color-text-muted)', strokeDasharray: '3 3' }}
+            cursor={CHART_CURSOR_STYLE}
             formatter={(value) => [fmtNumber(value as number)]}
-            contentStyle={{
-              fontSize: 12,
-              borderRadius: 8,
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-surface)',
-              color: 'var(--color-text-primary)',
-            }}
+            contentStyle={CHART_TOOLTIP_STYLE}
           />
           <Line
             type="monotone"
             dataKey="obligatory"
             name={t('salah.tab_daily')}
-            stroke="var(--color-primary)"
+            stroke={CHART_SERIES_PRIMARY}
             strokeWidth={2}
-            dot={{ r: 3, fill: 'var(--color-primary)' }}
+            dot={{ r: 3, fill: CHART_SERIES_PRIMARY }}
             activeDot={{ r: 5 }}
           />
           <Line
             type="monotone"
             dataKey="qadaa"
             name={t('salah.tab_qadaa')}
-            stroke="var(--color-accent)"
+            stroke={CHART_SERIES_ACCENT}
             strokeWidth={2}
-            dot={{ r: 3, fill: 'var(--color-accent)' }}
+            dot={{ r: 3, fill: CHART_SERIES_ACCENT }}
             activeDot={{ r: 5 }}
           />
           <Line
             type="monotone"
             dataKey="fasts"
             name={t('sawm.tab_qadaa')}
-            stroke="var(--color-secondary, #6366f1)"
+            stroke={CHART_SERIES_SECONDARY}
             strokeWidth={2}
-            dot={{ r: 3, fill: 'var(--color-secondary, #6366f1)' }}
+            dot={{ r: 3, fill: CHART_SERIES_SECONDARY }}
             activeDot={{ r: 5 }}
           />
         </LineChart>
@@ -229,36 +222,20 @@ export const WeeklyPrayerChart: React.FC = () => {
 
       <div className={styles.legend} role="list" aria-label={t('dashboard.weekly_overview')}>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-primary)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotPrimary}`} aria-hidden="true" />
           {t('salah.tab_daily')}
         </span>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-accent)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotAccent}`} aria-hidden="true" />
           {t('salah.tab_qadaa')}
         </span>
         <span className={styles.legendItem} role="listitem">
-          <span
-            className={styles.legendDot}
-            style={{ background: 'var(--color-secondary, #6366f1)' }}
-            aria-hidden="true"
-          />
+          <span className={`${styles.legendDot} ${styles.legendDotSecondary}`} aria-hidden="true" />
           {t('sawm.tab_qadaa')}
         </span>
         {coveredRanges.length > 0 && (
           <span className={styles.legendItem} role="listitem">
-            <span
-              className={styles.legendDot}
-              style={{ background: 'var(--color-primary-alpha-10, rgba(59,130,246,0.15))' }}
-              aria-hidden="true"
-            />
+            <span className={`${styles.legendDot} ${styles.legendDotCovered}`} aria-hidden="true" />
             {t('dashboard.practicing_period_label')}
           </span>
         )}

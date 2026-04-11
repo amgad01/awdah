@@ -1,131 +1,97 @@
 # Technical Decisions
 
-This document records implementation-level decisions and their rationale. It is for developers.
+This file records implementation decisions that shape the current codebase.
 
----
+## 1. Hijri Dates Are The Domain Source Of Truth
 
-## 1. Hijri Calendar — Umm al-Qura
+The product domain is modelled in Hijri dates, not Gregorian dates.
 
-We use the **Umm al-Qura** calendar — the official civil Hijri calendar of Saudi Arabia.
+- debt calculation uses Hijri spans
+- prayer and fast logs are keyed by Hijri date
+- Gregorian input is accepted as a convenience and converted at the boundary
+- display code can show dual dates, but the stored business value stays Hijri
 
-- Gregorian is an input/display convenience only.
-- All domain logic uses Hijri.
-- Library: `@umalqura/core`.
+This avoids leaking display conventions into the business rules.
 
-## 2. Salah Qadaa — Ledger & Idempotency
+## 2. Prayer Logs Use An Append-Only Ledger
 
-The app uses a ledger-style append-only log for prayers to support robust undo/redo and idempotency.
+Prayer logging is not modelled as a mutable checkbox row. Each action writes a new event with an `action` of either `prayed` or `deselected`.
 
-### 2.1 The `action` Field
+Why:
 
-Every log entry has an `action`: `prayed` or `deselected`.
+- repeated client submissions stay idempotent at the slot-state level
+- deletion is representable without rewriting earlier history
+- latest-event-wins state reconstruction is simple and explicit
 
-- When a user logs a prayer: a `prayed` record is appended.
-- When a user "unchecks" or deletes a prayer: a `deselected` record is appended.
+The current visible prayer state for a `(date, prayerName)` pair is derived from the latest event for that slot.
 
-The current state of any prayer slot is determined by the **latest** action for that `(date, prayerName)` pair.
+## 3. Heavy User Operations Are Lifecycle Jobs
 
-### 2.2 Why no hard deletes?
+The backend does not keep expensive or destructive account operations on the request thread.
 
-1. **Auditability**: We preserve the history of user actions.
-2. **Idempotency**: Repeated API calls (e.g. from a flaky mobile connection) append unique ULID-based events rather than conflicting on a single primary key.
-3. **Recovery**: If a table is restored from a stale backup, the "deselected" records ensure the user's recent deletions are honored.
+Current lifecycle-job types:
 
----
+- `export`
+- `delete-account`
+- `reset-prayers`
+- `reset-fasts`
 
-## 3. Account Deletion — Tombstones and Restore Hygiene
+Why:
 
-When a user deletes their account, the live data is removed and a tombstone record is kept in the deletion ledger. Backup media and restored copies may still contain historical user data until they are sanitized or expire according to the configured retention policy.
+- exports and destructive operations should not depend on a single API timeout window
+- the client gets a stable polling contract instead of an overloaded synchronous request
+- operational retries and failure reporting become explicit
 
-### 3.1 The `DeletedUsers` Table
+## 4. Deleted Users Are Tracked In A Separate Tombstone Ledger
 
-The `DeletedUsers` table acts as the restore reference:
+`DeletedUsers` is not an afterthought; it exists so restored data can be sanitized before reuse.
 
-- **PK**: `userId`
-- **SK**: `deletedAt`
-- It is kept separate from the primary data tables and is treated as authoritative during restore hygiene.
+Why:
 
-### 3.2 Restore Sanitization
+- PITR or S3 restores can resurrect user data that was deleted after the backup point
+- a separate tombstone table gives recovery tooling a clean authority source
+- the restore flow can remove deleted-user rows before the restored tables go live again
 
-After restoring a table from S3 or PITR:
+This is why restore sanitization is part of the documented recovery flow, not an optional cleanup step.
 
-1. Run `infra/scripts/restore-sanitize.ts` against the restored table set.
-2. Cross-reference the live `DeletedUsers` table.
-3. Batch-delete any data in the restored table belonging to a deleted user before the table is put back into service.
+## 5. Frontend Auth Storage Uses A Hybrid Model
 
-### 3.3 Tombstone Pruning
+Auth tokens are not persisted in `localStorage`.
 
-Tombstone records are pruned by **DynamoDB TTL** using the `expiresAt` attribute. The retention window is intentionally longer than the backup window so we do not lose the restore reference before backup exports have expired.
+Current model:
 
----
+- module-memory storage is the primary runtime source
+- `sessionStorage` is only used to recover the session after a same-tab refresh
 
-## 4. Environment Validation
+Why:
 
-To allow operational scripts such as restore sanitization to run with minimal configuration, we support a `SKIP_ENV_VALIDATION` flag in `settings.ts`. This bypasses the mandatory check for all DynamoDB table names, allowing a script to run with only the tables it actually needs.
+- `localStorage` survives across browser sessions and is a poor default for shared-device safety
+- pure in-memory storage would force a sign-out on every refresh
+- pure React state is too fragile around HMR and bootstrap timing
 
----
+The hybrid approach keeps the normal session lifetime scoped to the browser tab without making refreshes unusable.
 
-## 5. Auth Token Storage — In-Memory Module Variable
+## 6. All Frontend HTTP Calls Go Through One API Client
 
-Auth session tokens (Cognito access token, ID token, refresh token) are stored in a **module-level variable** (`inMemorySession`) in `auth-service.ts`, not in `localStorage` or `sessionStorage`.
+The frontend uses a centralized API client rather than inline `fetch` scattered across features.
 
-### Why not `localStorage`?
+Why:
 
-`localStorage` persists across browser sessions. If a user closes the browser and another person opens it on the same device, the first user's tokens are still present and will silently authenticate as them on the next page load. This is a security risk on shared devices.
+- auth header injection is centralized
+- retry behavior is consistent
+- debug logging is consistent
+- future cross-cutting concerns have one integration point
 
-### Why not `sessionStorage` only?
+Retry policy is intentionally narrow: retry transient failures such as `408`, `429`, network faults, and `5xx`; do not retry stable authorization or not-found failures.
 
-`sessionStorage` is cleared when the tab closes, which is the correct lifetime for auth tokens. However, React's state (and module variables) are reset on a hard page refresh (`F5`), while `sessionStorage` survives it. Using `sessionStorage` as the sole store would cause a sign-out on every page refresh, which is unusable.
+## 7. Public Content Lives Outside The Main JS Bundle
 
-### The hybrid approach
+The About, Contributing, and FAQ content is stored in runtime JSON files under `apps/frontend/public/data/`.
 
-- **Primary**: module-level variable — fast, zero serialization cost, automatically cleared when the tab closes.
-- **Fallback**: `sessionStorage` — read-only on cold load (page refresh) to restore the session without forcing re-login within the same tab session.
-- `sessionStorage` is written only when a new session is established and cleared immediately on sign-out.
+Why:
 
-### Why not React state?
+- contributors can update public content without touching component code
+- the content model stays language-specific instead of being forced into the translation bundle
+- public pages can ship partial translations with English fallback merging
 
-React state is reset by Hot Module Replacement (HMR) during development, causing spurious sign-out loops. Module-level variables survive HMR. The session value is not display state — it is a singleton resource that belongs outside the component tree.
-
----
-
-## 6. Password Re-Verification — `verifyPassword` vs `signIn`
-
-### The problem
-
-Destructive settings actions (data export, prayer reset, fast reset, account deletion) require the user to confirm their password before proceeding. The original implementation called `signIn(username, password)` for this check. `signIn` has an unacceptable side effect: it replaces the active Cognito session tokens, resetting the user's session mid-operation.
-
-### The solution
-
-A dedicated `verifyPassword(username, password): Promise<void>` method was added to the `AuthService` interface. It runs the full Cognito SRP authentication challenge to confirm credentials, but discards the resulting session tokens — it is a read-only credential check.
-
-```typescript
-async verifyPassword(username: string, password: string): Promise<void> {
-  await this.cognitoClient.initiateAuth({ username, password });
-  // Intentionally discard the response — credentials confirmed, session not replaced.
-}
-```
-
-Both `CognitoAuthService` and `LocalAuthService` implement this method. The method throws if the credentials are wrong (Cognito raises `NotAuthorizedException`), which is all the caller needs to know.
-
----
-
-## 7. Centralized API Client — Retry and Interceptor Pattern
-
-All frontend HTTP requests go through a single `ApiClient` class instance rather than inline `fetch` calls.
-
-### Why centralize?
-
-- Retry logic (full-jitter exponential backoff for 408, 429, 5xx) must be consistent across all call sites.
-- Auth headers must be injected from one place.
-- Request and response logging should not be copy-pasted.
-- Future cross-cutting concerns (correlation IDs, request signing) need a single hook point.
-
-### Retry strategy
-
-Full-jitter exponential backoff (`Math.floor(Math.random() * Math.min(base * 2^attempt, max))`) is used rather than fixed intervals. This prevents the thundering-herd effect — when many clients experience the same transient failure simultaneously, they spread their retries randomly across the backoff window instead of all retrying at the same instant. See "Exponential Backoff And Jitter" (AWS Engineering Blog, 2015).
-
-### What is retried vs not retried
-
-- **Retried**: `408` (request timeout), `429` (rate limited), `5xx` (server error).
-- **Not retried**: `401`, `403`, `404` — these reflect stable state; retrying will not help and would amplify load.
+The loader caches identical requests in memory so repeated remounts or language switches do not keep refetching the same English fallback files during a session.

@@ -289,7 +289,9 @@ export const DateFilterPicker: React.FC<DateFilterPickerProps> = ({
           </div>
 
           {/* Day grid */}
-          <div className={styles.grid} style={{ gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+          <div
+            className={`${styles.grid} ${rows === 6 ? styles.gridSixRows : styles.gridFiveRows}`}
+          >
             {/* Leading empty cells */}
             {Array.from({ length: gridOffset }, (_, i) => (
               <span key={`e-${i}`} />

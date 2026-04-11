@@ -1,43 +1,41 @@
-# Operational Scripts & Data Recovery
+# Operational Scripts And Recovery
 
-This guide covers the technical scripts used for data recovery, GDPR-compliant sanitization, and maintenance.
+This file documents the backend-facing recovery and maintenance scripts that matter when data integrity is on the line.
 
-## Data Recovery (GDPR & Compliance)
+## Restore From S3
 
-When restoring from a backup (PITR or S3), you MUST perform a sanitization pass to remove data belonging to users who deleted their accounts _between_ the backup time and the present day.
-
-These scripts are located in `infra/scripts/` and integrated into the root `package.json`.
-
-### 1. Restore from S3
-
-Imports a native DynamoDB JSON export from S3 into a fresh DynamoDB table.
+Imports a DynamoDB export into a new target table.
 
 ```bash
-# Using the root alias
-npm run restore:s3 -- --bucket <name> --prefix <path> --table <new-table-name> --pk userId --sk sk
+npm run restore:s3 -- --bucket <name> --prefix <path> --table <target-table> --pk userId --sk sk
 ```
 
-- **Safety First**: This script NEVER overwrites an existing production table. It always imports into a target table name you provide.
-- **Polling**: Since DynamoDB imports are asynchronous, the script polls every 10 seconds until `COMPLETED`.
+Properties:
 
-### 2. Restore Sanitize
+- imports into the table name you provide
+- does not silently overwrite a live table
+- waits for the asynchronous DynamoDB import to complete
 
-Cross-references the live `DeletedUsers` tombstone table to "clean" a restored table.
+## Restore Sanitization
+
+After restoring data, sanitize it before reuse.
 
 ```bash
-# Using the root alias
 npm run restore:sanitize -- --restored-tables <table1> <table2> --pk userId --sk sk
 ```
 
-- **Logic**: It reads the _live_ `DeletedUsers` table (which is never backed up) and batch-deletes any item in the _restored_ table that matches a deleted `userId`.
-- **Constraint**: Run this against the restored table BEFORE pointing your Lambda environment variables to it.
-- **Retention model**: Backup exports expire after 90 days. Deleted-user tombstones are retained longer than the backup window so a restored backup can still be sanitized before it ages out.
+What it does:
 
----
+- reads the live `DeletedUsers` tombstone ledger
+- finds restored data for deleted users
+- removes those rows before the restored tables are put back into service
+
+This step exists because a valid backup can still contain user data that was deleted after the backup point.
 
 ## Local Dev Utilities
 
-Located in `scripts/`:
+- `scripts/dev/reset-prayers.sh`: clear prayer logs in LocalStack
+- `scripts/dev/reset-fasts.sh`: clear fast logs in LocalStack
+- `scripts/test/load-burst-smoke.mjs`: small burst-load smoke test against a chosen base URL
 
-- `reset-prayers.sh` / `reset-fasts.sh`: Clear own logs (LocalStack only).
-- `load-burst-smoke.mjs`: Benchmarks API Gateway rate limits (100 req/min).
+For the wider script inventory, use [../../../scripts/README.md](../../../scripts/README.md).

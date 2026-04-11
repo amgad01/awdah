@@ -18,6 +18,13 @@
   color: var(--color-text-muted);
 }
 
+.errorText {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .legend {
   display: flex;
   align-items: center;
@@ -38,4 +45,20 @@
   height: 10px;
   border-radius: var(--border-radius-circle);
   flex-shrink: 0;
+}
+
+.legendDotPrimary {
+  background: var(--color-primary);
+}
+
+.legendDotAccent {
+  background: var(--color-accent);
+}
+
+.legendDotSecondary {
+  background: var(--chart-series-secondary);
+}
+
+.legendDotCovered {
+  background: var(--chart-range-fill);
 }

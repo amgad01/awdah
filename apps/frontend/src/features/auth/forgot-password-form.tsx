@@ -3,8 +3,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { getAuthService } from '@/lib/auth-service';
 import { Card } from '@/components/ui/card/card';
 import { Mail, Lock, ShieldCheck } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { getAuthErrorKey } from '@/lib/auth-errors';
+import { AuthNotice } from './auth-notice';
 import styles from './auth-forms.module.css';
 
 interface ForgotPasswordFormProps {
@@ -25,19 +25,25 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [statusKey, setStatusKey] = useState<string | null>(null);
+
+  const withStatusReset =
+    (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
+      setter(value);
+      setStatusKey(null);
+    };
 
   const handleRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusKey(null);
     setLoading(true);
 
     try {
       const authService = await getAuthService();
       await authService.forgotPassword(email);
       setPhase('confirm');
-      toast.success(t('auth.forgot_password_email_sent'));
     } catch (err: unknown) {
-      toast.error(t(getAuthErrorKey(err, 'auth.forgot_password_error')));
+      setStatusKey(getAuthErrorKey(err, 'auth.forgot_password_error'));
     } finally {
       setLoading(false);
     }
@@ -45,8 +51,9 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusKey(null);
     if (newPassword !== confirmPassword) {
-      toast.error(t('auth.password_mismatch'));
+      setStatusKey('auth.password_mismatch');
       return;
     }
 
@@ -55,15 +62,19 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
     try {
       const authService = await getAuthService();
       await authService.confirmPassword(email, verificationCode, newPassword);
-      toast.success(t('auth.forgot_password_done'));
       await authService.signIn(email, newPassword);
       onSuccess();
     } catch (err: unknown) {
-      toast.error(t(getAuthErrorKey(err, 'auth.forgot_password_error')));
+      setStatusKey(getAuthErrorKey(err, 'auth.forgot_password_error'));
     } finally {
       setLoading(false);
     }
   };
+
+  const handleEmailChange = withStatusReset(setEmail);
+  const handleVerificationCodeChange = withStatusReset(setVerificationCode);
+  const handleNewPasswordChange = withStatusReset(setNewPassword);
+  const handleConfirmPasswordChange = withStatusReset(setConfirmPassword);
 
   if (phase === 'confirm') {
     return (
@@ -81,9 +92,10 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                 type="text"
                 inputMode="numeric"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                onChange={(e) => handleVerificationCodeChange(e.target.value)}
                 placeholder={t('auth.verify_code_placeholder')}
                 required
+                data-testid="forgot-code"
               />
             </div>
           </div>
@@ -96,9 +108,10 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                 id="newPassword"
                 type="password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => handleNewPasswordChange(e.target.value)}
                 placeholder={t('auth.password_placeholder')}
                 required
+                data-testid="forgot-new-password"
               />
             </div>
           </div>
@@ -111,14 +124,22 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                 placeholder={t('auth.password_placeholder')}
                 required
+                data-testid="forgot-confirm-password"
               />
             </div>
           </div>
 
-          <button type="submit" className={styles.submitBtn} disabled={loading}>
+          {statusKey && <AuthNotice message={t(statusKey)} />}
+
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={loading}
+            data-testid="forgot-confirm-submit"
+          >
             {loading ? <span className="animate-spin">...</span> : t('auth.reset_password')}
           </button>
         </form>
@@ -146,14 +167,22 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t('auth.email_placeholder')}
               required
+              data-testid="forgot-email"
             />
           </div>
         </div>
 
-        <button type="submit" className={styles.submitBtn} disabled={loading}>
+        {statusKey && <AuthNotice message={t(statusKey)} />}
+
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={loading}
+          data-testid="forgot-submit"
+        >
           {loading ? <span className="animate-spin">...</span> : t('auth.send_reset_code')}
         </button>
       </form>

@@ -84,6 +84,13 @@ export const localAuthService: AuthService = {
   },
 
   async signUp(email: string, password: string): Promise<{ needsVerification: boolean }> {
+    const normalizedEmail = normalizeEmail(email);
+    const registry = getRegistry();
+
+    if (registry[normalizedEmail]) {
+      throw new Error('auth.account_exists_error');
+    }
+
     saveToRegistry(email, password);
     return { needsVerification: false };
   },

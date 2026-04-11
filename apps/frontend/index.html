@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!--
-      style-src keeps 'unsafe-inline' for now because parts of the app still rely on runtime inline
-      styles for widths/layout. When those are removed, this can tighten to hashes/nonces.
+      style-src keeps 'unsafe-inline' for now because some UI paths still need runtime style
+      attributes for sizing or positioning (for example progress widths, calendar row counts,
+      and tooltip fixed-position placement styles).
+      Remove those dependencies before tightening the production policy further.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-Met0FLFVqROiq/jDyYtlhInoFysISzTul6sZrG/Vad0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'sha256-Met0FLFVqROiq/jDyYtlhInoFysISzTul6sZrG/Vad0=' 'sha256-dqXIySKK46KsKOsprg2Grne7/9CQTTLSO9NqASQ/3O4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:* ws://localhost:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
     />
 
     <!-- Favicon -->

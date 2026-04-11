@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import i18n from '@/i18n';
+import { reportBrowserError } from '@/lib/browser-monitoring';
 import styles from './error-boundary.module.css';
 
 interface Props {
@@ -21,9 +22,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Log the render error for observability. In production this feeds into
-    // browser devtools and any monitoring service wired to window.onerror.
-    console.error('[ErrorBoundary]', error, info.componentStack);
+    reportBrowserError(error, {
+      source: 'error-boundary',
+      handled: true,
+      componentStack: info.componentStack ?? undefined,
+    });
   }
 
   private handleReload = (): void => {

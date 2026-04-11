@@ -1,3 +1,5 @@
+export type PeriodType = 'both' | 'salah' | 'sawm';
+
 export type ProfileFormState = {
   sourceKey: string;
   username: string;
@@ -20,7 +22,7 @@ export type PeriodLike = {
   periodId?: string;
   startDate: string;
   endDate?: string;
-  type: 'both' | 'salah' | 'sawm';
+  type: PeriodType;
 };
 
 export type DebtPreview = {

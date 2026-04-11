@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useTheme } from '@/hooks/use-theme';
@@ -39,6 +39,75 @@ const PrivacyPage = lazy(() =>
   import('@/features/privacy/privacy-page').then((module) => ({ default: module.PrivacyPage })),
 );
 
+type AuthView = 'forgot' | 'login' | 'signup';
+
+interface PublicShellRouteDefinition {
+  path: string;
+  badgeKey?: string;
+  titleKey: string;
+  subtitleKey?: string;
+  ctaTitleKey?: string;
+  ctaTextKey?: string;
+  renderContent: () => ReactNode;
+}
+
+interface PublicShellRouteProps {
+  config: PublicShellRouteDefinition;
+  onShowLogin: () => void;
+  onShowSignup: () => void;
+}
+
+const PUBLIC_SHELL_ROUTES: PublicShellRouteDefinition[] = [
+  {
+    path: '/learn',
+    badgeKey: 'marketing.badge',
+    titleKey: 'learn.title',
+    subtitleKey: 'learn.subtitle',
+    ctaTitleKey: 'marketing.learn_panel_title',
+    ctaTextKey: 'marketing.learn_panel_body',
+    renderContent: () => <LearnPage showHeading={false} />,
+  },
+  {
+    path: '/demo',
+    titleKey: 'demo.public_title',
+    renderContent: () => <DemoPage showHeading={false} />,
+  },
+  {
+    path: '/about',
+    badgeKey: 'about.project_badge',
+    titleKey: 'about.project_title',
+    subtitleKey: 'about.project_subtitle',
+    ctaTitleKey: 'marketing.learn_panel_title',
+    ctaTextKey: 'marketing.learn_panel_body',
+    renderContent: () => <AboutPage />,
+  },
+  {
+    path: '/contribute',
+    badgeKey: 'contributing.project_badge',
+    titleKey: 'contributing.project_title',
+    subtitleKey: 'contributing.project_subtitle',
+    ctaTitleKey: 'marketing.learn_panel_title',
+    ctaTextKey: 'marketing.learn_panel_body',
+    renderContent: () => <ContributingPage />,
+  },
+  {
+    path: '/privacy',
+    badgeKey: 'privacy.nav_link',
+    titleKey: 'privacy.title',
+    subtitleKey: 'privacy.intro_body',
+    renderContent: () => <PrivacyPage embedded />,
+  },
+];
+
+function resolveAuthView(search: string): AuthView {
+  const next = new URLSearchParams(search).get('auth');
+  return next === 'login' || next === 'signup' || next === 'forgot' ? next : 'login';
+}
+
+function buildAuthPath(view: AuthView): string {
+  return `/?auth=${view}`;
+}
+
 function LoadingScreen() {
   return (
     <div className={styles.loadingScreen}>
@@ -47,116 +116,20 @@ function LoadingScreen() {
   );
 }
 
-function PublicLearnPage({
-  onShowLogin,
-  onShowSignup,
-}: {
-  onShowLogin: () => void;
-  onShowSignup: () => void;
-}) {
+function PublicShellRoute({ config, onShowLogin, onShowSignup }: PublicShellRouteProps) {
   const { t } = useLanguage();
 
   return (
     <PublicPageShell
-      badge={t('marketing.badge')}
-      title={t('learn.title')}
-      subtitle={t('learn.subtitle')}
-      ctaTitle={t('marketing.learn_panel_title')}
-      ctaText={t('marketing.learn_panel_body')}
+      badge={config.badgeKey ? t(config.badgeKey) : undefined}
+      title={t(config.titleKey)}
+      subtitle={config.subtitleKey ? t(config.subtitleKey) : undefined}
+      ctaTitle={config.ctaTitleKey ? t(config.ctaTitleKey) : undefined}
+      ctaText={config.ctaTextKey ? t(config.ctaTextKey) : undefined}
       onShowLogin={onShowLogin}
       onShowSignup={onShowSignup}
     >
-      <LearnPage showHeading={false} />
-    </PublicPageShell>
-  );
-}
-
-function PublicDemoPage({
-  onShowLogin,
-  onShowSignup,
-}: {
-  onShowLogin: () => void;
-  onShowSignup: () => void;
-}) {
-  const { t } = useLanguage();
-
-  return (
-    <PublicPageShell
-      title={t('demo.public_title')}
-      onShowLogin={onShowLogin}
-      onShowSignup={onShowSignup}
-    >
-      <DemoPage showHeading={false} />
-    </PublicPageShell>
-  );
-}
-
-function PublicAboutPage({
-  onShowLogin,
-  onShowSignup,
-}: {
-  onShowLogin: () => void;
-  onShowSignup: () => void;
-}) {
-  const { t } = useLanguage();
-
-  return (
-    <PublicPageShell
-      badge={t('about.project_badge')}
-      title={t('about.project_title')}
-      subtitle={t('about.project_subtitle')}
-      ctaTitle={t('marketing.learn_panel_title')}
-      ctaText={t('marketing.learn_panel_body')}
-      onShowLogin={onShowLogin}
-      onShowSignup={onShowSignup}
-    >
-      <AboutPage />
-    </PublicPageShell>
-  );
-}
-
-function PublicContributingPage({
-  onShowLogin,
-  onShowSignup,
-}: {
-  onShowLogin: () => void;
-  onShowSignup: () => void;
-}) {
-  const { t } = useLanguage();
-
-  return (
-    <PublicPageShell
-      badge={t('contributing.project_badge')}
-      title={t('contributing.project_title')}
-      subtitle={t('contributing.project_subtitle')}
-      ctaTitle={t('marketing.learn_panel_title')}
-      ctaText={t('marketing.learn_panel_body')}
-      onShowLogin={onShowLogin}
-      onShowSignup={onShowSignup}
-    >
-      <ContributingPage />
-    </PublicPageShell>
-  );
-}
-
-function PublicPrivacyPage({
-  onShowLogin,
-  onShowSignup,
-}: {
-  onShowLogin: () => void;
-  onShowSignup: () => void;
-}) {
-  const { t } = useLanguage();
-
-  return (
-    <PublicPageShell
-      badge={t('privacy.nav_link')}
-      title={t('privacy.title')}
-      subtitle={t('privacy.intro_body')}
-      onShowLogin={onShowLogin}
-      onShowSignup={onShowSignup}
-    >
-      <PrivacyPage embedded />
+      {config.renderContent()}
     </PublicPageShell>
   );
 }
@@ -174,15 +147,10 @@ function UnauthenticatedRoutes({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const authView = (() => {
-    const next = new URLSearchParams(location.search).get('auth');
-    return next === 'login' || next === 'signup' || next === 'forgot' ? next : 'login';
-  })();
-
-  const showLogin = () => navigate('/?auth=login');
-  const showSignup = () => navigate('/?auth=signup');
-  const showForgot = () => navigate('/?auth=forgot');
+  const authView = resolveAuthView(location.search);
+  const showLogin = () => navigate(buildAuthPath('login'));
+  const showSignup = () => navigate(buildAuthPath('signup'));
+  const showForgot = () => navigate(buildAuthPath('forgot'));
 
   return (
     <Suspense fallback={<LoadingScreen />}>
@@ -203,26 +171,15 @@ function UnauthenticatedRoutes({
             />
           }
         />
-        <Route
-          path="/learn"
-          element={<PublicLearnPage onShowLogin={showLogin} onShowSignup={showSignup} />}
-        />
-        <Route
-          path="/demo"
-          element={<PublicDemoPage onShowLogin={showLogin} onShowSignup={showSignup} />}
-        />
-        <Route
-          path="/about"
-          element={<PublicAboutPage onShowLogin={showLogin} onShowSignup={showSignup} />}
-        />
-        <Route
-          path="/contribute"
-          element={<PublicContributingPage onShowLogin={showLogin} onShowSignup={showSignup} />}
-        />
-        <Route
-          path="/privacy"
-          element={<PublicPrivacyPage onShowLogin={showLogin} onShowSignup={showSignup} />}
-        />
+        {PUBLIC_SHELL_ROUTES.map((config) => (
+          <Route
+            key={config.path}
+            path={config.path}
+            element={
+              <PublicShellRoute config={config} onShowLogin={showLogin} onShowSignup={showSignup} />
+            }
+          />
+        ))}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

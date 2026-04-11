@@ -5,18 +5,18 @@ import { SignupForm } from '../signup-form';
 const mockSignUp = vi.fn();
 const mockSignIn = vi.fn();
 const mockConfirmSignUp = vi.fn();
-const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
 
 vi.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
-    t: (key: string) => key,
+    t: (key: string, params?: { email?: string }) =>
+      params?.email ? `${key} ${params.email}` : key,
   }),
 }));
 
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
-    toast: { error: mockToastError, success: mockToastSuccess, info: vi.fn() },
+    toast: { error: vi.fn(), success: mockToastSuccess, info: vi.fn() },
   }),
 }));
 
@@ -176,17 +176,11 @@ describe('SignupForm', () => {
     await waitFor(() => {
       expect(screen.getByText('auth.verify_title')).toBeInTheDocument();
     });
+    expect(screen.getByText(/auth\.verify_subtitle/)).toHaveTextContent('test@example.com');
   });
 
-  it('navigates to login form when switch link is clicked', () => {
-    renderForm();
-
-    fireEvent.click(screen.getByTestId('switch-to-login'));
-    expect(onSwitchToLogin).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows error toast on signup failure', async () => {
-    mockSignUp.mockRejectedValue(new Error('Email already exists'));
+  it('returns to the signup form when the user wants to change the email', async () => {
+    mockSignUp.mockResolvedValue({ needsVerification: true });
     renderForm();
 
     fireEvent.change(screen.getByTestId('signup-email'), {
@@ -201,7 +195,84 @@ describe('SignupForm', () => {
     fireEvent.click(screen.getByTestId('signup-submit'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('auth.signup_error');
+      expect(screen.getByTestId('verify-code')).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByTestId('verify-change-email'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('signup-email')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('signup-email')).toHaveValue('');
+  });
+
+  it('uses the original email for verification and resend actions', async () => {
+    mockSignUp.mockResolvedValue({ needsVerification: true });
+    mockConfirmSignUp.mockResolvedValue(undefined);
+    mockSignIn.mockResolvedValue({ userId: 'user-1', token: 'tok' });
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-email'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.click(screen.getByTestId('signup-submit'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('verify-code')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('verify-code'), {
+      target: { value: '123456' },
+    });
+    fireEvent.submit(screen.getByTestId('verify-code').closest('form') as HTMLFormElement);
+
+    await waitFor(() => {
+      expect(mockConfirmSignUp).toHaveBeenCalledWith('test@example.com', '123456');
+    });
+    expect(mockSignIn).toHaveBeenCalledWith('test@example.com', STRONG_PASSWORD);
+
+    fireEvent.click(screen.getByTestId('verify-resend'));
+
+    await waitFor(() => {
+      expect(mockSignUp).toHaveBeenLastCalledWith('test@example.com', STRONG_PASSWORD);
+    });
+  });
+
+  it('navigates to login form when switch link is clicked', () => {
+    renderForm();
+
+    fireEvent.click(screen.getByTestId('switch-to-login'));
+    expect(onSwitchToLogin).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows inline duplicate-account guidance on signup failure', async () => {
+    mockSignUp.mockRejectedValue(
+      new Error('UsernameExistsException: An account with the given email already exists.'),
+    );
+    renderForm();
+
+    fireEvent.change(screen.getByTestId('signup-email'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('signup-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.change(screen.getByTestId('signup-confirm-password'), {
+      target: { value: STRONG_PASSWORD },
+    });
+    fireEvent.click(screen.getByTestId('signup-submit'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('auth.account_exists_error');
+    });
+
+    expect(screen.getByTestId('signup-error-signin')).toBeInTheDocument();
+    expect(screen.getByTestId('signup-error-change-email')).toBeInTheDocument();
   });
 });

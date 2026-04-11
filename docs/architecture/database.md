@@ -1,60 +1,86 @@
 # Database Architecture
 
-Awdah uses Amazon DynamoDB as its primary data store. The architecture follows a multi-table design (Clean Architecture / DDD approach) where each bounded context manages its own table(s).
+Awdah uses DynamoDB with one table per major persistence concern. The design is deliberately simple: user-scoped partition keys, structured sort keys, and a small number of GSIs that match real read patterns.
 
-## Abstract Data Model Overview
+## Table Summary
 
-### 1. Prayer Logs (`Awdah-PrayerLogs-{env}`)
+### 1. Prayer Logs
 
-Tracks all prayer-related activities (logged prayers, missed prayers, etc.).
+- Table name pattern: `Awdah-PrayerLogs-{env}` with optional ticket prefix in non-prod stacks
+- Partition key: `userId`
+- Sort key: `sk`
+- GSI: `typeDateIndex` on `userId` + `typeDate`
 
-- **Partition Key (`PK`)**: `userId` (String) - Cognito User ID.
-- **Sort Key (`SK`)**: `sk` (String) - `{hijriDate}#{PRAYER_UPPER}#{eventId}` (for example `1446-09-01#FAJR#01J...`).
-- **GSIs**:
-  - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate` (e.g., `LOG#2026-03-10`) for efficient date-range queries.
+The sort key encodes the Hijri date, prayer, and event ID so multiple events can exist for one prayer slot. This supports the append-only prayer ledger model.
 
-### 2. Fast Logs (`Awdah-FastLogs-{env}`)
+### 2. Fast Logs
 
-Tracks fasting history.
+- Table name pattern: `Awdah-FastLogs-{env}`
+- Partition key: `userId`
+- Sort key: `sk`
+- GSI: `typeDateIndex` on `userId` + `typeDate`
 
-- **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `sk` (String) - `{hijriDate}#{eventId}` (for example `1446-09-01#01J...`).
-- **GSIs**:
-  - `typeDateIndex`: Partition Key: `userId`, Sort Key: `typeDate`.
+This table supports both date-scoped history reads and debt-related reconstruction without full scans.
 
-### 3. Practicing Periods (`Awdah-PracticingPeriods-{env}`)
+### 3. Practicing Periods
 
-Stores metadata about when a user started/stopped practicing, used for debt calculation.
+- Table name pattern: `Awdah-PracticingPeriods-{env}`
+- Partition key: `userId`
+- Sort key: `periodId`
 
-- **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `periodId` (String) - ULID for uniqueness and chronological order.
+Practicing periods are user-scoped records used to exclude intervals from debt calculation.
 
-### 4. User Settings (`Awdah-UserSettings-{env}`)
+### 4. User Settings
 
-Stores user-specific preferences (e.g., calculation methods, language).
+- Table name pattern: `Awdah-UserSettings-{env}`
+- Partition key: `userId`
+- Sort key: `sk`
 
-- **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `sk` (String) - Fixed value `SETTINGS`.
+This table stores profile and settings data that does not belong in the log tables.
 
-### 5. User Lifecycle Jobs (`Awdah-UserLifecycleJobs-{env}`)
+### 5. User Lifecycle Jobs
 
-Tracks background export and account-deletion work so heavy lifecycle operations do not stay on the request path.
+- Table name pattern: `Awdah-UserLifecycleJobs-{env}`
+- Partition key: `userId`
+- Sort key: `sk`
+- TTL attribute: `expiresAt`
+- Stream: `NEW_IMAGE`
 
-- **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `sk` (String) - `JOB#{jobId}` for metadata and `JOB#{jobId}#CHUNK#{index}` for export payload chunks.
-- **TTL**: `expiresAt` removes old job metadata/export chunks automatically after the retention window.
-- **Stream**: `NEW_IMAGE` stream is enabled so newly created pending jobs can trigger the background worker.
+Lifecycle jobs cover export, delete-account, reset-prayers, and reset-fasts. TTL cleans up job state and export chunks after the retention window, while the stream is used to trigger background work.
 
-### 6. Deleted Users (`Awdah-DeletedUsers-{env}`)
+### 6. Deleted Users
 
-Tombstone ledger used during backup restore sanitization.
+- Table name pattern: `Awdah-DeletedUsers-{env}`
+- Partition key: `userId`
+- Sort key: `deletedAt`
+- TTL attribute: `expiresAt`
+- PITR enabled
 
-- **Partition Key (`PK`)**: `userId` (String).
-- **Sort Key (`SK`)**: `deletedAt` (String — ISO 8601 timestamp of deletion).
-- **TTL**: `expiresAt` prunes old tombstones automatically after the configured retention window.
-- **Protection**: PITR is enabled and the table is included in backup exports so the restore-sanitization ledger survives broader recovery scenarios.
-- **Restore flow**: after restoring data tables from PITR or S3, run the restore-sanitization script before the table is used again.
+This is the restore-sanitization ledger. It exists so restored tables can be cleaned before they are reused.
 
-## Resource Isolation
+## Why Multi-Table Instead Of One Huge Table
 
-To support parallel development on multiple feature branches, table names are prefixed with the ticket number (e.g., `123-Awdah-...`) when deployed from a feature branch. This ensures isolation and avoids conflicts with existing resources.
+The workload is not a generic event bus; it has a few stable aggregates with different retention and access patterns. Separate tables keep the intent clear:
+
+- logs stay isolated from user settings
+- lifecycle-job retention is independent
+- deleted-user tombstones remain available for restore hygiene
+- alarms and recovery flows can target the right resource directly
+
+## Shared Defaults
+
+Tables are created with the same operational defaults unless a table overrides them explicitly:
+
+- `PAY_PER_REQUEST`
+- PITR enabled by default
+- environment-aware removal policy (`RETAIN` in prod, `DESTROY` elsewhere)
+
+## Naming
+
+CDK resource names follow:
+
+```text
+[ticket-]Awdah-{ResourceName}-{env}
+```
+
+The optional ticket prefix is only present when that context is supplied at deploy time. It is not a guaranteed branch-derived naming convention.

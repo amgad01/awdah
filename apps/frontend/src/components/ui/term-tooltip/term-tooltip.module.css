@@ -1,11 +1,14 @@
 .wrapper {
   position: relative;
   display: inline;
+  overflow: visible;
 }
 
 /* The clickable term: dotted underline signals "there's more" */
 .trigger {
-  display: inline;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 3px;
   background: none;
   border: none;
   padding: 0;
@@ -13,10 +16,13 @@
   font: inherit;
   color: inherit;
   cursor: help;
+  line-height: inherit;
   text-decoration: underline;
   text-decoration-style: dotted;
   text-decoration-color: var(--color-primary);
   text-underline-offset: 3px;
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 .trigger:focus-visible {
@@ -25,9 +31,22 @@
   border-radius: 2px;
 }
 
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Small inline "?" badge */
 .icon {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
   width: 14px;
@@ -37,13 +56,12 @@
   color: var(--color-primary);
   font-size: 9px;
   font-weight: var(--font-weight-extrabold);
-  margin-inline-start: 3px;
-  vertical-align: super;
   line-height: 1;
+  transform: translateY(-0.28em);
 }
 
-/* Tooltip bubble: position:fixed coords are injected via inline style at render time */
 .tooltip {
+  position: absolute;
   z-index: 9999;
   min-width: 220px;
   padding: var(--spacing-sm) var(--spacing-md);
@@ -65,7 +83,22 @@
   max-inline-size: min(300px, calc(100vw - 16px));
 }
 
-/* Tooltip arrow: points down (below tooltip = flip-down case) or up (flip-up) */
+.tooltipLtr {
+  inset-inline-start: 0;
+}
+
+.tooltipRtl {
+  inset-inline-end: 0;
+}
+
+.tooltipDown {
+  top: calc(100% + 8px);
+}
+
+.tooltipUp {
+  bottom: calc(100% + 8px);
+}
+
 .tooltip::after {
   content: '';
   position: absolute;
@@ -73,17 +106,17 @@
   border-top-color: var(--color-border);
 }
 
-.tooltip[data-flip='down']::after {
-  top: 100%;
-  inset-inline-start: var(--spacing-md);
-  border-top-color: var(--color-border);
-}
-
-.tooltip[data-flip='up']::after {
+.tooltipDown::after {
   bottom: 100%;
   inset-inline-start: var(--spacing-md);
   border-top-color: transparent;
   border-bottom-color: var(--color-border);
+}
+
+.tooltipUp::after {
+  top: 100%;
+  inset-inline-start: var(--spacing-md);
+  border-top-color: var(--color-border);
 }
 
 .tooltip::before {
@@ -92,18 +125,18 @@
   border: 6px solid transparent;
 }
 
-.tooltip[data-flip='down']::before {
-  top: calc(100% - 1px);
-  inset-inline-start: var(--spacing-md);
-  border-top-color: var(--color-surface-elevated, var(--color-surface));
-  z-index: 1;
-}
-
-.tooltip[data-flip='up']::before {
+.tooltipDown::before {
   bottom: calc(100% - 1px);
   inset-inline-start: var(--spacing-md);
   border-top-color: transparent;
   border-bottom-color: var(--color-surface-elevated, var(--color-surface));
+  z-index: 1;
+}
+
+.tooltipUp::before {
+  top: calc(100% - 1px);
+  inset-inline-start: var(--spacing-md);
+  border-top-color: var(--color-surface-elevated, var(--color-surface));
   z-index: 1;
 }
 

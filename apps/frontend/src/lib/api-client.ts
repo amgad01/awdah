@@ -22,6 +22,35 @@ function getRetryDelay(attempt: number, baseDelay: number, maxDelay: number): nu
   return Math.floor(Math.random() * capped);
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+async function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) {
+    throw new DOMException('The operation was aborted.', 'AbortError');
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    // eslint-disable-next-line prefer-const
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    const abortHandler = () => {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
+      reject(new DOMException('The operation was aborted.', 'AbortError'));
+    };
+
+    signal?.addEventListener('abort', abortHandler, { once: true });
+
+    timeout = setTimeout(() => {
+      signal?.removeEventListener('abort', abortHandler);
+      resolve();
+    }, ms);
+  });
+}
+
 export class ApiClient {
   private readonly baseUrl: string;
   private readonly retryLimit: number;
@@ -68,6 +97,10 @@ export class ApiClient {
 
     for (let attempt = 0; attempt <= this.retryLimit; attempt++) {
       try {
+        if (fetchInit.signal?.aborted) {
+          throw new DOMException('The operation was aborted.', 'AbortError');
+        }
+
         let response = await globalThis.fetch(finalUrl, fetchInit);
 
         for (const interceptor of this.responseInterceptors) {
@@ -83,7 +116,7 @@ export class ApiClient {
 
         if (isRetryable(response.status) && attempt < this.retryLimit) {
           const delay = getRetryDelay(attempt, this.retryBaseDelayMs, this.retryMaxDelayMs);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await sleep(delay, fetchInit.signal ?? undefined);
           continue;
         }
 
@@ -91,9 +124,13 @@ export class ApiClient {
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
 
+        if (isAbortError(err)) {
+          throw lastError;
+        }
+
         if (attempt < this.retryLimit) {
           const delay = getRetryDelay(attempt, this.retryBaseDelayMs, this.retryMaxDelayMs);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await sleep(delay, fetchInit.signal ?? undefined);
           continue;
         }
       }

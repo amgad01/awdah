@@ -18,7 +18,7 @@ if ! aws sts get-caller-identity --query "Arn" --output text >/dev/null 2>&1; th
   echo -e "${YELLOW}No active AWS session found.${NC}"
   echo "Please run the following command to log in:"
   echo ""
-  echo -e "  ${GREEN}aws sso login${NC}"
+  echo -e "  ${GREEN}aws sso login or aws login${NC}"
   echo ""
   exit 1
 fi

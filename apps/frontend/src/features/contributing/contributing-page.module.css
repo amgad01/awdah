@@ -33,6 +33,14 @@
   border: 1px solid var(--color-border);
 }
 
+.errorActions {
+  margin-top: var(--spacing-xxl);
+}
+
+.errorBody {
+  margin-top: var(--spacing-md);
+}
+
 .sliderSectionTitle {
   text-align: center !important;
   font-size: var(--font-size-base);
@@ -106,6 +114,15 @@
 .desktopSliderSection .itemCard {
   max-width: 960px;
   margin-inline: auto;
+}
+
+.sectionBodyParagraph {
+  margin: 0;
+}
+
+.sectionBodyParagraph strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
 }
 
 .prMobileCard {
@@ -455,11 +472,46 @@
 }
 
 .sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  text-align: start;
   font-size: var(--font-size-md);
   color: var(--color-text-secondary);
   line-height: 1.7;
   max-width: 680px;
   margin-inline: auto;
+}
+
+.sectionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.sectionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--border-radius-pill);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sectionLink:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
 }
 
 /* ── Item Cards ── */
@@ -510,7 +562,9 @@
 .stepItem {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
   gap: 0.5rem;
+  text-align: start;
 }
 
 .stepNumber {
@@ -529,9 +583,11 @@
 }
 
 .stepText {
+  flex: 1;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: 1.5;
+  text-align: start;
 }
 
 /* ── PR Section ── */

@@ -32,6 +32,15 @@
   flex-direction: column;
 }
 
+.contentCenter {
+  align-items: center;
+  text-align: center;
+}
+
+.contentCenter :is(h2, h3, p) {
+  text-align: center;
+}
+
 .navButton {
   position: absolute;
   top: 50%;
@@ -46,7 +55,7 @@
   justify-content: center;
   cursor: pointer;
   color: var(--color-text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-floating-sm);
   z-index: 10;
   transition:
     opacity 0.2s ease,

@@ -1,8 +1,13 @@
 import React, { useState, useId, useRef, useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '@/hooks/use-language';
 import { getGlossaryEntry, resolveGlossaryText } from '@/content/glossary/glossary';
 import styles from './term-tooltip.module.css';
+
+const INITIAL_TOOLTIP_STYLE: React.CSSProperties = {
+  position: 'fixed',
+  visibility: 'hidden',
+};
 
 interface TermTooltipProps {
   /**
@@ -30,41 +35,35 @@ interface TermTooltipProps {
 export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) => {
   const { language, isRTL } = useLanguage();
   const id = useId();
+  const descriptionId = `${id}-description`;
   const [open, setOpen] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const [flip, setFlip] = useState<'up' | 'down'>('down');
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>(INITIAL_TOOLTIP_STYLE);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const touchToggleRef = useRef(false);
 
   const computeAndOpen = useCallback(() => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      const maxWidth = Math.min(300, window.innerWidth - 16);
       const estimatedHeight = 160;
-      const style: React.CSSProperties = {
-        position: 'fixed',
-        maxWidth,
-        zIndex: 9999,
-      };
-
-      let direction: 'up' | 'down';
-      if (rect.top > estimatedHeight + 16) {
-        style.bottom = window.innerHeight - rect.top + 8;
-        direction = 'down';
+      const nextFlip: 'up' | 'down' = rect.top > estimatedHeight + 16 ? 'down' : 'up';
+      setFlip(nextFlip);
+      const style: React.CSSProperties = { position: 'fixed' };
+      if (nextFlip === 'down') {
+        style.insetBlockStart = rect.bottom + 8;
+        style.insetBlockEnd = 'auto';
       } else {
-        style.top = Math.min(window.innerHeight - 8, rect.bottom + 8);
-        direction = 'up';
+        style.insetBlockEnd = window.innerHeight - rect.top + 8;
+        style.insetBlockStart = 'auto';
       }
-
       if (isRTL) {
-        // Align tooltip's right edge with trigger's right edge
-        style.right = window.innerWidth - rect.right;
+        style.insetInlineEnd = window.innerWidth - rect.right;
+        style.insetInlineStart = 'auto';
       } else {
-        // Align tooltip's left edge with trigger's left edge, clamped to viewport
-        style.left = Math.max(8, Math.min(rect.left, window.innerWidth - maxWidth - 8));
+        style.insetInlineStart = rect.left;
+        style.insetInlineEnd = 'auto';
       }
       setTooltipStyle(style);
-      setFlip(direction);
     }
     setOpen(true);
   }, [isRTL]);
@@ -79,59 +78,68 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
   }
 
   return (
-    <span
-      className={styles.wrapper}
-      onMouseEnter={computeAndOpen}
-      onMouseLeave={() => setOpen(false)}
-      onFocus={computeAndOpen}
-      onBlur={() => setOpen(false)}
-    >
-      <button
-        ref={triggerRef}
-        type="button"
-        className={styles.trigger}
-        aria-describedby={id}
-        aria-label={`${typeof children === 'string' ? children : termId}: tap for definition`}
-        onPointerDown={(event) => {
-          if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
-            return;
-          }
-
-          event.preventDefault();
-          touchToggleRef.current = true;
-
-          if (open) {
-            setOpen(false);
-            return;
-          }
-
-          computeAndOpen();
-        }}
-        onClick={() => {
-          if (touchToggleRef.current) {
-            touchToggleRef.current = false;
-            return;
-          }
-
-          if (!open) computeAndOpen();
-          else setOpen(false);
-        }}
+    <>
+      <span
+        className={styles.wrapper}
+        onMouseEnter={computeAndOpen}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={computeAndOpen}
+        onBlur={() => setOpen(false)}
       >
-        {children}
-        <span className={styles.icon} aria-hidden="true">
-          ?
+        <button
+          ref={triggerRef}
+          type="button"
+          className={styles.trigger}
+          aria-describedby={descriptionId}
+          aria-label={`${typeof children === 'string' ? children : termId}: tap for definition`}
+          onPointerDown={(event) => {
+            if (event.pointerType !== 'touch' && event.pointerType !== 'pen') {
+              return;
+            }
+
+            event.preventDefault();
+            touchToggleRef.current = true;
+
+            if (open) {
+              setOpen(false);
+              return;
+            }
+
+            computeAndOpen();
+          }}
+          onClick={() => {
+            if (touchToggleRef.current) {
+              touchToggleRef.current = false;
+              return;
+            }
+
+            if (!open) computeAndOpen();
+            else setOpen(false);
+          }}
+        >
+          {children}
+          <span className={styles.icon} aria-hidden="true">
+            ?
+          </span>
+        </button>
+        <span id={descriptionId} className={styles.srOnly}>
+          {entry.arabic ? `${entry.arabic}. ` : ''}
+          {synonyms ? `${synonyms}. ` : ''}
+          {definition ?? ''}
         </span>
-      </button>
+      </span>
 
       {open &&
-        ReactDOM.createPortal(
+        createPortal(
           <span
             id={id}
             role="tooltip"
-            className={styles.tooltip}
-            dir={isRTL ? 'rtl' : 'ltr'}
-            data-flip={flip}
+            aria-hidden="true"
+            className={`${styles.tooltip} ${flip === 'up' ? styles.tooltipUp : styles.tooltipDown} ${
+              isRTL ? styles.tooltipRtl : styles.tooltipLtr
+            }`}
             style={tooltipStyle}
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {entry.arabic && <span className={styles.arabic}>{entry.arabic}</span>}
             {synonyms && <span className={styles.synonyms}>{synonyms}</span>}
@@ -139,6 +147,6 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({ termId, children }) =>
           </span>,
           document.body,
         )}
-    </span>
+    </>
   );
 };

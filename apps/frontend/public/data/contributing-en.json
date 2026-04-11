@@ -15,7 +15,7 @@
       "badge_variant": "accent",
       "icon": "BookOpen",
       "title": "Scholar Review & Fiqh Validation",
-      "body": "Awdah bases its calculation logic on well-known scholarly positions. All rulings have a verified flag. Any entry marked verified: false must not be shown to users until a qualified scholar confirms it. If you have Islamic Studies training or access to a qualified teacher, this is one of the highest-impact areas you can contribute to.",
+      "body": "Awdah bases its calculation logic on well-known scholarly positions and already ships live guidance content to users.\n\nThe scholarly references surfaced through the learning and glossary content use verification metadata, and anything still marked **verified: false** should stay out of the user-facing experience until a qualified scholar confirms it.\n\nIf you have Islamic Studies training or access to a qualified teacher, this remains one of the **highest-impact contribution areas**.\n\nIf you do not want to work in the codebase directly, send the proposed correction and your credentials through the contact options below.",
       "items": [
         {
           "id": "validate_references",
@@ -72,7 +72,7 @@
         {
           "id": "prayer_logger_ux",
           "title": "Prayer logger UX improvements",
-          "description": "The daily prayer logger is used every day. Small improvements here have large impact: swipe to mark on mobile, better visual feedback when a prayer is logged, and an undo mechanism for accidental taps. Design proposals are welcome. Open an issue first to discuss before building."
+          "description": "The daily prayer logger is already one of the core live surfaces in the app, so small improvements here have outsized value. Useful contribution ideas include clearer logged-state feedback, safer recovery from accidental taps, and thoughtful mobile interaction experiments that do not make the daily flow harder to trust. Design proposals are welcome. Open an issue first so the direction can be discussed before implementation."
         },
         {
           "id": "responsive_issues",
@@ -163,7 +163,7 @@
       "badge_variant": "info",
       "icon": "Languages",
       "title": "Add a New Language",
-      "body": "The translation setup is intentionally lightweight: add a translation JSON file with a top-level _meta block and the language switcher will pick it up automatically. Public content files can then be added alongside it to complete the experience.",
+      "body": "The translation setup is intentionally lightweight: add one translation JSON file with a top-level _meta block and the language switcher will pick it up automatically. The build now generates the small language manifest automatically, so contributors do not need to hand-edit TypeScript just to register a new locale. Public content files can then be added alongside it to complete the experience.",
       "items": [
         {
           "id": "add_language_steps",
@@ -208,7 +208,7 @@
     {
       "step": 3,
       "title": "Install dependencies and start the local environment",
-      "body": "Run npm install to install all dependencies. Then start LocalStack for cloud service simulation with docker compose up -d. Finally run npm run dev:frontend or npm run dev:backend to start the service you are working on."
+      "body": "Run npm install to install all dependencies. For frontend-only, docs, translation, or public-content work, npm run dev:frontend is usually enough. Start LocalStack with docker compose up -d only when your change needs the backend, real auth, or API-backed flows, then run npm run dev:backend alongside the frontend."
     },
     {
       "step": 4,

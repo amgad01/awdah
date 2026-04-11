@@ -14,8 +14,8 @@ describe('ProgressBar', () => {
     render(<ProgressBar value={50} max={100} label="Test Progress" />);
 
     const pb = screen.getByRole('progressbar');
-    expect(pb).toHaveAttribute('aria-valuenow', '50');
-    expect(pb).toHaveAttribute('aria-valuemax', '100');
+    expect(pb).toHaveAttribute('value', '50');
+    expect(pb).toHaveAttribute('max', '100');
 
     expect(screen.getByText('50%')).toBeInTheDocument();
     expect(screen.getByText('50 / 100')).toBeInTheDocument();
@@ -28,11 +28,8 @@ describe('ProgressBar', () => {
   });
 
   it('handles zero max gracefully', () => {
-    // Math.round((0/0)*100) is NaN, but Math.min(NaN, 100) is NaN.
-    // Let's see how the component handles it.
-    // Code: const percentage = Math.min(Math.round((value / max) * 100), 100);
     render(<ProgressBar value={0} max={0} label="Zero" />);
-    // In many environments NaN% might show up or it might be handled.
-    // If it's NaN, the test might fail or show NaN%.
+    expect(screen.getByText('0%')).toBeInTheDocument();
+    expect(screen.getByText('0 / 0')).toBeInTheDocument();
   });
 });

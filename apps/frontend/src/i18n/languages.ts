@@ -1,27 +1,4 @@
-/**
- * Language manifest — auto-derived from translation files.
- *
- * To add a new language:
- *   1. Drop `src/i18n/<code>.json` into this folder, matching the translation
- *      structure of en.json, with a top-level "_meta" object:
- *
- *        {
- *          "_meta": {
- *            "code": "fr",
- *            "name": "French",
- *            "nativeName": "Français",
- *            "shortLabel": "FR",
- *            "dir": "ltr"
- *          },
- *          "common": { ... },
- *          ...
- *        }
- *
- *   2. Rebuild and redeploy the frontend to bundle the new language.
- *
- *   No registration step is needed — the language switcher discovers
- *   the file automatically at build time via Vite's import.meta.glob.
- */
+import { GENERATED_LANGUAGE_MANIFEST } from './language-manifest.generated';
 
 export interface LanguageDef {
   code: string;
@@ -31,58 +8,16 @@ export interface LanguageDef {
   dir: 'ltr' | 'rtl';
 }
 
-type LanguageMeta = LanguageDef;
 type TranslationBundle = Record<string, unknown>;
 
 export const DEFAULT_LANGUAGE_CODE = 'en';
 export const LANGUAGE_STORAGE_KEY = 'language';
 export const LANGUAGE_QUERY_KEY = 'lang';
 
-// Language metadata is eager so the switcher can render immediately.
-const allLanguageMetadata = import.meta.glob<LanguageMeta>('./[a-z][a-z].json', {
-  eager: true,
-  import: '_meta',
-});
-
-// Full translation bundles are loaded via Vite's import.meta.glob.
-// Languages must be present at build time to be available in the app.
+// Full translation bundles stay lazy so each locale can split into its own chunk.
 const allLanguageBundleLoaders = import.meta.glob<TranslationBundle>('./[a-z][a-z].json', {
   import: 'default',
 });
-
-function isValidMeta(value: unknown): value is LanguageMeta {
-  if (value == null || typeof value !== 'object') return false;
-  const m = value as Record<string, unknown>;
-  return (
-    typeof m['code'] === 'string' &&
-    typeof m['name'] === 'string' &&
-    typeof m['nativeName'] === 'string' &&
-    typeof m['shortLabel'] === 'string' &&
-    (m['dir'] === 'ltr' || m['dir'] === 'rtl')
-  );
-}
-
-function toLanguageDef(filePath: string, meta: unknown): LanguageDef {
-  const fileCode = filePath.slice(2, -5); // './en.json' → 'en'
-
-  if (!isValidMeta(meta)) {
-    throw new Error(`Invalid or missing _meta in translation file: ${filePath}`);
-  }
-
-  if (meta.code !== fileCode) {
-    throw new Error(
-      `Translation file ${filePath} has mismatched _meta.code '${meta.code}' (expected '${fileCode}')`,
-    );
-  }
-
-  return {
-    code: fileCode,
-    name: meta.name,
-    nativeName: meta.nativeName,
-    shortLabel: meta.shortLabel,
-    dir: meta.dir,
-  };
-}
 
 function sortLanguages(languages: LanguageDef[]): LanguageDef[] {
   return [...languages].sort((a, b) =>
@@ -94,14 +29,7 @@ function sortLanguages(languages: LanguageDef[]): LanguageDef[] {
   );
 }
 
-/**
- * SUPPORTED_LANGUAGES is built at import time from the _meta block of every
- * discovered translation JSON. English is always sorted first; all other
- * languages follow in alphabetical order by their English name.
- */
-export const SUPPORTED_LANGUAGES: LanguageDef[] = sortLanguages(
-  Object.entries(allLanguageMetadata).map(([filePath, meta]) => toLanguageDef(filePath, meta)),
-);
+export const SUPPORTED_LANGUAGES: LanguageDef[] = sortLanguages(GENERATED_LANGUAGE_MANIFEST);
 
 const supportedLanguageMap = new Map(
   SUPPORTED_LANGUAGES.map((language) => [language.code, language]),

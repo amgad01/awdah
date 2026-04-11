@@ -104,6 +104,10 @@ interface RequestConfig {
   allow404?: boolean;
 }
 
+interface QueryOptions {
+  signal?: AbortSignal;
+}
+
 export class ApiRequestError extends Error {
   readonly status: number;
   readonly code?: string;
@@ -211,52 +215,64 @@ function buildPath(path: string, params?: Record<string, string | number | undef
 
 export const api = {
   salah: {
-    getDebt: () => request<SalahDebtResponse>(`${SALAH_BASE}/debt`),
+    getDebt: (options?: QueryOptions) => request<SalahDebtResponse>(`${SALAH_BASE}/debt`, options),
     logPrayer: (data: { date: string; prayerName: string; type: string }) =>
       request(`${SALAH_BASE}/log`, { method: 'POST', body: JSON.stringify(data) }),
     addPeriod: (data: { startDate: string; endDate?: string; type: string }) =>
       request(`${SALAH_BASE}/practicing-period`, { method: 'POST', body: JSON.stringify(data) }),
     updatePeriod: (data: { periodId: string; startDate: string; endDate?: string; type: string }) =>
       request(`${SALAH_BASE}/practicing-period`, { method: 'PUT', body: JSON.stringify(data) }),
-    getPeriods: () => request<PracticingPeriodResponse[]>(`${SALAH_BASE}/practicing-periods`),
+    getPeriods: (options?: QueryOptions) =>
+      request<PracticingPeriodResponse[]>(`${SALAH_BASE}/practicing-periods`, options),
     deletePeriod: (periodId: string) =>
       request(buildPath(`${SALAH_BASE}/practicing-period`, { periodId }), {
         method: 'DELETE',
       }),
-    getHistory: (params: { startDate: string; endDate: string }) =>
-      request<PrayerLogResponse[]>(buildPath(`${SALAH_BASE}/history`, params)),
-    getHistoryPage: (params: {
-      startDate: string;
-      endDate: string;
-      limit: number;
-      cursor?: string;
-    }) =>
+    getHistory: (params: { startDate: string; endDate: string }, options?: QueryOptions) =>
+      request<PrayerLogResponse[]>(buildPath(`${SALAH_BASE}/history`, params), options),
+    getHistoryPage: (
+      params: {
+        startDate: string;
+        endDate: string;
+        limit: number;
+        cursor?: string;
+      },
+      options?: QueryOptions,
+    ) =>
       request<HistoryPageResponse<PrayerLogResponse>>(
         buildPath(`${SALAH_BASE}/history/page`, params),
+        options,
       ),
     deleteLog: (params: { date: string; prayerName: string; type: string }) =>
       request(buildPath(`${SALAH_BASE}/log`, params), { method: 'DELETE' }),
     resetLogs: () => request<UserLifecycleJobEnvelope>(`${SALAH_BASE}/logs`, { method: 'DELETE' }),
   },
   sawm: {
-    getDebt: () => request<SawmDebtResponse>(`${SAWM_BASE}/debt`),
+    getDebt: (options?: QueryOptions) => request<SawmDebtResponse>(`${SAWM_BASE}/debt`, options),
     logFast: (data: { date: string; type: string }) =>
       request(`${SAWM_BASE}/log`, { method: 'POST', body: JSON.stringify(data) }),
-    getHistory: (params: { startDate: string; endDate: string }) =>
-      request<FastLogResponse[]>(buildPath(`${SAWM_BASE}/history`, params)),
-    getHistoryPage: (params: {
-      startDate: string;
-      endDate: string;
-      limit: number;
-      cursor?: string;
-    }) =>
-      request<HistoryPageResponse<FastLogResponse>>(buildPath(`${SAWM_BASE}/history/page`, params)),
+    getHistory: (params: { startDate: string; endDate: string }, options?: QueryOptions) =>
+      request<FastLogResponse[]>(buildPath(`${SAWM_BASE}/history`, params), options),
+    getHistoryPage: (
+      params: {
+        startDate: string;
+        endDate: string;
+        limit: number;
+        cursor?: string;
+      },
+      options?: QueryOptions,
+    ) =>
+      request<HistoryPageResponse<FastLogResponse>>(
+        buildPath(`${SAWM_BASE}/history/page`, params),
+        options,
+      ),
     deleteLog: (params: { date: string; eventId: string }) =>
       request(buildPath(`${SAWM_BASE}/log`, params), { method: 'DELETE' }),
     resetLogs: () => request<UserLifecycleJobEnvelope>(`${SAWM_BASE}/logs`, { method: 'DELETE' }),
   },
   user: {
-    getProfile: () => request<UserProfileResponse>(`${USER_BASE}/profile`, {}, { allow404: true }),
+    getProfile: (options?: QueryOptions) =>
+      request<UserProfileResponse>(`${USER_BASE}/profile`, options ?? {}, { allow404: true }),
     updateProfile: (data: {
       username?: string;
       bulughDate: string;
