@@ -1,9 +1,13 @@
 import React, { type ReactNode } from 'react';
 import styles from './card.module.css';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  title?: string;
-  subtitle?: string;
+interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  /**
+   * Card title. Rendered inside an `<h3>`, so avoid passing block-level
+   * elements or other headings to prevent invalid HTML nesting.
+   */
+  title?: ReactNode;
+  subtitle?: ReactNode;
   children: ReactNode;
   variant?: 'default' | 'primary' | 'outline' | 'glass';
 }

@@ -1,13 +1,14 @@
 .wrapper {
   position: relative;
-  display: inline-flex;
-  align-items: baseline;
+  display: inline;
   overflow: visible;
 }
 
 /* The clickable term: dotted underline signals "there's more" */
 .trigger {
-  display: inline;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 3px;
   background: none;
   border: none;
   padding: 0;
@@ -15,10 +16,13 @@
   font: inherit;
   color: inherit;
   cursor: help;
+  line-height: inherit;
   text-decoration: underline;
   text-decoration-style: dotted;
   text-decoration-color: var(--color-primary);
   text-underline-offset: 3px;
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 .trigger:focus-visible {
@@ -42,6 +46,7 @@
 /* Small inline "?" badge */
 .icon {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
   width: 14px;
@@ -51,9 +56,8 @@
   color: var(--color-primary);
   font-size: 9px;
   font-weight: var(--font-weight-extrabold);
-  margin-inline-start: 3px;
-  vertical-align: super;
   line-height: 1;
+  transform: translateY(-0.28em);
 }
 
 .tooltip {

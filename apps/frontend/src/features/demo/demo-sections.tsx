@@ -16,6 +16,7 @@ import React, { Suspense, lazy } from 'react';
 import type { DualDateFormatOptions, DualDateParts } from '@/hooks/use-dual-date';
 import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import { DemoDateStack } from './demo-date-stack';
 import type { DemoData, HistoryKind } from './demo-types';
 import styles from './demo-page.module.css';
@@ -110,8 +111,12 @@ export const DemoHeroSection: React.FC<DemoHeroSectionProps> = ({
           <div className={styles.headerCopy}>
             <span className={styles.badge}>{t('demo.badge')}</span>
             <h1 className={styles.title}>{t('demo.title')}</h1>
-            <p className={styles.subtitle}>{t('demo.subtitle')}</p>
-            <p className={styles.story}>{localizedStory}</p>
+            <p className={styles.subtitle}>
+              <GlossaryText>{t('demo.subtitle')}</GlossaryText>
+            </p>
+            <p className={styles.story}>
+              <GlossaryText>{localizedStory}</GlossaryText>
+            </p>
 
             <div className={styles.headerChips}>
               <span className={styles.heroChip}>{t('marketing.stat_multilingual')}</span>
@@ -127,10 +132,12 @@ export const DemoHeroSection: React.FC<DemoHeroSectionProps> = ({
           <span className={styles.heroBadge}>{t('dashboard.hero_badge')}</span>
           <h2 className={styles.heroTitle}>{t('dashboard.hero_focus')}</h2>
           <p className={styles.heroSubtitle}>
-            {t('dashboard.hero_focus_body', {
-              prayers: fmtNumber(data.salah.completed),
-              fasts: fmtNumber(data.sawm.completed),
-            })}
+            <GlossaryText>
+              {t('dashboard.hero_focus_body', {
+                prayers: fmtNumber(data.salah.completed),
+                fasts: fmtNumber(data.sawm.completed),
+              })}
+            </GlossaryText>
           </p>
           <div className={styles.heroChips}>
             <span className={styles.heroChip}>
@@ -156,10 +163,12 @@ export const DemoHeroSection: React.FC<DemoHeroSectionProps> = ({
           <div className={styles.heroCardValue}>{fmtNumber(data.salah.completed)}</div>
           <p className={styles.heroCardLabel}>{t('dashboard.completed_label')}</p>
           <p className={styles.heroCardBody}>
-            {t('dashboard.hero_focus_body', {
-              prayers: fmtNumber(data.salah.completed),
-              fasts: fmtNumber(data.sawm.completed),
-            })}
+            <GlossaryText>
+              {t('dashboard.hero_focus_body', {
+                prayers: fmtNumber(data.salah.completed),
+                fasts: fmtNumber(data.sawm.completed),
+              })}
+            </GlossaryText>
           </p>
           <div className={styles.heroCardStats}>
             <div className={styles.heroCardStat}>
@@ -225,7 +234,10 @@ export const DemoOverviewGrid: React.FC<DemoOverviewGridProps> = ({
         </dl>
       </Card>
 
-      <Card title={t('demo.salah_title')} subtitle={t('demo.salah_subtitle')}>
+      <Card
+        title={<GlossaryText>{t('demo.salah_title')}</GlossaryText>}
+        subtitle={<GlossaryText>{t('demo.salah_subtitle')}</GlossaryText>}
+      >
         <div className={styles.metricRow}>
           <span className={styles.metricValue}>{fmtNumber(data.salah.remaining)}</span>
           <span className={styles.metricLabel}>{t('dashboard.prayers_remaining')}</span>
@@ -242,7 +254,9 @@ export const DemoOverviewGrid: React.FC<DemoOverviewGridProps> = ({
           </div>
           <div className={styles.statBox}>
             <strong>{fmtNumber(data.salah.qadaaLoggedToday)}</strong>
-            <span>{t('demo.qadaa_logged_today')}</span>
+            <span>
+              <GlossaryText>{t('demo.qadaa_logged_today')}</GlossaryText>
+            </span>
           </div>
         </div>
 
@@ -275,7 +289,10 @@ export const DemoOverviewGrid: React.FC<DemoOverviewGridProps> = ({
         )}
       </Card>
 
-      <Card title={t('demo.sawm_title')} subtitle={t('demo.sawm_subtitle')}>
+      <Card
+        title={<GlossaryText>{t('demo.sawm_title')}</GlossaryText>}
+        subtitle={<GlossaryText>{t('demo.sawm_subtitle')}</GlossaryText>}
+      >
         <div className={styles.metricRow}>
           <span className={styles.metricValue}>{fmtNumber(data.sawm.remaining)}</span>
           <span className={styles.metricLabel}>{t('dashboard.fasts_remaining')}</span>
@@ -289,20 +306,29 @@ export const DemoOverviewGrid: React.FC<DemoOverviewGridProps> = ({
         <div className={styles.statRow}>
           <div className={styles.statBox}>
             <strong>
-              {data.sawm.todayStatus === 'logged'
-                ? t('demo.fast_status_logged')
-                : t('demo.fast_status_pending')}
+              <GlossaryText>
+                {data.sawm.todayStatus === 'logged'
+                  ? t('demo.fast_status_logged')
+                  : t('demo.fast_status_pending')}
+              </GlossaryText>
             </strong>
-            <span>{t(`demo.fast_mode_${data.sawm.currentMode}`)}</span>
+            <span>
+              <GlossaryText>{t(`demo.fast_mode_${data.sawm.currentMode}`)}</GlossaryText>
+            </span>
           </div>
           <div className={styles.statBox}>
             <strong>{fmtNumber(data.sawm.ramadansRecovered)}</strong>
-            <span>{t('demo.ramadans_recovered')}</span>
+            <span>
+              <GlossaryText>{t('demo.ramadans_recovered')}</GlossaryText>
+            </span>
           </div>
         </div>
       </Card>
 
-      <Card title={t('demo.profile_title')} subtitle={t('demo.profile_subtitle')}>
+      <Card
+        title={<GlossaryText>{t('demo.profile_title')}</GlossaryText>}
+        subtitle={<GlossaryText>{t('demo.profile_subtitle')}</GlossaryText>}
+      >
         <dl className={styles.definitionList}>
           <div>
             <dt>{t('settings.dob')}</dt>
@@ -355,7 +381,10 @@ export const DemoDetailsGrid: React.FC<DemoDetailsGridProps> = ({
 }) => {
   return (
     <section className={styles.detailsGrid}>
-      <Card title={t('demo.tracker_title')} subtitle={t('demo.tracker_subtitle')}>
+      <Card
+        title={t('demo.tracker_title')}
+        subtitle={<GlossaryText>{t('demo.tracker_subtitle')}</GlossaryText>}
+      >
         <div className={styles.prayerGrid}>
           {data.salah.todayPrayers.map((prayer) => (
             <div
@@ -383,7 +412,10 @@ export const DemoDetailsGrid: React.FC<DemoDetailsGridProps> = ({
         </div>
       </Card>
 
-      <Card title={t('demo.periods_title')} subtitle={t('demo.periods_subtitle')}>
+      <Card
+        title={t('demo.periods_title')}
+        subtitle={<GlossaryText>{t('demo.periods_subtitle')}</GlossaryText>}
+      >
         <div className={styles.periodList}>
           {data.practicingPeriods.map((period) => {
             const start = format(period.startDate, { includeGregorianYear: true });
@@ -422,7 +454,10 @@ export const DemoDetailsGrid: React.FC<DemoDetailsGridProps> = ({
         </div>
       </Card>
 
-      <Card title={t('demo.history_title')} subtitle={t('demo.history_subtitle')}>
+      <Card
+        title={t('demo.history_title')}
+        subtitle={<GlossaryText>{t('demo.history_subtitle')}</GlossaryText>}
+      >
         <div className={styles.historyList}>
           {data.history.map((entry) => {
             const dual = format(entry.date, { includeGregorianYear: true });
@@ -450,7 +485,10 @@ export const DemoDetailsGrid: React.FC<DemoDetailsGridProps> = ({
         </div>
       </Card>
 
-      <Card title={t('demo.settings_title')} subtitle={t('demo.settings_subtitle')}>
+      <Card
+        title={t('demo.settings_title')}
+        subtitle={<GlossaryText>{t('demo.settings_subtitle')}</GlossaryText>}
+      >
         <div className={styles.settingList}>
           <div className={styles.settingRow}>
             <span className={styles.settingLabel}>
