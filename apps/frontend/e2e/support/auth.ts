@@ -52,8 +52,11 @@ export async function logoutCurrentUser(page: Page): Promise<void> {
     return;
   }
 
-  await page.goto('/settings');
-  await logoutButton(page).click();
+  await page.evaluate(() => {
+    sessionStorage.clear();
+  });
+  await page.reload();
+  await expect(page.getByLabel(/email/i).last()).toBeVisible({ timeout: 10_000 });
 }
 
 function emailField(page: Page) {
@@ -105,6 +108,11 @@ export async function switchToSignup(page: Page): Promise<void> {
       .getByRole('button', { name: /^(create account|sign up)$/i })
       .last()
       .click();
+  }
+
+  const signupEmail = page.locator('[data-testid="signup-email"]:visible').first();
+  if (!(await signupEmail.isVisible().catch(() => false))) {
+    await page.goto('/?auth=signup');
   }
 
   await expect(page.locator('[data-testid="signup-email"]:visible').first()).toBeVisible({

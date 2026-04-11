@@ -21,7 +21,7 @@ test.describe('Public auth routing', () => {
       .getByRole('link', { name: /create account|sign up/i })
       .last()
       .click();
-    await expect(page).toHaveURL(/\/\?auth=signup$/);
+    await expect(page).toHaveURL(/\/\?auth=signup(&lang=en)?$/);
     await expect(page.getByTestId('signup-email')).toBeVisible();
   });
 
@@ -31,7 +31,7 @@ test.describe('Public auth routing', () => {
       .getByRole('link', { name: /view demo|demo/i })
       .first()
       .click();
-    await expect(page).toHaveURL(/\/demo$/);
+    await expect(page).toHaveURL(/\/demo(\?lang=en)?$/);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   });
 });

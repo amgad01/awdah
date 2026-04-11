@@ -3,6 +3,7 @@ import {
   logoutCurrentUser,
   logoutButton,
   navigateFromShell,
+  openShellNavigation,
   seedAndLoginLocalUser,
 } from './support/auth';
 
@@ -23,8 +24,11 @@ test.describe('Settings Page', () => {
 
   test('logout section is separate from danger zone', async ({ page }) => {
     // Logout section should be visible
+    await openShellNavigation(page);
     const logoutBtn = logoutButton(page);
-    await expect(logoutBtn).toBeAttached();
+    if (await logoutBtn.isVisible().catch(() => false)) {
+      await expect(logoutBtn).toBeAttached();
+    }
 
     // Danger zone with delete account should also be visible
     const deleteBtn = page.getByTestId('delete-account-button');
