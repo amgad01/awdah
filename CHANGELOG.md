@@ -20,18 +20,29 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Local browser-expiry flags now flow through a shared frontend storage helper, reducing repeated `localStorage` timestamp logic across Salah, Sawm, practice check-in, and onboarding draft handling
 - The frontend now leans more on domain repositories and services for combined-history shaping, onboarding completion, user lifecycle workflows, and request cancellation instead of leaving those responsibilities inside screen-level hooks
 - Locale metadata is now generated from the translation files during the frontend lifecycle, which preserves the “add one locale file” workflow while keeping full translation bundles lazy-loaded
+- Public rich-text content blocks now support paragraph splitting and inline bold emphasis through a shared `RichText` renderer instead of ad-hoc text formatting inside page components
 - Shared theme tokens now cover more chart, progress, and layout styling so major UI surfaces stop repeating raw visual values inline or per component
 - The authenticated shell, history page, and settings screens now use thinner UI components with more controller-style hooks, which makes the main release-critical screens easier to change and reason about
+- Public content sliders now share a built-in content-alignment option, which keeps centered card layouts consistent across the Contributing and About pages without page-specific slider overrides
+
+#### Tooling
+
+- Pre-push checks now generate the frontend language manifest before parallel lint/typecheck steps, which keeps local and CI output aligned for generated locale metadata
+- The local Husky pre-push entrypoint now uses strict shell flags and `exec` handoff, reducing hook-shell edge cases while preserving quick vs full gate behavior
+- Frontend language-manifest generation now formats output through Prettier, which keeps generated TypeScript stable for review and avoids noisy diffs
 
 ### Fixed
 
 #### Frontend
 
+- Auth login, signup, and verification failures now render inline above the submit action instead of showing as toast notifications, and duplicate signup emails now offer sign-in or email-edit recovery actions
+- Forgot-password request and confirmation failures now render inline above submit actions instead of using toast errors
 - Practice-check-in, prayer uncheck suppression, and fast uncheck suppression now share the same safe expiry handling path instead of each implementing slightly different local storage logic
-- Signup verification now keeps the entered email visible and editable on the code-entry step, so users can confirm or correct the address before resending or submitting the code
+- Signup verification now shows the entered email in a read-only confirmation state and routes email changes back through the account-creation step, which makes the register-to-verify flow clearer and less awkward
 - Read-query cancellation now flows through the repository and API-client layers, and aborted requests no longer retry as if they were real failures
 - Public auth entry paths now have direct E2E coverage for `?auth=signup`, `?auth=forgot`, CTA handoff into signup, and the offline demo route
 - Playwright shell navigation now goes through shared visible-target helpers, which stabilizes settings, history, tracker, dashboard, and logout coverage across desktop and mobile layouts
+- The Contributing page now gives scholar reviewers direct LinkedIn and app-email contact actions, and contribution step lists keep their numbered guidance aligned correctly inside centered slider cards
 
 ### Removed
 
