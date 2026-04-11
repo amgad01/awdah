@@ -6,8 +6,9 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!--
       style-src keeps 'unsafe-inline' for now because some UI paths still need runtime style
-      attributes for sizing or positioning (for example progress widths, calendar row counts, and
-      tooltip placement). Remove those dependencies before tightening the production policy further.
+      attributes for sizing or positioning (for example progress widths, calendar row counts,
+      and tooltip fixed-position placement styles).
+      Remove those dependencies before tightening the production policy further.
     -->
     <meta
       http-equiv="Content-Security-Policy"
