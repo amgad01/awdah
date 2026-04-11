@@ -22,6 +22,22 @@ export default defineConfig({
     },
     dedupe: ['react', 'react-dom'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/app-[hash].js',
+        manualChunks(id) {
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
+            return 'chart-vendor';
+          }
+          if (id.includes('node_modules/swiper')) {
+            return 'swiper-vendor';
+          }
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+      },
+    },
+  },
   server: {
     proxy: {
       '/v1': {
