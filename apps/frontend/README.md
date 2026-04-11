@@ -1,84 +1,104 @@
-# Awdah — Frontend
+# Awdah Frontend
 
-React 19 SPA with TypeScript, Vite, CSS Modules, and full Arabic RTL support.
+The frontend is a React 19 SPA built with Vite, TypeScript, CSS Modules, and i18next. It serves both the authenticated app and the public routes (`/about`, `/learn`, `/contribute`, `/demo`).
 
-## Features
+## Current Responsibilities
 
-| Area        | Stack                                               |
-| ----------- | --------------------------------------------------- |
-| UI          | React 19, CSS Modules, Framer Motion                |
-| State       | TanStack Query (server), React hooks (local)        |
-| i18n / RTL  | i18next, react-i18next — dynamic multilingual + RTL |
-| Routing     | React Router v7                                     |
-| Charts      | Recharts                                            |
-| Icons       | Lucide React                                        |
-| E2E Testing | Playwright                                          |
+| Area           | Implementation                                      |
+| -------------- | --------------------------------------------------- |
+| Routing        | React Router v7                                     |
+| Server state   | TanStack Query                                      |
+| Local UI state | feature hooks and context providers                 |
+| i18n           | Arabic, English, and German                         |
+| RTL            | driven by the active language via `dir` on `<html>` |
+| Charts         | Recharts                                            |
+| Motion         | Framer Motion                                       |
+| E2E            | Playwright                                          |
 
-## Project Structure
+## Source Layout
 
-```
+```text
 src/
-├── features/           # Feature modules (auth, dashboard, history, salah, sawm, settings, learn)
-├── components/         # Shared UI components (card, progress, nav, language-switcher)
-├── hooks/              # Custom hooks (use-auth, use-language, use-worship, use-dual-date)
-├── contexts/           # Shared React context providers (auth)
-├── i18n/               # i18next config + translation files
-├── content/            # Static content (FAQ data, scholar references)
-├── lib/                # Env validation, utilities
-├── utils/              # Formatters (fmtNumber, date-utils)
-└── main.tsx            # App entry point
+├── features/       # Route and feature modules
+├── components/     # Shared UI primitives and layout
+├── hooks/          # Feature-independent React hooks
+├── contexts/       # Shared providers
+├── i18n/           # Locale bundles and language metadata
+├── content/        # Glossary and reference content
+├── lib/            # API client, env validation, auth services
+├── utils/          # Formatting and helper utilities
+└── main.tsx        # Bootstrap
 ```
 
-## Scripts
+## Public Content Model
 
-```bash
-npm run dev              # Vite dev server (http://localhost:5173)
-npm run build            # TypeScript check + Vite production build
-npm run typecheck        # TypeScript only
-npm run lint             # ESLint
-npm run preview          # Preview production build locally
-npm run test:e2e         # Playwright E2E tests
-npm run test:e2e:ui      # Playwright interactive UI mode
-```
+The frontend consumes two kinds of localized content:
 
-## Environment Variables
+- bundled UI translations in `src/i18n/*.json`
+- runtime-fetched public content in `public/data/*.json`
 
-| Variable                    | Description                                                                                                                   | Required     |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `VITE_API_BASE_URL`         | Backend API URL. Leave empty for same-origin `/v1/*`.                                                                         | Optional     |
-| `VITE_AUTH_MODE`            | `cognito` / `local`                                                                                                           | Yes          |
-| `VITE_COGNITO_USER_POOL_ID` | Cognito User Pool ID                                                                                                          | Cognito mode |
-| `VITE_COGNITO_CLIENT_ID`    | Cognito Client ID                                                                                                             | Cognito mode |
-| `VITE_AWS_REGION`           | AWS region                                                                                                                    | Cognito mode |
-| `VITE_BASE_PATH`            | Vite `base` path. Set to `/awdah/` for GitHub Pages, leave unset (defaults to `/`) for CloudFront or same-origin deployments. | Optional     |
-| `VITE_APP_EMAIL`            | Support email address for privacy and contact.                                                                                | Optional     |
+Runtime-fetched public content currently covers:
 
-In local dev mode (`VITE_AUTH_MODE=local`), the Vite dev server proxies `/v1` and `/health` to `http://localhost:3000`. No Cognito is required, but the backend and LocalStack still need to be running for data-backed flows.
+- About page
+- Contributing page
+- FAQ/Learn page
 
-In deployed environments, Pages production uses `VITE_BASE_PATH=/awdah/` and a direct API base URL, while CloudFront-style deployments typically keep `VITE_BASE_PATH=/`. The shipped HTML includes a meta CSP/referrer policy for static hosts such as GitHub Pages, while CloudFront or nginx deployments can add stronger response headers at the edge.
+Those files are loaded with English fallback merging, so partial translations can ship safely. The loader also reuses in-memory requests for identical files so language switches and dev remounts do not refetch the English fallback repeatedly.
 
-## Static Demo Route
+Glossary annotations are separate from both translation bundles and page JSON. They live in:
+
+- `src/content/glossary/glossary.json`
+
+## Demo Route
 
 - Route: `/demo`
 - Data source: `public/demo-data/sample-user.json`
 
-The demo route is a public, JSON-backed sample account meant for portfolio links, and non-AWS static deployments. It does not require live API data, Cognito, or AWS infrastructure to render.
+The demo page is intentionally static-data driven so it can render on ordinary static hosting without backend infrastructure.
 
-## RTL and i18n
-
-All CSS uses logical properties (`margin-inline-start`, `padding-inline-end`). The `dir` attribute on `<html>` toggles RTL/LTR based on selected language. All display strings are externalised into `src/i18n/en.json` and `src/i18n/ar.json`.
-
-## Design Tokens
-
-New components should use the centralized palette and shadow tokens in `src/assets/globals.css` instead of hardcoding colors in component CSS. See [docs/design-tokens.md](docs/design-tokens.md) for the component authoring guide.
-
-## E2E Tests
-
-Tests live in `e2e/` and run against the local frontend dev server in `VITE_AUTH_MODE=local`, with the backend on `http://localhost:3000` and LocalStack providing DynamoDB.
-
-The Playwright backend helper starts LocalStack automatically when it is missing, then waits for it to become healthy before seeding data. If Docker is unavailable, it fails with a clear message.
+## Local Commands
 
 ```bash
-npm run test:e2e         # Headless
-npm run test:e2e:ui      # Interactive
+npm run dev
+npm run build
+npm run typecheck
+npm run lint
+npm run test
+npm run test:e2e
+npm run test:e2e:chromium
 ```
+
+From the repo root, the common equivalents are:
+
+```bash
+npm run dev:frontend
+npm run test:e2e
+npm run check:pages
+```
+
+## Environment Variables
+
+| Variable                    | Purpose                                             |
+| --------------------------- | --------------------------------------------------- |
+| `VITE_AUTH_MODE`            | `local` or `cognito`                                |
+| `VITE_API_BASE_URL`         | Explicit backend URL; otherwise same-origin `/v1/*` |
+| `VITE_COGNITO_USER_POOL_ID` | Cognito pool ID for AWS-backed auth                 |
+| `VITE_COGNITO_CLIENT_ID`    | Cognito app client                                  |
+| `VITE_AWS_REGION`           | AWS region for Cognito-backed auth                  |
+| `VITE_BASE_PATH`            | Build base path, `/awdah/` for GitHub Pages         |
+| `VITE_APP_EMAIL`            | Public contact/support address                      |
+
+In cloudless local work you normally only need `VITE_AUTH_MODE=local`.
+
+## Frontend Constraints
+
+- Keep display copy in translations or runtime JSON, not in components.
+- Use logical CSS properties so RTL stays correct.
+- Prefer shared UI primitives and design tokens over ad hoc styles.
+- If you add or change an API route, update `docs/api/openapi.yaml`.
+
+## Related Docs
+
+- [../../README.md](../../README.md)
+- [../../CONTRIBUTING.md](../../CONTRIBUTING.md)
+- [docs/design-tokens.md](docs/design-tokens.md)

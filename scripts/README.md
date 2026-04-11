@@ -62,6 +62,15 @@ Deploys CDK stacks to LocalStack for local development.
 
 Builds the React app and runs the correct hosting flow for the selected environment.
 
+### `upload-frontend.sh`
+
+Builds the frontend bundle, syncs it to the existing S3 bucket, and invalidates CloudFront without deploying the stack.
+
+```bash
+./scripts/deploy/upload-frontend.sh dev
+npm run upload:frontend -- dev
+```
+
 ### `build-frontend.sh`
 
 Builds the frontend bundle without deploying it.

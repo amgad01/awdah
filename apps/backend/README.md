@@ -1,120 +1,104 @@
-# Awdah — Backend
+# Awdah Backend
 
-Express server running Clean Architecture + DDD. In production, each route maps to an individual AWS Lambda function behind API Gateway. Locally, the Express server simulates this.
+The backend is a TypeScript codebase organised around Clean Architecture. In production, the HTTP surface is served by API Gateway plus Lambda. Locally, `src/index.ts` runs an Express server that exercises the same use cases and middleware patterns.
 
-## Architecture Highlights
+## Responsibilities
 
-- **24 Lambda handlers** across 3 bounded contexts
-- **28 test files** (unit + integration + API)
-- Structured error handling via `AppError` hierarchy
-- Zod input validation at every handler boundary
-- Pino structured logging with `requestId`, `userId`, `context`, `duration`
-- Security headers on every response (CSP, HSTS, no-store, X-Frame-Options)
-- Cursor-based pagination (not offset)
-- AWS SDK adaptive retry with 5 max attempts
+| Context  | Owns                                                                |
+| -------- | ------------------------------------------------------------------- |
+| `salah`  | prayer logs, qadaa debt, prayer history, practicing periods         |
+| `sawm`   | fast logs, Ramadan debt, fast history                               |
+| `user`   | profile/settings, export, delete-account flow, lifecycle job status |
+| `shared` | middleware, persistence, cross-context services, local HTTP runner  |
 
-## Bounded Contexts
+## Code Layout
 
-| Context  | Responsibility                                            |
-| -------- | --------------------------------------------------------- |
-| `salah`  | Prayer logging (obligatory + qadaa), debt calculation     |
-| `sawm`   | Fast logging (obligatory + qadaa), Ramadan debt           |
-| `user`   | Profile, onboarding, account deletion, data export        |
-| `shared` | Practicing periods, value objects, cross-context services |
-
-## Architecture
-
-```
-contexts/{context}/
-├── domain/
-│   ├── entities/          # Aggregate roots, domain objects
-│   ├── value-objects/     # Immutable typed values
-│   ├── repositories/      # Interfaces only
-│   └── services/          # Domain service interfaces
-├── application/
-│   └── use-cases/         # Application layer orchestration
-└── (infrastructure is in shared/)
-
-shared/
-├── domain/                # Cross-context entities, value objects, services
-├── infrastructure/
-│   └── persistence/       # DynamoDB repository implementations
-├── middleware/             # Auth, validation, error handling
-├── config/                # Environment settings
-└── di/                    # Dependency injection container
+```text
+src/
+├── contexts/
+│   ├── salah/
+│   ├── sawm/
+│   ├── user/
+│   └── shared/
+├── shared/
+│   ├── config/
+│   ├── di/
+│   ├── infrastructure/
+│   ├── middleware/
+│   └── validation/
+└── index.ts
 ```
 
-All DynamoDB repositories extend `BaseDynamoDBRepository<T>` which provides `findAll`, `findWithPrefix`, `findInRange`, `retrieve`, `persist`, `deleteItem`, and `countByGSI`.
+Within each bounded context, the pattern is consistent:
 
-## Scripts
+```text
+domain/ -> application/use-cases/ -> infrastructure/handlers/
+```
+
+## API Shape
+
+The public API surface documented in [../../docs/api/openapi.yaml](../../docs/api/openapi.yaml) currently contains:
+
+- `GET /health`
+- 7 Salah paths
+- 5 Sawm paths
+- 5 User paths
+
+That documented surface is smaller than the total handler count in the repo because some functions are internal or operational:
+
+- lifecycle job worker
+- backup export job
+- local-only E2E seed route
+
+## Lifecycle Jobs
+
+Export, delete-account, reset-prayers, and reset-fasts are treated as lifecycle jobs rather than long synchronous requests. The request path creates a job record, background processing completes the work, and the client can poll job status or download export output when ready.
+
+## Local Commands
 
 ```bash
-npm run dev              # Start Express server (ts-node)
-npm run build            # Compile TypeScript
-npm run typecheck        # Type-check without emitting
-npm run test             # Run Vitest unit + integration tests
-npm run test:coverage    # Run tests with coverage report
-npm run test:api         # Run API integration tests only
+npm run dev
+npm run build
+npm run typecheck
+npm run test
+npm run test:coverage
+npm run test:api
 ```
 
-## Maintenance & Recovery
+From the repo root:
 
-Operational scripts for backup, restore, and cleanup are documented in [docs/scripts.md](./docs/scripts.md).
+```bash
+npm run dev:backend
+npm run test --workspace=apps/backend
+```
 
-## Environment Variables
+## Environment Notes
 
-| Variable                    | Description                                             | Required                      |
-| --------------------------- | ------------------------------------------------------- | ----------------------------- |
-| `NODE_ENV`                  | `development` / `production`                            | Yes                           |
-| `AWS_REGION`                | AWS region                                              | Yes                           |
-| `AWS_DEFAULT_REGION`        | AWS default region                                      | Yes                           |
-| `LOCALSTACK_ENDPOINT`       | LocalStack URL for local development                    | Dev only                      |
-| `PRAYER_LOGS_TABLE`         | Prayer log table name                                   | Prod/staging (optional local) |
-| `FAST_LOGS_TABLE`           | Fast log table name                                     | Prod/staging (optional local) |
-| `PRACTICING_PERIODS_TABLE`  | Practicing periods table name                           | Prod/staging (optional local) |
-| `USER_SETTINGS_TABLE`       | User settings table name                                | Prod/staging (optional local) |
-| `USER_LIFECYCLE_JOBS_TABLE` | Lifecycle jobs table name                               | Prod/staging (optional local) |
-| `DELETED_USERS_TABLE`       | Tombstone ledger table name                             | Prod/staging (optional local) |
-| `COGNITO_USER_POOL_ID`      | Cognito User Pool ID                                    | Prod/staging (optional local) |
-| `DEV_AUTH_BYPASS`           | Accept requests without `x-user-id` in the local runner | Local only                    |
+The backend expects table names and Cognito identifiers through environment variables in AWS-backed environments. Local work can use LocalStack-backed values or the repo’s local dev bootstrap.
 
-## Hijri Calendar
+Important variables include:
 
-All date logic uses the Umm al-Qura calendar via `@umalqura/core`. The `HijriDate` value object in `packages/shared` wraps all conversions. The domain layer operates exclusively in Hijri — Gregorian conversion happens at the API boundary only.
+- `PRAYER_LOGS_TABLE`
+- `FAST_LOGS_TABLE`
+- `PRACTICING_PERIODS_TABLE`
+- `USER_SETTINGS_TABLE`
+- `USER_LIFECYCLE_JOBS_TABLE`
+- `DELETED_USERS_TABLE`
+- `COGNITO_USER_POOL_ID`
+- `LOCALSTACK_ENDPOINT`
 
 ## Testing
 
-Tests live in `__tests__/` folders alongside the code they test. Repository tests use mocked DynamoDB Document Client.
+The backend test mix includes:
 
-```bash
-npm run test             # All tests
-npm run test:coverage    # With Istanbul coverage
-```
+- domain and use-case unit tests
+- repository and service tests
+- API-level integration coverage for the Express runner
 
-## API Routes
+The repo root `npm run check` script already includes backend build, typecheck, tests, and audit.
 
-24 routes across 3 contexts. Full reference in [docs/api/openapi.yaml](../../docs/api/openapi.yaml).
+## Operational Docs
 
-| Context | Routes | Operations                                                                     |
-| ------- | ------ | ------------------------------------------------------------------------------ |
-| Salah   | 10     | Log prayer, delete, reset, debt calc, history (paged), practicing periods CRUD |
-| Sawm    | 6      | Log fast, delete, reset, debt calc, history (paged)                            |
-| User    | 8      | Profile, account deletion, data export, lifecycle job status                   |
-
-## Domain Services
-
-| Service                   | Purpose                                             |
-| ------------------------- | --------------------------------------------------- |
-| `SalahDebtCalculator`     | Calculates prayer qadaa debt across gap periods     |
-| `SawmDebtCalculator`      | Calculates fasting debt for Ramadans in gap periods |
-| `UmAlQuraCalendarService` | Hijri calendar operations via `@umalqura/core`      |
-
-## Recent Fixes
-
-- `HijriDate` month-length validation now rejects invalid day-30 overflow in 29-day Hijri months.
-- `UmAlQuraCalendarService` now has direct unit tests for Ramadan day counts and date-span calculations.
-
-## Known Limitations
-
-- Practicing period overlap detection has a theoretical TOCTOU race — documented, near-zero probability at current scale
-- Debt calculation uses GSI scan for counting — works at current scale, CQRS-lite counter planned for v2
+- Script guide: [docs/scripts.md](docs/scripts.md)
+- OpenAPI: [../../docs/api/openapi.yaml](../../docs/api/openapi.yaml)
+- Architecture overview: [../../docs/architecture/overview.md](../../docs/architecture/overview.md)

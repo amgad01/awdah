@@ -30,6 +30,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Pre-push checks now generate the frontend language manifest before parallel lint/typecheck steps, which keeps local and CI output aligned for generated locale metadata
 - The local Husky pre-push entrypoint now uses strict shell flags and `exec` handoff, reducing hook-shell edge cases while preserving quick vs full gate behavior
 - Frontend language-manifest generation now formats output through Prettier, which keeps generated TypeScript stable for review and avoids noisy diffs
+- A frontend-only upload command now syncs the built bundle to the existing S3 bucket and invalidates CloudFront without redeploying the stack, which shortens the cloud validation path for UI-only changes
 
 ### Fixed
 

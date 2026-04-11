@@ -4,198 +4,146 @@
   <img src="docs/assets/logo_new.png" alt="Awdah Logo" width="160"/>
 </p>
 
-**An Islamic ibadah tracker for making up missed prayers and fasts.**
+**A multilingual tracker for making up missed prayers and Ramadan fasts.**
 
-**تطبيق إسلامي لقضاء الصلوات والصيام الفائتة.**
+**تطبيق متعدد اللغات لتتبع العبادات و قضاء الصلوات والصيام الفائت.**
 
----
-
-Awdah helps Muslims track and gradually fulfil their qadaa (makeup worship). The app calculates how many prayers and Ramadan fasts were missed based on practicing periods the user provides, then helps them log daily progress against that debt without judgment or pressure.
-
-Built as a full-stack serverless application on AWS, with Lambda, DynamoDB, and Cognito, plus GitHub Pages as the current production frontend host, CloudFront available for non-Pages deployments, and full local simulation via LocalStack. The project follows Clean Architecture across three domain contexts (Salah, Sawm, and User), uses CDK-managed infrastructure, and ships with dynamic multilingual support (Arabic, English, German, and extensible language onboarding) with full RTL support.
+Awdah helps users estimate missed worship from their own practicing history, then log recovery without turning the experience into a guilt-heavy checklist. The app handles Salah, Sawm, practicing periods, privacy-sensitive account flows, and public educational content in Arabic, English, and German.
 
 Quick links:
 
-- Live app: [https://amgad01.github.io/awdah/](https://amgad01.github.io/awdah/)
 - LinkedIn: [https://www.linkedin.com/in/amgad-m/](https://www.linkedin.com/in/amgad-m/)
+- Live app: [https://amgad01.github.io/awdah/](https://amgad01.github.io/awdah/)
 - Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Architecture docs: [docs/architecture/overview.md](docs/architecture/overview.md)
+- API spec: [docs/api/openapi.yaml](docs/api/openapi.yaml)
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com)
 [![CDK](https://img.shields.io/badge/CDK-IaC-FF9900?logo=amazonaws&logoColor=white)](https://docs.aws.amazon.com/cdk)
-[![i18n](https://img.shields.io/badge/i18n-EN%20%7C%20AR-26A69A)](https://www.i18next.com)
+[![i18n](https://img.shields.io/badge/i18n-EN%20%7C%20AR%20%7C%20DE-26A69A)](https://www.i18next.com)
 [![RTL](https://img.shields.io/badge/RTL-Supported-26A69A)](https://developer.mozilla.org/en-US/docs/Glossary/RTL)
 
-## Architecture
+## What Is In This Repo
 
-Clean Architecture with three main domain contexts: **Salah**, **Sawm**, and **User**. Domain logic has no AWS dependencies. Lambda handlers are thin wrappers that validate input, call use cases, and return structured responses.
+| Area     | Current implementation                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------- |
+| Frontend | React 19 SPA, Vite, CSS Modules, i18next, RTL-aware layout                                                        |
+| Backend  | Express-based local runner, Lambda-oriented handlers, Clean Architecture                                          |
+| Infra    | AWS CDK stacks for data, auth, API, backup, alarms, and optional frontend hosting                                 |
+| Data     | DynamoDB tables for prayer logs, fast logs, practicing periods, settings, lifecycle jobs, and deletion tombstones |
+| Auth     | Cognito in AWS deployments, local auth mode for cloudless frontend work                                           |
+| Testing  | Vitest across workspaces, Playwright for critical frontend flows                                                  |
 
-```
-Presentation → Application → Domain ← Infrastructure
-```
+The production frontend is currently published on GitHub Pages under `/awdah/`. The repo also keeps a `FrontendStack` for S3 + CloudFront deployments when Pages is not the right fit.
 
-| Layer          | Technology                      | Notes                                                   |
-| -------------- | ------------------------------- | ------------------------------------------------------- |
-| Frontend       | React 19, TypeScript, Vite      | CSS Modules, i18next, dynamic multilingual + RTL        |
-| Backend        | Node.js, TypeScript, AWS Lambda | One handler per use case, ARM64                         |
-| Infrastructure | AWS CDK                         | 6 stacks: Data, Auth, API, Backup, Alarms, Frontend     |
-| Database       | DynamoDB                        | PAY_PER_REQUEST, PITR enabled, GSIs for access patterns |
-| Auth           | AWS Cognito                     | JWT-based, local simulation via LocalStack in dev       |
-| CI/CD          | GitHub Actions                  | Lint, test, build, deploy pipelines                     |
+## Feature Snapshot
 
-See [docs/architecture/overview.md](docs/architecture/overview.md) for system diagrams, stack dependencies, request lifecycle, and data access patterns.
+- Salah debt calculation based on practicing periods
+- Sawm debt calculation across missed Ramadans
+- Daily logging for current worship and qadaa recovery
+- Practicing-period CRUD with dual-date display
+- History views, paged history APIs, and privacy-sensitive settings flows
+- Public `/about`, `/learn`, `/contribute`, and `/demo` routes that work without live backend data
+- Runtime-loaded public content JSON with English fallback
+- Arabic, English, and German UI with RTL handling where needed
 
-## Features
+## System Shape
 
-- **Qadaa debt calculator** - computes missed prayers and fasts from practicing periods, handles non-continuous gaps
-- **Daily Salah tracker** - log each of the five prayers, mark on time or late
-- **Daily qadaa logger** - log makeup prayers and fasts against the calculated debt
-- **Dashboard** - remaining debt, today's prayers, streak, and a projection of when you'll be done
-- **History** - browse past days in a read-only log
-- **Language support** - dynamic multilingual architecture (English, Arabic, German), full RTL layout, respects system locale by default
-- **Dark mode** - respects `prefers-color-scheme`, manual override in settings
-- **Offline demo** - full preview using static sample data, no login required
+The codebase is a modular monolith with explicit bounded contexts:
+
+- `salah`: prayer logging, debt calculation, prayer history, practicing periods
+- `sawm`: fast logging, debt calculation, fast history
+- `user`: settings, export, delete-account workflow, lifecycle job status
+
+The backend keeps domain and application logic free of AWS SDK details. Lambda handlers and the local Express runner stay thin: parse input, resolve `userId`, call a use case, and format the response.
+
+For a deeper walkthrough, start with:
+
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [docs/architecture/overview.md](docs/architecture/overview.md)
+- [docs/architecture/database.md](docs/architecture/database.md)
+- [docs/github-actions-architecture.md](docs/github-actions-architecture.md)
 
 ## Local Development
 
-Awdah supports three local development modes. Pick the one that fits your goal.
+### 1. Cloudless frontend work
 
-### Mode 1: Cloudless (no Docker, no AWS account)
-
-The fastest way to start contributing to UI, translations, or public-page content. The frontend runs entirely in-memory with a built-in mock auth backend. No LocalStack, no Docker, no credentials needed.
+Use this for docs, translations, public-page content, and most UI work.
 
 ```bash
 npm install
-npm run dev:local      # sets VITE_AUTH_MODE=local in .env.local
-npm run dev:frontend   # http://localhost:5173
+npm run dev:local
+npm run dev:frontend
 ```
 
-The app boots in local auth mode: you can sign up / log in with any email and password, and your data is stored in memory until you close the tab. The `/demo` route also works without any extra setup.
+This writes `VITE_AUTH_MODE=local` to `apps/frontend/.env.local`. You can sign in with any email and password, and the `/about`, `/learn`, `/contribute`, and `/demo` routes work without extra setup.
 
-### Mode 2: Full stack with LocalStack (no AWS account)
+### 2. Full local app with LocalStack
 
-Use this when your change needs real auth, tracker data, settings, or any API route. LocalStack simulates DynamoDB, S3, SQS, and Cognito locally.
+Use this when your change touches real API flows, settings, or data-backed screens.
 
 ```bash
-# Prerequisites: Node.js (version in .nvmrc), Docker
-
 npm install
-
-# Start LocalStack
-docker compose up -d localstack
-
-# Start dev servers in separate terminals
-npm run dev:frontend   # http://localhost:5173
-npm run dev:backend    # Lambda runner on http://localhost:3000
+npm run docker:up
+npm run dev:backend
+npm run dev:frontend
 ```
 
-Copy `.env.example` to `.env.local` and fill in the dummy values:
+If you need CDK-level LocalStack parity rather than the default local bootstrap, use:
 
 ```bash
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-AWS_DEFAULT_REGION=eu-west-1
-LOCALSTACK_ENDPOINT=http://localhost:4566
+./scripts/deploy/deploy-localstack.sh data
+./scripts/deploy/deploy-localstack.sh auth
+./scripts/deploy/deploy-localstack.sh api
 ```
 
-### Mode 3: AWS staging / dev environment
+### 3. AWS-backed development
 
-For full end-to-end testing against a real AWS account. Requires valid AWS credentials and a deployed dev stack.
+Use this for real-cloud validation.
 
 ```bash
-./scripts/deploy/check-aws-session.sh   # verify credentials
-./scripts/deploy/deploy-all.sh          # deploy all CDK stacks to dev
-npm run dev:frontend             # point against the deployed API
+./scripts/deploy/check-aws-session.sh
+npm run deploy:all:dev
 ```
 
-### Prerequisites (modes 2 and 3)
-
-- [Node.js](https://nodejs.org) (version in `.nvmrc`)
-- npm
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) (for LocalStack, mode 2 only)
-- [AWS CLI](https://aws.amazon.com/cli/) (optional, for manual LocalStack inspection)
-
-### Pages Check
-
-If you touch routing, deploy config, `index.html`, or `404.html`, run:
+## Quality Gates
 
 ```bash
-npm run check:pages
+npm run check:quick   # shared build + lint + format + typecheck
+npm run check         # repo gate with tests, builds, Pages check, and audit
+npm run check:pages   # production Pages build verification
+npm run test:e2e      # Playwright suite
 ```
 
-That builds the frontend locally with the real production base path `/awdah/` and verifies that the generated bundle still points to `https://amgad01.github.io/awdah/`.
+If you touch routing, deploy config, `index.html`, or `404.html`, run `npm run check:pages`.
 
-### Frontend E2E Scope
+## API And Deployment Notes
 
-The Playwright suite is centered on the flows most likely to break a release: authentication, direct public auth states, dashboard access, tracker logging, history filters, destructive settings safeguards, public content pages, and the offline demo entry path. The tests use shared shell-navigation helpers so the suite follows the real app navigation model across desktop and mobile layouts instead of each spec forcing menu clicks in its own way.
+- Public API documentation lives in [docs/api/openapi.yaml](docs/api/openapi.yaml).
+- Production publishing is release-branch driven. `main` is a validation branch, not an automatic production-publish branch.
+- The automatic release lane runs inside [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for `release/**` pushes.
+- Manual recovery and controlled reruns use `deploy.yml`, `deploy-pages.yml`, and `e2e.yml`.
 
-For contributor-specific setup paths, content-only edits, translation work, and PR workflow details, see [CONTRIBUTING.md](CONTRIBUTING.md). The hosted [/contribute](https://amgad01.github.io/awdah/contribute) page is the source of truth for work areas and roadmap items.
+## Repo Layout
 
-### Demo and About
-
-- `/demo` - a fully hydrated preview using bundled sample data, works without a backend
-- `/about` - the story behind the project and the developer behind it
-- `/contribute` - how to contribute, what areas need help, and the v2 roadmap
-
-## Project Structure
-
-```
+```text
 awdah/
 ├── apps/
-│   ├── frontend/       # React SPA (Vite, CSS Modules, i18next)
-│   └── backend/        # Node.js, Clean Architecture, Lambda handlers
-├── infra/              # AWS CDK stacks
-├── packages/shared/    # Shared types and domain interfaces
-├── docs/               # Architecture docs, OpenAPI spec
-└── docker-compose.yml  # LocalStack for local development
+│   ├── frontend/
+│   └── backend/
+├── infra/
+├── packages/shared/
+├── docs/
+├── scripts/
+└── docker-compose.yml
 ```
-
-## Infrastructure
-
-6 CDK stacks deployed in order: data → auth → api → backup → alarm → frontend.
-
-| Stack         | Resources                                                                   |
-| ------------- | --------------------------------------------------------------------------- |
-| DataStack     | 6 DynamoDB tables (PAY_PER_REQUEST, PITR where needed, GSIs for log access) |
-| AuthStack     | Cognito User Pool and Client                                                |
-| ApiStack      | HTTP API Gateway, 24 Lambda functions (ARM64), selective warmers in prod    |
-| BackupStack   | S3 backup bucket, EventBridge daily export                                  |
-| AlarmStack    | CloudWatch alarms, SNS alerts                                               |
-| FrontendStack | S3 + CloudFront for non-Pages hosting, previews, or custom domains          |
-
-## API
-
-Three route groups: **Salah** (prayers), **Sawm** (fasts), and **User** (profile and lifecycle operations). All protected routes require a Cognito JWT, while `/health` remains public. All dates are Hijri `YYYY-MM-DD`.
-
-Full reference: [docs/api/openapi.yaml](docs/api/openapi.yaml)
-
-## CI/CD
-
-| Workflow                | Trigger                                                | Purpose                                                                                      |
-| ----------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `ci.yml`                | PRs to `main`, pushes to `main` / `release/**`, manual | Quality gate for normal development, plus the automatic release lane for `release/**` pushes |
-| `e2e.yml`               | Manual                                                 | Ad hoc Dockerized Playwright E2E against the full local stack                                |
-| `deploy-validation.yml` | PRs targeting `main`                                   | Credential-free dry run: CDK synth + Pages build with placeholder inputs, no publish         |
-| `deploy.yml`            | Manual                                                 | Controlled backend production deploy from an exact ref/SHA, with approval + smoke test       |
-| `deploy-pages.yml`      | Manual                                                 | Controlled Pages deploy from an exact ref/SHA, tag/release publish, and Pages smoke test     |
-
-Pull requests into `main` now get both the standard `CI` quality gate and the credential-free deploy rehearsal. After a merge into `main`, only `ci.yml` reruns as the post-merge validation lane. Production publishing still happens automatically only inside the `CI` workflow when a push lands on a branch whose name begins with `release/vX.Y.Z-*`. That same run performs quality checks, resolves the release context, runs Dockerized E2E on the same commit, and then proceeds through the protected backend and Pages deploy jobs. The release version is derived from the branch name prefix, not auto-incremented from older tags.
-
-Manual `e2e.yml`, `deploy.yml`, and `deploy-pages.yml` runs still exist for debugging, reruns, and controlled recovery. For manual deploys, leave `release_tag` empty and set `confirm_branch_release_tag=true` to accept the branch-derived version, or provide `release_tag` to override it.
-
-To improve first-load UX without paying for provisioned concurrency, production now keeps only the key dashboard and settings read Lambdas warm on a 15-minute EventBridge schedule. The scope is intentionally narrow so it stays free-tier friendly.
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, workflow, language support, and content-update guidance. For current work areas and roadmap items, use the hosted [/contribute](https://amgad01.github.io/awdah/contribute) page.
-
-Translation note: only `apps/frontend/src/i18n/*.json` files carry `_meta` and participate in language auto-discovery. Public page content under `apps/frontend/public/data/` stays schema-specific and does not use `_meta`, and glossary tooltips live in `apps/frontend/src/content/glossary/glossary.json`.
-
-For a full new-language rollout, add the matching `about-<code>.json`, `contributing-<code>.json`, `faq-<code>.json`, `sample-user.json` story entry, and any glossary entries that should render natively so the demo route and onboarding copy stay localized too.
-
-The generated `apps/frontend/src/i18n/language-manifest.generated.ts` file exists so the app can read lightweight language metadata early without bundling every translation eagerly. You still add a new language by creating one locale JSON file with `_meta`; the frontend scripts generate the manifest automatically before dev, test, lint, typecheck, and build.
+[CONTRIBUTING.md](CONTRIBUTING.md) is the contributor workflow guide. It covers setup paths, validation commands, code standards, and the exact files to edit for translations, glossary content, demo text, and public JSON content.
 
 ## License
 
-Non-commercial. Copyright (c) 2026 Amgad Mahmoud. See [LICENSE](LICENSE) for terms.
+Non-commercial. Copyright (c) 2026 Amgad Mahmoud. See [LICENSE](LICENSE).
