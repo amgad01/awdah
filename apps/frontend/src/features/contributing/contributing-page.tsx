@@ -19,6 +19,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { GlossaryText } from '@/components/ui/term-tooltip';
+import { RichText } from '@/components/ui/rich-text';
 import { SwiperSections } from '@/components/ui/swiper-sections';
 import { useLocalizedContent } from '@/hooks/use-localized-content';
 import { useLanguage } from '@/hooks/use-language';
@@ -110,8 +111,11 @@ const ROADMAP_ICONS: Record<string, IconComponent> = {
 const renderContributionItemCard = (
   section: ContributingSection,
   item: ContributingItem,
+  contactLink: string,
+  contactLabel: string,
 ): React.JSX.Element => {
   const IconComponent = CONTRIBUTION_ICONS[section.icon] ?? HelpCircle;
+  const appEmail = import.meta.env.VITE_APP_EMAIL;
 
   return (
     <section className={styles.contributionSection}>
@@ -123,9 +127,38 @@ const renderContributionItemCard = (
           <IconComponent size={22} className={styles.sectionIcon} />
           <h2 className={styles.sectionTitle}>{section.title}</h2>
         </div>
-        <p className={styles.sectionBody}>
-          <GlossaryText>{section.body}</GlossaryText>
-        </p>
+        <RichText
+          className={styles.sectionBody}
+          paragraphClassName={styles.sectionBodyParagraph}
+          renderText={(segment) => <GlossaryText>{segment}</GlossaryText>}
+        >
+          {section.body}
+        </RichText>
+        {section.id === 'scholars' ? (
+          <div className={styles.sectionLinks}>
+            <a
+              href={contactLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.sectionLink}
+              title={contactLink}
+              aria-label={`${contactLabel}: ${contactLink}`}
+            >
+              <Linkedin size={16} />
+              <span>{contactLabel}</span>
+            </a>
+            {appEmail ? (
+              <a
+                href={`mailto:${appEmail}`}
+                className={styles.sectionLink}
+                title={appEmail}
+                aria-label={`App email: ${appEmail}`}
+              >
+                <span>{appEmail}</span>
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.itemCard}>
@@ -188,7 +221,7 @@ export const ContributingPage: React.FC = () => {
     return data.sections.flatMap((section) =>
       section.items.map((item) => ({
         id: `${language}-section-${section.id}-${item.id}`,
-        content: renderContributionItemCard(section, item),
+        content: renderContributionItemCard(section, item, data.contact_link, data.contact_label),
       })),
     );
   }, [data, language]);
@@ -264,7 +297,11 @@ export const ContributingPage: React.FC = () => {
         {/* v1 Content Slider Section */}
         <div className={styles.sliderSection}>
           <h2 className={styles.sliderSectionTitle}>{data.areas_title}</h2>
-          <SwiperSections sections={mobileV1Sections} className={styles.sliderSwiper} />
+          <SwiperSections
+            sections={mobileV1Sections}
+            className={styles.sliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* How to Submit a PR - Mobile Slider */}
@@ -273,7 +310,11 @@ export const ContributingPage: React.FC = () => {
           <p className={styles.sliderIntro}>
             <GlossaryText>{data.pr_intro}</GlossaryText>
           </p>
-          <SwiperSections sections={mobilePrSections} className={styles.sliderSwiper} />
+          <SwiperSections
+            sections={mobilePrSections}
+            className={styles.sliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* v2 Roadmap Slider */}
@@ -282,7 +323,11 @@ export const ContributingPage: React.FC = () => {
           <p className={styles.sliderIntro}>
             <GlossaryText>{data.v2_intro}</GlossaryText>
           </p>
-          <SwiperSections sections={mobileV2Sections} className={styles.sliderSwiper} />
+          <SwiperSections
+            sections={mobileV2Sections}
+            className={styles.sliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* Static Recognition Section */}
@@ -343,7 +388,11 @@ export const ContributingPage: React.FC = () => {
         {/* ── Contribution Areas ── Tab-slider on desktop ── */}
         <div className={styles.desktopSliderSection}>
           <h2 className={styles.desktopSliderTitle}>{data.areas_title}</h2>
-          <SwiperSections sections={mobileV1Sections} className={styles.desktopSliderSwiper} />
+          <SwiperSections
+            sections={mobileV1Sections}
+            className={styles.desktopSliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* ── How to Submit a PR ── Tab-slider on desktop ── */}
@@ -352,7 +401,11 @@ export const ContributingPage: React.FC = () => {
           <p className={styles.desktopSliderIntro}>
             <GlossaryText>{data.pr_intro}</GlossaryText>
           </p>
-          <SwiperSections sections={mobilePrSections} className={styles.desktopSliderSwiper} />
+          <SwiperSections
+            sections={mobilePrSections}
+            className={styles.desktopSliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* ── v2 Roadmap ── Tab-slider on desktop ── */}
@@ -362,7 +415,11 @@ export const ContributingPage: React.FC = () => {
           <p className={styles.desktopSliderIntro}>
             <GlossaryText>{data.v2_intro}</GlossaryText>
           </p>
-          <SwiperSections sections={mobileV2Sections} className={styles.desktopSliderSwiper} />
+          <SwiperSections
+            sections={mobileV2Sections}
+            className={styles.desktopSliderSwiper}
+            contentAlign="center"
+          />
         </div>
 
         {/* ── Recognition ── */}

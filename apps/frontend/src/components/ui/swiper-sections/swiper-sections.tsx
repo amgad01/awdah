@@ -20,6 +20,7 @@ interface SwiperSectionsProps {
   showDots?: boolean;
   showArrows?: boolean;
   className?: string;
+  contentAlign?: 'start' | 'center';
 }
 
 export const SwiperSections: React.FC<SwiperSectionsProps> = ({
@@ -27,6 +28,7 @@ export const SwiperSections: React.FC<SwiperSectionsProps> = ({
   showDots = true,
   showArrows = true,
   className = '',
+  contentAlign = 'start',
 }) => {
   const { isRTL, language, t } = useLanguage();
   const uniqueId = useId();
@@ -75,7 +77,11 @@ export const SwiperSections: React.FC<SwiperSectionsProps> = ({
       >
         {sections.map((section) => (
           <SwiperSlide key={section.id} className={styles.slide}>
-            <div className={styles.slideContent}>{section.content}</div>
+            <div
+              className={`${styles.slideContent} ${contentAlign === 'center' ? styles.contentCenter : ''}`.trim()}
+            >
+              {section.content}
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>

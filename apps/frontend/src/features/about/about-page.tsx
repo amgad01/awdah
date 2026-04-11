@@ -301,7 +301,13 @@ export const AboutPage: React.FC = () => {
       };
     });
 
-    return <SwiperSections sections={memberSections} className={styles.founderSlider} />;
+    return (
+      <SwiperSections
+        sections={memberSections}
+        className={styles.founderSlider}
+        contentAlign="center"
+      />
+    );
   };
 
   if (error) {
@@ -327,7 +333,7 @@ export const AboutPage: React.FC = () => {
 
         {/* Content Slider: Mission, Audience, Features */}
         <div className={styles.sliderSection}>
-          <SwiperSections sections={contentSliderSections} />
+          <SwiperSections sections={contentSliderSections} contentAlign="center" />
         </div>
 
         {/* Team Section - Mobile Only */}

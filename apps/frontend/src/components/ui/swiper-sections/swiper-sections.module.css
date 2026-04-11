@@ -32,6 +32,15 @@
   flex-direction: column;
 }
 
+.contentCenter {
+  align-items: center;
+  text-align: center;
+}
+
+.contentCenter :is(h2, h3, p) {
+  text-align: center;
+}
+
 .navButton {
   position: absolute;
   top: 50%;
