@@ -3,7 +3,11 @@ function getLocalStorage(): Storage | null {
     return null;
   }
 
-  return window.localStorage;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 export function readLocalStorage(key: string): string | null {
