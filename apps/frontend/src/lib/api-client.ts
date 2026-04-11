@@ -32,14 +32,22 @@ async function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   }
 
   await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(resolve, ms);
+    // eslint-disable-next-line prefer-const
+    let timeout: ReturnType<typeof setTimeout> | undefined;
 
     const abortHandler = () => {
-      clearTimeout(timeout);
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
       reject(new DOMException('The operation was aborted.', 'AbortError'));
     };
 
     signal?.addEventListener('abort', abortHandler, { once: true });
+
+    timeout = setTimeout(() => {
+      signal?.removeEventListener('abort', abortHandler);
+      resolve();
+    }, ms);
   });
 }
 
