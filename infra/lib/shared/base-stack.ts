@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { getFullResourceName } from './naming';
 
 export interface BaseStackProps extends cdk.StackProps {
   projectEnv: string;
@@ -30,7 +31,7 @@ export class BaseStack extends cdk.Stack {
    * Format: [prefix]Awdah-[name]-[env]
    */
   public fullResourceName(name: string): string {
-    return `${this.resourcePrefix}Awdah-${name}-${this.projectEnv}`;
+    return getFullResourceName(this, name, this.projectEnv);
   }
 
   /**

@@ -72,8 +72,7 @@ export const CONFIG: Record<string, ProjectConfig> = {
 
 export function getConfig(scope: Construct): ProjectConfig {
   // Prefer explicit CDK context values first, then fall back to NODE_ENV.
-  const ctxEnv =
-    scope.node.tryGetContext('env') || scope.node.tryGetContext('appEnv') || process.env.NODE_ENV;
+  const ctxEnv = scope.node.tryGetContext('env') || process.env.NODE_ENV;
   const env = (ctxEnv as string) || 'dev';
   const cfg = CONFIG[env as keyof typeof CONFIG];
   return (cfg ?? CONFIG.dev) as ProjectConfig;

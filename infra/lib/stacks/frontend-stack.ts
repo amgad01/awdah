@@ -8,7 +8,6 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { BaseStack, type BaseStackProps } from '../shared/base-stack';
 
@@ -61,7 +60,6 @@ export class FrontendStack extends BaseStack {
       enforceSSL: true,
     });
 
-    // Fetch API endpoint from SSM instead of direct reference to break CFN Export/Import link
     const certificate = props.certificateArn
       ? acm.Certificate.fromCertificateArn(this, 'FrontendCertificate', props.certificateArn)
       : undefined;
@@ -79,8 +77,6 @@ export class FrontendStack extends BaseStack {
         compress: true,
       },
       errorResponses: [
-        // SPA routing: S3 returns 403 (access denied) for paths that are not real objects.
-        // Both 403 and 404 are rewritten to 200 + index.html so React Router can handle them.
         {
           httpStatus: 403,
           responseHttpStatus: 200,
@@ -145,14 +141,5 @@ export class FrontendStack extends BaseStack {
         value: props.domainName,
       });
     }
-
-    // Export Frontend URL to SSM for CORS sealing/decoupling
-    new ssm.StringParameter(this, 'FrontendUrlParameter', {
-      parameterName: `/awdah/${this.projectEnv}/frontend/url`,
-      stringValue: props.domainName
-        ? `https://${props.domainName}`
-        : `https://${this.distribution.distributionDomainName}`,
-      description: `Awdah Frontend URL (${this.projectEnv})`,
-    });
   }
 }

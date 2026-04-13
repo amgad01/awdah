@@ -9,9 +9,14 @@ import { BackupStack } from '../lib/stacks/backup-stack';
 import { FrontendStack } from '../lib/stacks/frontend-stack';
 
 const app = new cdk.App();
-const environment = app.node.tryGetContext('env') || app.node.tryGetContext('appEnv') || 'dev';
-const ticket = app.node.tryGetContext('ticket');
+const environment = app.node.tryGetContext('env') || 'dev';
+
+// Optional traceability metadata
+const commit = app.node.tryGetContext('commit') as string | undefined;
+const buildId = app.node.tryGetContext('buildId') as string | undefined;
+const releaseTag = app.node.tryGetContext('releaseTag') as string | undefined;
 const alertEmail = app.node.tryGetContext('alertEmail');
+const ticket = app.node.tryGetContext('ticket');
 const frontendDomainName = app.node.tryGetContext('frontendDomainName');
 const frontendHostedZoneName = app.node.tryGetContext('frontendHostedZoneName');
 const frontendHostedZoneId = app.node.tryGetContext('frontendHostedZoneId');
@@ -20,9 +25,6 @@ const frontendOrigin = app.node.tryGetContext('frontendOrigin') as string | unde
 const deployFrontend =
   app.node.tryGetContext('deployFrontend') === true ||
   app.node.tryGetContext('deployFrontend') === 'true';
-const commit = app.node.tryGetContext('commit') as string | undefined;
-const buildId = app.node.tryGetContext('buildId') as string | undefined;
-const releaseTag = app.node.tryGetContext('releaseTag') as string | undefined;
 const envWithTicket = ticket ? `${ticket}-${environment}` : environment;
 
 function validateOriginContext(name: string, value: string | undefined): void {
@@ -93,7 +95,6 @@ if (deployFrontend) {
     certificateArn: frontendCertificateArn,
     ticket,
   });
-  // Frontend reads API URL from SSM
   frontendStack.addDependency(apiStack);
 }
 

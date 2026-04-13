@@ -6,13 +6,15 @@ Use this diagram when discussing deployment order, blast radius, and why the inf
 
 ```text
 DataStack ----+
-              +--> ApiStack ----+
-AuthStack ----+                 |
-                                +--> AlarmStack
-DataStack ----------------------+
-DataStack -----------------------> BackupStack
+              +--> ApiStack -----------+
+AuthStack ----+                        |
+                                       +--> AlarmStack
+DataStack -----------------> BackupStack ---+
+DataStack ----------------------------------+
+ApiStack ------------------> FrontendStack (optional)
 
-FrontendStack is separate and optional for S3 + CloudFront hosting.
+FrontendStack is optional for S3 + CloudFront hosting, but when it is deployed
+in CDK it is ordered after ApiStack.
 ```
 
 ## Mermaid
@@ -29,13 +31,16 @@ flowchart TD
     DATA --> API
     AUTH --> API
     DATA --> BACKUP
+    BACKUP --> ALARM
     DATA --> ALARM
     API --> ALARM
+    API --> FE
 ```
 
 ## Read This As
 
 - data and auth are foundational stacks
 - the API stack depends on both because it needs table names and Cognito config
-- backup and alarms are separate so operational concerns can evolve without repackaging the whole app
+- the alarm stack depends on backup, API, and data because it watches those resources directly
 - the frontend stack is optional because production can use GitHub Pages instead
+- when `FrontendStack` is used, it is deployed after `ApiStack` so the frontend hosting path stays aligned with the published API environment

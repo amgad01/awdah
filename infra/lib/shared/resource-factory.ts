@@ -36,19 +36,23 @@ export class ProjectResourceFactory {
     scope: Construct,
     id: string,
     options: LambdaOptions,
+    logRetention: logs.RetentionDays = logs.RetentionDays.ONE_MONTH,
+    architecture: lambda.Architecture = lambda.Architecture.ARM_64,
   ): lambda_nodejs.NodejsFunction {
     const config = getConfig(scope);
     const logGroup = new logs.LogGroup(scope, `${id}LogGroup`, {
-      retention: logs.RetentionDays.ONE_MONTH,
+      retention: logRetention,
     });
 
+    // ARM_64: ~34% cheaper than x86 for the same Lambda workload.
     const fn = new lambda_nodejs.NodejsFunction(scope, id, {
       entry: options.entry,
       handler: options.handler ?? 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      architecture: lambda.Architecture.ARM_64,
+      architecture: architecture,
       memorySize: options.memorySize ?? 256,
       timeout: options.timeout ?? config.lambdaTimeout,
+      // Active tracing enables X-Ray service-map visualisation.
       tracing: lambda.Tracing.ACTIVE,
       logGroup,
       environment: options.environment,
@@ -58,6 +62,8 @@ export class ProjectResourceFactory {
       bundling: {
         minify: true,
         sourceMap: true,
+        // Exclude the AWS SDK v3 — Lambda runtime already includes it.
+        // This shrinks bundles and avoids mismatched SDK versions.
         externalModules: ['@aws-sdk/*'],
       },
     });
@@ -77,14 +83,18 @@ export class ProjectResourceFactory {
     id: string,
     bucketName: string,
     removalPolicy: cdk.RemovalPolicy,
+    blockPublicAccess: boolean = true,
   ): s3.Bucket {
     return new s3.Bucket(scope, id, {
       bucketName,
       removalPolicy,
+      // Auto-delete empties the bucket before deletion (dev/staging only).
       autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
       versioned: true,
+      // SSE-S3: zero-cost default encryption. KMS would add per-request cost.
       encryption: s3.BucketEncryption.S3_MANAGED,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      blockPublicAccess: blockPublicAccess ? s3.BlockPublicAccess.BLOCK_ALL : undefined,
+      // enforceSSL rejects any non-HTTPS PutObject — defense in depth.
       enforceSSL: true,
     });
   }
@@ -105,7 +115,11 @@ export class ProjectResourceFactory {
       tableName,
       partitionKey,
       sortKey,
+      // PAY_PER_REQUEST: no capacity planning, ideal for unpredictable
+      // workloads. We accept slightly higher per-request cost in exchange
+      // for zero manual scaling and no provisioned-capacity alarms.
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      // PITR enabled by default — allows point-in-time recovery up to 35 days.
       pointInTimeRecoverySpecification: {
         pointInTimeRecoveryEnabled: options.pointInTimeRecoveryEnabled ?? true,
       },
