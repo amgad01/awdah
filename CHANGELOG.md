@@ -7,6 +7,50 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.1.3
+
+### Changed
+
+#### Backend
+
+- Dependency injection use-cases are now organized by context (`salah-use-cases.ts`, `sawm-use-cases.ts`, `user-use-cases.ts`) instead of one monolithic file
+- Handler imports updated to pull from context-specific DI modules rather than the shared container
+- `wrap-handler.ts` middleware refactored into smaller focused functions for request building, invocation metadata extraction, and error handling
+- `create-handler.ts` now constructs request-scoped loggers with path and method context for better traceability
+- `DynamoDBUserDataLifecycleService` now delegates query operations through the base repository method instead of constructing raw `QueryCommand` instances inline
+- Base DynamoDB repository methods now consistently return typed results with `lastEvaluatedKey` instead of raw AWS SDK response shapes
+
+### Fixed
+
+#### Backend
+
+- Prayer log persistence now mirrors other repositories by omitting key attributes from the payload during saves
+- User lifecycle export queries only pass required expression attribute names to avoid DynamoDB validation errors
+
+#### Infrastructure
+
+- `FrontendStack` now deploys after `ApiStack` in CDK ordering to keep hosting paths aligned with the published API environment
+- Removed unused `appEnv` context fallback from config resolution
+- `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
+
+#### Tooling
+
+- `tsconfig.json` now includes `apps/backend/scripts/**/*.ts` for type checking utility scripts
+
+### Removed
+
+#### Backend
+
+- `container.ts` and `services.ts` DI modules after use-case split
+- Legacy HTTP route modules (`create-app.ts`, `route-registry.ts`, `salah-routes.ts`, `sawm-routes.ts`, `user-routes.ts`, `e2e-seed-routes.ts`)
+- `local-handler-runner.ts` after migration to handler-first architecture
+- `in-process-user-lifecycle-job-dispatcher.service.ts` after moving lifecycle dispatch behind the repository layer
+- `responses.ts` helper after consolidating response utilities into `wrap-handler.ts`
+
+#### Infrastructure
+
+- `restore-from-s3.ts` and `restore-sanitize.ts` from `infra/scripts` after moving restore utilities into the backend workspace
+
 ## v1.1.2
 
 ### Changed
