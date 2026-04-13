@@ -4,7 +4,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBUserRepository } from '../persistence/dynamodb-user.repository';
 import { DynamoDBPracticingPeriodRepository } from '../persistence/dynamodb-practicing-period.repository';
 import { DynamoDBPrayerLogRepository } from '../persistence/dynamodb-prayer-log.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId, PeriodId } from '@awdah/shared';
 import { PracticingPeriod } from '../../../contexts/shared/domain/entities/practicing-period.entity';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
 import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
@@ -160,11 +160,11 @@ export function registerE2eSeedRoutes(app: express.Express) {
       }
 
       for (const user of users) {
-        const userId = localUserId(user.email);
+        const uId = new UserId(localUserId(user.email));
 
         // 1. Seed User Settings
         await userRepo.save({
-          userId,
+          userId: uId,
           dateOfBirth: HijriDate.fromString('1425-01-01'),
           bulughDate: HijriDate.fromString('1440-01-01'),
           gender: 'male',
@@ -173,10 +173,10 @@ export function registerE2eSeedRoutes(app: express.Express) {
         });
 
         // 2. Seed Practicing Period (started 1 year ago)
-        const periodId = `period-${userId}`;
+        const periodId = new PeriodId(`period-${uId.toString()}`);
         await periodRepo.save(
           new PracticingPeriod({
-            userId,
+            userId: uId,
             periodId,
             startDate: HijriDate.fromString('1445-01-01'),
             type: 'both',
@@ -191,10 +191,10 @@ export function registerE2eSeedRoutes(app: express.Express) {
           for (const prayer of prayers) {
             await prayerRepo.save(
               new PrayerLog({
-                userId,
+                userId: uId,
                 date: today,
                 prayerName: new PrayerName(prayer),
-                eventId: `seed-${prayer}`,
+                eventId: new EventId(`seed-${prayer}`),
                 type: new LogType('obligatory'),
                 action: 'prayed',
                 loggedAt: new Date(),

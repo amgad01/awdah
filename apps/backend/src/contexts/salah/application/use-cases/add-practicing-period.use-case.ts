@@ -3,13 +3,15 @@ import { IUserRepository } from '../../../shared/domain/repositories/user.reposi
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
 import {
   HijriDate,
+  UserId,
+  PeriodId,
   NotFoundError,
   PracticingPeriodType,
   ConflictError,
   ValidationError,
 } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
-import { ulid } from 'ulid';
+import { IIdGenerator } from '../../../../shared/domain/services/id-generator.interface';
 
 export interface AddPracticingPeriodCommand {
   userId: string;
@@ -22,13 +24,15 @@ export class AddPracticingPeriodUseCase {
   constructor(
     private readonly repository: IPracticingPeriodRepository,
     private readonly userRepository: IUserRepository,
+    private readonly idGenerator: IIdGenerator,
   ) {}
 
   async execute(command: AddPracticingPeriodCommand): Promise<{ periodId: string }> {
+    const userId = new UserId(command.userId);
     const startDate = HijriDate.fromString(command.startDate);
     const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
 
-    const userSettings = await this.userRepository.findById(command.userId);
+    const userSettings = await this.userRepository.findById(userId);
     if (!userSettings) {
       throw new NotFoundError(userSettingsNotFound);
     }
@@ -38,14 +42,14 @@ export class AddPracticingPeriodUseCase {
     }
 
     const newPeriod = new PracticingPeriod({
-      userId: command.userId,
-      periodId: ulid(),
+      userId,
+      periodId: new PeriodId(this.idGenerator.generate()),
       startDate,
       endDate,
       type: command.type,
     });
 
-    const existing = await this.repository.findByUser(command.userId);
+    const existing = await this.repository.findByUser(userId);
     for (const p of existing) {
       if (p.overlapsWith(newPeriod)) {
         throw new ConflictError('onboarding.period_error_overlap');
@@ -53,6 +57,6 @@ export class AddPracticingPeriodUseCase {
     }
 
     await this.repository.save(newPeriod);
-    return { periodId: newPeriod.periodId };
+    return { periodId: newPeriod.periodId.toString() };
   }
 }

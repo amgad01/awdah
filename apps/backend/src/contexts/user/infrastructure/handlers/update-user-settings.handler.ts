@@ -1,4 +1,4 @@
-import { updateUserSettingsUseCase } from '../../../../shared/di/container';
+import { updateUserSettingsUseCase } from '../../../../shared/di/user-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { updateUserSettingsSchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

@@ -2,6 +2,8 @@
 
 The backend is a TypeScript codebase organised around Clean Architecture. In production, the HTTP surface is served by API Gateway plus Lambda. Locally, `src/index.ts` runs an Express server that exercises the same use cases and middleware patterns.
 
+For the deeper reasoning behind the folder structure, modular-monolith shape, and lightweight DI approach, read [docs/architecture.md](docs/architecture.md). That file is written in English and German.
+
 ## Responsibilities
 
 | Context  | Owns                                                                |
@@ -100,5 +102,6 @@ The repo root `npm run check` script already includes backend build, typecheck, 
 ## Operational Docs
 
 - Script guide: [docs/scripts.md](docs/scripts.md)
+- Backend architecture rationale: [docs/architecture.md](docs/architecture.md)
 - OpenAPI: [../../docs/api/openapi.yaml](../../docs/api/openapi.yaml)
 - Architecture overview: [../../docs/architecture/overview.md](../../docs/architecture/overview.md)

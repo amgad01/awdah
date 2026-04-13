@@ -1,4 +1,4 @@
-import { getUserLifecycleJobStatusUseCase } from '../../../../shared/di/container';
+import { getUserLifecycleJobStatusUseCase } from '../../../../shared/di/user-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 import { userLifecycleJobQuerySchema } from '../../../../shared/validation/schemas';

@@ -1,4 +1,4 @@
-import { NotFoundError } from '@awdah/shared';
+import { NotFoundError, UserId, EventId } from '@awdah/shared';
 import type {
   IUserLifecycleJobRepository,
   UserLifecycleJob,
@@ -13,7 +13,10 @@ export class GetUserLifecycleJobStatusUseCase {
   constructor(private readonly jobRepository: IUserLifecycleJobRepository) {}
 
   async execute(command: GetUserLifecycleJobStatusCommand): Promise<UserLifecycleJob> {
-    const job = await this.jobRepository.findById(command.userId, command.jobId);
+    const job = await this.jobRepository.findById(
+      new UserId(command.userId),
+      new EventId(command.jobId),
+    );
 
     if (!job) {
       throw new NotFoundError('Lifecycle job not found');

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { UserId } from '@awdah/shared';
 import { settings } from '../../../config/settings';
 import { PrayerLogKey } from '../keys/prayer-log-key';
 import { FastLogKey } from '../keys/fast-log-key';
@@ -10,7 +11,7 @@ const ddbMock = mockClient(DynamoDBDocumentClient);
 
 describe('DynamoDBUserDataLifecycleService', () => {
   let service: DynamoDBUserDataLifecycleService;
-  const userId = 'user-123';
+  const userId = new UserId('user-123');
 
   beforeEach(() => {
     ddbMock.reset();
@@ -74,7 +75,7 @@ describe('DynamoDBUserDataLifecycleService', () => {
 
     expect(result).toEqual({
       exportedAt: expect.any(String),
-      userId,
+      userId: userId.toString(),
       settings: [
         {
           username: 'Amgad',

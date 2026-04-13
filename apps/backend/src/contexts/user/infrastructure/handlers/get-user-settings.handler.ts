@@ -1,4 +1,4 @@
-import { getUserSettingsUseCase } from '../../../../shared/di/container';
+import { getUserSettingsUseCase } from '../../../../shared/di/user-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 

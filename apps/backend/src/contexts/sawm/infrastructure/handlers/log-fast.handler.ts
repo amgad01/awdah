@@ -1,4 +1,4 @@
-import { logFastUseCase } from '../../../../shared/di/container';
+import { logFastUseCase } from '../../../../shared/di/sawm-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { logFastSchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

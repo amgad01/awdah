@@ -1,4 +1,4 @@
-import { finalizeDeleteAccountUseCase } from '../../../../shared/di/container';
+import { finalizeDeleteAccountUseCase } from '../../../../shared/di/user-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { MESSAGES } from '../../../../shared/constants/messages';
 import { createHandler } from '../../../../shared/middleware/create-handler';

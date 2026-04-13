@@ -4,14 +4,15 @@ import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dyn
 import { DynamoDBUserRepository } from '../dynamodb-user.repository';
 import { UserSettingsSK } from '../keys/user-settings-key';
 import { UserSettings } from '../../../../contexts/shared/domain/repositories/user.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId } from '@awdah/shared';
 import { settings } from '../../../config/settings';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
 describe('DynamoDBUserRepository', () => {
   let repository: DynamoDBUserRepository;
-  const userId = 'user-123';
+  const rawUserId = 'user-123';
+  const userId = new UserId(rawUserId);
   const tableName = settings.tables.userSettings;
 
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe('DynamoDBUserRepository', () => {
   it('should find user by id', async () => {
     ddbMock.on(GetCommand).resolves({
       Item: {
-        userId,
+        userId: rawUserId,
         sk: UserSettingsSK.SETTINGS,
         username: 'Amgad',
         bulughDate: '1420-01-01',
@@ -34,7 +35,7 @@ describe('DynamoDBUserRepository', () => {
     const user = await repository.findById(userId);
 
     expect(user).not.toBeNull();
-    expect(user!.userId).toBe(userId);
+    expect(user!.userId.toString()).toBe(rawUserId);
     expect(user!.username).toBe('Amgad');
     expect(user!.bulughDate.toString()).toBe('1420-01-01');
 
@@ -42,7 +43,7 @@ describe('DynamoDBUserRepository', () => {
     expect(calls[0]!.args[0].input).toEqual({
       TableName: tableName,
       Key: {
-        userId,
+        userId: rawUserId,
         sk: UserSettingsSK.SETTINGS,
       },
     });
@@ -64,7 +65,7 @@ describe('DynamoDBUserRepository', () => {
     expect(calls[0]!.args[0].input).toMatchObject({
       TableName: tableName,
       Item: {
-        userId,
+        userId: rawUserId,
         sk: UserSettingsSK.SETTINGS,
         username: 'Amgad',
         bulughDate: '1420-01-01',

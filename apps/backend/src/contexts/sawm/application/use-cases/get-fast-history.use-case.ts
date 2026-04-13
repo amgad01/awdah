@@ -1,5 +1,5 @@
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId } from '@awdah/shared';
 import type { BreakReason, LogType as LogTypeT } from '@awdah/shared';
 
 export interface GetFastHistoryCommand {
@@ -23,9 +23,13 @@ export class GetFastHistoryUseCase {
     const start = HijriDate.fromString(command.startDate);
     const end = HijriDate.fromString(command.endDate);
 
-    const logs = await this.repository.findByUserAndDateRange(command.userId, start, end);
+    const logs = await this.repository.findByUserAndDateRange(
+      new UserId(command.userId),
+      start,
+      end,
+    );
     return logs.map((log) => ({
-      eventId: log.eventId,
+      eventId: log.eventId.toString(),
       date: log.date.toString(),
       type: log.type.getValue(),
       loggedAt: log.loggedAt.toISOString(),

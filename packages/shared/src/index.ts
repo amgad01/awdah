@@ -40,6 +40,9 @@ export type {
   HijriDateObject,
   ApiErrorResponse,
 } from './types';
-export { HijriDate } from './domain/value-objects/hijri-date';
+export * from './domain/value-objects/hijri-date';
+export * from './domain/value-objects/user-id';
+export * from './domain/value-objects/event-id';
+export * from './domain/value-objects/period-id';
 export { getLocale, getHijriMonthName } from './i18n';
 export type { SupportedLocale, LocaleData } from './i18n';

@@ -1,10 +1,12 @@
+import { UserId } from '@awdah/shared';
+
 export interface DeletedUserRecord {
-  userId: string;
+  userId: UserId;
   deletedAt: string;
   expiresAt: number;
 }
 
 export interface IDeletedUsersRepository {
-  recordDeletion(userId: string, deletedAt: string, expiresAt: number): Promise<void>;
+  recordDeletion(userId: UserId, deletedAt: string, expiresAt: number): Promise<void>;
   listAll(): Promise<DeletedUserRecord[]>;
 }

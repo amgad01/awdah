@@ -1,8 +1,8 @@
 import { createLogger } from './shared/middleware/logger';
-import { createApp } from './shared/infrastructure/http/create-app';
+import { createExpressApp } from './shared/infrastructure/express/create-express-app';
 
 const logger = createLogger('SimulationServer');
-const app = createApp();
+const app = createExpressApp();
 const port = process.env.PORT || 3000;
 
 // Start server if run directly

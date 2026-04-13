@@ -1,4 +1,4 @@
-import { NotFoundError } from '@awdah/shared';
+import { NotFoundError, UserId } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
@@ -19,7 +19,8 @@ export class GetSawmDebtUseCase {
   ) {}
 
   async execute(userId: string): Promise<SawmDebtResult> {
-    const settings = await this.userRepository.findById(userId);
+    const userVid = new UserId(userId);
+    const settings = await this.userRepository.findById(userVid);
     if (!settings) {
       throw new NotFoundError(userSettingsNotFound);
     }
@@ -30,9 +31,9 @@ export class GetSawmDebtUseCase {
         ? settings.revertDate
         : settings.bulughDate;
 
-    const allPeriods = await this.practicingPeriodRepository.findByUser(userId);
+    const allPeriods = await this.practicingPeriodRepository.findByUser(userVid);
     const relevantPeriods = allPeriods.filter((p) => p.coversContext('sawm'));
-    const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userId);
+    const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userVid);
     const today = this.calendarService.today();
 
     // Early return: if effective start date is in the future, user has zero debt

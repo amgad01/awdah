@@ -1,14 +1,14 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
-import { HijriDate } from '@awdah/shared';
-import { PrayerName } from '../../../contexts/salah/domain/value-objects/prayer-name';
-import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { PrayerLogKey } from './keys/prayer-log-key';
 import { createPrayerSlotKey } from '../../utils/prayer-slot-key';
 import { decodeCursor, encodeCursor } from './cursor';
+
+import { PrayerLogMapper } from './mappers/prayer-log.mapper';
 
 export class DynamoDBPrayerLogRepository
   extends BaseDynamoDBRepository<PrayerLog>
@@ -22,20 +22,20 @@ export class DynamoDBPrayerLogRepository
     await this.persist(log);
   }
 
-  async findByUserAndDate(userId: string, date: HijriDate): Promise<PrayerLog[]> {
+  async findByUserAndDate(userId: UserId, date: HijriDate): Promise<PrayerLog[]> {
     return this.findAllWithPrefix({
-      pk: userId,
+      pk: userId.toString(),
       skPrefix: PrayerLogKey.skPrefixForDate(date.toString()),
     });
   }
 
   async findByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
   ): Promise<PrayerLog[]> {
     return this.findAllInRange({
-      pk: userId,
+      pk: userId.toString(),
       range: {
         start: PrayerLogKey.skPrefixForDate(start.toString()),
         end: PrayerLogKey.skRangeEndForDate(end.toString()),
@@ -44,7 +44,7 @@ export class DynamoDBPrayerLogRepository
   }
 
   async findPageByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
     options?: {
@@ -53,7 +53,7 @@ export class DynamoDBPrayerLogRepository
     },
   ): Promise<{ items: PrayerLog[]; nextCursor?: string }> {
     const result = await this.findInRange({
-      pk: userId,
+      pk: userId.toString(),
       range: {
         start: PrayerLogKey.skPrefixForDate(start.toString()),
         end: PrayerLogKey.skRangeEndForDate(end.toString()),
@@ -69,7 +69,7 @@ export class DynamoDBPrayerLogRepository
     };
   }
 
-  async countQadaaCompleted(userId: string): Promise<number> {
+  async countQadaaCompleted(userId: UserId): Promise<number> {
     const buckets = await this.computeQadaaBuckets(userId);
     return Array.from(buckets.values()).reduce(
       (total, bucket) => total + Math.max(0, bucket.prayed - bucket.deselected),
@@ -77,7 +77,7 @@ export class DynamoDBPrayerLogRepository
     );
   }
 
-  async countQadaaCompletedByPrayer(userId: string): Promise<Record<string, number>> {
+  async countQadaaCompletedByPrayer(userId: UserId): Promise<Record<string, number>> {
     const buckets = await this.computeQadaaBuckets(userId);
     const counts: Record<string, number> = {};
     for (const bucket of buckets.values()) {
@@ -90,10 +90,10 @@ export class DynamoDBPrayerLogRepository
   }
 
   private async computeQadaaBuckets(
-    userId: string,
+    userId: UserId,
   ): Promise<Map<string, { prayerName: string; prayed: number; deselected: number }>> {
     const logs = await this.findAllWithIndexPrefix({
-      pk: userId,
+      pk: userId.toString(),
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
@@ -118,45 +118,34 @@ export class DynamoDBPrayerLogRepository
   }
 
   async deleteEntry(
-    userId: string,
+    userId: UserId,
     date: HijriDate,
     prayerName: string,
-    eventId: string,
+    eventId: EventId,
   ): Promise<void> {
     await this.deleteItem({
-      pk: userId,
-      sk: PrayerLogKey.encodeSk(date.toString(), prayerName, eventId),
+      pk: userId.toString(),
+      sk: PrayerLogKey.encodeSk(date.toString(), prayerName, eventId.toString()),
     });
   }
 
   protected encodeKeys(log: PrayerLog): DomainKeys {
+    const persistence = PrayerLogMapper.toPersistence(log);
     return {
-      pk: log.userId,
-      sk: PrayerLogKey.encodeSk(log.date.toString(), log.prayerName.getValue(), log.eventId),
+      pk: persistence.userId as string,
+      sk: persistence.sk as string,
     };
   }
 
   protected mapToPersistence(log: PrayerLog): Record<string, unknown> {
-    return {
-      type: log.type.getValue(),
-      action: log.action,
-      loggedAt: log.loggedAt.toISOString(),
-      typeDate: PrayerLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
-      isVoluntary: log.isVoluntary,
-    };
+    const item = PrayerLogMapper.toPersistence(log);
+    const { userId, sk, ...attributes } = item;
+    void userId;
+    void sk;
+    return attributes;
   }
 
   protected mapToDomain(item: Record<string, unknown>): PrayerLog {
-    const { date, prayer, eventId } = PrayerLogKey.decodeSk(item.sk as string);
-    return new PrayerLog({
-      userId: item.userId as string,
-      date: HijriDate.fromString(date),
-      prayerName: new PrayerName(prayer.toLowerCase()),
-      eventId,
-      type: new LogType(item.type as string),
-      action: (item.action as 'prayed' | 'deselected') ?? 'prayed',
-      loggedAt: new Date(item.loggedAt as string),
-      isVoluntary: item.isVoluntary as boolean,
-    });
+    return PrayerLogMapper.toDomain(item);
   }
 }

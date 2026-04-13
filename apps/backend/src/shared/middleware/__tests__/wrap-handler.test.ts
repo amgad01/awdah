@@ -1,9 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { wrapHandler } from '../wrap-handler';
-import { responses } from '../responses';
 import { SECURITY_HEADERS } from '../security-headers';
 import { ValidationError, StatusCodes } from '@awdah/shared';
 import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+
+function okResponse(body: unknown) {
+  return {
+    statusCode: StatusCodes.OK,
+    body,
+  };
+}
+
+function createdResponse(body: unknown) {
+  return {
+    statusCode: StatusCodes.CREATED,
+    body,
+  };
+}
 
 describe('wrap-handler', () => {
   const mockContext: Context = {
@@ -61,7 +74,7 @@ describe('wrap-handler', () => {
   describe('responses', () => {
     it('should create an ok response with a plain body', () => {
       const body = { foo: 'bar' };
-      const result = responses.ok(body);
+      const result = okResponse(body);
       expect(result.statusCode).toBe(StatusCodes.OK);
       expect(result.body).toEqual(body);
     });
@@ -69,29 +82,29 @@ describe('wrap-handler', () => {
     it('should create an ok response with a message and data', () => {
       const message = 'Success!';
       const data = { id: 123 };
-      const result = responses.ok({ message, data });
+      const result = okResponse({ message, id: data.id });
       expect(result.statusCode).toBe(StatusCodes.OK);
       expect(result.body).toEqual({ message, id: 123 });
     });
 
     it('should create a created response with a message', () => {
       const message = 'Created!';
-      const result = responses.created({ message });
+      const result = createdResponse({ message });
       expect(result.statusCode).toBe(StatusCodes.CREATED);
       expect(result.body).toEqual({ message });
     });
 
     it('should preserve falsy response data', () => {
-      expect(responses.ok({ data: 0 }).body).toEqual({ data: 0 });
-      expect(responses.ok({ data: false }).body).toEqual({ data: false });
-      expect(responses.ok({ data: '' }).body).toEqual({ data: '' });
-      expect(responses.ok({ message: '', data: 0 }).body).toEqual({ message: '', data: 0 });
+      expect(okResponse({ data: 0 }).body).toEqual({ data: 0 });
+      expect(okResponse({ data: false }).body).toEqual({ data: false });
+      expect(okResponse({ data: '' }).body).toEqual({ data: '' });
+      expect(okResponse({ message: '', data: 0 }).body).toEqual({ message: '', data: 0 });
     });
   });
 
   describe('wrapHandler', () => {
     it('should execute successfully and return security headers', async () => {
-      const handler = vi.fn().mockResolvedValue(responses.ok({ ok: true }));
+      const handler = vi.fn().mockResolvedValue(okResponse({ ok: true }));
       const wrapped = wrapHandler('TestContext', handler);
 
       const event = createMockEvent({ some: 'data' });

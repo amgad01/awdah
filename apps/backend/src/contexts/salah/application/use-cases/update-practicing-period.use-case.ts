@@ -3,6 +3,8 @@ import { IUserRepository } from '../../../shared/domain/repositories/user.reposi
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
 import {
   HijriDate,
+  UserId,
+  PeriodId,
   NotFoundError,
   PracticingPeriodType,
   ConflictError,
@@ -25,12 +27,15 @@ export class UpdatePracticingPeriodUseCase {
   ) {}
 
   async execute(command: UpdatePracticingPeriodCommand): Promise<void> {
-    const existing = await this.repository.findById(command.userId, command.periodId);
+    const userId = new UserId(command.userId);
+    const periodId = new PeriodId(command.periodId);
+
+    const existing = await this.repository.findById(userId, periodId);
     if (!existing) {
       throw new NotFoundError('onboarding.period_error_not_found');
     }
 
-    const userSettings = await this.userRepository.findById(command.userId);
+    const userSettings = await this.userRepository.findById(userId);
     if (!userSettings) {
       throw new NotFoundError(userSettingsNotFound);
     }
@@ -43,16 +48,16 @@ export class UpdatePracticingPeriodUseCase {
     }
 
     const updated = new PracticingPeriod({
-      userId: command.userId,
-      periodId: command.periodId,
+      userId,
+      periodId,
       startDate,
       endDate,
       type: command.type,
     });
 
-    const allPeriods = await this.repository.findByUser(command.userId);
+    const allPeriods = await this.repository.findByUser(userId);
     for (const p of allPeriods) {
-      if (p.periodId === command.periodId) continue;
+      if (p.periodId.equals(periodId)) continue;
       if (p.overlapsWith(updated)) {
         throw new ConflictError('onboarding.period_error_overlap');
       }

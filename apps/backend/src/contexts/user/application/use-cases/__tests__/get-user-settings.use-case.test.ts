@@ -4,7 +4,7 @@ import {
   IUserRepository,
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
-import { HijriDate, NotFoundError } from '@awdah/shared';
+import { HijriDate, NotFoundError, UserId } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../../shared/errors/messages';
 
 describe('GetUserSettingsUseCase', () => {
@@ -21,7 +21,7 @@ describe('GetUserSettingsUseCase', () => {
 
   it('returns settings when user exists', async () => {
     const expectedSettings: UserSettings = {
-      userId: 'user-123',
+      userId: new UserId('user-123'),
       bulughDate: HijriDate.fromString('1431-09-15'),
       gender: 'male',
     };
@@ -29,7 +29,7 @@ describe('GetUserSettingsUseCase', () => {
 
     const result = await useCase.execute('user-123');
 
-    expect(mockRepo.findById).toHaveBeenCalledWith('user-123');
+    expect(mockRepo.findById).toHaveBeenCalledWith(expect.any(UserId));
     expect(result).toBe(expectedSettings);
   });
 
@@ -39,6 +39,6 @@ describe('GetUserSettingsUseCase', () => {
     await expect(useCase.execute('unknown-user')).rejects.toThrow(
       new NotFoundError(userSettingsNotFound),
     );
-    expect(mockRepo.findById).toHaveBeenCalledWith('unknown-user');
+    expect(mockRepo.findById).toHaveBeenCalledWith(expect.any(UserId));
   });
 });

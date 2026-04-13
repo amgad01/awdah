@@ -1,3 +1,4 @@
+import { UserId } from '@awdah/shared';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { PracticingPeriodType } from '@awdah/shared';
 
@@ -12,9 +13,9 @@ export class GetPracticingPeriodsUseCase {
   constructor(private readonly repository: IPracticingPeriodRepository) {}
 
   async execute(userId: string): Promise<PracticingPeriodDto[]> {
-    const periods = await this.repository.findByUser(userId);
+    const periods = await this.repository.findByUser(new UserId(userId));
     return periods.map((p) => ({
-      periodId: p.periodId,
+      periodId: p.periodId.toString(),
       startDate: p.startDate.toString(),
       endDate: p.endDate?.toString(),
       type: p.type,

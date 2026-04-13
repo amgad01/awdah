@@ -1,4 +1,4 @@
-import { HijriDate, type BreakReason, type LogType as LogTypeT } from '@awdah/shared';
+import { HijriDate, UserId, type BreakReason, type LogType as LogTypeT } from '@awdah/shared';
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 
 export interface GetFastHistoryPageCommand {
@@ -28,14 +28,19 @@ export class GetFastHistoryPageUseCase {
     const start = HijriDate.fromString(command.startDate);
     const end = HijriDate.fromString(command.endDate);
 
-    const page = await this.repository.findPageByUserAndDateRange(command.userId, start, end, {
-      limit: command.limit,
-      cursor: command.cursor,
-    });
+    const page = await this.repository.findPageByUserAndDateRange(
+      new UserId(command.userId),
+      start,
+      end,
+      {
+        limit: command.limit,
+        cursor: command.cursor,
+      },
+    );
 
     return {
       items: page.items.map((log) => ({
-        eventId: log.eventId,
+        eventId: log.eventId.toString(),
         date: log.date.toString(),
         type: log.type.getValue(),
         loggedAt: log.loggedAt.toISOString(),

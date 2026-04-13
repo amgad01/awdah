@@ -1,10 +1,10 @@
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { PrayerName } from '../value-objects/prayer-name';
 import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface PrayerLogProps {
-  userId: string;
-  eventId: string;
+  userId: UserId;
+  eventId: EventId;
   date: HijriDate;
   prayerName: PrayerName;
   type: LogType;
@@ -16,11 +16,11 @@ export interface PrayerLogProps {
 export class PrayerLog {
   constructor(private readonly props: PrayerLogProps) {}
 
-  get userId(): string {
+  get userId(): UserId {
     return this.props.userId;
   }
 
-  get eventId(): string {
+  get eventId(): EventId {
     return this.props.eventId;
   }
 

@@ -1,12 +1,12 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
-import { HijriDate, type BreakReason } from '@awdah/shared';
-import { LogType } from '../../../contexts/shared/domain/value-objects/log-type';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { FastLogKey } from './keys/fast-log-key';
 import { decodeCursor, encodeCursor } from './cursor';
+import { FastLogMapper } from './mappers/fast-log.mapper';
 
 export class DynamoDBFastLogRepository
   extends BaseDynamoDBRepository<FastLog>
@@ -20,20 +20,20 @@ export class DynamoDBFastLogRepository
     await this.persist(log);
   }
 
-  async findByUserAndDate(userId: string, date: HijriDate): Promise<FastLog[]> {
+  async findByUserAndDate(userId: UserId, date: HijriDate): Promise<FastLog[]> {
     return this.findAllWithPrefix({
-      pk: userId,
+      pk: userId.toString(),
       skPrefix: FastLogKey.skPrefixForDate(date.toString()),
     });
   }
 
   async findByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
   ): Promise<FastLog[]> {
     return this.findAllInRange({
-      pk: userId,
+      pk: userId.toString(),
       range: {
         start: FastLogKey.skPrefixForDate(start.toString()),
         end: FastLogKey.skRangeEndForDate(end.toString()),
@@ -42,7 +42,7 @@ export class DynamoDBFastLogRepository
   }
 
   async findPageByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
     options?: {
@@ -51,7 +51,7 @@ export class DynamoDBFastLogRepository
     },
   ): Promise<{ items: FastLog[]; nextCursor?: string }> {
     const result = await this.findInRange({
-      pk: userId,
+      pk: userId.toString(),
       range: {
         start: FastLogKey.skPrefixForDate(start.toString()),
         end: FastLogKey.skRangeEndForDate(end.toString()),
@@ -67,9 +67,9 @@ export class DynamoDBFastLogRepository
     };
   }
 
-  async countQadaaCompleted(userId: string): Promise<number> {
+  async countQadaaCompleted(userId: UserId): Promise<number> {
     const logs = await this.findAllWithIndexPrefix({
-      pk: userId,
+      pk: userId.toString(),
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
@@ -78,37 +78,31 @@ export class DynamoDBFastLogRepository
     return new Set(logs.map((log) => log.date.toString())).size;
   }
 
-  async deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void> {
-    await this.deleteItem({ pk: userId, sk: FastLogKey.encodeSk(date.toString(), eventId) });
+  async deleteEntry(userId: UserId, date: HijriDate, eventId: EventId): Promise<void> {
+    await this.deleteItem({
+      pk: userId.toString(),
+      sk: FastLogKey.encodeSk(date.toString(), eventId.toString()),
+    });
   }
 
   protected encodeKeys(log: FastLog): DomainKeys {
+    const persistenceItem = FastLogMapper.toPersistence(log);
     return {
-      pk: log.userId,
-      sk: FastLogKey.encodeSk(log.date.toString(), log.eventId),
+      pk: persistenceItem.userId as string,
+      sk: persistenceItem.sk as string,
     };
   }
 
   protected mapToPersistence(log: FastLog): Record<string, unknown> {
-    return {
-      type: log.type.getValue(),
-      loggedAt: log.loggedAt.toISOString(),
-      typeDate: FastLogKey.encodeTypeDate(log.type.getValue(), log.date.toString()),
-      breakReason: log.breakReason,
-      isVoluntary: log.isVoluntary,
-    };
+    const item = FastLogMapper.toPersistence(log);
+    // Remove keys as they are handled by BaseDynamoDBRepository using encodeKeys
+    const { userId, sk, ...attributes } = item;
+    void userId;
+    void sk;
+    return attributes;
   }
 
   protected mapToDomain(item: Record<string, unknown>): FastLog {
-    const { date, eventId } = FastLogKey.decodeSk(item.sk as string);
-    return new FastLog({
-      userId: item.userId as string,
-      date: HijriDate.fromString(date),
-      eventId,
-      type: new LogType(item.type as string),
-      loggedAt: new Date(item.loggedAt as string),
-      breakReason: item.breakReason as BreakReason | undefined,
-      isVoluntary: item.isVoluntary as boolean,
-    });
+    return FastLogMapper.toDomain(item);
   }
 }

@@ -9,7 +9,15 @@ import {
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, NotFoundError, ConflictError, ValidationError } from '@awdah/shared';
+import {
+  HijriDate,
+  UserId,
+  PeriodId,
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+} from '@awdah/shared';
+import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 
 const BULUGH_DATE = '1440-01-01';
 
@@ -28,8 +36,12 @@ describe('AddPracticingPeriodUseCase', () => {
     save: vi.fn(),
   } as unknown as IUserRepository;
 
+  const mockIdGenerator: IIdGenerator = {
+    generate: vi.fn().mockReturnValue('new-period-id'),
+  };
+
   const defaultUserSettings: UserSettings = {
-    userId: 'user-1',
+    userId: new UserId('user-1'),
     dateOfBirth: HijriDate.fromString('1425-01-01'),
     bulughDate: HijriDate.fromString(BULUGH_DATE),
     gender: 'male',
@@ -38,7 +50,7 @@ describe('AddPracticingPeriodUseCase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(mockUserRepo.findById).mockResolvedValue(defaultUserSettings);
-    useCase = new AddPracticingPeriodUseCase(mockRepo, mockUserRepo);
+    useCase = new AddPracticingPeriodUseCase(mockRepo, mockUserRepo, mockIdGenerator);
   });
 
   const command: AddPracticingPeriodCommand = {
@@ -53,21 +65,21 @@ describe('AddPracticingPeriodUseCase', () => {
 
     const result = await useCase.execute(command);
 
-    expect(result.periodId).toBeDefined();
+    expect(result.periodId).toBe('new-period-id');
     expect(mockRepo.save).toHaveBeenCalled();
     const savedPeriod = vi.mocked(mockRepo.save).mock.calls[0]?.[0];
 
     expect(savedPeriod).not.toBeNull();
     if (savedPeriod) {
-      expect(savedPeriod.userId).toBe(command.userId);
+      expect(savedPeriod.userId.toString()).toBe(command.userId);
       expect(savedPeriod.startDate.toString()).toBe(command.startDate);
     }
   });
 
   it('throws ConflictError if period overlaps with existing one', async () => {
     const existingPeriod = new PracticingPeriod({
-      userId: 'user-1',
-      periodId: 'existing-1',
+      userId: new UserId('user-1'),
+      periodId: new PeriodId('existing-1'),
       startDate: HijriDate.fromString('1445-01-01'),
       endDate: HijriDate.fromString('1445-01-10'),
       type: 'salah',

@@ -1,10 +1,10 @@
-import { ValidationError } from '@awdah/shared';
+import { ValidationError, UserId, PeriodId } from '@awdah/shared';
 import { HijriDate } from '@awdah/shared';
 import { PracticingPeriodType } from '@awdah/shared';
 
 export interface PracticingPeriodProps {
-  userId: string;
-  periodId: string;
+  userId: UserId;
+  periodId: PeriodId;
   startDate: HijriDate;
   endDate?: HijriDate; // undefined = open-ended (user is currently practicing)
   type: PracticingPeriodType;
@@ -21,11 +21,11 @@ export class PracticingPeriod {
     }
   }
 
-  get userId(): string {
+  get userId(): UserId {
     return this.props.userId;
   }
 
-  get periodId(): string {
+  get periodId(): PeriodId {
     return this.props.periodId;
   }
 

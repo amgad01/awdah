@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { UserId, EventId } from '@awdah/shared';
 import { ProcessUserLifecycleJobUseCase } from '../process-user-lifecycle-job.use-case';
 import type { IUserDataLifecycleService } from '../../../domain/services/user-data-lifecycle.service.interface';
 import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
@@ -38,10 +39,13 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     vi.clearAllMocks();
   });
 
+  const userId = new UserId('user-1');
+  const jobId = new EventId('job-1');
+
   it('exports user data, stores the result chunks, and marks the job completed', async () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'export',
       status: 'processing',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -49,13 +53,13 @@ describe('ProcessUserLifecycleJobUseCase', () => {
       expiresAt: 1,
     });
     vi.mocked(mockLifecycleService.exportUserData).mockResolvedValue({
-      userId: 'user-1',
+      userId: userId.toString(),
       prayerLogs: [],
     });
     vi.mocked(mockJobRepository.saveExportResult).mockResolvedValue({ chunkCount: 1 });
     vi.mocked(mockJobRepository.markCompleted).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'export',
       status: 'completed',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -67,19 +71,19 @@ describe('ProcessUserLifecycleJobUseCase', () => {
       exportFileName: 'awdah-data-export-2026-03-23.json',
     });
 
-    const result = await useCase.execute({ userId: 'user-1', jobId: 'job-1' });
+    const result = await useCase.execute({ userId, jobId });
 
-    expect(mockLifecycleService.exportUserData).toHaveBeenCalledWith('user-1');
+    expect(mockLifecycleService.exportUserData).toHaveBeenCalledWith(expect.any(UserId));
     expect(mockJobRepository.saveExportResult).toHaveBeenCalledWith(
-      'user-1',
-      'job-1',
+      expect.any(UserId),
+      expect.any(EventId),
       expect.objectContaining({
         contentType: 'application/json;charset=utf-8',
       }),
     );
     expect(mockJobRepository.markCompleted).toHaveBeenCalledWith(
-      'user-1',
-      'job-1',
+      expect.any(UserId),
+      expect.any(EventId),
       expect.objectContaining({
         exportChunkCount: 1,
       }),
@@ -90,8 +94,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
 
   it('deletes user data and marks delete-account jobs completed with auth cleanup pending', async () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'processing',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -101,8 +105,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
       authDeleted: false,
     });
     vi.mocked(mockJobRepository.markCompleted).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'completed',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -113,17 +117,17 @@ describe('ProcessUserLifecycleJobUseCase', () => {
       authDeleted: false,
     });
 
-    const result = await useCase.execute({ userId: 'user-1', jobId: 'job-1' });
+    const result = await useCase.execute({ userId, jobId });
 
-    expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith('user-1');
+    expect(mockLifecycleService.deleteUserData).toHaveBeenCalledWith(expect.any(UserId));
     expect(mockDeletedUsersRepo.recordDeletion).toHaveBeenCalledWith(
-      'user-1',
+      expect.any(UserId),
       expect.any(String),
       expect.any(Number),
     );
     expect(mockJobRepository.markCompleted).toHaveBeenCalledWith(
-      'user-1',
-      'job-1',
+      expect.any(UserId),
+      expect.any(EventId),
       expect.objectContaining({
         authCleanupRequired: true,
         authDeleted: false,
@@ -134,8 +138,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
 
   it('marks jobs failed when background processing throws', async () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'processing',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -146,13 +150,11 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     });
     vi.mocked(mockLifecycleService.deleteUserData).mockRejectedValue(new Error('delete failed'));
 
-    await expect(useCase.execute({ userId: 'user-1', jobId: 'job-1' })).rejects.toThrow(
-      'delete failed',
-    );
+    await expect(useCase.execute({ userId, jobId })).rejects.toThrow('delete failed');
 
     expect(mockJobRepository.markFailed).toHaveBeenCalledWith(
-      'user-1',
-      'job-1',
+      expect.any(UserId),
+      expect.any(EventId),
       expect.any(String),
       'delete failed',
     );

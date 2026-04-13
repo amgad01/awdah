@@ -1,5 +1,5 @@
 import { PrayerLog } from '../entities/prayer-log.entity';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 
 export interface PrayerLogPage {
   items: PrayerLog[];
@@ -8,11 +8,11 @@ export interface PrayerLogPage {
 
 export interface IPrayerLogRepository {
   save(log: PrayerLog): Promise<void>;
-  deleteEntry(userId: string, date: HijriDate, prayerName: string, eventId: string): Promise<void>;
-  findByUserAndDate(userId: string, date: HijriDate): Promise<PrayerLog[]>;
-  findByUserAndDateRange(userId: string, start: HijriDate, end: HijriDate): Promise<PrayerLog[]>;
+  deleteEntry(userId: UserId, date: HijriDate, prayerName: string, eventId: EventId): Promise<void>;
+  findByUserAndDate(userId: UserId, date: HijriDate): Promise<PrayerLog[]>;
+  findByUserAndDateRange(userId: UserId, start: HijriDate, end: HijriDate): Promise<PrayerLog[]>;
   findPageByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
     options?: {
@@ -20,6 +20,6 @@ export interface IPrayerLogRepository {
       cursor?: string;
     },
   ): Promise<PrayerLogPage>;
-  countQadaaCompleted(userId: string): Promise<number>;
-  countQadaaCompletedByPrayer(userId: string): Promise<Record<string, number>>;
+  countQadaaCompleted(userId: UserId): Promise<number>;
+  countQadaaCompletedByPrayer(userId: UserId): Promise<Record<string, number>>;
 }

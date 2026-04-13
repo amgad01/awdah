@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError } from '@awdah/shared';
+import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
 import type {
   IUserLifecycleJobRepository,
   UserLifecycleExportDownload,
@@ -13,7 +13,10 @@ export class DownloadExportDataUseCase {
   constructor(private readonly jobRepository: IUserLifecycleJobRepository) {}
 
   async execute(command: DownloadExportDataCommand): Promise<UserLifecycleExportDownload> {
-    const job = await this.jobRepository.findById(command.userId, command.jobId);
+    const userId = new UserId(command.userId);
+    const jobId = new EventId(command.jobId);
+
+    const job = await this.jobRepository.findById(userId, jobId);
 
     if (!job || job.type !== 'export') {
       throw new NotFoundError('Export job not found');
@@ -27,7 +30,7 @@ export class DownloadExportDataUseCase {
       throw new ConflictError('Export is still being prepared');
     }
 
-    const download = await this.jobRepository.readExportResult(command.userId, command.jobId);
+    const download = await this.jobRepository.readExportResult(userId, jobId);
     if (!download) {
       throw new NotFoundError('Export data is not available');
     }

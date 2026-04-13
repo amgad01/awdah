@@ -5,7 +5,10 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "typecheck:scripts": "tsc -p tsconfig.scripts.json --noEmit",
     "dev": "ts-node src/index.ts",
+    "restore:s3": "ts-node -P tsconfig.scripts.json scripts/restore-from-s3.ts",
+    "restore:sanitize": "ts-node -P tsconfig.scripts.json scripts/restore-sanitize.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

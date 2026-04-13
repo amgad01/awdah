@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SalahDebtCalculator } from '../debt-calculator.service';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, PeriodId } from '@awdah/shared';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
 import { IHijriCalendarService } from '../../../../shared/domain/services/hijri-calendar.service';
 
@@ -31,8 +31,8 @@ describe('SalahDebtCalculator', () => {
     const today = new HijriDate(1442, 1, 1);
 
     const period = new PracticingPeriod({
-      userId: 'user-1',
-      periodId: 'period-1',
+      userId: new UserId('user-1'),
+      periodId: new PeriodId('period-1'),
       startDate: practiceStart,
       endDate: today,
       type: 'salah',
@@ -69,15 +69,15 @@ describe('SalahDebtCalculator', () => {
 
     const periods = [
       new PracticingPeriod({
-        userId: 'u',
-        periodId: '1',
+        userId: new UserId('u'),
+        periodId: new PeriodId('1'),
         startDate: p1Start,
         endDate: p1End,
         type: 'salah',
       }),
       new PracticingPeriod({
-        userId: 'u',
-        periodId: '2',
+        userId: new UserId('u'),
+        periodId: new PeriodId('2'),
         startDate: p2Start,
         endDate: today,
         type: 'salah',
@@ -106,15 +106,15 @@ describe('SalahDebtCalculator', () => {
 
     const periods = [
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p1',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p1'),
         startDate: bulugh,
         endDate: p1End,
         type: 'salah',
       }),
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p2',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p2'),
         startDate: p2Start,
         endDate: today,
         type: 'salah',
@@ -143,15 +143,15 @@ describe('SalahDebtCalculator', () => {
 
     const periods = [
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p1',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p1'),
         startDate: bulugh,
         endDate: p1End,
         type: 'salah',
       }),
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p2',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p2'),
         startDate: p2Start,
         endDate: today,
         type: 'salah',
@@ -185,15 +185,15 @@ describe('SalahDebtCalculator', () => {
 
     const periods = [
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p1',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p1'),
         startDate: p1Start,
         endDate: p1End,
         type: 'salah',
       }),
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p2',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p2'),
         startDate: p2Start,
         endDate: p2End,
         type: 'salah',

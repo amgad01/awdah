@@ -5,6 +5,8 @@ import { createLogger } from '../../middleware/logger';
 import { SECURITY_HEADERS } from '../../middleware/security-headers';
 
 const logger = createLogger('SimulationServer');
+const LOCAL_CONTENT_SECURITY_POLICY =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:3000; frame-ancestors 'none'; upgrade-insecure-requests;";
 
 export type LocalLambdaHandler = (
   event: APIGatewayProxyEventV2,
@@ -19,14 +21,38 @@ export async function runLocalLambdaHandler(
   const event = buildLocalEvent(req);
   const userId = req.headers['x-user-id'] as string | undefined;
 
-  if (!userId && process.env.DEV_AUTH_BYPASS !== 'true') {
-    res
-      .status(StatusCodes.UNAUTHORIZED)
-      .set(SECURITY_HEADERS)
-      .json({ error: { code: 'UNAUTHENTICATED', message: 'Missing x-user-id header' } });
+  if (!canResolveLocalUserId(userId)) {
+    sendMissingUserIdResponse(res);
     return;
   }
 
+  attachLocalAuthorizer(event, resolveLocalUserId(userId));
+
+  try {
+    const result = await invokeLocalHandler(handler, event);
+    sendLocalHttpResult(res, result);
+  } catch (error) {
+    logger.error({ err: error }, 'Handler Error');
+    sendLocalErrorResponse(res);
+  }
+}
+
+function canResolveLocalUserId(userId: string | undefined): boolean {
+  return Boolean(userId) || process.env.DEV_AUTH_BYPASS === 'true';
+}
+
+function resolveLocalUserId(userId: string | undefined): string {
+  return userId || 'local-dev-user';
+}
+
+function sendMissingUserIdResponse(res: express.Response): void {
+  res
+    .status(StatusCodes.UNAUTHORIZED)
+    .set(SECURITY_HEADERS)
+    .json({ error: { code: 'UNAUTHENTICATED', message: 'Missing x-user-id header' } });
+}
+
+function attachLocalAuthorizer(event: APIGatewayProxyEventV2, userId: string): void {
   const requestContext = event.requestContext as APIGatewayProxyEventV2['requestContext'] & {
     authorizer?: { jwt: { claims: { sub: string } } };
   };
@@ -34,33 +60,51 @@ export async function runLocalLambdaHandler(
   requestContext.authorizer = {
     jwt: {
       claims: {
-        sub: userId || 'local-dev-user',
+        sub: userId,
       },
     },
   };
 
   event.requestContext = requestContext as APIGatewayProxyEventV2['requestContext'];
+}
 
-  try {
-    const result = normalizeHttpResult(
-      await handler(event, { awsRequestId: 'local-dev-request' } as Context),
-    );
-    res
-      .status(result.statusCode)
-      .set({
-        ...result.headers,
-        ...SECURITY_HEADERS,
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:3000; frame-ancestors 'none'; upgrade-insecure-requests;",
-      })
-      .send(result.body);
-  } catch (error) {
-    logger.error({ err: error }, 'Handler Error');
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .set(SECURITY_HEADERS)
-      .json({ message: 'Internal Server Error' });
-  }
+async function invokeLocalHandler(
+  handler: LocalLambdaHandler,
+  event: APIGatewayProxyEventV2,
+): Promise<{
+  statusCode: number;
+  headers?: Record<string, string>;
+  body?: string;
+}> {
+  const rawResult = await handler(event, { awsRequestId: 'local-dev-request' } as Context);
+  return normalizeHttpResult(rawResult);
+}
+
+function sendLocalHttpResult(
+  res: express.Response,
+  result: {
+    statusCode: number;
+    headers?: Record<string, string>;
+    body?: string;
+  },
+): void {
+  res.status(result.statusCode).set(buildLocalResponseHeaders(result.headers)).send(result.body);
+}
+
+function buildLocalResponseHeaders(
+  headers: Record<string, string> | undefined,
+): Record<string, string> {
+  return {
+    ...headers,
+    ...SECURITY_HEADERS,
+    'Content-Security-Policy': LOCAL_CONTENT_SECURITY_POLICY,
+  };
+}
+
+function sendLocalErrorResponse(res: express.Response): void {
+  res.status(StatusCodes.INTERNAL_SERVER_ERROR).set(SECURITY_HEADERS).json({
+    message: 'Internal Server Error',
+  });
 }
 
 function buildLocalEvent(req: express.Request): APIGatewayProxyEventV2 {

@@ -1,4 +1,4 @@
-import { resetPrayerLogsUseCase } from '../../../../shared/di/container';
+import { resetPrayerLogsUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { MESSAGES } from '../../../../shared/constants/messages';
 import { createHandler } from '../../../../shared/middleware/create-handler';

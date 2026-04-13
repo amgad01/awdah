@@ -9,7 +9,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBPrayerLogRepository } from '../dynamodb-prayer-log.repository';
 import { PrayerLog } from '../../../../contexts/salah/domain/entities/prayer-log.entity';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { PrayerName } from '../../../../contexts/salah/domain/value-objects/prayer-name';
 import { LogType } from '../../../../contexts/shared/domain/value-objects/log-type';
 import { PrayerLogKey } from '../keys/prayer-log-key';
@@ -19,9 +19,11 @@ const ddbMock = mockClient(DynamoDBDocumentClient);
 
 describe('DynamoDBPrayerLogRepository', () => {
   let repository: DynamoDBPrayerLogRepository;
-  const userId = 'user-123';
+  const rawUserId = 'user-123';
+  const userId = new UserId(rawUserId);
   const dateStr = '1445-01-01';
-  const eventId = 'event-456';
+  const rawEventId = 'event-456';
+  const eventId = new EventId(rawEventId);
   const tableName = settings.tables.prayerLogs;
 
   beforeEach(() => {
@@ -50,8 +52,8 @@ describe('DynamoDBPrayerLogRepository', () => {
     expect(calls[0]!.args[0].input).toMatchObject({
       TableName: tableName,
       Item: {
-        userId,
-        sk: PrayerLogKey.encodeSk(dateStr, 'fajr', eventId),
+        userId: rawUserId,
+        sk: PrayerLogKey.encodeSk(dateStr, 'fajr', rawEventId),
         type: 'obligatory',
         loggedAt: '2024-01-01T12:00:00.000Z',
         typeDate: PrayerLogKey.encodeTypeDate('obligatory', dateStr),
@@ -63,8 +65,8 @@ describe('DynamoDBPrayerLogRepository', () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [
         {
-          userId,
-          sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', eventId),
+          userId: rawUserId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', rawEventId),
           type: 'obligatory',
           loggedAt: '2024-01-01T12:00:00.000Z',
         },
@@ -86,7 +88,7 @@ describe('DynamoDBPrayerLogRepository', () => {
       Items: Array(5)
         .fill(null)
         .map((_, i) => ({
-          userId,
+          userId: rawUserId,
           sk: PrayerLogKey.encodeSk(`1445-01-0${i + 1}`, 'fajr', `event-${i}`),
           type: 'qadaa',
           action: 'prayed',
@@ -111,28 +113,28 @@ describe('DynamoDBPrayerLogRepository', () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [
         {
-          userId,
+          userId: rawUserId,
           sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-1'),
           type: 'qadaa',
           action: 'prayed',
           loggedAt: '2024-01-01T10:00:00.000Z',
         },
         {
-          userId,
+          userId: rawUserId,
           sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-2'),
           type: 'qadaa',
           action: 'prayed',
           loggedAt: '2024-01-01T11:00:00.000Z',
         },
         {
-          userId,
+          userId: rawUserId,
           sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-3'),
           type: 'qadaa',
           action: 'deselected',
           loggedAt: '2024-01-01T12:00:00.000Z',
         },
         {
-          userId,
+          userId: rawUserId,
           sk: PrayerLogKey.encodeSk(dateStr, 'fajr', 'event-4'),
           type: 'qadaa',
           action: 'prayed',
@@ -158,8 +160,8 @@ describe('DynamoDBPrayerLogRepository', () => {
     expect(calls[0]!.args[0].input).toMatchObject({
       TableName: tableName,
       Key: {
-        userId,
-        sk: PrayerLogKey.encodeSk(dateStr, 'fajr', eventId),
+        userId: rawUserId,
+        sk: PrayerLogKey.encodeSk(dateStr, 'fajr', rawEventId),
       },
     });
   });
@@ -187,7 +189,7 @@ describe('DynamoDBPrayerLogRepository', () => {
   });
 
   it('should update log partially', async () => {
-    const keys = { pk: userId, sk: PrayerLogKey.encodeSk(dateStr, 'fajr', eventId) };
+    const keys = { pk: rawUserId, sk: PrayerLogKey.encodeSk(dateStr, 'fajr', rawEventId) };
     const updates = { type: 'qadaa' };
 
     ddbMock.on(UpdateCommand).resolves({});
@@ -199,7 +201,7 @@ describe('DynamoDBPrayerLogRepository', () => {
     expect(calls[0]!.args[0].input).toMatchObject({
       TableName: tableName,
       Key: {
-        userId,
+        userId: rawUserId,
         sk: keys.sk,
       },
       UpdateExpression: 'SET #attr0 = :val0',
@@ -212,15 +214,15 @@ describe('DynamoDBPrayerLogRepository', () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [
         {
-          userId,
-          sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', eventId),
+          userId: rawUserId,
+          sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', rawEventId),
           type: 'qadaa',
           loggedAt: '2024-01-01T12:00:00.000Z',
         },
       ],
       LastEvaluatedKey: {
-        userId,
-        sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', eventId),
+        userId: rawUserId,
+        sk: PrayerLogKey.encodeSk(dateStr, 'FAJR', rawEventId),
       },
     });
 

@@ -1,16 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DeleteFastLogUseCase, DeleteFastLogCommand } from '../delete-fast-log.use-case';
 import { IFastLogRepository } from '../../../domain/repositories/fast-log.repository';
+import { UserId, EventId } from '@awdah/shared';
 
 describe('DeleteFastLogUseCase', () => {
-  const mockRepo: IFastLogRepository = {
+  const mockRepo = {
     save: vi.fn(),
     deleteEntry: vi.fn(),
     findByUserAndDate: vi.fn(),
     findByUserAndDateRange: vi.fn(),
     findPageByUserAndDateRange: vi.fn(),
     countQadaaCompleted: vi.fn(),
-  };
+  } as unknown as IFastLogRepository;
 
   const useCase = new DeleteFastLogUseCase(mockRepo);
 
@@ -28,9 +29,9 @@ describe('DeleteFastLogUseCase', () => {
     await useCase.execute(command);
 
     expect(mockRepo.deleteEntry).toHaveBeenCalledWith(
-      command.userId,
+      expect.any(UserId),
       expect.anything(), // HijriDate instance
-      command.eventId,
+      expect.any(EventId),
     );
   });
 });

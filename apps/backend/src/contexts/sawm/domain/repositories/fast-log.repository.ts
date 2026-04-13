@@ -1,5 +1,5 @@
 import { FastLog } from '../entities/fast-log.entity';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 
 export interface FastLogPage {
   items: FastLog[];
@@ -8,11 +8,11 @@ export interface FastLogPage {
 
 export interface IFastLogRepository {
   save(log: FastLog): Promise<void>;
-  deleteEntry(userId: string, date: HijriDate, eventId: string): Promise<void>;
-  findByUserAndDate(userId: string, date: HijriDate): Promise<FastLog[]>;
-  findByUserAndDateRange(userId: string, start: HijriDate, end: HijriDate): Promise<FastLog[]>;
+  deleteEntry(userId: UserId, date: HijriDate, eventId: EventId): Promise<void>;
+  findByUserAndDate(userId: UserId, date: HijriDate): Promise<FastLog[]>;
+  findByUserAndDateRange(userId: UserId, start: HijriDate, end: HijriDate): Promise<FastLog[]>;
   findPageByUserAndDateRange(
-    userId: string,
+    userId: UserId,
     start: HijriDate,
     end: HijriDate,
     options?: {
@@ -20,5 +20,5 @@ export interface IFastLogRepository {
       cursor?: string;
     },
   ): Promise<FastLogPage>;
-  countQadaaCompleted(userId: string): Promise<number>;
+  countQadaaCompleted(userId: UserId): Promise<number>;
 }

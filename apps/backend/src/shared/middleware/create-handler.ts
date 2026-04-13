@@ -15,6 +15,45 @@ export interface CreateHandlerOptions<TInput, TOutput = unknown> {
   schema?: ZodSchema<Record<string, unknown>>;
 }
 
+function defaultTransformInput<TInput>(userId: string, input: Record<string, unknown>): TInput {
+  return { userId, ...input } as unknown as TInput;
+}
+
+function selectRawInput(
+  useQuery: boolean,
+  body: Record<string, unknown>,
+  query: Record<string, string>,
+): Record<string, unknown> {
+  return useQuery ? query : body;
+}
+
+function parseHandlerInput(
+  schema: ZodSchema<Record<string, unknown>> | undefined,
+  rawInput: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!schema) {
+    return rawInput;
+  }
+
+  return parseBody(schema, rawInput);
+}
+
+function buildSuccessBody<TOutput>(
+  result: TOutput,
+  successMessage: string | undefined,
+  present: ((result: TOutput) => unknown) | undefined,
+): unknown {
+  if (result == null) {
+    return { message: successMessage ?? 'Operation successful' };
+  }
+
+  if (present) {
+    return present(result);
+  }
+
+  return result;
+}
+
 export function createHandler<TInput, TOutput = unknown>(
   contextName: string,
   useCase: UseCase<TInput, TOutput>,
@@ -25,23 +64,28 @@ export function createHandler<TInput, TOutput = unknown>(
     successMessage,
     statusCode = 200,
     present,
-    transformInput = (userId, input) => ({ userId, ...input }) as unknown as TInput,
+    transformInput = defaultTransformInput,
     schema,
   } = options;
 
-  return wrapHandler(contextName, async ({ userId, body, query }) => {
-    const rawInput = useQuery ? query : body;
-    const parsedInput = schema ? parseBody(schema, rawInput) : rawInput;
-    const result = await useCase.execute(transformInput(userId, parsedInput));
-
+  async function handleAuthenticatedRequest({
+    userId,
+    body,
+    query,
+  }: {
+    userId: string;
+    body: Record<string, unknown>;
+    query: Record<string, string>;
+  }) {
+    const rawInput = selectRawInput(useQuery, body, query);
+    const parsedInput = parseHandlerInput(schema, rawInput);
+    const useCaseInput = transformInput(userId, parsedInput);
+    const result = await useCase.execute(useCaseInput);
     return {
       statusCode,
-      body:
-        result == null
-          ? { message: successMessage ?? 'Operation successful' }
-          : present
-            ? present(result)
-            : result,
+      body: buildSuccessBody(result, successMessage, present),
     };
-  });
+  }
+
+  return wrapHandler(contextName, handleAuthenticatedRequest);
 }

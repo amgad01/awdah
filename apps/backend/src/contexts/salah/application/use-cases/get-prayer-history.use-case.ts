@@ -1,5 +1,5 @@
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId } from '@awdah/shared';
 import type { PrayerName as PrayerNameType, LogType as LogTypeT } from '@awdah/shared';
 import { createPrayerSlotKey } from '../../../../shared/utils/prayer-slot-key';
 
@@ -25,7 +25,11 @@ export class GetPrayerHistoryUseCase {
     const start = HijriDate.fromString(command.startDate);
     const end = HijriDate.fromString(command.endDate);
 
-    const logs = await this.repository.findByUserAndDateRange(command.userId, start, end);
+    const logs = await this.repository.findByUserAndDateRange(
+      new UserId(command.userId),
+      start,
+      end,
+    );
 
     // Split obligatory vs qadaa — different dedup strategies.
     const obligatory: (typeof logs)[number][] = [];
@@ -57,7 +61,7 @@ export class GetPrayerHistoryUseCase {
     const result: PrayerLogDto[] = Array.from(slots.values())
       .filter(({ log }) => log.action === 'prayed')
       .map(({ log }) => ({
-        eventId: log.eventId,
+        eventId: log.eventId.toString(),
         date: log.date.toString(),
         prayerName: log.prayerName.getValue(),
         type: log.type.getValue(),
@@ -84,7 +88,7 @@ export class GetPrayerHistoryUseCase {
         .slice(0, Math.max(0, net));
       for (const log of kept) {
         result.push({
-          eventId: log.eventId,
+          eventId: log.eventId.toString(),
           date: log.date.toString(),
           prayerName: log.prayerName.getValue(),
           type: log.type.getValue(),

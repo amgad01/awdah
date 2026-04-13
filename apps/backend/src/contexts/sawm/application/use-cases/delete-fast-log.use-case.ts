@@ -1,5 +1,5 @@
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 
 export interface DeleteFastLogCommand {
   userId: string;
@@ -12,6 +12,10 @@ export class DeleteFastLogUseCase {
 
   async execute(command: DeleteFastLogCommand): Promise<void> {
     const date = HijriDate.fromString(command.date);
-    await this.repository.deleteEntry(command.userId, date, command.eventId);
+    await this.repository.deleteEntry(
+      new UserId(command.userId),
+      date,
+      new EventId(command.eventId),
+    );
   }
 }

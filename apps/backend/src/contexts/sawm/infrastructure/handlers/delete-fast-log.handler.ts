@@ -1,4 +1,4 @@
-import { deleteFastLogUseCase } from '../../../../shared/di/container';
+import { deleteFastLogUseCase } from '../../../../shared/di/sawm-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { deleteFastLogSchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

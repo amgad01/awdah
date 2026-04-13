@@ -1,4 +1,4 @@
-import { getSawmDebtUseCase } from '../../../../shared/di/container';
+import { getSawmDebtUseCase } from '../../../../shared/di/sawm-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 

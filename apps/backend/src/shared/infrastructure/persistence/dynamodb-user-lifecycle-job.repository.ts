@@ -4,8 +4,11 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { UserId, EventId } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository, type DomainKeys } from './base-dynamodb.repository';
+import { omitUndefinedFields } from './object-utils';
+import { getFullJitterBackoffDelayMs, wait } from './retry-backoff';
 import type {
   CompleteUserLifecycleJobInput,
   CreateUserLifecycleJobInput,
@@ -14,7 +17,6 @@ import type {
   UserLifecycleExportDownload,
   UserLifecycleJob,
 } from '../../../contexts/user/domain/repositories/user-lifecycle-job.repository';
-import type { UserDataExport } from '../../../contexts/user/domain/services/user-data-lifecycle.service.interface';
 
 const EXPORT_CHUNK_SIZE_BYTES = 250_000;
 const MAX_BATCH_WRITE_ATTEMPTS = 5;
@@ -39,20 +41,20 @@ export class DynamoDBUserLifecycleJobRepository
     return job;
   }
 
-  async findById(userId: string, jobId: string): Promise<UserLifecycleJob | null> {
-    return this.retrieve({ pk: userId, sk: toMetaSk(jobId) });
+  async findById(userId: UserId, jobId: EventId): Promise<UserLifecycleJob | null> {
+    return this.retrieve({ pk: userId.toString(), sk: toMetaSk(jobId) });
   }
 
   async tryMarkProcessing(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     startedAt: string,
   ): Promise<UserLifecycleJob | null> {
     try {
       const response = await this.docClient.send(
         new UpdateCommand({
           TableName: this.tableName,
-          Key: { [this.pkName]: userId, [this.skName]: toMetaSk(jobId) },
+          Key: { [this.pkName]: userId.toString(), [this.skName]: toMetaSk(jobId) },
           ConditionExpression: '#status = :pending',
           UpdateExpression: 'SET #status = :processing, startedAt = :startedAt',
           ExpressionAttributeNames: {
@@ -80,12 +82,12 @@ export class DynamoDBUserLifecycleJobRepository
   }
 
   async markCompleted(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     input: CompleteUserLifecycleJobInput,
   ): Promise<UserLifecycleJob> {
     await this.updatePartial(
-      { pk: userId, sk: toMetaSk(jobId) },
+      { pk: userId.toString(), sk: toMetaSk(jobId) },
       omitUndefinedFields({
         status: 'completed',
         completedAt: input.completedAt,
@@ -99,19 +101,19 @@ export class DynamoDBUserLifecycleJobRepository
 
     const job = await this.findById(userId, jobId);
     if (!job) {
-      throw new Error(`Lifecycle job ${jobId} disappeared after completion update`);
+      throw new Error(`Lifecycle job ${jobId.toString()} disappeared after completion update`);
     }
     return job;
   }
 
   async markFailed(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     completedAt: string,
     errorMessage: string,
   ): Promise<void> {
     await this.updatePartial(
-      { pk: userId, sk: toMetaSk(jobId) },
+      { pk: userId.toString(), sk: toMetaSk(jobId) },
       {
         status: 'failed',
         completedAt,
@@ -121,8 +123,8 @@ export class DynamoDBUserLifecycleJobRepository
   }
 
   async saveExportResult(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     input: SaveUserLifecycleExportResultInput,
   ): Promise<{ chunkCount: number }> {
     const payloadBuffer = Buffer.from(JSON.stringify(input.data), 'utf8');
@@ -138,7 +140,7 @@ export class DynamoDBUserLifecycleJobRepository
         return {
           PutRequest: {
             Item: {
-              userId,
+              userId: userId.toString(),
               sk: toChunkSk(jobId, chunkIndex),
               chunkData,
               expiresAt: input.expiresAt,
@@ -154,8 +156,8 @@ export class DynamoDBUserLifecycleJobRepository
   }
 
   async readExportResult(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
   ): Promise<UserLifecycleExportDownload | null> {
     const job = await this.findById(userId, jobId);
     if (
@@ -177,7 +179,7 @@ export class DynamoDBUserLifecycleJobRepository
           '#sk': this.skName,
         },
         ExpressionAttributeValues: {
-          ':pk': userId,
+          ':pk': userId.toString(),
           ':skPrefix': toChunkPrefix(jobId),
         },
       }),
@@ -192,20 +194,22 @@ export class DynamoDBUserLifecycleJobRepository
       items.map((item) => Buffer.from(item.chunkData ?? '', 'base64')),
     ).toString('utf8');
 
+    const data = JSON.parse(combined) as UserLifecycleExportDownload['data'];
+
     return {
       fileName: job.exportFileName,
       contentType: job.exportContentType,
-      data: JSON.parse(combined) as UserDataExport,
+      data,
     };
   }
 
   async markAuthDeleted(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     completedAt: string,
   ): Promise<UserLifecycleJob> {
     await this.updatePartial(
-      { pk: userId, sk: toMetaSk(jobId) },
+      { pk: userId.toString(), sk: toMetaSk(jobId) },
       {
         authDeleted: true,
         authCleanupCompletedAt: completedAt,
@@ -214,14 +218,14 @@ export class DynamoDBUserLifecycleJobRepository
 
     const job = await this.findById(userId, jobId);
     if (!job) {
-      throw new Error(`Lifecycle job ${jobId} disappeared after auth cleanup update`);
+      throw new Error(`Lifecycle job ${jobId.toString()} disappeared after auth cleanup update`);
     }
     return job;
   }
 
   protected encodeKeys(job: UserLifecycleJob): DomainKeys {
     return {
-      pk: job.userId,
+      pk: job.userId.toString(),
       sk: toMetaSk(job.jobId),
     };
   }
@@ -246,7 +250,7 @@ export class DynamoDBUserLifecycleJobRepository
 
   protected mapToDomain(item: Record<string, unknown>): UserLifecycleJob {
     return {
-      userId: item.userId as string,
+      userId: new UserId(item.userId as string),
       jobId: fromMetaSk(item.sk as string),
       type: item.type as UserLifecycleJob['type'],
       status: item.status as UserLifecycleJob['status'],
@@ -295,37 +299,27 @@ export class DynamoDBUserLifecycleJobRepository
         );
       }
 
-      await sleep(getBatchWriteRetryDelayMs(attempt));
+      await wait(getBatchWriteRetryDelayMs(attempt));
     }
   }
 }
 
-function toMetaSk(jobId: string): string {
-  return `${JOB_SK_PREFIX}${jobId}`;
+function toMetaSk(jobId: EventId): string {
+  return `${JOB_SK_PREFIX}${jobId.toString()}`;
 }
 
-function fromMetaSk(sk: string): string {
-  return sk.slice(JOB_SK_PREFIX.length);
+function fromMetaSk(sk: string): EventId {
+  return new EventId(sk.slice(JOB_SK_PREFIX.length));
 }
 
-function toChunkPrefix(jobId: string): string {
+function toChunkPrefix(jobId: EventId): string {
   return `${toMetaSk(jobId)}${JOB_CHUNK_DELIMITER}`;
 }
 
-function toChunkSk(jobId: string, chunkIndex: number): string {
+function toChunkSk(jobId: EventId, chunkIndex: number): string {
   return `${toChunkPrefix(jobId)}${chunkIndex.toString().padStart(6, '0')}`;
 }
 
-function omitUndefinedFields(item: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined));
-}
-
 function getBatchWriteRetryDelayMs(attempt: number): number {
-  const exponentialDelay = BATCH_WRITE_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
-  const halfDelay = Math.floor(exponentialDelay / 2);
-  return halfDelay + Math.floor(Math.random() * Math.max(halfDelay, 1));
-}
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
+  return getFullJitterBackoffDelayMs(BATCH_WRITE_RETRY_BASE_DELAY_MS, attempt);
 }
