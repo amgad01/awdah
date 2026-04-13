@@ -19,6 +19,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `create-handler.ts` now constructs request-scoped loggers with path and method context for better traceability
 - `DynamoDBUserDataLifecycleService` now delegates query operations through the base repository method instead of constructing raw `QueryCommand` instances inline
 - Base DynamoDB repository methods now consistently return typed results with `lastEvaluatedKey` instead of raw AWS SDK response shapes
+- Domain entities now use strongly-typed value objects (`UserId`, `EventId`, `PeriodId`) instead of raw string identifiers; persistence layer uses dedicated mappers for conversion
 
 ### Fixed
 
@@ -26,12 +27,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 - Prayer log persistence now mirrors other repositories by omitting key attributes from the payload during saves
 - User lifecycle export queries only pass required expression attribute names to avoid DynamoDB validation errors
+- Missing or partial user settings now return a 404 instead of a 500 during profile fetch
+
+#### Frontend
+
+- Prevent profile fetch errors from crashing the client when the server response omits an `error` payload
+- Allow future bulugh dates during onboarding so users can record a future obligation date without validation errors
+- Check-in prompt messages updated across English, Arabic, and German for improved clarity and user experience
+- New pages artifacts generator script pre-builds public route metadata and HTML entry point for consistent static hosting
 
 #### Infrastructure
 
 - `FrontendStack` now deploys after `ApiStack` in CDK ordering to keep hosting paths aligned with the published API environment
 - Removed unused `appEnv` context fallback from config resolution
 - `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
+- `ProcessUserLifecycleJobFn` Lambda now has read-only access to user data tables (`prayerLogsTable`, `fastLogsTable`, `practicingPeriodsTable`, `userSettingsTable`) instead of read-write, following least privilege principles
+- Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now supports local fallbacks and warns on missing vars instead of throwing
 
 #### Tooling
 

@@ -3,6 +3,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { HijriDate } from '@awdah/shared';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
 import { TermTooltip } from '@/components/ui/term-tooltip';
+import { todayHijriDate } from '@/utils/date-utils';
 import {
   formatGregorianDisplay,
   formatHijriDisplay,
@@ -11,7 +12,6 @@ import {
   getDefaultBulughDate,
   isBulughEarly,
 } from '@/lib/profile-date-utils';
-import { todayHijriDate } from '@/utils/date-utils';
 import styles from '../onboarding.module.css';
 
 type BulughInputMode = 'date' | 'age' | 'default' | 'revert';
@@ -232,7 +232,6 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             onError={setDateError}
             label={t('onboarding.bulugh_date_label')}
             validate={validateBulugh}
-            maxDate={todayHijriDate()}
           />
           {dateError && <p className={styles.error}>{dateError}</p>}
           {bulughEarlyWarning && !dateError && (

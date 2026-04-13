@@ -48,7 +48,9 @@ function upsertCanonicalLink(html, canonicalUrl) {
   const descriptionPattern = /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i;
 
   if (!descriptionPattern.test(html)) {
-    throw new Error('Unable to insert a canonical link because the description meta tag is missing.');
+    throw new Error(
+      'Unable to insert a canonical link because the description meta tag is missing.',
+    );
   }
 
   return html.replace(descriptionPattern, (match) => `${match}\n    ${canonicalTag}`);
