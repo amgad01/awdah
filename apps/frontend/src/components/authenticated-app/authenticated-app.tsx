@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { useLanguage } from '@/hooks/use-language';
+import { PUBLIC_ROUTE_PATHS } from '@/lib/public-routes';
 import { Loader2 } from 'lucide-react';
 import { useAuthenticatedApp } from './use-authenticated-app';
 import styles from '../../App.module.css';
@@ -102,12 +103,12 @@ export const AuthenticatedApp: React.FC = () => {
           <Route path="/salah" element={<SalahPage />} />
           <Route path="/sawm" element={<SawmPage />} />
           <Route path="/history" element={<HistoryPage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/demo" element={<DemoPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contribute" element={<ContributingPage />} />
+          <Route path={PUBLIC_ROUTE_PATHS.learn} element={<LearnPage />} />
+          <Route path={PUBLIC_ROUTE_PATHS.demo} element={<DemoPage />} />
+          <Route path={PUBLIC_ROUTE_PATHS.about} element={<AboutPage />} />
+          <Route path={PUBLIC_ROUTE_PATHS.contribute} element={<ContributingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path={PUBLIC_ROUTE_PATHS.privacy} element={<PrivacyPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

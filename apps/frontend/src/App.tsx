@@ -7,6 +7,7 @@ import { PublicPageShell } from '@/components/public-page-shell/public-page-shel
 import { PublicLanding } from '@/components/public-landing/public-landing';
 import { AuthenticatedApp } from '@/components/authenticated-app/authenticated-app';
 import { resolveRouterBase } from '@/lib/router-base';
+import { PUBLIC_ROUTE_PATHS } from '@/lib/public-routes';
 import { Loader2 } from 'lucide-react';
 import styles from './App.module.css';
 
@@ -59,7 +60,7 @@ interface PublicShellRouteProps {
 
 const PUBLIC_SHELL_ROUTES: PublicShellRouteDefinition[] = [
   {
-    path: '/learn',
+    path: PUBLIC_ROUTE_PATHS.learn,
     badgeKey: 'marketing.badge',
     titleKey: 'learn.title',
     subtitleKey: 'learn.subtitle',
@@ -68,12 +69,12 @@ const PUBLIC_SHELL_ROUTES: PublicShellRouteDefinition[] = [
     renderContent: () => <LearnPage showHeading={false} />,
   },
   {
-    path: '/demo',
+    path: PUBLIC_ROUTE_PATHS.demo,
     titleKey: 'demo.public_title',
     renderContent: () => <DemoPage showHeading={false} />,
   },
   {
-    path: '/about',
+    path: PUBLIC_ROUTE_PATHS.about,
     badgeKey: 'about.project_badge',
     titleKey: 'about.project_title',
     subtitleKey: 'about.project_subtitle',
@@ -82,7 +83,7 @@ const PUBLIC_SHELL_ROUTES: PublicShellRouteDefinition[] = [
     renderContent: () => <AboutPage />,
   },
   {
-    path: '/contribute',
+    path: PUBLIC_ROUTE_PATHS.contribute,
     badgeKey: 'contributing.project_badge',
     titleKey: 'contributing.project_title',
     subtitleKey: 'contributing.project_subtitle',
@@ -91,7 +92,7 @@ const PUBLIC_SHELL_ROUTES: PublicShellRouteDefinition[] = [
     renderContent: () => <ContributingPage />,
   },
   {
-    path: '/privacy',
+    path: PUBLIC_ROUTE_PATHS.privacy,
     badgeKey: 'privacy.nav_link',
     titleKey: 'privacy.title',
     subtitleKey: 'privacy.intro_body',
