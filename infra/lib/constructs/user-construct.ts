@@ -45,6 +45,12 @@ export class UserConstruct extends Construct {
       NODE_ENV: props.projectEnv,
       LOG_LEVEL: props.projectEnv === 'prod' ? 'info' : 'debug',
       COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
     };
 
     const userReadTables = [
@@ -60,7 +66,7 @@ export class UserConstruct extends Construct {
         backendSrc,
         'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
       ),
-      environment: { ...baseEnv, USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName },
+      environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadData(getUserSettingsFn);
     this.addRoute(
@@ -78,7 +84,7 @@ export class UserConstruct extends Construct {
         backendSrc,
         'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
       ),
-      environment: { ...baseEnv, USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName },
+      environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadWriteData(updateUserSettingsFn);
     this.addRoute(
@@ -98,7 +104,6 @@ export class UserConstruct extends Construct {
       ),
       environment: {
         ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       },
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(deleteAccountFn);
@@ -116,7 +121,6 @@ export class UserConstruct extends Construct {
       entry: path.join(backendSrc, 'contexts/user/infrastructure/handlers/export-data.handler.ts'),
       environment: {
         ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       },
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(exportDataFn);
@@ -137,7 +141,6 @@ export class UserConstruct extends Construct {
       ),
       environment: {
         ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       },
     });
     props.dataStack.userLifecycleJobsTable.grantReadData(getUserLifecycleJobStatusFn);
@@ -158,7 +161,6 @@ export class UserConstruct extends Construct {
       ),
       environment: {
         ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       },
     });
     props.dataStack.userLifecycleJobsTable.grantReadData(downloadExportDataFn);
@@ -179,7 +181,6 @@ export class UserConstruct extends Construct {
       ),
       environment: {
         ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
       },
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(finalizeDeleteAccountFn);
@@ -215,19 +216,11 @@ export class UserConstruct extends Construct {
       memorySize: config.heavyOperationMemorySize,
       timeout: config.heavyOperationTimeout,
       reservedConcurrentExecutions: config.adminOperationConcurrency,
-      environment: {
-        ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
-        DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(processUserLifecycleJobFn);
     props.dataStack.deletedUsersTable.grantReadWriteData(processUserLifecycleJobFn);
-    userReadTables.forEach((table) => table.grantReadWriteData(processUserLifecycleJobFn));
+    userReadTables.forEach((table) => table.grantReadData(processUserLifecycleJobFn));
 
     processUserLifecycleJobFn.addEventSource(
       new lambda_event_sources.DynamoEventSource(props.dataStack.userLifecycleJobsTable, {

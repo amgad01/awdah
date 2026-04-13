@@ -5,6 +5,7 @@ import {
 } from '../../../contexts/shared/domain/repositories/user.repository';
 import {
   HijriDate,
+  NotFoundError,
   UserId,
   type Gender,
   type Madhab,
@@ -15,6 +16,7 @@ import {
 import { settings } from '../../config/settings';
 import { UserSettingsSK } from './keys/user-settings-key';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
+import { userSettingsNotFound } from '../../errors/messages';
 
 export class DynamoDBUserRepository
   extends BaseDynamoDBRepository<UserSettings>
@@ -55,6 +57,10 @@ export class DynamoDBUserRepository
   }
 
   protected mapToDomain(item: Record<string, unknown>): UserSettings {
+    if (!item.bulughDate || !item.gender) {
+      throw new NotFoundError(userSettingsNotFound);
+    }
+
     return {
       userId: new UserId(item.userId as string),
       username: item.username as string | undefined,

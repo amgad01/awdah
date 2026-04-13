@@ -40,6 +40,12 @@ export class SawmConstruct extends Construct {
       NODE_ENV: props.projectEnv,
       LOG_LEVEL: props.projectEnv === 'prod' ? 'info' : 'debug',
       COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
     };
 
     // --- Lambda Definitions ---
@@ -47,10 +53,7 @@ export class SawmConstruct extends Construct {
     // 1. LogFast
     const logFastFn = this.createBusinessLambda('LogFastFn', {
       entry: path.join(backendSrc, 'contexts/sawm/infrastructure/handlers/log-fast.handler.ts'),
-      environment: {
-        ...baseEnv,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.fastLogsTable.grantReadWriteData(logFastFn);
     this.addRoute(
@@ -68,12 +71,7 @@ export class SawmConstruct extends Construct {
         backendSrc,
         'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.fastLogsTable.grantReadData(getSawmDebtFn);
     props.dataStack.practicingPeriodsTable.grantReadData(getSawmDebtFn);
@@ -93,10 +91,7 @@ export class SawmConstruct extends Construct {
         backendSrc,
         'contexts/sawm/infrastructure/handlers/get-fast-history.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.fastLogsTable.grantReadData(getFastHistoryFn);
     this.addRoute(
@@ -114,10 +109,7 @@ export class SawmConstruct extends Construct {
         backendSrc,
         'contexts/sawm/infrastructure/handlers/get-fast-history-page.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.fastLogsTable.grantReadData(getFastHistoryPageFn);
     this.addRoute(
@@ -135,10 +127,7 @@ export class SawmConstruct extends Construct {
         backendSrc,
         'contexts/sawm/infrastructure/handlers/delete-fast-log.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.fastLogsTable.grantReadWriteData(deleteFastLogFn);
     this.addRoute(
@@ -159,10 +148,7 @@ export class SawmConstruct extends Construct {
       memorySize: config.heavyOperationMemorySize,
       timeout: config.heavyOperationTimeout,
       reservedConcurrentExecutions: config.protectedMutationConcurrency,
-      environment: {
-        ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(resetFastLogsFn);
     this.addRoute(

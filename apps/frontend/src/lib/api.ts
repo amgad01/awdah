@@ -188,9 +188,9 @@ async function request<T>(
   if (!response.ok) {
     const errorBody = await parseJson<ApiErrorResponse>(response);
     throw new ApiRequestError(
-      errorBody?.error.message || `HTTP ${response.status}`,
+      errorBody?.error?.message || `HTTP ${response.status}`,
       response.status,
-      errorBody?.error.code,
+      errorBody?.error?.code,
     );
   }
 

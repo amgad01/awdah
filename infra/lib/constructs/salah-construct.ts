@@ -40,6 +40,12 @@ export class SalahConstruct extends Construct {
       NODE_ENV: props.projectEnv,
       LOG_LEVEL: props.projectEnv === 'prod' ? 'info' : 'debug',
       COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
     };
 
     // --- Lambda Definitions ---
@@ -47,10 +53,7 @@ export class SalahConstruct extends Construct {
     // 1. LogPrayer
     const logPrayerFn = this.createBusinessLambda('LogPrayerFn', {
       entry: path.join(backendSrc, 'contexts/salah/infrastructure/handlers/log-prayer.handler.ts'),
-      environment: {
-        ...baseEnv,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.prayerLogsTable.grantReadWriteData(logPrayerFn);
     this.addRoute(
@@ -68,12 +71,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.prayerLogsTable.grantReadData(getSalahDebtFn);
     props.dataStack.practicingPeriodsTable.grantReadData(getSalahDebtFn);
@@ -93,10 +91,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/get-prayer-history.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.prayerLogsTable.grantReadData(getPrayerHistoryFn);
     this.addRoute(
@@ -114,10 +109,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/get-prayer-history-page.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.prayerLogsTable.grantReadData(getPrayerHistoryPageFn);
     this.addRoute(
@@ -135,10 +127,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/delete-prayer-log.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.prayerLogsTable.grantReadWriteData(deletePrayerLogFn);
     this.addRoute(
@@ -159,10 +148,7 @@ export class SalahConstruct extends Construct {
       memorySize: config.heavyOperationMemorySize,
       timeout: config.heavyOperationTimeout,
       reservedConcurrentExecutions: config.protectedMutationConcurrency,
-      environment: {
-        ...baseEnv,
-        USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(resetPrayerLogsFn);
     this.addRoute(
@@ -180,11 +166,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadData(addPeriodFn);
     props.dataStack.practicingPeriodsTable.grantReadWriteData(addPeriodFn);
@@ -203,11 +185,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/update-practicing-period.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadData(updatePeriodFn);
     props.dataStack.practicingPeriodsTable.grantReadWriteData(updatePeriodFn);
@@ -226,10 +204,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/get-practicing-periods.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.practicingPeriodsTable.grantReadData(getPeriodsFn);
     this.addRoute(
@@ -247,10 +222,7 @@ export class SalahConstruct extends Construct {
         backendSrc,
         'contexts/salah/infrastructure/handlers/delete-practicing-period.handler.ts',
       ),
-      environment: {
-        ...baseEnv,
-        PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-      },
+      environment: baseEnv,
     });
     props.dataStack.practicingPeriodsTable.grantReadWriteData(deletePeriodFn);
     this.addRoute(
