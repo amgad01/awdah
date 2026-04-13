@@ -12,7 +12,7 @@ cdk.out/
 *.local
 
 # Private docs (local only)
-/docs/private/*
+/docs/private/
 
 .github/*.md
 
@@ -63,5 +63,5 @@ npm-debug.log*
 # ESLint cache
 .eslintcache
 **/*.zip
-infra/*.json
 **/.env.production
+infra/outputs.json
