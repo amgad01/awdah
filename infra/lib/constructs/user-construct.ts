@@ -53,13 +53,6 @@ export class UserConstruct extends Construct {
       DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
     };
 
-    const userReadTables = [
-      props.dataStack.prayerLogsTable,
-      props.dataStack.fastLogsTable,
-      props.dataStack.practicingPeriodsTable,
-      props.dataStack.userSettingsTable,
-    ];
-
     // 1. GetUserSettings
     const getUserSettingsFn = this.createBusinessLambda('GetUserSettingsFn', {
       entry: path.join(
@@ -218,9 +211,7 @@ export class UserConstruct extends Construct {
       reservedConcurrentExecutions: config.adminOperationConcurrency,
       environment: baseEnv,
     });
-    props.dataStack.userLifecycleJobsTable.grantReadWriteData(processUserLifecycleJobFn);
-    props.dataStack.deletedUsersTable.grantReadWriteData(processUserLifecycleJobFn);
-    userReadTables.forEach((table) => table.grantReadData(processUserLifecycleJobFn));
+    this.grantLifecycleJobDataAccess(processUserLifecycleJobFn, props);
 
     processUserLifecycleJobFn.addEventSource(
       new lambda_event_sources.DynamoEventSource(props.dataStack.userLifecycleJobsTable, {
@@ -260,5 +251,17 @@ export class UserConstruct extends Construct {
       integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
       authorizer,
     });
+  }
+
+  private grantLifecycleJobDataAccess(fn: lambda.IFunction, props: UserConstructProps): void {
+    props.dataStack.userLifecycleJobsTable.grantReadWriteData(fn);
+    props.dataStack.deletedUsersTable.grantReadWriteData(fn);
+
+    [
+      props.dataStack.prayerLogsTable,
+      props.dataStack.fastLogsTable,
+      props.dataStack.practicingPeriodsTable,
+      props.dataStack.userSettingsTable,
+    ].forEach((table) => table.grantReadWriteData(fn));
   }
 }

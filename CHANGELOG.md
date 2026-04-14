@@ -38,6 +38,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Prevent profile fetch errors from crashing the client when the server response omits an `error` payload
 - Allow future bulugh dates during onboarding so users can record a future obligation date without validation errors
 - Qadaa completion UI now waits for debt data before showing “all caught up” states or disabling prayer counters
+- Account deletion now distinguishes password-verification failures from downstream lifecycle failures and signs the user out cleanly after successful deletion
 
 #### Shared
 
@@ -54,7 +55,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `FrontendStack` now deploys after `ApiStack` in CDK ordering to keep hosting paths aligned with the published API environment
 - Removed unused `appEnv` context fallback from config resolution
 - `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
-- `ProcessUserLifecycleJobFn` Lambda now has read-only access to user data tables (`prayerLogsTable`, `fastLogsTable`, `practicingPeriodsTable`, `userSettingsTable`) instead of read-write, following least privilege principles
+- `ProcessUserLifecycleJobFn` Lambda permissions were corrected so lifecycle delete/reset jobs retain the write access they need on the managed user-data tables
 - Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now only allows computed fallbacks in local mode and fails fast elsewhere
 
 #### Tooling
