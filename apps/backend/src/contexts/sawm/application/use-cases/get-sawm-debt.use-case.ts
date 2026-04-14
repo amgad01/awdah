@@ -8,6 +8,7 @@ import {
 } from '../../domain/services/sawm-debt-calculator.service';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
+import { resolveEffectiveStartDate } from '../../../shared/domain/services/effective-start-date';
 
 export class GetSawmDebtUseCase {
   constructor(
@@ -19,21 +20,17 @@ export class GetSawmDebtUseCase {
   ) {}
 
   async execute(userId: string): Promise<SawmDebtResult> {
-    const userVid = new UserId(userId);
-    const settings = await this.userRepository.findById(userVid);
+    const userIdValue = new UserId(userId);
+    const settings = await this.userRepository.findById(userIdValue);
     if (!settings) {
       throw new NotFoundError(userSettingsNotFound);
     }
 
-    // For reverts, use the later of bulugh date and revert date
-    const effectiveStartDate =
-      settings.revertDate && settings.revertDate.isAfter(settings.bulughDate)
-        ? settings.revertDate
-        : settings.bulughDate;
+    const effectiveStartDate = resolveEffectiveStartDate(settings);
 
-    const allPeriods = await this.practicingPeriodRepository.findByUser(userVid);
+    const allPeriods = await this.practicingPeriodRepository.findByUser(userIdValue);
     const relevantPeriods = allPeriods.filter((p) => p.coversContext('sawm'));
-    const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userVid);
+    const completedQadaa = await this.fastLogRepository.countQadaaCompleted(userIdValue);
     const today = this.calendarService.today();
 
     // Early return: if effective start date is in the future, user has zero debt

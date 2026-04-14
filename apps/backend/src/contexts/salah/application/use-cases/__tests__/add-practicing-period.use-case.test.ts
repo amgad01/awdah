@@ -9,14 +9,7 @@ import {
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
-import {
-  HijriDate,
-  UserId,
-  PeriodId,
-  NotFoundError,
-  ConflictError,
-  ValidationError,
-} from '@awdah/shared';
+import { HijriDate, UserId, PeriodId, NotFoundError, ValidationError } from '@awdah/shared';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 
 const BULUGH_DATE = '1440-01-01';
@@ -76,7 +69,7 @@ describe('AddPracticingPeriodUseCase', () => {
     }
   });
 
-  it('throws ConflictError if period overlaps with existing one', async () => {
+  it('allows adding a period that overlaps with an existing one', async () => {
     const existingPeriod = new PracticingPeriod({
       userId: new UserId('user-1'),
       periodId: new PeriodId('existing-1'),
@@ -87,10 +80,9 @@ describe('AddPracticingPeriodUseCase', () => {
 
     vi.mocked(mockRepo.findByUser).mockResolvedValue([existingPeriod]);
 
-    const promise = useCase.execute(command);
-    await expect(promise).rejects.toThrow(ConflictError);
-    await expect(promise).rejects.toThrow('onboarding.period_error_overlap');
-    expect(mockRepo.save).not.toHaveBeenCalled();
+    const result = await useCase.execute(command);
+    expect(result.periodId).toBe('new-period-id');
+    expect(mockRepo.save).toHaveBeenCalled();
   });
 
   it('rejects a period starting before date of birth', async () => {
@@ -99,11 +91,27 @@ describe('AddPracticingPeriodUseCase', () => {
       startDate: '1420-01-01', // before date of birth (1425)
     };
 
-    vi.mocked(mockRepo.findByUser).mockResolvedValue([]);
-
     const promise = useCase.execute(earlyCommand);
     await expect(promise).rejects.toThrow(ValidationError);
     await expect(promise).rejects.toThrow('onboarding.period_error_before_dob');
+    expect(mockRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects a period starting before revert date', async () => {
+    const userWithRevert: UserSettings = {
+      ...defaultUserSettings,
+      revertDate: HijriDate.fromString('1440-01-01'),
+    };
+    vi.mocked(mockUserRepo.findById).mockResolvedValue(userWithRevert);
+
+    const earlyCommand: AddPracticingPeriodCommand = {
+      ...command,
+      startDate: '1435-01-01', // before revert date (1440)
+    };
+
+    const promise = useCase.execute(earlyCommand);
+    await expect(promise).rejects.toThrow(ValidationError);
+    await expect(promise).rejects.toThrow('onboarding.period_error_before_revert');
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 

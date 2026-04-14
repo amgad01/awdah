@@ -10,9 +10,9 @@
  * Reference: https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
  */
 export function getFullJitterBackoffDelayMs(baseDelayMs: number, attempt: number): number {
-  const exponentialDelay = baseDelayMs * 2 ** (attempt - 1);
-  const halfDelay = Math.floor(exponentialDelay / 2);
-  return halfDelay + Math.floor(Math.random() * Math.max(halfDelay, 1));
+  const safeAttempt = Math.max(1, attempt);
+  const cap = baseDelayMs * 2 ** (safeAttempt - 1);
+  return Math.floor(Math.random() * Math.max(cap, 1));
 }
 
 export async function wait(ms: number): Promise<void> {

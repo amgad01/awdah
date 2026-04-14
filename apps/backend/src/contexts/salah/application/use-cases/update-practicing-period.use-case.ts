@@ -1,16 +1,9 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
-import {
-  HijriDate,
-  UserId,
-  PeriodId,
-  NotFoundError,
-  PracticingPeriodType,
-  ConflictError,
-  ValidationError,
-} from '@awdah/shared';
+import { HijriDate, UserId, PeriodId, NotFoundError, PracticingPeriodType } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
+import { assertPracticingPeriodStartDateAllowed } from '../../../shared/domain/services/practicing-period-rules';
 
 export interface UpdatePracticingPeriodCommand {
   userId: string;
@@ -43,9 +36,7 @@ export class UpdatePracticingPeriodUseCase {
     const startDate = HijriDate.fromString(command.startDate);
     const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
 
-    if (userSettings.dateOfBirth && startDate.isBefore(userSettings.dateOfBirth)) {
-      throw new ValidationError('onboarding.period_error_before_dob');
-    }
+    assertPracticingPeriodStartDateAllowed(startDate, userSettings);
 
     const updated = new PracticingPeriod({
       userId,
@@ -54,14 +45,6 @@ export class UpdatePracticingPeriodUseCase {
       endDate,
       type: command.type,
     });
-
-    const allPeriods = await this.repository.findByUser(userId);
-    for (const p of allPeriods) {
-      if (p.periodId.equals(periodId)) continue;
-      if (p.overlapsWith(updated)) {
-        throw new ConflictError('onboarding.period_error_overlap');
-      }
-    }
 
     await this.repository.save(updated);
   }

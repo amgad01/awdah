@@ -19,7 +19,14 @@ import { GetPracticingPeriodsUseCase } from '../../contexts/salah/application/us
 import { ResetPrayerLogsUseCase } from '../../contexts/salah/application/use-cases/reset-prayer-logs.use-case';
 import { userLifecycleJobDispatcher } from './user-use-cases';
 
-export const logPrayerUseCase = new LogPrayerUseCase(prayerLogRepo, idGenerator);
+export const logPrayerUseCase = new LogPrayerUseCase(
+  prayerLogRepo,
+  idGenerator,
+  userRepo,
+  periodRepo,
+  salahCalculator,
+  calendarService,
+);
 export const getSalahDebtUseCase = new GetSalahDebtUseCase(
   userRepo,
   prayerLogRepo,

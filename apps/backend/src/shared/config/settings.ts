@@ -23,14 +23,14 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
 
   const value = process.env[keyOrKeys];
   if (!value) {
-    if (isLocal || localFallback) {
-      if (!isLocal) {
-        logger.debug(
-          { key: keyOrKeys, fallback: localFallback },
-          'Missing environment variable; using fallback',
-        );
-      }
+    if (isLocal) {
       return localFallback || '';
+    }
+    if (localFallback) {
+      logger.error(
+        { key: keyOrKeys },
+        'Missing required environment variable; refusing to use fallback in non-local env',
+      );
     }
     throw new Error(`Missing required environment variable: ${keyOrKeys}`);
   }

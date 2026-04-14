@@ -9,6 +9,7 @@ import {
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 import { PRAYER_NAMES } from '@awdah/shared';
+import { resolveEffectiveStartDate } from '../../../shared/domain/services/effective-start-date';
 
 export class GetSalahDebtUseCase {
   constructor(
@@ -27,11 +28,7 @@ export class GetSalahDebtUseCase {
       throw new NotFoundError(userSettingsNotFound);
     }
 
-    // For reverts, use the later of bulugh date and revert date
-    const effectiveStartDate =
-      settings.revertDate && settings.revertDate.isAfter(settings.bulughDate)
-        ? settings.revertDate
-        : settings.bulughDate;
+    const effectiveStartDate = resolveEffectiveStartDate(settings);
 
     // 2. Get all practicing periods that apply to salah
     const allPeriods = await this.practicingPeriodRepository.findByUser(user);
