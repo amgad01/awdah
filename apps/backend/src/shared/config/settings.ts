@@ -14,8 +14,7 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
     if (!isLocal) {
       const missing = keyOrKeys.filter((k) => !process.env[k]);
       if (missing.length > 0) {
-        // Warning instead of throw to allow partial environment loads
-        logger.warn({ missing }, 'Missing environment variables');
+        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
       }
     }
     return;

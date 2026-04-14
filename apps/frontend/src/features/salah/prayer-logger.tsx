@@ -60,7 +60,6 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
 
   const { data: profile } = useProfile();
   const { data: debt } = useSalahDebt();
-  const hasDebtData = debt != null;
   const birthDate = profile?.dateOfBirth;
 
   const { data: logs, isLoading, error, isError } = useDailyPrayerLogs(activeDate);
@@ -89,6 +88,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
         return acc;
       }, {});
   }, [logs, tab]);
+
   const isPending = logMutation.isPending || deleteMutation.isPending;
   const isFuture = selectedDate > today;
   const isDailyFuture = dailyDate > today;
@@ -128,12 +128,12 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   // ── Qadaa increment / decrement ──
   const handleQadaaIncrement = useCallback(
     (prayerName: string) => {
-      if (isPending || isFuture) return;
+      if (isPending || isFuture || !debt) return;
       // Double check client side even if button is disabled
-      if (!hasDebtData || (debt.perPrayerRemaining[prayerName] ?? 0) <= 0) return;
+      if ((debt.perPrayerRemaining?.[prayerName] ?? 0) <= 0) return;
       logMutation.mutate({ date: selectedDate, prayerName, type: 'qadaa' });
     },
-    [isPending, isFuture, selectedDate, logMutation, debt, hasDebtData],
+    [isPending, isFuture, selectedDate, logMutation, debt],
   );
 
   const handleQadaaDecrement = useCallback(
@@ -324,7 +324,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
           className={styles.prayers}
         >
           {isFuture && <p className={styles.futureNote}>{t('salah.future_date_note')}</p>}
-          {hasDebtData && debt.remainingPrayers === 0 && (
+          {debt?.remainingPrayers === 0 && (
             <div className={styles.qadaaAllClearBanner}>
               <CheckCircle2 size={20} className={styles.celebrationIcon} />
               <span>{t('salah.qadaa_all_clear')}</span>
@@ -333,7 +333,7 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
           {PRAYERS.map((prayer) => {
             const entries = qadaaLogsMap[prayer] ?? [];
             const count = entries.length;
-            const isCompleted = hasDebtData && (debt.perPrayerRemaining[prayer] ?? 0) <= 0;
+            const isCompleted = (debt?.perPrayerRemaining?.[prayer] ?? 0) <= 0;
             return (
               <div
                 key={prayer}
