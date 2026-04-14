@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SawmDebtCalculator } from '../sawm-debt-calculator.service';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, PeriodId } from '@awdah/shared';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
 import { IHijriCalendarService } from '../../../../shared/domain/services/hijri-calendar.service';
 
@@ -77,8 +77,8 @@ describe('SawmDebtCalculator', () => {
     const today = new HijriDate(1445, 10, 1);
 
     const period = new PracticingPeriod({
-      userId: 'u',
-      periodId: 'p1',
+      userId: new UserId('u'),
+      periodId: new PeriodId('p1'),
       startDate: practiceStart,
       endDate: practiceEnd,
       type: 'both',
@@ -126,8 +126,8 @@ describe('SawmDebtCalculator', () => {
     const today = new HijriDate(1444, 1, 1);
 
     const period = new PracticingPeriod({
-      userId: 'u',
-      periodId: 'p1',
+      userId: new UserId('u'),
+      periodId: new PeriodId('p1'),
       startDate: bulugh,
       endDate: p1End,
       type: 'sawm',
@@ -155,15 +155,15 @@ describe('SawmDebtCalculator', () => {
 
     const periods = [
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p1',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p1'),
         startDate: bulugh,
         endDate: p1End,
         type: 'sawm',
       }),
       new PracticingPeriod({
-        userId: 'u',
-        periodId: 'p2',
+        userId: new UserId('u'),
+        periodId: new PeriodId('p2'),
         startDate: p2Start,
         endDate: today,
         type: 'sawm',

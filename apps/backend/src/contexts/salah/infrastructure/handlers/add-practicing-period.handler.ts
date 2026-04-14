@@ -1,4 +1,4 @@
-import { addPracticingPeriodUseCase } from '../../../../shared/di/container';
+import { addPracticingPeriodUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { addPracticingPeriodSchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

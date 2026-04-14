@@ -1,6 +1,8 @@
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { UserId } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import { BaseDynamoDBRepository } from './base-dynamodb.repository';
+import { omitUndefinedFields } from './object-utils';
 import { PrayerLogKey } from './keys/prayer-log-key';
 import { FastLogKey } from './keys/fast-log-key';
 import type {
@@ -112,7 +114,7 @@ export class DynamoDBUserDataLifecycleService
     super(docClient, settings.tables.userSettings, 'sk', 'userId');
   }
 
-  async deleteUserData(userId: string): Promise<void> {
+  async deleteUserData(userId: UserId): Promise<void> {
     for (const table of USER_MANAGED_TABLES) {
       await this.forEachManagedTablePage(
         table,
@@ -131,15 +133,15 @@ export class DynamoDBUserDataLifecycleService
     }
   }
 
-  async resetPrayerLogs(userId: string): Promise<void> {
+  async resetPrayerLogs(userId: UserId): Promise<void> {
     await this.resetTableForUser(userId, 'prayerLogs');
   }
 
-  async resetFastLogs(userId: string): Promise<void> {
+  async resetFastLogs(userId: UserId): Promise<void> {
     await this.resetTableForUser(userId, 'fastLogs');
   }
 
-  private async resetTableForUser(userId: string, tableKey: string): Promise<void> {
+  private async resetTableForUser(userId: UserId, tableKey: string): Promise<void> {
     const table = USER_MANAGED_TABLES.find((t) => t.key === tableKey);
     if (!table) throw new Error(`Unknown table key: ${tableKey}`);
 
@@ -159,10 +161,10 @@ export class DynamoDBUserDataLifecycleService
     );
   }
 
-  async exportUserData(userId: string): Promise<UserDataExport> {
+  async exportUserData(userId: UserId): Promise<UserDataExport> {
     const result: UserDataExport = {
       exportedAt: new Date().toISOString(),
-      userId,
+      userId: userId.toString(),
     };
 
     for (const table of USER_MANAGED_TABLES) {
@@ -198,34 +200,28 @@ export class DynamoDBUserDataLifecycleService
 
   private async forEachManagedTablePage(
     table: UserManagedTableDescriptor,
-    userId: string,
+    userId: UserId,
     onPage: (items: Record<string, unknown>[]) => Promise<void>,
     projectionExpression?: string,
     extraExpressionAttributeNames?: Record<string, string>,
   ): Promise<void> {
     let lastKey: Record<string, unknown> | undefined;
+    const expressionAttributeNames =
+      extraExpressionAttributeNames && Object.keys(extraExpressionAttributeNames).length > 0
+        ? { ...extraExpressionAttributeNames }
+        : undefined;
 
     do {
-      const queryResult = await this.docClient.send(
-        new QueryCommand({
-          TableName: table.tableName,
-          KeyConditionExpression: '#pk = :pk',
-          ExpressionAttributeNames: {
-            '#pk': table.pkName,
-            ...extraExpressionAttributeNames,
-          },
-          ExpressionAttributeValues: { ':pk': userId },
-          ProjectionExpression: projectionExpression,
-          ExclusiveStartKey: lastKey,
-        }),
-      );
+      const queryResult = await this.query({
+        tableName: table.tableName,
+        pk: userId.toString(),
+        projectionExpression,
+        expressionAttributeNames,
+        exclusiveStartKey: lastKey,
+      });
 
-      await onPage((queryResult.Items ?? []) as Record<string, unknown>[]);
-      lastKey = queryResult.LastEvaluatedKey as Record<string, unknown> | undefined;
+      await onPage(queryResult.items as Record<string, unknown>[]);
+      lastKey = queryResult.lastEvaluatedKey;
     } while (lastKey);
   }
-}
-
-function omitUndefinedFields(item: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined));
 }

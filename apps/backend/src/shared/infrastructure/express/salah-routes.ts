@@ -24,10 +24,10 @@ const SALAH_ROUTES: RouteDefinition[] = [
   { method: 'delete', path: '/salah/practicing-period', handler: deletePracticingPeriodHandler },
 ];
 
-export const registerSalahRoutes = (
+export function registerSalahRoutes(
   router: express.Router,
   apiVersion: string,
   runHandler: RouteRunner,
-) => {
+) {
   registerRouteDefinitions(router, apiVersion, runHandler, SALAH_ROUTES);
-};
+}

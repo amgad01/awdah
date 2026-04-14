@@ -1,4 +1,4 @@
-import { getPrayerHistoryUseCase } from '../../../../shared/di/container';
+import { getPrayerHistoryUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { prayerHistoryQuerySchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

@@ -18,10 +18,10 @@ const USER_ROUTES: RouteDefinition[] = [
   { method: 'delete', path: '/user/account/auth', handler: finalizeDeleteAccountHandler },
 ];
 
-export const registerUserRoutes = (
+export function registerUserRoutes(
   router: express.Router,
   apiVersion: string,
   runHandler: RouteRunner,
-) => {
+) {
   registerRouteDefinitions(router, apiVersion, runHandler, USER_ROUTES);
-};
+}

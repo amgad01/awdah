@@ -1,3 +1,4 @@
+import { UserId, EventId } from '@awdah/shared';
 import type { UserDataExport } from '../services/user-data-lifecycle.service.interface';
 
 export const USER_LIFECYCLE_JOB_TYPES = [
@@ -19,8 +20,8 @@ export type UserLifecycleJobStatus = (typeof USER_LIFECYCLE_JOB_STATUSES)[number
 export const USER_LIFECYCLE_JOB_TTL_SECONDS = 24 * 60 * 60;
 
 export interface UserLifecycleJob {
-  userId: string;
-  jobId: string;
+  userId: UserId;
+  jobId: EventId;
   type: UserLifecycleJobType;
   status: UserLifecycleJobStatus;
   requestedAt: string;
@@ -37,8 +38,8 @@ export interface UserLifecycleJob {
 }
 
 export interface CreateUserLifecycleJobInput {
-  userId: string;
-  jobId: string;
+  userId: UserId;
+  jobId: EventId;
   type: UserLifecycleJobType;
   requestedAt: string;
   expiresAt: number;
@@ -70,28 +71,28 @@ export interface UserLifecycleExportDownload {
 
 export interface IUserLifecycleJobRepository {
   createJob(input: CreateUserLifecycleJobInput): Promise<UserLifecycleJob>;
-  findById(userId: string, jobId: string): Promise<UserLifecycleJob | null>;
+  findById(userId: UserId, jobId: EventId): Promise<UserLifecycleJob | null>;
   tryMarkProcessing(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     startedAt: string,
   ): Promise<UserLifecycleJob | null>;
   markCompleted(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     input: CompleteUserLifecycleJobInput,
   ): Promise<UserLifecycleJob>;
   markFailed(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     completedAt: string,
     errorMessage: string,
   ): Promise<void>;
   saveExportResult(
-    userId: string,
-    jobId: string,
+    userId: UserId,
+    jobId: EventId,
     input: SaveUserLifecycleExportResultInput,
   ): Promise<{ chunkCount: number }>;
-  readExportResult(userId: string, jobId: string): Promise<UserLifecycleExportDownload | null>;
-  markAuthDeleted(userId: string, jobId: string, completedAt: string): Promise<UserLifecycleJob>;
+  readExportResult(userId: UserId, jobId: EventId): Promise<UserLifecycleExportDownload | null>;
+  markAuthDeleted(userId: UserId, jobId: EventId, completedAt: string): Promise<UserLifecycleJob>;
 }

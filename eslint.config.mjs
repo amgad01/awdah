@@ -31,7 +31,6 @@ export default tseslint.config(
             'apps/backend/vitest.config.ts',
             'apps/frontend/vite.config.ts',
             'packages/shared/vitest.config.ts',
-            'apps/backend/scripts/verify-resilience.ts',
           ],
         },
         tsconfigRootDir: __dirname,

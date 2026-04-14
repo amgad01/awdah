@@ -2,8 +2,9 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IPracticingPeriodRepository } from '../../../contexts/shared/domain/repositories/practicing-period.repository';
 import { PracticingPeriod } from '../../../contexts/shared/domain/entities/practicing-period.entity';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
-import { HijriDate } from '@awdah/shared';
+import { UserId, PeriodId } from '@awdah/shared';
 import { settings } from '../../config/settings';
+import { PracticingPeriodMapper } from './mappers/practicing-period.mapper';
 
 export class DynamoDBPracticingPeriodRepository
   extends BaseDynamoDBRepository<PracticingPeriod>
@@ -17,40 +18,35 @@ export class DynamoDBPracticingPeriodRepository
     await this.persist(period);
   }
 
-  async findByUser(userId: string): Promise<PracticingPeriod[]> {
-    return this.findAll({ pk: userId });
+  async findByUser(userId: UserId): Promise<PracticingPeriod[]> {
+    return this.findAll({ pk: userId.toString() });
   }
 
-  async findById(userId: string, periodId: string): Promise<PracticingPeriod | null> {
-    return this.retrieve({ pk: userId, sk: periodId });
+  async findById(userId: UserId, periodId: PeriodId): Promise<PracticingPeriod | null> {
+    return this.retrieve({ pk: userId.toString(), sk: periodId.toString() });
   }
 
-  async delete(userId: string, periodId: string): Promise<void> {
-    await this.deleteItem({ pk: userId, sk: periodId });
+  async delete(userId: UserId, periodId: PeriodId): Promise<void> {
+    await this.deleteItem({ pk: userId.toString(), sk: periodId.toString() });
   }
 
   protected encodeKeys(period: PracticingPeriod): DomainKeys {
+    const item = PracticingPeriodMapper.toPersistence(period);
     return {
-      pk: period.userId,
-      sk: period.periodId,
+      pk: item.userId as string,
+      sk: item.periodId as string,
     };
   }
 
   protected mapToPersistence(period: PracticingPeriod): Record<string, unknown> {
-    return {
-      startDate: period.startDate.toString(),
-      endDate: period.endDate?.toString(), // undefined for open-ended periods
-      type: period.type,
-    };
+    const item = PracticingPeriodMapper.toPersistence(period);
+    const { userId, periodId, ...attributes } = item;
+    void userId;
+    void periodId;
+    return attributes;
   }
 
   protected mapToDomain(item: Record<string, unknown>): PracticingPeriod {
-    return new PracticingPeriod({
-      userId: item.userId as string,
-      periodId: item.periodId as string,
-      startDate: HijriDate.fromString(item.startDate as string),
-      endDate: item.endDate ? HijriDate.fromString(item.endDate as string) : undefined,
-      type: (item.type as 'salah' | 'sawm' | 'both') ?? 'both',
-    });
+    return PracticingPeriodMapper.toDomain(item);
   }
 }

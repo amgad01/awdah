@@ -11,8 +11,8 @@ import {
   getDefaultBulughDate,
   isBulughEarly,
 } from '@/lib/profile-date-utils';
-import { todayHijriDate } from '@/utils/date-utils';
 import styles from '../onboarding.module.css';
+import { todayHijriDate } from '@/utils/date-utils';
 
 type BulughInputMode = 'date' | 'age' | 'default' | 'revert';
 type BulughDraftState = {
@@ -232,7 +232,6 @@ export const BulughStep: React.FC<BulughStepProps> = ({
             onError={setDateError}
             label={t('onboarding.bulugh_date_label')}
             validate={validateBulugh}
-            maxDate={todayHijriDate()}
           />
           {dateError && <p className={styles.error}>{dateError}</p>}
           {bulughEarlyWarning && !dateError && (

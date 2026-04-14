@@ -1,0 +1,50 @@
+[
+  {
+    "id": "home",
+    "path": "/",
+    "title": "Awdah | عودة",
+    "description": "Track and fulfil your missed Salah and Sawm obligations. A multilingual, Hijri-first qadaa tracker built for privacy.",
+    "changefreq": "weekly",
+    "priority": 1
+  },
+  {
+    "id": "learn",
+    "path": "/learn",
+    "title": "Learn | Awdah",
+    "description": "Browse Awdah's glossary and guided FAQs for missed prayers, fasts, and privacy-first tracking.",
+    "changefreq": "weekly",
+    "priority": 0.8
+  },
+  {
+    "id": "demo",
+    "path": "/demo",
+    "title": "Demo | Awdah",
+    "description": "Preview Awdah's prayer and fasting tracker with a sample walkthrough before creating an account.",
+    "changefreq": "weekly",
+    "priority": 0.8
+  },
+  {
+    "id": "about",
+    "path": "/about",
+    "title": "About | Awdah",
+    "description": "Learn why Awdah was built, how it works, and the principles behind its multilingual Hijri-first design.",
+    "changefreq": "monthly",
+    "priority": 0.7
+  },
+  {
+    "id": "contribute",
+    "path": "/contribute",
+    "title": "Contribute | Awdah",
+    "description": "See how engineers, designers, translators, and scholars can help shape the next version of Awdah.",
+    "changefreq": "monthly",
+    "priority": 0.7
+  },
+  {
+    "id": "privacy",
+    "path": "/privacy",
+    "title": "Privacy | Awdah",
+    "description": "Review Awdah's privacy approach, stored data, user rights, and contact details.",
+    "changefreq": "monthly",
+    "priority": 0.6
+  }
+]

@@ -4,7 +4,6 @@ import { useProfile, useUpdateProfile } from '@/hooks/use-profile';
 import { useToast } from '@/hooks/use-toast';
 import { isBulughBeforeDateOfBirth } from '@/lib/practicing-periods';
 import { BULUGH_DEFAULT_HIJRI_YEARS } from '@/lib/constants';
-import { todayHijriDate } from '@/utils/date-utils';
 import {
   getAgeBasedBulughDate,
   getCurrentHijriAge,
@@ -51,8 +50,7 @@ export const useProfileSection = ({ periods }: UseProfileSectionOptions) => {
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileFormState>(createInitialFormState);
 
-  const needsSetup =
-    !profile?.bulughDate || !profile?.dateOfBirth || profile.bulughDate > todayHijriDate();
+  const needsSetup = !profile?.bulughDate || !profile?.dateOfBirth;
   const [isEditing, setIsEditing] = useState(needsSetup);
 
   const activeProfileForm =

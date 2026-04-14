@@ -1,4 +1,4 @@
-import { getFastHistoryUseCase } from '../../../../shared/di/container';
+import { getFastHistoryUseCase } from '../../../../shared/di/sawm-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { fastHistoryQuerySchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

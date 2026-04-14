@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { GetFastHistoryPageUseCase } from '../get-fast-history-page.use-case';
 import { FastLog } from '../../../domain/entities/fast-log.entity';
 import { LogType } from '../../../../shared/domain/value-objects/log-type';
@@ -18,11 +18,14 @@ describe('GetFastHistoryPageUseCase', () => {
 
   it('returns mapped DTOs and pagination metadata', async () => {
     const loggedAt = new Date('2025-01-01T00:00:00.000Z');
+    const userId = new UserId('user-1');
+    const eventId = new EventId('event-1');
+
     vi.mocked(mockRepo.findPageByUserAndDateRange).mockResolvedValueOnce({
       items: [
         new FastLog({
-          userId: 'user-1',
-          eventId: 'event-1',
+          userId,
+          eventId,
           date: HijriDate.fromString('1445-09-01'),
           type: new LogType('qadaa'),
           loggedAt,
@@ -40,7 +43,7 @@ describe('GetFastHistoryPageUseCase', () => {
     });
 
     expect(mockRepo.findPageByUserAndDateRange).toHaveBeenCalledWith(
-      'user-1',
+      expect.any(UserId),
       expect.anything(),
       expect.anything(),
       { limit: 50, cursor: undefined },

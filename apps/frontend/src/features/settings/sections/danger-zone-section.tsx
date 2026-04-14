@@ -9,6 +9,7 @@ import { clearOnboardingLocalState } from '@/lib/onboarding-state';
 import { Trash2, RotateCcw } from 'lucide-react';
 import { SettingsSection } from '../components';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage } from '../helpers';
 import styles from '../settings-page.module.css';
 
 export const DangerZoneSection: React.FC = () => {
@@ -27,24 +28,36 @@ export const DangerZoneSection: React.FC = () => {
   const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
   const [resetPassword, setResetPassword] = useState('');
   const [resetError, setResetError] = useState('');
+  const accountIdentifier = user?.email || user?.username || '';
 
   const handleDeleteAccount = async () => {
     setDeleteError('');
     setIsDeleting(true);
+
     try {
-      const email = user?.email || user?.username || '';
-      await verifyPassword(email, deletePassword);
+      await verifyPassword(accountIdentifier, deletePassword);
+    } catch (error) {
+      setDeleteError(t(getAuthErrorKey(error, 'settings.delete_error')));
+      setIsDeleting(false);
+      return;
+    }
+
+    try {
       const result = await deleteAccount.mutateAsync();
-      if (import.meta.env.VITE_AUTH_MODE === 'local' && email) {
-        deleteLocalUser(email);
-        clearOnboardingLocalState(user?.userId);
+      clearOnboardingLocalState(user?.userId);
+
+      if (import.meta.env.VITE_AUTH_MODE === 'local' && accountIdentifier) {
+        deleteLocalUser(accountIdentifier);
       } else if (result && !result.authDeleted) {
         toast.info(t('settings.delete_partial_cleanup_notice'), 10000);
       }
+
+      setShowDeleteConfirm(false);
+      setDeletePassword('');
       await signOut();
-    } catch (err: unknown) {
+    } catch (error: unknown) {
       setIsDeleting(false);
-      setDeleteError(t(getAuthErrorKey(err, 'settings.delete_error')));
+      setDeleteError(t(getErrorMessage(error, 'common.account_deletion_failed')));
     }
   };
 
@@ -57,8 +70,7 @@ export const DangerZoneSection: React.FC = () => {
   const executeReset = async (type: 'prayers' | 'fasts') => {
     setResetError('');
     try {
-      const email = user?.email || user?.username || '';
-      await verifyPassword(email, resetPassword);
+      await verifyPassword(accountIdentifier, resetPassword);
       if (type === 'prayers') {
         await resetPrayerLogs.mutateAsync();
       } else {
@@ -74,7 +86,6 @@ export const DangerZoneSection: React.FC = () => {
   return (
     <SettingsSection icon={<Trash2 size={18} />} title={t('settings.danger_zone')} variant="danger">
       <div className={styles.dangerZoneActions}>
-        {/* Reset Actions */}
         <div className={styles.resetItem}>
           <div className={styles.resetItemInfo}>
             <span className={styles.resetItemLabel}>{t('settings.reset_prayers')}</span>
@@ -203,7 +214,6 @@ export const DangerZoneSection: React.FC = () => {
 
         <div className={styles.dangerDivider} />
 
-        {/* Delete Account */}
         <p className={styles.privacyText}>{t('settings.delete_account_hint')}</p>
 
         {!showDeleteConfirm ? (

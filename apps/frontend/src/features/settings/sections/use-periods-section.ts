@@ -104,6 +104,7 @@ export const usePeriodsSection = () => {
         startDate: form.startDate,
         endDate: form.isOngoing ? undefined : form.endDate || undefined,
         dateOfBirth: persistedDobDate ?? undefined,
+        revertDate: profile?.revertDate ?? undefined,
         existingPeriods: persistedPeriods,
         excludePeriodId,
       });
@@ -115,12 +116,15 @@ export const usePeriodsSection = () => {
           startError: validationError.field === 'start' ? message : '',
           endError: validationError.field === 'end' ? message : '',
         }));
-        setPeriodFeedback({ tone: 'error', message });
+        setPeriodFeedback({
+          tone: validationError.severity === 'warning' ? 'warning' : 'error',
+          message,
+        });
       }
 
-      return validationError == null;
+      return !validationError || validationError.severity === 'warning';
     },
-    [persistedDobDate, persistedPeriods, t],
+    [persistedDobDate, persistedPeriods, profile?.revertDate, t],
   );
 
   const isAddValid = useMemo(

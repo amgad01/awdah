@@ -87,10 +87,6 @@ export const updateUserSettingsSchema = z
     message: 'Revert date cannot be before bulugh date',
     path: ['revertDate'],
   })
-  .refine((d) => !HijriDate.fromString(d.bulughDate).isAfter(HijriDate.today()), {
-    message: 'onboarding.error_date_after_max',
-    path: ['bulughDate'],
-  })
   .refine(
     (d) => !d.dateOfBirth || !HijriDate.fromString(d.dateOfBirth).isAfter(HijriDate.today()),
     {

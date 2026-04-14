@@ -145,6 +145,8 @@ Infrastructure is split by operational concern:
 
 See [diagrams/05-stack-dependencies.md](diagrams/05-stack-dependencies.md).
 
+One important detail: `FrontendStack` is optional, but when it is included in AWS deploys the CDK app orders it after `ApiStack`. That is a deployment dependency, not a reverse runtime dependency.
+
 This keeps blast radius smaller than a single all-in-one stack while still letting the repo behave as one system.
 
 ## 8. Development Modes

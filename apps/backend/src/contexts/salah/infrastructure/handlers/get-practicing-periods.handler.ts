@@ -1,4 +1,4 @@
-import { getPracticingPeriodsUseCase } from '../../../../shared/di/container';
+import { getPracticingPeriodsUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 

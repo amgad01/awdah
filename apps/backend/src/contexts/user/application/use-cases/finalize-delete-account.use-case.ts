@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError } from '@awdah/shared';
+import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
 import type {
   IUserLifecycleJobRepository,
   UserLifecycleJob,
@@ -24,7 +24,10 @@ export class FinalizeDeleteAccountUseCase {
   ) {}
 
   async execute(command: FinalizeDeleteAccountCommand): Promise<FinalizeDeleteAccountResult> {
-    const job = await this.jobRepository.findById(command.userId, command.jobId);
+    const userId = new UserId(command.userId);
+    const jobId = new EventId(command.jobId);
+
+    const job = await this.jobRepository.findById(userId, jobId);
 
     if (!job || job.type !== 'delete-account') {
       throw new NotFoundError('Account deletion job not found');
@@ -37,25 +40,17 @@ export class FinalizeDeleteAccountUseCase {
     }
 
     try {
-      await this.cognitoAdminService.deleteUser(command.userId);
-      await this.jobRepository.markAuthDeleted(
-        command.userId,
-        command.jobId,
-        new Date().toISOString(),
-      );
+      await this.cognitoAdminService.deleteUser(userId);
+      await this.jobRepository.markAuthDeleted(userId, jobId, new Date().toISOString());
       return { authDeleted: true };
     } catch (error) {
       if (isAlreadyDeletedCognitoError(error)) {
-        await this.jobRepository.markAuthDeleted(
-          command.userId,
-          command.jobId,
-          new Date().toISOString(),
-        );
+        await this.jobRepository.markAuthDeleted(userId, jobId, new Date().toISOString());
         return { authDeleted: true };
       }
 
       logger.error(
-        { err: error, jobId: command.jobId, userId: command.userId },
+        { err: error, jobId: jobId.toString(), userId: userId.toString() },
         'Account data deletion completed but auth cleanup failed',
       );
       return { authDeleted: false };

@@ -1,4 +1,4 @@
-import { getSalahDebtUseCase } from '../../../../shared/di/container';
+import { getSalahDebtUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 

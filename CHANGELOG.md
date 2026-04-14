@@ -7,6 +7,86 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.1.3
+
+### Changed
+
+#### Backend
+
+- Dependency injection use-cases are now organized by context (`salah-use-cases.ts`, `sawm-use-cases.ts`, `user-use-cases.ts`) instead of one monolithic file
+- Handler imports updated to pull from context-specific DI modules rather than the shared container
+- `wrap-handler.ts` middleware refactored into smaller focused functions for request building, invocation metadata extraction, and error handling
+- `create-handler.ts` now constructs request-scoped loggers with path and method context for better traceability
+- `DynamoDBUserDataLifecycleService` now delegates query operations through the base repository method instead of constructing raw `QueryCommand` instances inline
+- DynamoDB repository methods now consistently return typed results with `lastEvaluatedKey` instead of raw AWS SDK response shapes
+- Domain entities now use strongly-typed value objects (`UserId`, `EventId`, `PeriodId`) instead of raw string identifiers; persistence layer uses dedicated mappers for conversion
+- Added shared `responses` utility in `responses.ts` for standardized HTTP response shaping across handlers and tests
+
+### Fixed
+
+#### Backend
+
+- Prayer log persistence now mirrors other repositories by omitting key attributes from the payload during saves
+- User lifecycle export queries only pass required expression attribute names to avoid DynamoDB validation errors
+- Missing or partial user settings now return a 404 instead of a 500 during profile fetch
+- Shared effective-start-date helper keeps Salah/Sawm debt use cases DRY without coupling contexts
+- Shared practicing-period rules keep add/update use cases aligned on DOB and revert-date validation
+- Environment validation no longer falls back to computed defaults outside local mode
+- Qadaa logging now rejects over-completion server-side when no debt remains for a prayer
+- Allowed future `bulughDate` values in user settings validation to accommodate predictive obligation planning
+- Practicing periods now enforce the `revertDate` starting boundary and allow voluntary overlaps as UI warnings
+
+#### Frontend
+
+- Prevent profile fetch errors from crashing the client when the server response omits an `error` payload
+- Allow future bulugh dates during onboarding so users can record a future obligation date without validation errors
+- Qadaa completion UI now waits for debt data before showing “all caught up” states or disabling prayer counters
+- Account deletion now distinguishes password-verification failures from downstream lifecycle failures and signs the user out cleanly after successful deletion
+- Enhanced `auth-errors.ts` to detect network/DNS failures and provide specific connection feedback in three languages
+- Integrated debt-aware UX in `PrayerLogger` to disable qadaa logging actions when no debt remains
+
+#### Shared
+
+- `StringValueObject.equals` now guards nullish inputs to preserve base-class contract
+
+#### Persistence
+
+- Full-jitter backoff now matches the documented retry strategy
+- Check-in prompt messages updated across English, Arabic, and German for improved clarity and user experience
+- New pages artifacts generator script pre-builds public route metadata and HTML entry point for consistent static hosting
+
+#### Infrastructure
+
+-- Alarm stack no longer imports per-Lambda function references from the API stack, which unblocks CloudFormation rollback by keeping only aggregate alarms and dashboard widgets that do not depend on Lambda exports
+
+- `FrontendStack` now deploys after `ApiStack` in CDK ordering to keep hosting paths aligned with the published API environment
+- Removed unused `appEnv` context fallback from config resolution
+- `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
+- `ProcessUserLifecycleJobFn` Lambda permissions were corrected so lifecycle delete/reset jobs retain the write access they need on the managed user-data tables
+- Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now only allows computed fallbacks in local mode and fails fast elsewhere
+- Standardized infrastructure naming on CDK context (`ticket` prefix) across all project stacks (Data, Auth, API, Backup, Alarms, Frontend)
+- Consolidated resource naming logic into `naming.ts` and refactored `BaseStack` to consume it directly
+- Refactored `app.ts` entry point to use a typed deployment configuration and centralized tagging logic in `config.ts`
+- Added `docs/private/naming-architecture.md` documentation covering the infrastructure naming philosophy
+
+#### Tooling
+
+- `tsconfig.json` now includes `apps/backend/scripts/**/*.ts` for type checking utility scripts
+
+### Removed
+
+#### Backend
+
+- `container.ts` and `services.ts` DI modules after use-case split
+- Legacy HTTP route modules (`create-app.ts`, `route-registry.ts`, `salah-routes.ts`, `sawm-routes.ts`, `user-routes.ts`, `e2e-seed-routes.ts`)
+- `local-handler-runner.ts` after migration to handler-first architecture
+- `in-process-user-lifecycle-job-dispatcher.service.ts` after moving lifecycle dispatch behind the repository layer
+- `responses.ts` helper after consolidating response utilities into `wrap-handler.ts`
+
+#### Infrastructure
+
+- `restore-from-s3.ts` and `restore-sanitize.ts` from `infra/scripts` after moving restore utilities into the backend workspace
+
 ## v1.1.2
 
 ### Changed

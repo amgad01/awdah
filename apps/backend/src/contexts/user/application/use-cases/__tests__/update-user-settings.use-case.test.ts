@@ -7,10 +7,12 @@ import { ValidationError } from '@awdah/shared';
 import { IUserRepository } from '../../../../shared/domain/repositories/user.repository';
 
 describe('UpdateUserSettingsUseCase', () => {
-  const mockRepo: IUserRepository = {
+  const mockRepo = {
     findById: vi.fn(),
     save: vi.fn(),
-  };
+    deleteAccount: vi.fn(),
+    exportData: vi.fn(),
+  } as unknown as IUserRepository;
 
   const useCase = new UpdateUserSettingsUseCase(mockRepo);
 
@@ -31,7 +33,7 @@ describe('UpdateUserSettingsUseCase', () => {
 
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
     const saved = vi.mocked(mockRepo.save).mock.calls[0]![0];
-    expect(saved.userId).toBe('user-123');
+    expect(saved.userId.toString()).toBe('user-123');
     expect(saved.username).toBe('Amgad');
     expect(saved.gender).toBe('male');
     expect(saved.bulughDate.toString()).toBe('1431-09-15');

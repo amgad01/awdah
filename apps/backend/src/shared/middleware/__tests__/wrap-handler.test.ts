@@ -71,7 +71,7 @@ describe('wrap-handler', () => {
       const data = { id: 123 };
       const result = responses.ok({ message, data });
       expect(result.statusCode).toBe(StatusCodes.OK);
-      expect(result.body).toEqual({ message, id: 123 });
+      expect(result.body).toEqual({ message, data });
     });
 
     it('should create a created response with a message', () => {

@@ -1,5 +1,6 @@
 import {
   HijriDate,
+  UserId,
   type Gender,
   type Madhab,
   type CalculationMethod,
@@ -8,7 +9,7 @@ import {
 } from '@awdah/shared';
 
 export interface UserSettings {
-  userId: string;
+  userId: UserId;
   username?: string;
   dateOfBirth?: HijriDate;
   bulughDate: HijriDate;
@@ -21,6 +22,6 @@ export interface UserSettings {
 }
 
 export interface IUserRepository {
-  findById(userId: string): Promise<UserSettings | null>;
+  findById(userId: UserId): Promise<UserSettings | null>;
   save(settings: UserSettings): Promise<void>;
 }

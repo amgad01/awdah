@@ -1,3 +1,4 @@
+import { UserId, EventId } from '@awdah/shared';
 import type {
   IUserLifecycleJobRepository,
   UserLifecycleJob,
@@ -8,8 +9,8 @@ import type { IDeletedUsersRepository } from '../../domain/repositories/deleted-
 const DELETED_USER_TOMBSTONE_RETENTION_DAYS = 120;
 
 export interface ProcessUserLifecycleJobCommand {
-  userId: string;
-  jobId: string;
+  userId: UserId;
+  jobId: EventId;
 }
 
 export class ProcessUserLifecycleJobUseCase {

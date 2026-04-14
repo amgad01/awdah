@@ -363,3 +363,53 @@
   line-height: 1.4;
   font-weight: var(--font-weight-medium);
 }
+.qadaaRowCompleted {
+  background-color: var(--color-success-alpha-5);
+  border-color: var(--color-success-light);
+  border-style: solid;
+}
+
+.qadaaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.completedBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-success);
+  text-transform: capitalize;
+}
+
+.celebrationIcon {
+  color: var(--color-success);
+  animation: celebrate 1s ease-in-out infinite alternate;
+}
+
+@keyframes celebrate {
+  from {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 var(--color-success));
+  }
+  to {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 2px var(--color-success-light));
+  }
+}
+.qadaaAllClearBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-success-alpha-10);
+  border: 1px solid var(--color-success-light);
+  border-radius: var(--border-radius-md);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin-block-end: var(--spacing-xs);
+}

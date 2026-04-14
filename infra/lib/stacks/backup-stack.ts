@@ -28,7 +28,7 @@ export class BackupStack extends BaseStack {
     const backupBucket = ProjectResourceFactory.createS3Bucket(
       this,
       'BackupBucket',
-      `${this.resourcePrefix}awdah-backups-${this.projectEnv}-${this.account}`,
+      `${this.getTicketPrefix()}awdah-backups-${this.projectEnv}-${this.account}`,
       this.removalPolicy,
     );
 

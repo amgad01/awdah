@@ -77,7 +77,8 @@ export function useWorshipLogMutation<TVariables>(
       onInvalidate(queryClient, variables);
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
+      const message = err instanceof Error ? err.message : 'common.error';
+      toast.error(t(message));
     },
   });
 }
@@ -113,7 +114,8 @@ export function useLifecycleResetMutation(
       toast.success(t(successMessageKey));
     },
     onError: (err) => {
-      toast.error(err instanceof Error ? err.message : t('common.error'));
+      const message = err instanceof Error ? err.message : 'common.error';
+      toast.error(t(message));
     },
   });
 }

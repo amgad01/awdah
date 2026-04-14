@@ -1,14 +1,9 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
-import {
-  HijriDate,
-  NotFoundError,
-  PracticingPeriodType,
-  ConflictError,
-  ValidationError,
-} from '@awdah/shared';
+import { HijriDate, UserId, PeriodId, NotFoundError, PracticingPeriodType } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
+import { assertPracticingPeriodStartDateAllowed } from '../../../shared/domain/services/practicing-period-rules';
 
 export interface UpdatePracticingPeriodCommand {
   userId: string;
@@ -25,12 +20,15 @@ export class UpdatePracticingPeriodUseCase {
   ) {}
 
   async execute(command: UpdatePracticingPeriodCommand): Promise<void> {
-    const existing = await this.repository.findById(command.userId, command.periodId);
+    const userId = new UserId(command.userId);
+    const periodId = new PeriodId(command.periodId);
+
+    const existing = await this.repository.findById(userId, periodId);
     if (!existing) {
       throw new NotFoundError('onboarding.period_error_not_found');
     }
 
-    const userSettings = await this.userRepository.findById(command.userId);
+    const userSettings = await this.userRepository.findById(userId);
     if (!userSettings) {
       throw new NotFoundError(userSettingsNotFound);
     }
@@ -38,25 +36,15 @@ export class UpdatePracticingPeriodUseCase {
     const startDate = HijriDate.fromString(command.startDate);
     const endDate = command.endDate ? HijriDate.fromString(command.endDate) : undefined;
 
-    if (userSettings.dateOfBirth && startDate.isBefore(userSettings.dateOfBirth)) {
-      throw new ValidationError('onboarding.period_error_before_dob');
-    }
+    assertPracticingPeriodStartDateAllowed(startDate, userSettings);
 
     const updated = new PracticingPeriod({
-      userId: command.userId,
-      periodId: command.periodId,
+      userId,
+      periodId,
       startDate,
       endDate,
       type: command.type,
     });
-
-    const allPeriods = await this.repository.findByUser(command.userId);
-    for (const p of allPeriods) {
-      if (p.periodId === command.periodId) continue;
-      if (p.overlapsWith(updated)) {
-        throw new ConflictError('onboarding.period_error_overlap');
-      }
-    }
 
     await this.repository.save(updated);
   }

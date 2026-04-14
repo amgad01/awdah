@@ -1,4 +1,5 @@
 import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { UserId } from '@awdah/shared';
 import { settings } from '../../config/settings';
 import type {
   DeletedUserRecord,
@@ -10,11 +11,11 @@ export class DynamoDBDeletedUsersRepository implements IDeletedUsersRepository {
 
   constructor(private readonly docClient: DynamoDBDocumentClient) {}
 
-  async recordDeletion(userId: string, deletedAt: string, expiresAt: number): Promise<void> {
+  async recordDeletion(userId: UserId, deletedAt: string, expiresAt: number): Promise<void> {
     await this.docClient.send(
       new PutCommand({
         TableName: this.tableName,
-        Item: { userId, deletedAt, expiresAt },
+        Item: { userId: userId.toString(), deletedAt, expiresAt },
       }),
     );
   }
@@ -34,7 +35,7 @@ export class DynamoDBDeletedUsersRepository implements IDeletedUsersRepository {
 
       for (const item of result.Items ?? []) {
         records.push({
-          userId: item.userId as string,
+          userId: new UserId(item.userId as string),
           deletedAt: item.deletedAt as string,
           expiresAt: item.expiresAt as number,
         });

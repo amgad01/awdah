@@ -1,4 +1,4 @@
-import { NotFoundError } from '@awdah/shared';
+import { NotFoundError, UserId } from '@awdah/shared';
 import { userSettingsNotFound } from '../../../../shared/errors/messages';
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
@@ -9,6 +9,7 @@ import {
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { IHijriCalendarService } from '../../../shared/domain/services/hijri-calendar.service';
 import { PRAYER_NAMES } from '@awdah/shared';
+import { resolveEffectiveStartDate } from '../../../shared/domain/services/effective-start-date';
 
 export class GetSalahDebtUseCase {
   constructor(
@@ -20,26 +21,23 @@ export class GetSalahDebtUseCase {
   ) {}
 
   async execute(userId: string): Promise<SalahDebtResult> {
+    const user = new UserId(userId);
     // 1. Get user settings (for bulugh date)
-    const settings = await this.userRepository.findById(userId);
+    const settings = await this.userRepository.findById(user);
     if (!settings) {
       throw new NotFoundError(userSettingsNotFound);
     }
 
-    // For reverts, use the later of bulugh date and revert date
-    const effectiveStartDate =
-      settings.revertDate && settings.revertDate.isAfter(settings.bulughDate)
-        ? settings.revertDate
-        : settings.bulughDate;
+    const effectiveStartDate = resolveEffectiveStartDate(settings);
 
     // 2. Get all practicing periods that apply to salah
-    const allPeriods = await this.practicingPeriodRepository.findByUser(userId);
+    const allPeriods = await this.practicingPeriodRepository.findByUser(user);
     const relevantPeriods = allPeriods.filter((p) => p.coversContext('salah'));
 
     // 3. Get total qadaa count and per-prayer breakdown
     const [completedQadaa, completedByPrayer] = await Promise.all([
-      this.prayerLogRepository.countQadaaCompleted(userId),
-      this.prayerLogRepository.countQadaaCompletedByPrayer(userId),
+      this.prayerLogRepository.countQadaaCompleted(user),
+      this.prayerLogRepository.countQadaaCompletedByPrayer(user),
     ]);
 
     // 4. Calculate debt

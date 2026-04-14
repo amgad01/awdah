@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ConflictError, NotFoundError } from '@awdah/shared';
+import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
 import { FinalizeDeleteAccountUseCase } from '../finalize-delete-account.use-case';
 import type { ICognitoAdminService } from '../../../domain/services/cognito-admin.service.interface';
 import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
@@ -26,10 +26,13 @@ describe('FinalizeDeleteAccountUseCase', () => {
     vi.clearAllMocks();
   });
 
+  const userId = new UserId('user-1');
+  const jobId = new EventId('job-1');
+
   it('deletes auth access once the data-deletion job has completed', async () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'completed',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -39,8 +42,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
       authDeleted: false,
     });
     vi.mocked(mockJobRepository.markAuthDeleted).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'completed',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -53,10 +56,10 @@ describe('FinalizeDeleteAccountUseCase', () => {
 
     const result = await useCase.execute({ userId: 'user-1', jobId: 'job-1' });
 
-    expect(mockCognitoService.deleteUser).toHaveBeenCalledWith('user-1');
+    expect(mockCognitoService.deleteUser).toHaveBeenCalledWith(expect.any(UserId));
     expect(mockJobRepository.markAuthDeleted).toHaveBeenCalledWith(
-      'user-1',
-      'job-1',
+      expect.any(UserId),
+      expect.any(EventId),
       expect.any(String),
     );
     expect(result).toEqual({ authDeleted: true });
@@ -64,8 +67,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
 
   it('returns partial success if auth deletion still fails', async () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'completed',
       requestedAt: '2026-03-23T00:00:00.000Z',
@@ -84,8 +87,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
 
   it('throws if the deletion job is still in progress', async () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
-      userId: 'user-1',
-      jobId: 'job-1',
+      userId,
+      jobId,
       type: 'delete-account',
       status: 'processing',
       requestedAt: '2026-03-23T00:00:00.000Z',

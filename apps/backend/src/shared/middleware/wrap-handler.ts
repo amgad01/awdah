@@ -30,6 +30,17 @@ export interface WarmupEvent {
 
 export type HandlerEvent = APIGatewayProxyEventV2 | WarmupEvent;
 
+interface InvocationMetadata {
+  path: string | undefined;
+  method: string | undefined;
+}
+
+interface InvocationLogger {
+  debug: (obj: unknown, msg?: string) => void;
+  warn: (obj: unknown, msg?: string) => void;
+  error: (obj: unknown, msg?: string) => void;
+}
+
 export function wrapHandler<TBody extends Record<string, unknown> = Record<string, unknown>>(
   contextName: string,
   handler: AuthenticatedHandler<TBody>,
@@ -37,52 +48,110 @@ export function wrapHandler<TBody extends Record<string, unknown> = Record<strin
   // Logger is created once at cold start; a cheap child is forked per invocation to bind requestId.
   const baseLogger = createLogger(contextName);
 
-  return async (event, context) => {
+  return async function handleInvocation(event, context) {
     const startTime = Date.now();
-    const path = isHttpApiEvent(event) ? event.rawPath : undefined;
-    const method = isHttpApiEvent(event) ? event.requestContext?.http?.method : undefined;
-
-    const logger = baseLogger.child({
-      requestId: context.awsRequestId,
-      path,
-      method,
-    });
-
-    logger.debug('invocation started');
+    const logger = createInvocationLogger(baseLogger, event, context);
+    logInvocationStarted(logger);
 
     try {
       if (isWarmupEvent(event)) {
-        const duration = Date.now() - startTime;
-        logger.debug({ duration, target: event.target }, 'warmup invocation completed');
-        return jsonResponse(200, { warmed: true });
+        return handleWarmupInvocation(event, startTime, logger);
       }
 
-      const userId = extractUserId(event);
-      const body = parseRequestBody<TBody>(event.body);
-
-      // 3. Execute Handler
-      const query = (event.queryStringParameters ?? {}) as Record<string, string>;
-      const result = await handler({ userId, body, query }, context);
-
-      const duration = Date.now() - startTime;
-      logger.debug({ duration, statusCode: result.statusCode }, 'invocation completed');
-
-      return jsonResponse(result.statusCode, result.body);
+      const authenticatedRequest = buildAuthenticatedRequest<TBody>(event);
+      const result = await handler(authenticatedRequest, context);
+      return handleSuccessfulInvocation(result, startTime, logger);
     } catch (error) {
-      const duration = Date.now() - startTime;
-
-      if (error instanceof AppError) {
-        logger.warn({ duration, code: error.code, statusCode: error.statusCode }, error.message);
-        return jsonResponse(error.statusCode, error.toJSON());
-      }
-
-      const unexpectedError = error instanceof Error ? error : new Error(String(error));
-      logger.error({ duration, err: unexpectedError }, 'unexpected error');
-
-      const internalError = new InternalError('An unexpected error occurred');
-      return jsonResponse(internalError.statusCode, internalError.toJSON());
+      return handleInvocationError(error, startTime, logger);
     }
   };
+}
+
+function createInvocationLogger(
+  baseLogger: ReturnType<typeof createLogger>,
+  event: HandlerEvent,
+  context: Context,
+): InvocationLogger {
+  const metadata = getInvocationMetadata(event);
+
+  return baseLogger.child({
+    requestId: context.awsRequestId,
+    path: metadata.path,
+    method: metadata.method,
+  });
+}
+
+function getInvocationMetadata(event: HandlerEvent): InvocationMetadata {
+  if (!isHttpApiEvent(event)) {
+    return {
+      path: undefined,
+      method: undefined,
+    };
+  }
+
+  return {
+    path: event.rawPath,
+    method: event.requestContext?.http?.method,
+  };
+}
+
+function logInvocationStarted(logger: InvocationLogger): void {
+  logger.debug({}, 'invocation started');
+}
+
+function handleWarmupInvocation(
+  event: WarmupEvent,
+  startTime: number,
+  logger: InvocationLogger,
+): APIGatewayProxyResultV2 {
+  const duration = Date.now() - startTime;
+  logger.debug({ duration, target: event.target }, 'warmup invocation completed');
+
+  return jsonResponse(200, { warmed: true });
+}
+
+function buildAuthenticatedRequest<TBody extends Record<string, unknown>>(
+  event: APIGatewayProxyEventV2,
+): AuthenticatedRequest<TBody> {
+  return {
+    userId: extractUserId(event),
+    body: parseRequestBody<TBody>(event.body),
+    query: parseRequestQuery(event),
+  };
+}
+
+function parseRequestQuery(event: APIGatewayProxyEventV2): Record<string, string> {
+  return (event.queryStringParameters ?? {}) as Record<string, string>;
+}
+
+function handleSuccessfulInvocation(
+  result: { statusCode: number; body: unknown },
+  startTime: number,
+  logger: InvocationLogger,
+): APIGatewayProxyResultV2 {
+  const duration = Date.now() - startTime;
+  logger.debug({ duration, statusCode: result.statusCode }, 'invocation completed');
+
+  return jsonResponse(result.statusCode, result.body);
+}
+
+function handleInvocationError(
+  error: unknown,
+  startTime: number,
+  logger: InvocationLogger,
+): APIGatewayProxyResultV2 {
+  const duration = Date.now() - startTime;
+
+  if (error instanceof AppError) {
+    logger.warn({ duration, code: error.code, statusCode: error.statusCode }, error.message);
+    return jsonResponse(error.statusCode, error.toJSON());
+  }
+
+  const unexpectedError = error instanceof Error ? error : new Error(String(error));
+  logger.error({ duration, err: unexpectedError }, 'unexpected error');
+
+  const internalError = new InternalError('An unexpected error occurred');
+  return jsonResponse(internalError.statusCode, internalError.toJSON());
 }
 
 function isHttpApiEvent(event: HandlerEvent): event is APIGatewayProxyEventV2 {

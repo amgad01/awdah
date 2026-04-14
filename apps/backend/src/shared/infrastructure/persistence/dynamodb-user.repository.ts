@@ -5,6 +5,8 @@ import {
 } from '../../../contexts/shared/domain/repositories/user.repository';
 import {
   HijriDate,
+  NotFoundError,
+  UserId,
   type Gender,
   type Madhab,
   type CalculationMethod,
@@ -14,6 +16,7 @@ import {
 import { settings } from '../../config/settings';
 import { UserSettingsSK } from './keys/user-settings-key';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
+import { userSettingsNotFound } from '../../errors/messages';
 
 export class DynamoDBUserRepository
   extends BaseDynamoDBRepository<UserSettings>
@@ -23,8 +26,8 @@ export class DynamoDBUserRepository
     super(docClient, settings.tables.userSettings, 'sk', 'userId');
   }
 
-  async findById(userId: string): Promise<UserSettings | null> {
-    return this.retrieve({ pk: userId, sk: UserSettingsSK.SETTINGS });
+  async findById(userId: UserId): Promise<UserSettings | null> {
+    return this.retrieve({ pk: userId.toString(), sk: UserSettingsSK.SETTINGS });
   }
 
   async save(userSettings: UserSettings): Promise<void> {
@@ -33,7 +36,7 @@ export class DynamoDBUserRepository
 
   protected encodeKeys(userSettings: UserSettings): DomainKeys {
     return {
-      pk: userSettings.userId,
+      pk: userSettings.userId.toString(),
       sk: UserSettingsSK.SETTINGS,
     };
   }
@@ -54,8 +57,12 @@ export class DynamoDBUserRepository
   }
 
   protected mapToDomain(item: Record<string, unknown>): UserSettings {
+    if (!item.bulughDate || !item.gender) {
+      throw new NotFoundError(userSettingsNotFound);
+    }
+
     return {
-      userId: item.userId as string,
+      userId: new UserId(item.userId as string),
       username: item.username as string | undefined,
       dateOfBirth: item.dateOfBirth ? HijriDate.fromString(item.dateOfBirth as string) : undefined,
       bulughDate: HijriDate.fromString(item.bulughDate as string),

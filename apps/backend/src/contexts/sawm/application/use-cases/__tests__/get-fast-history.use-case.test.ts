@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { UserId, EventId, HijriDate } from '@awdah/shared';
 import { GetFastHistoryUseCase, GetFastHistoryCommand } from '../get-fast-history.use-case';
 import { IFastLogRepository } from '../../../domain/repositories/fast-log.repository';
 import { FastLog } from '../../../domain/entities/fast-log.entity';
-import { HijriDate } from '@awdah/shared';
 import { LogType } from '../../../../shared/domain/value-objects/log-type';
 
 describe('GetFastHistoryUseCase', () => {
@@ -21,10 +21,13 @@ describe('GetFastHistoryUseCase', () => {
     vi.clearAllMocks();
   });
 
+  const userId = new UserId('user-1');
+  const eventId = new EventId('evt-1');
+
   it('returns mapped DTOs for fasts within the date range', async () => {
     const log = new FastLog({
-      userId: 'user-1',
-      eventId: 'evt-1',
+      userId,
+      eventId,
       date: HijriDate.fromString('1445-09-10'),
       type: new LogType('qadaa'),
       loggedAt: new Date('2024-01-01T10:00:00.000Z'),
@@ -40,7 +43,7 @@ describe('GetFastHistoryUseCase', () => {
     const result = await useCase.execute(command);
 
     expect(mockRepo.findByUserAndDateRange).toHaveBeenCalledWith(
-      'user-1',
+      expect.any(UserId),
       expect.anything(),
       expect.anything(),
     );

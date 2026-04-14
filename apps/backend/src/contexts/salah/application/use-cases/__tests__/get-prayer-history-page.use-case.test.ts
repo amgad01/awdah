@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { HijriDate } from '@awdah/shared';
+import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { GetPrayerHistoryPageUseCase } from '../get-prayer-history-page.use-case';
 import { PrayerLog } from '../../../domain/entities/prayer-log.entity';
 import { PrayerName } from '../../../domain/value-objects/prayer-name';
@@ -23,8 +23,8 @@ describe('GetPrayerHistoryPageUseCase', () => {
     vi.mocked(mockRepo.findPageByUserAndDateRange).mockResolvedValueOnce({
       items: [
         new PrayerLog({
-          userId: 'user-1',
-          eventId: 'event-1',
+          userId: new UserId('user-1'),
+          eventId: new EventId('event-1'),
           date: HijriDate.fromString('1445-09-01'),
           prayerName: new PrayerName('fajr'),
           type: new LogType('qadaa'),
@@ -43,7 +43,7 @@ describe('GetPrayerHistoryPageUseCase', () => {
     });
 
     expect(mockRepo.findPageByUserAndDateRange).toHaveBeenCalledWith(
-      'user-1',
+      expect.any(UserId),
       expect.anything(),
       expect.anything(),
       { limit: 50, cursor: undefined },
@@ -95,8 +95,8 @@ describe('GetPrayerHistoryPageUseCase', () => {
     vi.mocked(mockRepo.findPageByUserAndDateRange).mockResolvedValueOnce({
       items: [
         new PrayerLog({
-          userId: 'user-1',
-          eventId: 'event-2',
+          userId: new UserId('user-1'),
+          eventId: new EventId('event-2'),
           date: HijriDate.fromString('1445-09-01'),
           prayerName: new PrayerName('fajr'),
           type: new LogType('qadaa'),
@@ -104,8 +104,8 @@ describe('GetPrayerHistoryPageUseCase', () => {
           loggedAt: deselectedLoggedAt,
         }),
         new PrayerLog({
-          userId: 'user-1',
-          eventId: 'event-1',
+          userId: new UserId('user-1'),
+          eventId: new EventId('event-1'),
           date: HijriDate.fromString('1445-09-01'),
           prayerName: new PrayerName('fajr'),
           type: new LogType('qadaa'),
@@ -113,8 +113,8 @@ describe('GetPrayerHistoryPageUseCase', () => {
           loggedAt: prayedLoggedAt,
         }),
         new PrayerLog({
-          userId: 'user-1',
-          eventId: 'event-3',
+          userId: new UserId('user-1'),
+          eventId: new EventId('event-3'),
           date: HijriDate.fromString('1445-09-02'),
           prayerName: new PrayerName('dhuhr'),
           type: new LogType('qadaa'),

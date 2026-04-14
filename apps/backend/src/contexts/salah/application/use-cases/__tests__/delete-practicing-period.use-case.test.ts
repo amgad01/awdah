@@ -4,14 +4,16 @@ import {
   DeletePracticingPeriodCommand,
 } from '../delete-practicing-period.use-case';
 import { IPracticingPeriodRepository } from '../../../../shared/domain/repositories/practicing-period.repository';
+import { UserId, PeriodId } from '@awdah/shared';
 
 describe('DeletePracticingPeriodUseCase', () => {
-  const mockRepo: IPracticingPeriodRepository = {
+  const mockRepo = {
     save: vi.fn(),
+    saveAtomic: vi.fn(),
     findByUser: vi.fn(),
     findById: vi.fn(),
     delete: vi.fn(),
-  };
+  } as unknown as IPracticingPeriodRepository;
 
   const useCase = new DeletePracticingPeriodUseCase(mockRepo);
 
@@ -27,7 +29,7 @@ describe('DeletePracticingPeriodUseCase', () => {
 
     await useCase.execute(command);
 
-    expect(mockRepo.delete).toHaveBeenCalledWith(command.userId, command.periodId);
+    expect(mockRepo.delete).toHaveBeenCalledWith(expect.any(UserId), expect.any(PeriodId));
   });
 
   it('is idempotent — does not throw if the item does not exist', async () => {

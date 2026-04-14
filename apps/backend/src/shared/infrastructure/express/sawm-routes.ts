@@ -16,10 +16,10 @@ const SAWM_ROUTES: RouteDefinition[] = [
   { method: 'get', path: '/sawm/history/page', handler: getFastHistoryPageHandler },
 ];
 
-export const registerSawmRoutes = (
+export function registerSawmRoutes(
   router: express.Router,
   apiVersion: string,
   runHandler: RouteRunner,
-) => {
+) {
   registerRouteDefinitions(router, apiVersion, runHandler, SAWM_ROUTES);
-};
+}

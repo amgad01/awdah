@@ -67,6 +67,7 @@ describe('getPracticingPeriodValidationError', () => {
     ).toEqual({
       messageKey: 'onboarding.period_error_before_dob',
       field: 'start',
+      severity: 'error',
     });
   });
 
@@ -79,6 +80,7 @@ describe('getPracticingPeriodValidationError', () => {
     ).toEqual({
       messageKey: 'onboarding.period_error_end_before_start',
       field: 'end',
+      severity: 'error',
     });
   });
 
@@ -92,6 +94,7 @@ describe('getPracticingPeriodValidationError', () => {
     ).toEqual({
       messageKey: 'onboarding.period_error_overlap',
       field: 'form',
+      severity: 'warning',
     });
   });
 

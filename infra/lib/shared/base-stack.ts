@@ -1,9 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { getFullResourceName, getResourcePrefix } from './naming';
 
 export interface BaseStackProps extends cdk.StackProps {
   projectEnv: string;
-  ticket?: string;
 }
 
 /**
@@ -12,15 +12,13 @@ export interface BaseStackProps extends cdk.StackProps {
  */
 export class BaseStack extends cdk.Stack {
   public readonly projectEnv: string;
-  public readonly resourcePrefix: string;
   public readonly removalPolicy: cdk.RemovalPolicy;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
-    const { projectEnv, ticket, ...stackProps } = props;
+    const { projectEnv, ...stackProps } = props;
     super(scope, id, stackProps);
 
     this.projectEnv = projectEnv;
-    this.resourcePrefix = ticket ? `${ticket}-` : '';
     this.removalPolicy =
       this.projectEnv === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY;
   }
@@ -30,7 +28,15 @@ export class BaseStack extends cdk.Stack {
    * Format: [prefix]Awdah-[name]-[env]
    */
   public fullResourceName(name: string): string {
-    return `${this.resourcePrefix}Awdah-${name}-${this.projectEnv}`;
+    return getFullResourceName(this, name, this.projectEnv);
+  }
+
+  /**
+   * Helper to get common ticket prefix from context.
+   * Format: ticket- (or empty string)
+   */
+  public getTicketPrefix(): string {
+    return getResourcePrefix(this);
   }
 
   /**

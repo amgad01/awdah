@@ -1,4 +1,4 @@
-import { getFastHistoryPageUseCase } from '../../../../shared/di/container';
+import { getFastHistoryPageUseCase } from '../../../../shared/di/sawm-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { pagedHistoryQuerySchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';

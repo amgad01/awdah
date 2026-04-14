@@ -23,9 +23,20 @@ export function registerRouteDefinitions(
   runHandler: RouteRunner,
   definitions: RouteDefinition[],
 ): void {
-  definitions.forEach(({ method, path, handler }) => {
-    router[method](`${apiVersion}${path}`, (req, res) => {
-      void runHandler(handler, req, res);
-    });
+  for (const definition of definitions) {
+    registerRouteDefinition(router, apiVersion, runHandler, definition);
+  }
+}
+
+function registerRouteDefinition(
+  router: express.Router,
+  apiVersion: string,
+  runHandler: RouteRunner,
+  definition: RouteDefinition,
+): void {
+  const { method, path, handler } = definition;
+
+  router[method](`${apiVersion}${path}`, function localRouteHandler(req, res) {
+    void runHandler(handler, req, res);
   });
 }

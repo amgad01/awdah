@@ -5,7 +5,7 @@ import {
 } from '../update-practicing-period.use-case';
 import type { IPracticingPeriodRepository } from '../../../../shared/domain/repositories/practicing-period.repository';
 import type { IUserRepository } from '../../../../shared/domain/repositories/user.repository';
-import { HijriDate, NotFoundError, ConflictError, ValidationError } from '@awdah/shared';
+import { HijriDate, UserId, PeriodId, NotFoundError, ValidationError } from '@awdah/shared';
 import { PracticingPeriod } from '../../../../shared/domain/entities/practicing-period.entity';
 
 describe('UpdatePracticingPeriodUseCase', () => {
@@ -14,15 +14,15 @@ describe('UpdatePracticingPeriodUseCase', () => {
   let userRepo: IUserRepository;
 
   const userSettings = {
-    userId: 'user-1',
+    userId: new UserId('user-1'),
     dateOfBirth: HijriDate.fromString('1415-01-01'),
     bulughDate: HijriDate.fromString('1430-01-01'),
     gender: 'male' as const,
   };
 
   const existingPeriod = new PracticingPeriod({
-    userId: 'user-1',
-    periodId: 'period-1',
+    userId: new UserId('user-1'),
+    periodId: new PeriodId('period-1'),
     startDate: HijriDate.fromString('1440-01-01'),
     endDate: HijriDate.fromString('1442-01-01'),
     type: 'both',
@@ -31,14 +31,15 @@ describe('UpdatePracticingPeriodUseCase', () => {
   beforeEach(() => {
     periodRepo = {
       save: vi.fn(),
+      saveAtomic: vi.fn(),
       findByUser: vi.fn().mockResolvedValue([existingPeriod]),
       findById: vi.fn().mockResolvedValue(existingPeriod),
       delete: vi.fn(),
-    };
+    } as unknown as IPracticingPeriodRepository;
     userRepo = {
       findById: vi.fn().mockResolvedValue(userSettings),
       save: vi.fn(),
-    };
+    } as unknown as IUserRepository;
     useCase = new UpdatePracticingPeriodUseCase(periodRepo, userRepo);
   });
 
@@ -80,10 +81,10 @@ describe('UpdatePracticingPeriodUseCase', () => {
     await expect(useCase.execute(command)).rejects.toThrow(ValidationError);
   });
 
-  it('throws ConflictError when updated period overlaps with another', async () => {
+  it('allows updating a period so it overlaps with another', async () => {
     const otherPeriod = new PracticingPeriod({
-      userId: 'user-1',
-      periodId: 'period-2',
+      userId: new UserId('user-1'),
+      periodId: new PeriodId('period-2'),
       startDate: HijriDate.fromString('1442-06-01'),
       endDate: HijriDate.fromString('1444-01-01'),
       type: 'both',
@@ -96,7 +97,23 @@ describe('UpdatePracticingPeriodUseCase', () => {
       endDate: '1443-01-01',
     };
 
-    await expect(useCase.execute(command)).rejects.toThrow(ConflictError);
+    await useCase.execute(command);
+    expect(periodRepo.save).toHaveBeenCalled();
+  });
+
+  it('throws ValidationError when start date is before revert date', async () => {
+    const userWithRevert = {
+      ...userSettings,
+      revertDate: HijriDate.fromString('1435-01-01'),
+    };
+    vi.mocked(userRepo.findById).mockResolvedValue(userWithRevert);
+
+    const command: UpdatePracticingPeriodCommand = {
+      ...baseCommand,
+      startDate: '1430-01-01', // before revert date
+    };
+
+    await expect(useCase.execute(command)).rejects.toThrow(ValidationError);
   });
 
   it('allows updating a period without an end date (open-ended)', async () => {

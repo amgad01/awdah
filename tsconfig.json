@@ -7,5 +7,10 @@
       "@awdah/shared/*": ["packages/shared/src/*"]
     }
   },
-  "include": ["apps/backend/src/**/*.ts", "packages/shared/src/**/*.ts", "infra/**/*.ts"]
+  "include": [
+    "apps/backend/src/**/*.ts",
+    "apps/backend/scripts/**/*.ts",
+    "packages/shared/src/**/*.ts",
+    "infra/**/*.ts"
+  ]
 }

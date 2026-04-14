@@ -1,5 +1,6 @@
 import {
   HijriDate,
+  UserId,
   type PrayerName as PrayerNameType,
   type LogType as LogTypeT,
 } from '@awdah/shared';
@@ -36,17 +37,27 @@ export class GetPrayerHistoryPageUseCase {
     const end = HijriDate.fromString(command.endDate);
     const decodedCursor = decodePrayerHistoryCursor(command.cursor);
 
-    let page = await this.repository.findPageByUserAndDateRange(command.userId, start, end, {
-      limit: command.limit,
-      cursor: decodedCursor.rawCursor,
-    });
+    let page = await this.repository.findPageByUserAndDateRange(
+      new UserId(command.userId),
+      start,
+      end,
+      {
+        limit: command.limit,
+        cursor: decodedCursor.rawCursor,
+      },
+    );
     let rawItems = skipSuppressedSlotLogs(page.items, decodedCursor.suppressedSlotKey);
 
     while (rawItems.length === 0 && page.nextCursor) {
-      page = await this.repository.findPageByUserAndDateRange(command.userId, start, end, {
-        limit: command.limit,
-        cursor: page.nextCursor,
-      });
+      page = await this.repository.findPageByUserAndDateRange(
+        new UserId(command.userId),
+        start,
+        end,
+        {
+          limit: command.limit,
+          cursor: page.nextCursor,
+        },
+      );
       rawItems = skipSuppressedSlotLogs(page.items, decodedCursor.suppressedSlotKey);
     }
 
@@ -89,7 +100,7 @@ export class GetPrayerHistoryPageUseCase {
 
     return {
       items: effectiveItems.map((log) => ({
-        eventId: log.eventId,
+        eventId: log.eventId.toString(),
         date: log.date.toString(),
         prayerName: log.prayerName.getValue(),
         type: log.type.getValue(),

@@ -1,5 +1,6 @@
 import type { DynamoDBStreamEvent } from 'aws-lambda';
-import { processUserLifecycleJobUseCase } from '../../di/container';
+import { UserId, EventId } from '@awdah/shared';
+import { processUserLifecycleJobUseCase } from '../../di/user-use-cases';
 import { createLogger } from '../../middleware/logger';
 
 const logger = createLogger('ProcessUserLifecycleJobHandler');
@@ -26,8 +27,8 @@ export async function handler(event: DynamoDBStreamEvent): Promise<void> {
     }
 
     await processUserLifecycleJobUseCase.execute({
-      userId,
-      jobId: sk.slice('JOB#'.length),
+      userId: new UserId(userId),
+      jobId: new EventId(sk.slice('JOB#'.length)),
     });
   }
 

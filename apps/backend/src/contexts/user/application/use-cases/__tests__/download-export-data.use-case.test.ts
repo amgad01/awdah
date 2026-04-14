@@ -4,7 +4,7 @@ import {
   DownloadExportDataCommand,
 } from '../download-export-data.use-case';
 import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
-import { NotFoundError, ConflictError } from '@awdah/shared';
+import { NotFoundError, ConflictError, UserId, EventId } from '@awdah/shared';
 
 describe('DownloadExportDataUseCase', () => {
   let useCase: DownloadExportDataUseCase;
@@ -16,8 +16,8 @@ describe('DownloadExportDataUseCase', () => {
   };
 
   const completedExportJob = {
-    userId: 'user-1',
-    jobId: 'job-1',
+    userId: new UserId('user-1'),
+    jobId: new EventId('job-1'),
     type: 'export' as const,
     status: 'completed' as const,
     requestedAt: '2026-03-23T00:00:00.000Z',
@@ -47,8 +47,8 @@ describe('DownloadExportDataUseCase', () => {
   it('returns export data for a completed export job', async () => {
     const result = await useCase.execute(command);
 
-    expect(jobRepo.findById).toHaveBeenCalledWith('user-1', 'job-1');
-    expect(jobRepo.readExportResult).toHaveBeenCalledWith('user-1', 'job-1');
+    expect(jobRepo.findById).toHaveBeenCalledWith(expect.any(UserId), expect.any(EventId));
+    expect(jobRepo.readExportResult).toHaveBeenCalledWith(expect.any(UserId), expect.any(EventId));
     expect(result).toEqual(exportDownload);
   });
 

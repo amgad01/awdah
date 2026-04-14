@@ -1,7 +1,10 @@
+import { createLogger } from '../middleware/logger';
+
 /**
  * Validates and retrieves environment variables.
  * Accepts either a single key (returns string) or an array of keys (returns void).
  */
+const logger = createLogger('Settings');
 function requireEnv(key: string, localFallback: string): string;
 function requireEnv(keys: string[]): void;
 function requireEnv(keyOrKeys: string | string[], localFallback?: string): string | void {
@@ -19,7 +22,15 @@ function requireEnv(keyOrKeys: string | string[], localFallback?: string): strin
 
   const value = process.env[keyOrKeys];
   if (!value) {
-    if (isLocal) return localFallback || '';
+    if (isLocal) {
+      return localFallback || '';
+    }
+    if (localFallback) {
+      logger.error(
+        { key: keyOrKeys },
+        'Missing required environment variable; refusing to use fallback in non-local env',
+      );
+    }
     throw new Error(`Missing required environment variable: ${keyOrKeys}`);
   }
   return value;

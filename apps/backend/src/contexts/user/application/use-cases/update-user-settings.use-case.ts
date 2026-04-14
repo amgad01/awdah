@@ -1,5 +1,5 @@
 import { IUserRepository, UserSettings } from '../../../shared/domain/repositories/user.repository';
-import { HijriDate, ValidationError, type Gender } from '@awdah/shared';
+import { HijriDate, ValidationError, UserId, type Gender } from '@awdah/shared';
 
 export interface UpdateUserSettingsCommand {
   userId: string;
@@ -28,7 +28,7 @@ export class UpdateUserSettingsUseCase {
     }
 
     const settings: UserSettings = {
-      userId: command.userId,
+      userId: new UserId(command.userId),
       username,
       bulughDate,
       gender: command.gender,

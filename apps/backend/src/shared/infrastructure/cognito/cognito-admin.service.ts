@@ -2,6 +2,7 @@ import {
   CognitoIdentityProviderClient,
   AdminDeleteUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { UserId } from '@awdah/shared';
 import type { ICognitoAdminService } from '../../../contexts/user/domain/services/cognito-admin.service.interface';
 import { settings } from '../../config/settings';
 import { createAwsClientConfig } from '../aws/client-config';
@@ -21,10 +22,11 @@ export class CognitoAdminService implements ICognitoAdminService {
    * AdminDeleteUser accepts the `sub` UUID as the Username parameter — Cognito
    * resolves it regardless of the pool's alias configuration.
    */
-  async deleteUser(userId: string): Promise<void> {
+  async deleteUser(userId: UserId): Promise<void> {
+    const userIdStr = userId.toString();
     if (
       process.env.LOCALSTACK_ENDPOINT &&
-      (settings.cognitoUserPoolId.endsWith('_localdev') || userId.startsWith('local-'))
+      (settings.cognitoUserPoolId.endsWith('_localdev') || userIdStr.startsWith('local-'))
     ) {
       return;
     }
@@ -33,7 +35,7 @@ export class CognitoAdminService implements ICognitoAdminService {
       await this.client.send(
         new AdminDeleteUserCommand({
           UserPoolId: settings.cognitoUserPoolId,
-          Username: userId,
+          Username: userIdStr,
         }),
       );
     } catch (error) {

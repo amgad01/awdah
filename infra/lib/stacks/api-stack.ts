@@ -7,43 +7,22 @@ import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integra
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as lambda_event_sources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
 import { BaseStack, BaseStackProps } from '../shared/base-stack';
 import { ProjectResourceFactory } from '../shared/resource-factory';
 import { getConfig, type ProjectConfig } from '../shared/config';
-import { CONTEXT, PATH } from '../shared/constants';
+import { CONTEXT } from '../shared/constants';
+import { SalahConstruct } from '../constructs/salah-construct';
+import { SawmConstruct } from '../constructs/sawm-construct';
+import { UserConstruct } from '../constructs/user-construct';
 
 export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
   authStack: AuthStack;
   frontendOrigin?: string;
-}
-
-type TableGrant = cdk.aws_dynamodb.ITable;
-
-interface LambdaDefinition {
-  id: string;
-  entryPath: string;
-  context: string;
-  readTables?: TableGrant[];
-  writeTables?: TableGrant[];
-  memorySize?: number;
-  timeout?: cdk.Duration;
-  reservedConcurrentExecutions?: number;
-  durationAlarmThresholdMs?: number;
-  concurrencyAlarmThreshold?: number;
-}
-
-interface RouteDefinition {
-  path: string;
-  method: apigatewayv2.HttpMethod;
-  lambdaId: string;
-  integrationId: string;
 }
 
 const MUTATION_ROUTE_RATE_DIVISOR = 5;
@@ -59,12 +38,6 @@ const WARM_LAMBDA_IDS = [
 export class ApiStack extends BaseStack {
   public readonly httpApi: apigatewayv2.HttpApi;
   public readonly defaultStage: apigatewayv2.HttpStage;
-  public readonly lambdaFunctions: lambda.IFunction[];
-  public readonly lambdaMonitoringConfigs: Array<{
-    function: lambda.IFunction;
-    durationAlarmThresholdMs: number;
-    concurrencyAlarmThreshold?: number;
-  }>;
   private _lifecycleJobDlq?: sqs.Queue;
 
   public get lifecycleJobDlq(): sqs.Queue {
@@ -82,6 +55,7 @@ export class ApiStack extends BaseStack {
   public set lifecycleJobDlq(queue: sqs.Queue) {
     this._lifecycleJobDlq = queue;
   }
+
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
@@ -104,30 +78,74 @@ export class ApiStack extends BaseStack {
       userPoolClients: [props.authStack.userPoolClient],
     });
 
-    const sharedEnv = this.getSharedEnvironment(props);
-    const definitions = this.getLambdaDefinitions(props, config);
+    const backendSrc = path.join(__dirname, '../../../apps/backend/src');
+    const sharedEnv = {
+      NODE_ENV: this.projectEnv,
+      LOG_LEVEL: this.projectEnv === 'prod' ? 'info' : 'debug',
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
+      COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
+    };
 
-    // 3. Register Business Lambdas
-    const lambdas = this.registerBusinessLambdas(sharedEnv, definitions);
+    // 3. Register Bounded contexts
+    const salah = new SalahConstruct(this, 'Salah', {
+      api,
+      authorizer,
+      dataStack: props.dataStack,
+      authStack: props.authStack,
+      projectEnv: this.projectEnv,
+      resourceScope: this,
+    });
 
-    // 4. Configure Specific Lambda Wiring
-    this.wireLambdaPermissions(props, lambdas);
-    this.wireEventSources(props, lambdas);
-    this.registerWarmLambdaRule(lambdas);
+    const sawm = new SawmConstruct(this, 'Sawm', {
+      api,
+      authorizer,
+      dataStack: props.dataStack,
+      authStack: props.authStack,
+      projectEnv: this.projectEnv,
+      resourceScope: this,
+    });
 
-    // 5. Register Routes (must happen before applying throttles)
-    const routes = this.registerRoutes(api, authorizer, lambdas);
+    const user = new UserConstruct(this, 'User', {
+      api,
+      authorizer,
+      dataStack: props.dataStack,
+      authStack: props.authStack,
+      projectEnv: this.projectEnv,
+      resourceScope: this,
+    });
+    this.lifecycleJobDlq = user.lifecycleJobDlq;
 
-    // Apply throttles after routes exist, and make stage depend on routes
+    // 4. Register Shared/Generic Lambdas
+    const healthFn = ProjectResourceFactory.createNodejsFunction(this, 'HealthFn', {
+      entry: path.join(backendSrc, 'shared/infrastructure/handlers/health.handler.ts'),
+      context: CONTEXT.SHARED,
+      environment: sharedEnv,
+    });
+
+    const healthRoutes = api.addRoutes({
+      path: '/health',
+      methods: [apigatewayv2.HttpMethod.GET],
+      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
+        'HealthIntegration',
+        healthFn,
+      ),
+    });
+
+    const lambdaById = new Map<string, lambda.Function>([
+      ...salah.functions.entries(),
+      ...sawm.functions.entries(),
+      ...user.functions.entries(),
+      ['HealthFn', healthFn],
+    ]);
+
+    const routes = [...salah.routes, ...sawm.routes, ...user.routes, ...healthRoutes];
     this.applyRouteThrottles(config, routes);
-
-    // 6. Setup Monitoring Properties (Read-only)
-    this.lambdaFunctions = definitions.map((def) => lambdas.get(def.id)!);
-    this.lambdaMonitoringConfigs = definitions.map((def) => ({
-      function: lambdas.get(def.id)!,
-      durationAlarmThresholdMs: def.durationAlarmThresholdMs ?? config.defaultLambdaDurationAlarmMs,
-      concurrencyAlarmThreshold: def.concurrencyAlarmThreshold,
-    }));
+    this.registerWarmLambdaRule(lambdaById);
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
 
@@ -141,9 +159,7 @@ export class ApiStack extends BaseStack {
   private createHttpApi(props: ApiStackProps): apigatewayv2.HttpApi {
     const config = getConfig(this);
     const origins = new Set([
-      // Environment defaults (dev: localhost, prod: GitHub Pages, etc.)
       ...config.allowedOrigins,
-      // Optional extra origin passed via CDK context for external frontends.
       ...(props.frontendOrigin ? [props.frontendOrigin] : []),
     ]);
 
@@ -165,22 +181,14 @@ export class ApiStack extends BaseStack {
           apigatewayv2.CorsHttpMethod.DELETE,
           apigatewayv2.CorsHttpMethod.OPTIONS,
         ],
-        // Credentialed CORS for Cognito-issued Bearer tokens.
         allowCredentials: true,
         allowOrigins: Array.from(origins),
       },
     });
   }
 
-  // Keep the route list in this method's contract because the stage must depend on every
-  // route resource. Without that explicit ordering, CloudFormation can create the default
-  // stage before all routes exist, which may cause API Gateway deployment failures or
-  // incomplete per-route throttle settings on the stage.
   private applyRouteThrottles(config: ProjectConfig, routes: apigatewayv2.HttpRoute[]): void {
     const cfnStage = this.defaultStage.node.defaultChild as apigatewayv2.CfnStage;
-    // User-driven mutations are capped below the shared stage throttle so bursts of writes
-    // do not crowd out read traffic. Destructive/admin routes are capped lower again because
-    // they are rarer, heavier, and less latency-sensitive than normal tracking actions.
     const mutationRateLimit = Math.max(
       10,
       Math.floor(config.apiThrottle.rateLimit / MUTATION_ROUTE_RATE_DIVISOR),
@@ -239,96 +247,9 @@ export class ApiStack extends BaseStack {
 
     cfnStage.routeSettings = routeSettings;
 
-    // Add explicit dependencies: Stage must be created after all Routes
     routes.forEach((route) => {
       cfnStage.addDependency(route.node.defaultChild as cdk.CfnResource);
     });
-  }
-
-  private getSharedEnvironment(props: ApiStackProps): Record<string, string> {
-    return {
-      NODE_ENV: this.projectEnv,
-      LOG_LEVEL: this.projectEnv === 'prod' ? 'info' : 'debug',
-      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
-      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
-      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
-      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
-      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
-      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
-      COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
-    };
-  }
-
-  private registerBusinessLambdas(
-    environment: Record<string, string>,
-    definitions: LambdaDefinition[],
-  ): Map<string, lambda.IFunction> {
-    const backendSrc = path.join(__dirname, '../../../apps/backend/src');
-    const lambdas = new Map<string, lambda.IFunction>();
-
-    definitions.forEach((def) => {
-      const fn = ProjectResourceFactory.createNodejsFunction(this, def.id, {
-        entry: path.join(backendSrc, def.entryPath),
-        context: def.context,
-        environment,
-        memorySize: def.memorySize,
-        timeout: def.timeout,
-        reservedConcurrentExecutions: def.reservedConcurrentExecutions,
-      });
-
-      def.readTables?.forEach((table) => table.grantReadData(fn));
-      def.writeTables?.forEach((table) => table.grantReadWriteData(fn));
-
-      lambdas.set(def.id, fn);
-    });
-
-    // Health function is registered separately (no business context needed)
-    const healthFn = ProjectResourceFactory.createNodejsFunction(this, 'HealthFn', {
-      entry: path.join(backendSrc, 'shared/infrastructure/handlers/health.handler.ts'),
-      context: CONTEXT.SHARED,
-      environment,
-    });
-    lambdas.set('HealthFn', healthFn);
-
-    return lambdas;
-  }
-
-  private wireLambdaPermissions(
-    props: ApiStackProps,
-    lambdas: Map<string, lambda.IFunction>,
-  ): void {
-    const finalizeDeleteAccountFn = lambdas.get('FinalizeDeleteAccountFn');
-    if (finalizeDeleteAccountFn) {
-      finalizeDeleteAccountFn.addToRolePolicy(
-        new iam.PolicyStatement({
-          actions: ['cognito-idp:AdminDeleteUser'],
-          resources: [
-            `arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${props.authStack.userPool.userPoolId}`,
-          ],
-        }),
-      );
-    }
-  }
-
-  private wireEventSources(props: ApiStackProps, lambdas: Map<string, lambda.IFunction>): void {
-    const processUserLifecycleJobFn = lambdas.get('ProcessUserLifecycleJobFn') as lambda.Function;
-    if (processUserLifecycleJobFn) {
-      this.lifecycleJobDlq = new sqs.Queue(this, 'LifecycleJobDLQ', {
-        queueName: this.fullResourceName('lifecycle-job-dlq'),
-        retentionPeriod: cdk.Duration.days(14),
-        enforceSSL: true,
-      });
-
-      processUserLifecycleJobFn.addEventSource(
-        new lambda_event_sources.DynamoEventSource(props.dataStack.userLifecycleJobsTable, {
-          startingPosition: lambda.StartingPosition.LATEST,
-          batchSize: 5,
-          bisectBatchOnError: true,
-          retryAttempts: 2,
-          onFailure: new lambda_event_sources.SqsDlq(this.lifecycleJobDlq),
-        }),
-      );
-    }
   }
 
   private registerWarmLambdaRule(lambdas: Map<string, lambda.IFunction>): void {
@@ -356,380 +277,5 @@ export class ApiStack extends BaseStack {
         });
       }),
     });
-  }
-
-  private registerRoutes(
-    api: apigatewayv2.HttpApi,
-    authorizer: HttpUserPoolAuthorizer,
-    lambdas: Map<string, lambda.IFunction>,
-  ): apigatewayv2.HttpRoute[] {
-    const routes: apigatewayv2.HttpRoute[] = [];
-    const routeDefinitions = this.getRouteDefinitions();
-    routeDefinitions.forEach((route) => {
-      const fn = lambdas.get(route.lambdaId);
-      if (!fn) throw new Error(`Missing Lambda function: ${route.lambdaId}`);
-
-      const addedRoutes = api.addRoutes({
-        path: route.path,
-        methods: [route.method],
-        integration: new apigatewayv2_integrations.HttpLambdaIntegration(route.integrationId, fn),
-        authorizer,
-      });
-      routes.push(...addedRoutes);
-    });
-
-    // Health route is public
-    const healthRoutes = api.addRoutes({
-      path: '/health',
-      methods: [apigatewayv2.HttpMethod.GET],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(
-        'HealthIntegration',
-        lambdas.get('HealthFn')!,
-      ),
-    });
-    routes.push(...healthRoutes);
-
-    return routes;
-  }
-
-  private getLambdaDefinitions(props: ApiStackProps, config: ProjectConfig): LambdaDefinition[] {
-    const userReadTables = [
-      props.dataStack.prayerLogsTable,
-      props.dataStack.fastLogsTable,
-      props.dataStack.practicingPeriodsTable,
-      props.dataStack.userSettingsTable,
-    ];
-
-    return [
-      // --- Salah Context ---
-      {
-        id: 'LogPrayerFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/log-prayer.handler.ts',
-        context: CONTEXT.SALAH,
-        writeTables: [props.dataStack.prayerLogsTable],
-      },
-      {
-        id: 'GetSalahDebtFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/get-salah-debt.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [
-          props.dataStack.prayerLogsTable,
-          props.dataStack.practicingPeriodsTable,
-          props.dataStack.userSettingsTable,
-        ],
-      },
-      {
-        id: 'GetPrayerHistoryFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/get-prayer-history.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [props.dataStack.prayerLogsTable],
-      },
-      {
-        id: 'GetPrayerHistoryPageFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/get-prayer-history-page.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [props.dataStack.prayerLogsTable],
-      },
-      {
-        id: 'DeletePrayerLogFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/delete-prayer-log.handler.ts',
-        context: CONTEXT.SALAH,
-        writeTables: [props.dataStack.prayerLogsTable],
-      },
-      {
-        id: 'ResetPrayerLogsFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/reset-prayer-logs.handler.ts',
-        context: CONTEXT.SALAH,
-        writeTables: [props.dataStack.userLifecycleJobsTable],
-        memorySize: config.heavyOperationMemorySize,
-        timeout: config.heavyOperationTimeout,
-        reservedConcurrentExecutions: config.protectedMutationConcurrency,
-        durationAlarmThresholdMs: config.heavyLambdaDurationAlarmMs,
-        concurrencyAlarmThreshold: config.protectedMutationConcurrency,
-      },
-      {
-        id: 'AddPeriodFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/add-practicing-period.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [props.dataStack.userSettingsTable],
-        writeTables: [props.dataStack.practicingPeriodsTable],
-      },
-      {
-        id: 'UpdatePeriodFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/update-practicing-period.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [props.dataStack.userSettingsTable, props.dataStack.practicingPeriodsTable],
-        writeTables: [props.dataStack.practicingPeriodsTable],
-      },
-      {
-        id: 'GetPeriodsFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/get-practicing-periods.handler.ts',
-        context: CONTEXT.SALAH,
-        readTables: [props.dataStack.practicingPeriodsTable],
-      },
-      {
-        id: 'DeletePeriodFn',
-        entryPath: 'contexts/salah/infrastructure/handlers/delete-practicing-period.handler.ts',
-        context: CONTEXT.SALAH,
-        writeTables: [props.dataStack.practicingPeriodsTable],
-      },
-
-      // --- Sawm Context ---
-      {
-        id: 'LogFastFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/log-fast.handler.ts',
-        context: CONTEXT.SAWM,
-        writeTables: [props.dataStack.fastLogsTable],
-      },
-      {
-        id: 'GetSawmDebtFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/get-sawm-debt.handler.ts',
-        context: CONTEXT.SAWM,
-        readTables: [
-          props.dataStack.fastLogsTable,
-          props.dataStack.practicingPeriodsTable,
-          props.dataStack.userSettingsTable,
-        ],
-      },
-      {
-        id: 'GetFastHistoryFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/get-fast-history.handler.ts',
-        context: CONTEXT.SAWM,
-        readTables: [props.dataStack.fastLogsTable],
-      },
-      {
-        id: 'GetFastHistoryPageFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/get-fast-history-page.handler.ts',
-        context: CONTEXT.SAWM,
-        readTables: [props.dataStack.fastLogsTable],
-      },
-      {
-        id: 'DeleteFastLogFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/delete-fast-log.handler.ts',
-        context: CONTEXT.SAWM,
-        writeTables: [props.dataStack.fastLogsTable],
-      },
-      {
-        id: 'ResetFastLogsFn',
-        entryPath: 'contexts/sawm/infrastructure/handlers/reset-fast-logs.handler.ts',
-        context: CONTEXT.SAWM,
-        writeTables: [props.dataStack.userLifecycleJobsTable],
-        memorySize: config.heavyOperationMemorySize,
-        timeout: config.heavyOperationTimeout,
-        reservedConcurrentExecutions: config.protectedMutationConcurrency,
-        durationAlarmThresholdMs: config.heavyLambdaDurationAlarmMs,
-        concurrencyAlarmThreshold: config.protectedMutationConcurrency,
-      },
-
-      // --- User Context ---
-      {
-        id: 'GetUserSettingsFn',
-        entryPath: 'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
-        context: CONTEXT.USER,
-        readTables: [props.dataStack.userSettingsTable],
-      },
-      {
-        id: 'UpdateUserSettingsFn',
-        entryPath: 'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
-        context: CONTEXT.USER,
-        writeTables: [props.dataStack.userSettingsTable],
-      },
-      {
-        id: 'DeleteAccountFn',
-        entryPath: 'contexts/user/infrastructure/handlers/delete-account.handler.ts',
-        context: CONTEXT.USER,
-        writeTables: [props.dataStack.userLifecycleJobsTable],
-      },
-      {
-        id: 'ExportDataFn',
-        entryPath: 'contexts/user/infrastructure/handlers/export-data.handler.ts',
-        context: CONTEXT.USER,
-        writeTables: [props.dataStack.userLifecycleJobsTable],
-      },
-      {
-        id: 'GetUserLifecycleJobStatusFn',
-        entryPath: 'contexts/user/infrastructure/handlers/get-user-lifecycle-job-status.handler.ts',
-        context: CONTEXT.USER,
-        readTables: [props.dataStack.userLifecycleJobsTable],
-      },
-      {
-        id: 'DownloadExportDataFn',
-        entryPath: 'contexts/user/infrastructure/handlers/download-export-data.handler.ts',
-        context: CONTEXT.USER,
-        readTables: [props.dataStack.userLifecycleJobsTable],
-      },
-      {
-        id: 'FinalizeDeleteAccountFn',
-        entryPath: 'contexts/user/infrastructure/handlers/finalize-delete-account.handler.ts',
-        context: CONTEXT.USER,
-        writeTables: [props.dataStack.userLifecycleJobsTable],
-      },
-      {
-        id: 'ProcessUserLifecycleJobFn',
-        entryPath: 'shared/infrastructure/handlers/process-user-lifecycle-job.handler.ts',
-        context: CONTEXT.USER,
-        writeTables: [
-          props.dataStack.userLifecycleJobsTable,
-          props.dataStack.deletedUsersTable,
-          ...userReadTables,
-        ],
-        memorySize: config.heavyOperationMemorySize,
-        timeout: config.heavyOperationTimeout,
-        reservedConcurrentExecutions: config.adminOperationConcurrency,
-        durationAlarmThresholdMs: config.heavyLambdaDurationAlarmMs,
-        concurrencyAlarmThreshold: config.adminOperationConcurrency,
-      },
-    ];
-  }
-
-  private getRouteDefinitions(): RouteDefinition[] {
-    const API_VERSION = '/v1';
-    const buildPath = (context: string, subPath: string) => `${API_VERSION}/${context}${subPath}`;
-
-    return [
-      // --- Salah Routes ---
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.LOG),
-        method: apigatewayv2.HttpMethod.POST,
-        lambdaId: 'LogPrayerFn',
-        integrationId: 'LogPrayerIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.LOG),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'DeletePrayerLogFn',
-        integrationId: 'DeletePrayerLogIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.LOGS),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'ResetPrayerLogsFn',
-        integrationId: 'ResetPrayerLogsIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.DEBT),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetSalahDebtFn',
-        integrationId: 'GetSalahDebtIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.HISTORY),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetPrayerHistoryFn',
-        integrationId: 'GetPrayerHistoryIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.HISTORY_PAGE),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetPrayerHistoryPageFn',
-        integrationId: 'GetPrayerHistoryPageIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.PERIOD),
-        method: apigatewayv2.HttpMethod.POST,
-        lambdaId: 'AddPeriodFn',
-        integrationId: 'AddPeriodIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.PERIOD),
-        method: apigatewayv2.HttpMethod.PUT,
-        lambdaId: 'UpdatePeriodFn',
-        integrationId: 'UpdatePeriodIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.PERIODS),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetPeriodsFn',
-        integrationId: 'GetPeriodsIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SALAH, PATH.PERIOD),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'DeletePeriodFn',
-        integrationId: 'DeletePeriodIntegration',
-      },
-
-      // --- Sawm Routes ---
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.LOG),
-        method: apigatewayv2.HttpMethod.POST,
-        lambdaId: 'LogFastFn',
-        integrationId: 'LogFastIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.LOG),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'DeleteFastLogFn',
-        integrationId: 'DeleteFastLogIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.LOGS),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'ResetFastLogsFn',
-        integrationId: 'ResetFastLogsIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.DEBT),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetSawmDebtFn',
-        integrationId: 'GetSawmDebtIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.HISTORY),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetFastHistoryFn',
-        integrationId: 'GetFastHistoryIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.SAWM, PATH.HISTORY_PAGE),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetFastHistoryPageFn',
-        integrationId: 'GetFastHistoryPageIntegration',
-      },
-
-      // --- User Routes ---
-      {
-        path: buildPath(CONTEXT.USER, PATH.PROFILE),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetUserSettingsFn',
-        integrationId: 'GetUserSettingsIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.PROFILE),
-        method: apigatewayv2.HttpMethod.POST,
-        lambdaId: 'UpdateUserSettingsFn',
-        integrationId: 'UpdateUserSettingsIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.ACCOUNT),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'DeleteAccountFn',
-        integrationId: 'DeleteAccountIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.ACCOUNT_AUTH),
-        method: apigatewayv2.HttpMethod.DELETE,
-        lambdaId: 'FinalizeDeleteAccountFn',
-        integrationId: 'FinalizeDeleteAccountIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.EXPORT),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'DownloadExportDataFn',
-        integrationId: 'DownloadExportDataIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.EXPORT),
-        method: apigatewayv2.HttpMethod.POST,
-        lambdaId: 'ExportDataFn',
-        integrationId: 'ExportDataIntegration',
-      },
-      {
-        path: buildPath(CONTEXT.USER, PATH.STATUS),
-        method: apigatewayv2.HttpMethod.GET,
-        lambdaId: 'GetUserLifecycleJobStatusFn',
-        integrationId: 'GetUserLifecycleJobStatusIntegration',
-      },
-    ];
   }
 }

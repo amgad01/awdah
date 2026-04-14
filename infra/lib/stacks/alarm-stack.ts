@@ -313,38 +313,6 @@ export class AlarmStack extends BaseStack {
 
     operationsDashboard.addWidgets(
       new cloudwatch.GraphWidget({
-        title: 'Lambda Errors And Throttles',
-        width: 12,
-        height: 6,
-        left: props.apiStack.lambdaMonitoringConfigs.flatMap(({ function: fn }) => [
-          fn.metricErrors({
-            period: cdk.Duration.minutes(5),
-            statistic: 'Sum',
-            label: `${fn.functionName} errors`,
-          }),
-          fn.metricThrottles({
-            period: cdk.Duration.minutes(5),
-            statistic: 'Sum',
-            label: `${fn.functionName} throttles`,
-          }),
-        ]),
-      }),
-      new cloudwatch.GraphWidget({
-        title: 'Lambda Duration p95',
-        width: 12,
-        height: 6,
-        left: props.apiStack.lambdaMonitoringConfigs.map(({ function: fn }) =>
-          fn.metricDuration({
-            period: cdk.Duration.minutes(5),
-            statistic: 'p95',
-            label: fn.functionName,
-          }),
-        ),
-      }),
-    );
-
-    operationsDashboard.addWidgets(
-      new cloudwatch.GraphWidget({
         title: 'DynamoDB Throttles',
         width: 24,
         height: 6,

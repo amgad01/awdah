@@ -273,6 +273,90 @@ export const HijriDatePicker: React.FC<HijriDatePickerProps> = ({
     return undefined;
   }, [parsedMaxDate, gregYear, gregMonth]);
 
+  React.useEffect(() => {
+    if (hijriYear && hijriMonth) {
+      const y = parseInt(hijriYear, 10);
+      const m = parseInt(hijriMonth, 10);
+      if (y === minHijriYear && m < minHijriMonth) {
+        setHijriMonth('');
+        setHijriDay('');
+      } else if (y === maxHijriYear && m > (maxHijriMonth ?? 12)) {
+        setHijriMonth('');
+        setHijriDay('');
+      }
+    }
+  }, [hijriYear, hijriMonth, minHijriYear, minHijriMonth, maxHijriYear, maxHijriMonth]);
+
+  React.useEffect(() => {
+    if (hijriYear && hijriMonth && hijriDay) {
+      const d = parseInt(hijriDay, 10);
+      if (
+        (parseInt(hijriYear, 10) === minHijriYear &&
+          parseInt(hijriMonth, 10) === minHijriMonth &&
+          d < minHijriDay) ||
+        (parseInt(hijriYear, 10) === maxHijriYear &&
+          maxHijriMonth !== undefined &&
+          parseInt(hijriMonth, 10) === maxHijriMonth &&
+          maxHijriDay !== undefined &&
+          d > maxHijriDay)
+      ) {
+        setHijriDay('');
+      }
+    }
+  }, [
+    hijriYear,
+    hijriMonth,
+    hijriDay,
+    minHijriYear,
+    minHijriMonth,
+    minHijriDay,
+    maxHijriYear,
+    maxHijriMonth,
+    maxHijriDay,
+  ]);
+
+  React.useEffect(() => {
+    if (gregYear && gregMonth) {
+      const y = parseInt(gregYear, 10);
+      const m = parseInt(gregMonth, 10);
+      if (y === minGregYear && m < minGregMonth) {
+        setGregMonth('');
+        setGregDay('');
+      } else if (y === maxGregYear && m > (maxGregMonth ?? 12)) {
+        setGregMonth('');
+        setGregDay('');
+      }
+    }
+  }, [gregYear, gregMonth, minGregYear, minGregMonth, maxGregYear, maxGregMonth]);
+
+  React.useEffect(() => {
+    if (gregYear && gregMonth && gregDay) {
+      const d = parseInt(gregDay, 10);
+      if (
+        (parseInt(gregYear, 10) === minGregYear &&
+          parseInt(gregMonth, 10) === minGregMonth &&
+          d < minGregDay) ||
+        (parseInt(gregYear, 10) === maxGregYear &&
+          maxGregMonth !== undefined &&
+          parseInt(gregMonth, 10) === maxGregMonth &&
+          maxGregDay !== undefined &&
+          d > maxGregDay)
+      ) {
+        setGregDay('');
+      }
+    }
+  }, [
+    gregYear,
+    gregMonth,
+    gregDay,
+    minGregYear,
+    minGregMonth,
+    minGregDay,
+    maxGregYear,
+    maxGregMonth,
+    maxGregDay,
+  ]);
+
   return (
     <div className={`${styles.picker} ${disabled ? styles.disabled : ''}`}>
       {disabled ? null : (

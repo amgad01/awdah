@@ -13,6 +13,11 @@ const KNOWN_AUTH_ERRORS: Array<{ pattern: RegExp; key: string }> = [
   },
   { pattern: /user\s+not\s+found/i, key: 'auth.user_not_found' },
   { pattern: /password\s+attempts\s+exceeded/i, key: 'auth.attempts_exceeded' },
+  {
+    pattern: /network\s+error|failed\s+to\s+fetch|load\s+failed|dns\s+failure/i,
+    key: 'auth.network_error',
+  },
+  { pattern: /timeout|timed\s+out/i, key: 'auth.connection_timeout' },
 ];
 
 function extractAuthErrorMessage(error: unknown): string | undefined {

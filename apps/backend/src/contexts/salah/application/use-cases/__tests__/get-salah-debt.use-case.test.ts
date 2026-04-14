@@ -8,7 +8,7 @@ import { IPrayerLogRepository } from '../../../domain/repositories/prayer-log.re
 import { IPracticingPeriodRepository } from '../../../../shared/domain/repositories/practicing-period.repository';
 import { SalahDebtCalculator } from '../../../domain/services/debt-calculator.service';
 import { IHijriCalendarService } from '../../../../shared/domain/services/hijri-calendar.service';
-import { HijriDate, AppError } from '@awdah/shared';
+import { HijriDate, AppError, UserId } from '@awdah/shared';
 
 describe('GetSalahDebtUseCase', () => {
   let useCase: GetSalahDebtUseCase;
@@ -44,12 +44,16 @@ describe('GetSalahDebtUseCase', () => {
   });
 
   it('should calculate debt correctly for a user', async () => {
-    const userId = 'user-123';
+    const userId = new UserId('user-123');
     const bulgeDate = HijriDate.fromString('1430-01-01');
     const today = HijriDate.fromString('1445-09-01');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(userRepository.findById).mockResolvedValue({ userId, bulughDate: bulgeDate } as any);
+    const settings: UserSettings = {
+      userId,
+      bulughDate: bulgeDate,
+      gender: 'male',
+    };
+    vi.mocked(userRepository.findById).mockResolvedValue(settings);
     vi.mocked(practicingPeriodRepository.findByUser).mockResolvedValue([]);
     vi.mocked(prayerLogRepository.countQadaaCompleted).mockResolvedValue(100);
     vi.mocked(prayerLogRepository.countQadaaCompletedByPrayer).mockResolvedValue({
@@ -61,7 +65,7 @@ describe('GetSalahDebtUseCase', () => {
     });
     vi.mocked(calendarService.today).mockReturnValue(today);
 
-    const result = await useCase.execute(userId);
+    const result = await useCase.execute('user-123');
 
     expect(result).toBeDefined();
     expect(result.totalPrayersOwed).toBeGreaterThan(0);
@@ -74,15 +78,16 @@ describe('GetSalahDebtUseCase', () => {
   });
 
   it('should return zero debt when bulugh date is in the future', async () => {
-    const userId = 'user-123';
+    const userId = new UserId('user-123');
     const futureBulugh = HijriDate.fromString('1450-01-01'); // Future date
     const today = HijriDate.fromString('1445-09-01');
 
-    vi.mocked(userRepository.findById).mockResolvedValue({
+    const settings: UserSettings = {
       userId,
       bulughDate: futureBulugh,
       gender: 'male',
-    } satisfies Pick<UserSettings, 'userId' | 'bulughDate' | 'gender'> as UserSettings);
+    };
+    vi.mocked(userRepository.findById).mockResolvedValue(settings);
     vi.mocked(practicingPeriodRepository.findByUser).mockResolvedValue([]);
     vi.mocked(prayerLogRepository.countQadaaCompleted).mockResolvedValue(0);
     vi.mocked(prayerLogRepository.countQadaaCompletedByPrayer).mockResolvedValue({
@@ -94,7 +99,7 @@ describe('GetSalahDebtUseCase', () => {
     });
     vi.mocked(calendarService.today).mockReturnValue(today);
 
-    const result = await useCase.execute(userId);
+    const result = await useCase.execute('user-123');
 
     expect(result.totalDaysMissed).toBe(0);
     expect(result.totalPrayersOwed).toBe(0);
@@ -109,20 +114,18 @@ describe('GetSalahDebtUseCase', () => {
   });
 
   it('should return zero debt when revert date is in the future (for reverts)', async () => {
-    const userId = 'user-123';
+    const userId = new UserId('user-123');
     const pastBulugh = HijriDate.fromString('1430-01-01');
     const futureRevert = HijriDate.fromString('1450-01-01'); // Future revert date
     const today = HijriDate.fromString('1445-09-01');
 
-    vi.mocked(userRepository.findById).mockResolvedValue({
+    const settings: UserSettings = {
       userId,
       bulughDate: pastBulugh,
       revertDate: futureRevert,
       gender: 'male',
-    } satisfies Pick<
-      UserSettings,
-      'userId' | 'bulughDate' | 'revertDate' | 'gender'
-    > as UserSettings);
+    };
+    vi.mocked(userRepository.findById).mockResolvedValue(settings);
     vi.mocked(practicingPeriodRepository.findByUser).mockResolvedValue([]);
     vi.mocked(prayerLogRepository.countQadaaCompleted).mockResolvedValue(0);
     vi.mocked(prayerLogRepository.countQadaaCompletedByPrayer).mockResolvedValue({
@@ -134,7 +137,7 @@ describe('GetSalahDebtUseCase', () => {
     });
     vi.mocked(calendarService.today).mockReturnValue(today);
 
-    const result = await useCase.execute(userId);
+    const result = await useCase.execute('user-123');
 
     expect(result.totalDaysMissed).toBe(0);
     expect(result.totalPrayersOwed).toBe(0);

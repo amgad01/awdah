@@ -1,9 +1,9 @@
-import { HijriDate, type BreakReason } from '@awdah/shared';
+import { HijriDate, UserId, EventId, type BreakReason } from '@awdah/shared';
 import { LogType } from '../../../shared/domain/value-objects/log-type';
 
 export interface FastLogProps {
-  userId: string;
-  eventId: string;
+  userId: UserId;
+  eventId: EventId;
   date: HijriDate;
   type: LogType;
   loggedAt: Date;
@@ -14,11 +14,11 @@ export interface FastLogProps {
 export class FastLog {
   constructor(private readonly props: FastLogProps) {}
 
-  get userId(): string {
+  get userId(): UserId {
     return this.props.userId;
   }
 
-  get eventId(): string {
+  get eventId(): EventId {
     return this.props.eventId;
   }
 

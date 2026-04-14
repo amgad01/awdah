@@ -12,6 +12,7 @@ import { DynamoDBUserDataLifecycleService } from '../infrastructure/persistence/
 import { DynamoDBUserLifecycleJobRepository } from '../infrastructure/persistence/dynamodb-user-lifecycle-job.repository';
 import { DynamoDBDeletedUsersRepository } from '../infrastructure/persistence/dynamodb-deleted-users.repository';
 import { createAwsClientConfig } from '../infrastructure/aws/client-config';
+import { UlidGenerator } from '../domain/services/ulid-generator';
 
 // Shared Clients
 const rawClient = new DynamoDBClient(createAwsClientConfig({ region: settings.region }));
@@ -20,7 +21,8 @@ export const dbClient = DynamoDBDocumentClient.from(rawClient, {
   marshallOptions: { removeUndefinedValues: true },
 });
 
-// Services
+// services
+export const idGenerator = new UlidGenerator();
 export const calendarService = new UmAlQuraCalendarService();
 export const salahCalculator = new SalahDebtCalculator(calendarService);
 export const sawmCalculator = new SawmDebtCalculator(calendarService);

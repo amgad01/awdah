@@ -1,8 +1,10 @@
+import { UserId } from '@awdah/shared';
+
 export type UserDataExport = Record<string, unknown>;
 
 export interface IUserDataLifecycleService {
-  deleteUserData(userId: string): Promise<void>;
-  exportUserData(userId: string): Promise<UserDataExport>;
-  resetPrayerLogs(userId: string): Promise<void>;
-  resetFastLogs(userId: string): Promise<void>;
+  deleteUserData(userId: UserId): Promise<void>;
+  exportUserData(userId: UserId): Promise<UserDataExport>;
+  resetPrayerLogs(userId: UserId): Promise<void>;
+  resetFastLogs(userId: UserId): Promise<void>;
 }

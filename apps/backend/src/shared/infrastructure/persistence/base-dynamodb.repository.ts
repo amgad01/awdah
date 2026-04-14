@@ -1,17 +1,13 @@
 import {
   DynamoDBDocumentClient,
-  BatchWriteCommand,
   QueryCommand,
   DeleteCommand,
   GetCommand,
   PutCommand,
+  ScanCommand,
   UpdateCommand,
-  type BatchWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
-import { InternalError } from '@awdah/shared';
-
-const MAX_BATCH_DELETE_ATTEMPTS = 5;
-const BATCH_DELETE_RETRY_BASE_DELAY_MS = 50;
+import { deleteKeysInBatches as batchDeleteKeysToPersistence } from './dynamodb-batch-delete';
 
 export interface DomainKeys {
   pk: string;
@@ -38,11 +34,7 @@ export abstract class BaseDynamoDBRepository<T> {
    * @returns A promise that resolves to an array of domain entities.
    */
   protected async findAll({ pk }: { pk: string }): Promise<T[]> {
-    return this.collectAllPages((exclusiveStartKey) =>
-      this.queryRawInternalPaged(pk, {
-        exclusiveStartKey,
-      }),
-    );
+    return this.queryAll({ pk });
   }
 
   /**
@@ -68,7 +60,7 @@ export abstract class BaseDynamoDBRepository<T> {
     exclusiveStartKey?: Record<string, unknown>;
     scanIndexForward?: boolean;
   }): Promise<QueryResult<T>> {
-    return this.queryRawInternalPaged(pk, { skPrefix, limit, exclusiveStartKey, scanIndexForward });
+    return this.query({ pk, skPrefix, limit, exclusiveStartKey, scanIndexForward });
   }
 
   /**
@@ -81,13 +73,7 @@ export abstract class BaseDynamoDBRepository<T> {
     pk: string;
     skPrefix: string;
   }): Promise<T[]> {
-    return this.collectAllPages((exclusiveStartKey) =>
-      this.findWithPrefix({
-        pk,
-        skPrefix,
-        exclusiveStartKey,
-      }),
-    );
+    return this.queryAll({ pk, skPrefix });
   }
 
   /**
@@ -113,7 +99,8 @@ export abstract class BaseDynamoDBRepository<T> {
     exclusiveStartKey?: Record<string, unknown>;
     scanIndexForward?: boolean;
   }): Promise<QueryResult<T>> {
-    return this.queryRawInternalPaged(pk, {
+    return this.query({
+      pk,
       skBetween: range,
       limit,
       exclusiveStartKey,
@@ -131,13 +118,7 @@ export abstract class BaseDynamoDBRepository<T> {
     pk: string;
     range: { start: string; end: string };
   }): Promise<T[]> {
-    return this.collectAllPages((exclusiveStartKey) =>
-      this.findInRange({
-        pk,
-        range,
-        exclusiveStartKey,
-      }),
-    );
+    return this.queryAll({ pk, skBetween: range });
   }
 
   /**
@@ -297,30 +278,7 @@ export abstract class BaseDynamoDBRepository<T> {
     tableName: string,
     keys: Array<Record<string, unknown>>,
   ): Promise<void> {
-    for (let i = 0; i < keys.length; i += 25) {
-      const batch = keys.slice(i, i + 25);
-      let requestItems: BatchWriteCommandInput['RequestItems'] = {
-        [tableName]: batch.map((key) => ({
-          DeleteRequest: { Key: key },
-        })),
-      };
-
-      for (let attempt = 1; this.hasPendingBatchWrites(requestItems); attempt += 1) {
-        const result: { UnprocessedItems?: BatchWriteCommandInput['RequestItems'] } =
-          await this.docClient.send(new BatchWriteCommand({ RequestItems: requestItems }));
-        requestItems = result.UnprocessedItems;
-
-        if (!this.hasPendingBatchWrites(requestItems)) break;
-
-        if (attempt >= MAX_BATCH_DELETE_ATTEMPTS) {
-          throw new InternalError(
-            `Failed to delete all batch items from ${tableName} after ${MAX_BATCH_DELETE_ATTEMPTS} attempts`,
-          );
-        }
-
-        await this.sleep(this.getBatchDeleteRetryDelayMs(attempt));
-      }
-    }
+    await batchDeleteKeysToPersistence(this.docClient, tableName, keys);
   }
 
   /**
@@ -348,21 +306,17 @@ export abstract class BaseDynamoDBRepository<T> {
     let exclusiveStartKey: Record<string, unknown> | undefined;
 
     do {
-      const command = new QueryCommand({
-        TableName: this.tableName,
-        IndexName: indexName,
-        KeyConditionExpression: `${this.pkName} = :pk AND begins_with(${skName}, :type)`,
-        ExpressionAttributeValues: {
-          ':pk': pk,
-          ':type': skPrefix,
-        },
-        Select: 'COUNT',
-        ExclusiveStartKey: exclusiveStartKey,
+      const response = await this.query({
+        pk,
+        indexName,
+        skName,
+        skPrefix,
+        select: 'COUNT',
+        exclusiveStartKey,
       });
 
-      const response = await this.docClient.send(command);
-      total += response.Count || 0;
-      exclusiveStartKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
+      total += response.count ?? 0;
+      exclusiveStartKey = response.lastEvaluatedKey;
     } while (exclusiveStartKey);
 
     return total;
@@ -382,14 +336,7 @@ export abstract class BaseDynamoDBRepository<T> {
     skName: string;
     skPrefix: string;
   }): Promise<T[]> {
-    return this.collectAllPages((exclusiveStartKey) =>
-      this.queryRawInternalPaged(pk, {
-        indexName,
-        skName,
-        skPrefix,
-        exclusiveStartKey,
-      }),
-    );
+    return this.queryAll({ pk, indexName, skName, skPrefix });
   }
 
   /**
@@ -397,39 +344,62 @@ export abstract class BaseDynamoDBRepository<T> {
    * Constructs DynamoDB QueryCommands with support for prefix filters, range filters,
    * limits, and starting keys.
    */
-  protected async queryRawInternalPaged(
-    pkValue: string,
-    options?: {
-      skName?: string;
-      skPrefix?: string;
-      skBetween?: { start: string; end: string };
-      indexName?: string;
-      limit?: number;
-      exclusiveStartKey?: Record<string, unknown>;
-      scanIndexForward?: boolean;
-    },
-  ): Promise<QueryResult<T>> {
-    const skName = options?.skName ?? this.skName;
+  protected async query({
+    pk,
+    tableName = this.tableName,
+    skName = this.skName,
+    skPrefix,
+    skBetween,
+    indexName,
+    limit,
+    exclusiveStartKey,
+    scanIndexForward,
+    projectionExpression,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    filterExpression,
+    select,
+  }: {
+    pk: string;
+    tableName?: string;
+    skName?: string;
+    skPrefix?: string;
+    skBetween?: { start: string; end: string };
+    indexName?: string;
+    limit?: number;
+    exclusiveStartKey?: Record<string, unknown>;
+    scanIndexForward?: boolean;
+    projectionExpression?: string;
+    expressionAttributeNames?: Record<string, string>;
+    expressionAttributeValues?: Record<string, unknown>;
+    filterExpression?: string;
+    select?: 'COUNT' | 'ALL_ATTRIBUTES' | 'SPECIFIC_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES';
+  }): Promise<QueryResult<T>> {
     let keyCondition = `${this.pkName} = :pk`;
-    const expressionAttributeValues: Record<string, unknown> = { ':pk': pkValue };
+    const values: Record<string, unknown> = { ':pk': pk, ...(expressionAttributeValues ?? {}) };
+    const names: Record<string, string> = { ...(expressionAttributeNames ?? {}) };
 
-    if (options?.skPrefix) {
+    if (skPrefix) {
       keyCondition += ` AND begins_with(${skName}, :sk)`;
-      expressionAttributeValues[':sk'] = options.skPrefix;
-    } else if (options?.skBetween) {
+      values[':sk'] = skPrefix;
+    } else if (skBetween) {
       keyCondition += ` AND ${skName} BETWEEN :start AND :end`;
-      expressionAttributeValues[':start'] = options.skBetween.start;
-      expressionAttributeValues[':end'] = options.skBetween.end;
+      values[':start'] = skBetween.start;
+      values[':end'] = skBetween.end;
     }
 
     const command = new QueryCommand({
-      TableName: this.tableName,
-      IndexName: options?.indexName,
+      TableName: tableName,
+      IndexName: indexName,
       KeyConditionExpression: keyCondition,
-      ExpressionAttributeValues: expressionAttributeValues as Record<string, unknown>,
-      Limit: options?.limit,
-      ScanIndexForward: options?.scanIndexForward,
-      ExclusiveStartKey: options?.exclusiveStartKey,
+      ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
+      ExpressionAttributeValues: values,
+      ProjectionExpression: projectionExpression,
+      FilterExpression: filterExpression,
+      Select: select,
+      Limit: limit,
+      ScanIndexForward: scanIndexForward,
+      ExclusiveStartKey: exclusiveStartKey,
     });
 
     const response = await this.docClient.send(command);
@@ -439,8 +409,128 @@ export abstract class BaseDynamoDBRepository<T> {
 
     return {
       items,
+      count: response.Count,
       lastEvaluatedKey: response.LastEvaluatedKey,
     };
+  }
+
+  protected async queryAll({
+    pk,
+    tableName = this.tableName,
+    skName = this.skName,
+    skPrefix,
+    skBetween,
+    indexName,
+    projectionExpression,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    filterExpression,
+    select,
+    scanIndexForward,
+  }: {
+    pk: string;
+    tableName?: string;
+    skName?: string;
+    skPrefix?: string;
+    skBetween?: { start: string; end: string };
+    indexName?: string;
+    projectionExpression?: string;
+    expressionAttributeNames?: Record<string, string>;
+    expressionAttributeValues?: Record<string, unknown>;
+    filterExpression?: string;
+    select?: 'COUNT' | 'ALL_ATTRIBUTES' | 'SPECIFIC_ATTRIBUTES' | 'ALL_PROJECTED_ATTRIBUTES';
+    scanIndexForward?: boolean;
+  }): Promise<T[]> {
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.query({
+        pk,
+        tableName,
+        skName,
+        skPrefix,
+        skBetween,
+        indexName,
+        projectionExpression,
+        expressionAttributeNames,
+        expressionAttributeValues,
+        filterExpression,
+        select,
+        scanIndexForward,
+        exclusiveStartKey,
+      }),
+    );
+  }
+
+  protected async scan({
+    tableName = this.tableName,
+    limit,
+    exclusiveStartKey,
+    projectionExpression,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    filterExpression,
+    indexName,
+  }: {
+    tableName?: string;
+    limit?: number;
+    exclusiveStartKey?: Record<string, unknown>;
+    projectionExpression?: string;
+    expressionAttributeNames?: Record<string, string>;
+    expressionAttributeValues?: Record<string, unknown>;
+    filterExpression?: string;
+    indexName?: string;
+  }): Promise<QueryResult<T>> {
+    const command = new ScanCommand({
+      TableName: tableName,
+      IndexName: indexName,
+      ProjectionExpression: projectionExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      FilterExpression: filterExpression,
+      Limit: limit,
+      ExclusiveStartKey: exclusiveStartKey,
+    });
+
+    const response = await this.docClient.send(command);
+    const items = (response.Items || []).map((item) =>
+      this.mapToDomain(item as Record<string, unknown>),
+    );
+
+    return {
+      items,
+      count: response.Count,
+      lastEvaluatedKey: response.LastEvaluatedKey,
+    };
+  }
+
+  protected async scanAll({
+    tableName = this.tableName,
+    limit,
+    projectionExpression,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    filterExpression,
+    indexName,
+  }: {
+    tableName?: string;
+    limit?: number;
+    projectionExpression?: string;
+    expressionAttributeNames?: Record<string, string>;
+    expressionAttributeValues?: Record<string, unknown>;
+    filterExpression?: string;
+    indexName?: string;
+  }): Promise<T[]> {
+    return this.collectAllPages((exclusiveStartKey) =>
+      this.scan({
+        tableName,
+        limit,
+        projectionExpression,
+        expressionAttributeNames,
+        expressionAttributeValues,
+        filterExpression,
+        indexName,
+        exclusiveStartKey,
+      }),
+    );
   }
 
   /**
@@ -458,11 +548,6 @@ export abstract class BaseDynamoDBRepository<T> {
    */
   protected abstract mapToDomain(item: Record<string, unknown>): T;
 
-  private hasPendingBatchWrites(requestItems: BatchWriteCommandInput['RequestItems']): boolean {
-    if (!requestItems) return false;
-    return Object.values(requestItems).some((requests) => (requests?.length ?? 0) > 0);
-  }
-
   private async collectAllPages(
     fetchPage: (exclusiveStartKey?: Record<string, unknown>) => Promise<QueryResult<T>>,
   ): Promise<T[]> {
@@ -477,22 +562,14 @@ export abstract class BaseDynamoDBRepository<T> {
 
     return allItems;
   }
-
-  private getBatchDeleteRetryDelayMs(attempt: number): number {
-    const exponentialDelay = BATCH_DELETE_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
-    const halfDelay = Math.floor(exponentialDelay / 2);
-    return halfDelay + Math.floor(Math.random() * Math.max(halfDelay, 1));
-  }
-
-  private async sleep(ms: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, ms));
-  }
 }
 
 /** Represents a set of items returned from a paged DynamoDB query */
 export interface QueryResult<T> {
   /** The fully mapped domain entities for this page */
   items: T[];
+  /** The count reported by DynamoDB for COUNT queries or scans */
+  count?: number;
   /** The key indicating where DynamoDB stopped, to be used in subsequent requests */
   lastEvaluatedKey?: Record<string, unknown>;
 }
