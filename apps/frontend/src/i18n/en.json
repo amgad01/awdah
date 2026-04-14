@@ -265,6 +265,8 @@
     "login_error": "Failed to sign in. Please check your credentials.",
     "signup_error": "Failed to create account. Please try again.",
     "account_exists_error": "An account already exists for this email. Sign in or use a different email.",
+    "network_error": "Connection failed. Please check your internet connection.",
+    "connection_timeout": "Connection timed out. Please try again.",
     "session_expired": "Your session ended. Please sign in again.",
     "password_mismatch": "Passwords do not match",
     "password_requirements_title": "Password requirements",

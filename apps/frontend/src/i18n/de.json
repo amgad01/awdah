@@ -271,6 +271,8 @@
     "login_error": "Anmeldung fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.",
     "signup_error": "Konto konnte nicht erstellt werden. Bitte erneut versuchen.",
     "account_exists_error": "Für diese E-Mail existiert bereits ein Konto. Melde dich an oder verwende eine andere E-Mail.",
+    "network_error": "Verbindung fehlgeschlagen. Bitte überprüfe deine Internetverbindung.",
+    "connection_timeout": "Verbindung zeitüberschreitung. Bitte erneut versuchen.",
     "session_expired": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
     "password_mismatch": "Passwörter stimmen nicht überein",
     "password_requirements_title": "Passwortanforderungen",
