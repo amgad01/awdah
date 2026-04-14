@@ -3,7 +3,6 @@ import { useLanguage } from '@/hooks/use-language';
 import { HijriDate } from '@awdah/shared';
 import { HijriDatePicker } from '@/components/hijri-date-picker/hijri-date-picker';
 import { TermTooltip } from '@/components/ui/term-tooltip';
-import { todayHijriDate } from '@/utils/date-utils';
 import {
   formatGregorianDisplay,
   formatHijriDisplay,
@@ -13,6 +12,7 @@ import {
   isBulughEarly,
 } from '@/lib/profile-date-utils';
 import styles from '../onboarding.module.css';
+import { todayHijriDate } from '@/utils/date-utils';
 
 type BulughInputMode = 'date' | 'age' | 'default' | 'revert';
 type BulughDraftState = {

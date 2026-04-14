@@ -314,6 +314,7 @@
     "privacy": "Privacy Policy"
   },
   "salah": {
+    "error_no_qadaa_owed": "Alhamdulillah, you have no remaining qadaa debt for this prayer.",
     "title": "Salah Debt",
     "subtitle": "Track and fulfil your missed prayers",
     "debt_overview": "Debt Overview",
@@ -328,6 +329,8 @@
     "add_period": "Add Practicing Period",
     "period_note": "Prayers during this period will be excluded from your qadaa total.",
     "all_complete": "All prayers fulfilled. May Allah accept!",
+    "all_complete_message": "Alhamdulillah, you have no missed prayers to catch up on.",
+    "qadaa_all_clear": "Alhamdulillah, you are all caught up with your prayers!",
     "projection_prefix": "At 5 per day, this will take approximately",
     "projection_suffix": "more days",
     "guidance_title": "How to use this section",
@@ -582,6 +585,7 @@
     "period_type_salah": "Salah only",
     "period_type_sawm": "Sawm only",
     "period_error_overlap": "This period overlaps with an existing one",
+    "period_error_before_revert": "Practicing period cannot start before your reversion date",
     "period_error_before_dob": "Practicing period cannot start before your date of birth",
     "period_error_end_before_start": "End date cannot be before start date",
     "period_error_not_found": "Practicing period not found",

@@ -1,11 +1,16 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
-import { useLogPrayer, useDailyPrayerLogs, useDeletePrayer } from '@/hooks/use-worship';
+import {
+  useLogPrayer,
+  useDailyPrayerLogs,
+  useDeletePrayer,
+  useSalahDebt,
+} from '@/hooks/use-worship';
 import { useProfile } from '@/hooks/use-profile';
 import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
-import { Check, Loader2, Minus, Plus } from 'lucide-react';
+import { Check, Loader2, Minus, Plus, CheckCircle2 } from 'lucide-react';
 import { DayNav } from '@/components/ui/day-nav/day-nav';
 import { isLocalStorageExpiryActive, writeLocalStorageExpiry } from '@/utils/local-storage';
 import { invalidateSalahQueries } from '@/utils/query-invalidation';
@@ -54,6 +59,8 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   const activeDate = tab === 'daily' ? dailyDate : selectedDate;
 
   const { data: profile } = useProfile();
+  const { data: debt } = useSalahDebt();
+  const hasDebtData = debt != null;
   const birthDate = profile?.dateOfBirth;
 
   const { data: logs, isLoading, error, isError } = useDailyPrayerLogs(activeDate);
@@ -82,7 +89,6 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
         return acc;
       }, {});
   }, [logs, tab]);
-
   const isPending = logMutation.isPending || deleteMutation.isPending;
   const isFuture = selectedDate > today;
   const isDailyFuture = dailyDate > today;
@@ -123,9 +129,11 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
   const handleQadaaIncrement = useCallback(
     (prayerName: string) => {
       if (isPending || isFuture) return;
+      // Double check client side even if button is disabled
+      if (!hasDebtData || (debt.perPrayerRemaining[prayerName] ?? 0) <= 0) return;
       logMutation.mutate({ date: selectedDate, prayerName, type: 'qadaa' });
     },
-    [isPending, isFuture, selectedDate, logMutation],
+    [isPending, isFuture, selectedDate, logMutation, debt, hasDebtData],
   );
 
   const handleQadaaDecrement = useCallback(
@@ -316,15 +324,30 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
           className={styles.prayers}
         >
           {isFuture && <p className={styles.futureNote}>{t('salah.future_date_note')}</p>}
+          {hasDebtData && debt.remainingPrayers === 0 && (
+            <div className={styles.qadaaAllClearBanner}>
+              <CheckCircle2 size={20} className={styles.celebrationIcon} />
+              <span>{t('salah.qadaa_all_clear')}</span>
+            </div>
+          )}
           {PRAYERS.map((prayer) => {
             const entries = qadaaLogsMap[prayer] ?? [];
             const count = entries.length;
+            const isCompleted = hasDebtData && (debt.perPrayerRemaining[prayer] ?? 0) <= 0;
             return (
               <div
                 key={prayer}
-                className={`${styles.qadaaRow} ${count > 0 ? styles.qadaaRowActive : ''} ${isFuture ? styles.disabled : ''}`}
+                className={`${styles.qadaaRow} ${count > 0 ? styles.qadaaRowActive : ''} ${isFuture || isCompleted ? styles.disabled : ''} ${isCompleted ? styles.qadaaRowCompleted : ''}`}
               >
-                <span className={styles.prayerName}>{t(`prayers.${prayer}`)}</span>
+                <div className={styles.qadaaInfo}>
+                  <span className={styles.prayerName}>{t(`prayers.${prayer}`)}</span>
+                  {isCompleted && (
+                    <span className={styles.completedBadge}>
+                      <Check size={12} className={styles.celebrationIcon} />
+                      {t('salah.complete')}
+                    </span>
+                  )}
+                </div>
                 <div
                   className={styles.qadaaCounter}
                   aria-label={`${t(`prayers.${prayer}`)}: ${fmtNumber(count)}`}
@@ -342,11 +365,15 @@ export const PrayerLogger: React.FC<PrayerLoggerProps> = ({
                   <button
                     className={styles.qadaaBtn}
                     onClick={() => handleQadaaIncrement(prayer)}
-                    disabled={isPending || isFuture || isBeforeBirth}
+                    disabled={isPending || isFuture || isBeforeBirth || isCompleted}
                     aria-label={`${t('salah.qadaa_increment')} ${t(`prayers.${prayer}`)}`}
                     type="button"
                   >
-                    <Plus size={14} />
+                    {isCompleted ? (
+                      <Check size={14} className={styles.celebrationIcon} />
+                    ) : (
+                      <Plus size={14} />
+                    )}
                   </button>
                 </div>
               </div>

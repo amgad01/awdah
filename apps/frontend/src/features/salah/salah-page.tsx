@@ -25,7 +25,8 @@ export const SalahPage: React.FC = () => {
   const remaining = debt?.remainingPrayers ?? 0;
   const perPrayer = debt?.perPrayerRemaining;
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const allComplete = total > 0 && remaining === 0;
+  const hasDebtData = debt != null;
+  const allComplete = hasDebtData && remaining === 0;
 
   const todayDual = format(todayHijriDate());
 
@@ -101,9 +102,14 @@ export const SalahPage: React.FC = () => {
         />
 
         {allComplete ? (
-          <div className={styles.completedMsg}>
-            <CheckCircle2 size={20} />
-            {t('salah.all_complete')}
+          <div className={styles.celebrationBanner}>
+            <div className={styles.celebrationIconContainer}>
+              <CheckCircle2 size={32} className={styles.celebrationMainIcon} />
+            </div>
+            <div className={styles.celebrationText}>
+              <h3 className={styles.celebrationTitle}>{t('salah.all_complete')}</h3>
+              <p className={styles.celebrationBody}>{t('salah.all_complete_message')}</p>
+            </div>
           </div>
         ) : remaining > 0 ? (
           <>

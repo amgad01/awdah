@@ -205,16 +205,84 @@
   gap: var(--spacing-md);
 }
 
-.completedMsg {
+.celebrationBanner {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(
+    135deg,
+    var(--color-success-alpha-10) 0%,
+    var(--color-success-alpha-5) 100%
+  );
+  border: 1.5px solid var(--color-success-light);
+  border-radius: var(--border-radius-lg);
+  animation: celebrateFadeIn 0.5s ease-out;
+}
+
+@keyframes celebrateFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.celebrationIconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-success);
+  color: var(--color-text-on-primary);
+  border-radius: var(--border-radius-circle);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px var(--color-success-alpha-20);
+}
+
+.celebrationMainIcon {
+  animation: celebratePulse 2s infinite;
+}
+
+@keyframes celebratePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.celebrationText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.celebrationTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-black);
   color: var(--color-success);
-  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.celebrationBody {
+  margin: 0;
   font-size: var(--font-size-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--color-success-alpha-8);
-  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.completedMsg {
+  display: none;
 }
 
 .toggleRemaining {

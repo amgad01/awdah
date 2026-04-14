@@ -320,6 +320,7 @@
     "privacy": "Datenschutzrichtlinie"
   },
   "salah": {
+    "error_no_qadaa_owed": "Alhamdulillah, du hast keine verbleibenden Qadaa-Schulden für dieses Gebet.",
     "title": "Salah-Schuld",
     "subtitle": "Verfolge und erfülle deine verpassten Gebete",
     "debt_overview": "Schuldenübersicht",
@@ -334,6 +335,8 @@
     "add_period": "Praxisphase hinzufügen",
     "period_note": "Gebete während dieser Phase werden nicht in deine Qadaa-Schuld eingerechnet.",
     "all_complete": "Alle Gebete erfüllt – möge Allah es annehmen!",
+    "all_complete_message": "Alhamdulillah, du hast keine verpassten Gebete nachzuholen.",
+    "qadaa_all_clear": "Alhamdulillah, du hast alle deine Gebete nachgeholt!",
     "projection_prefix": "Bei 5 pro Tag dauert das noch ungefähr",
     "projection_suffix": "weitere Tage",
     "guidance_title": "So verwendest du diesen Bereich",
@@ -588,6 +591,7 @@
     "period_type_salah": "Nur Salah",
     "period_type_sawm": "Nur Sawm",
     "period_error_overlap": "Diese Phase überschneidet sich mit einer bestehenden",
+    "period_error_before_revert": "Praxisphase kann nicht vor deinem Eintrittsdatum beginnen",
     "period_error_before_dob": "Praxisphase kann nicht vor deinem Geburtsdatum beginnen",
     "period_error_end_before_start": "Enddatum kann nicht vor dem Startdatum liegen",
     "period_error_not_found": "Praxisphase nicht gefunden",

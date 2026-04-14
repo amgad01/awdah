@@ -29,6 +29,7 @@ export interface CoveredPracticingDay {
 export interface PracticingPeriodValidationError {
   messageKey: string;
   field: 'start' | 'end' | 'form';
+  severity: 'error' | 'warning';
 }
 
 function daysBetween(start: HijriDate, end: HijriDate): number {
@@ -92,6 +93,7 @@ export function getPracticingPeriodValidationError({
   startDate,
   endDate,
   dateOfBirth,
+  revertDate,
   existingPeriods = [],
   excludePeriodId,
   todayDate = todayHijriDate(),
@@ -99,34 +101,54 @@ export function getPracticingPeriodValidationError({
   startDate: string;
   endDate?: string;
   dateOfBirth?: string;
+  revertDate?: string;
   existingPeriods?: PeriodRangeLike[];
   excludePeriodId?: string;
   todayDate?: string;
 }): PracticingPeriodValidationError | null {
   if (!startDate) {
-    return { messageKey: 'onboarding.error_invalid_date', field: 'start' };
+    return { messageKey: 'onboarding.error_invalid_date', field: 'start', severity: 'error' };
   }
 
   let parsedStart: HijriDate;
   try {
     parsedStart = HijriDate.fromString(startDate);
   } catch {
-    return { messageKey: 'onboarding.error_invalid_date', field: 'start' };
+    return { messageKey: 'onboarding.error_invalid_date', field: 'start', severity: 'error' };
   }
 
   const today = HijriDate.fromString(todayDate);
   if (parsedStart.isAfter(today)) {
-    return { messageKey: 'onboarding.period_error_future_date', field: 'start' };
+    return { messageKey: 'onboarding.period_error_future_date', field: 'start', severity: 'error' };
   }
 
   if (dateOfBirth) {
     try {
       const dob = HijriDate.fromString(dateOfBirth);
       if (parsedStart.isBefore(dob)) {
-        return { messageKey: 'onboarding.period_error_before_dob', field: 'start' };
+        return {
+          messageKey: 'onboarding.period_error_before_dob',
+          field: 'start',
+          severity: 'error',
+        };
       }
     } catch {
       // Ignore invalid DOB input here; the DOB field validates independently.
+    }
+  }
+
+  if (revertDate) {
+    try {
+      const revert = HijriDate.fromString(revertDate);
+      if (parsedStart.isBefore(revert)) {
+        return {
+          messageKey: 'onboarding.period_error_before_revert',
+          field: 'start',
+          severity: 'error',
+        };
+      }
+    } catch {
+      // Ignore invalid revertDate input here.
     }
   }
 
@@ -135,15 +157,19 @@ export function getPracticingPeriodValidationError({
     try {
       parsedEnd = HijriDate.fromString(endDate);
     } catch {
-      return { messageKey: 'onboarding.error_invalid_date', field: 'end' };
+      return { messageKey: 'onboarding.error_invalid_date', field: 'end', severity: 'error' };
     }
 
     if (parsedEnd.isBefore(parsedStart)) {
-      return { messageKey: 'onboarding.period_error_end_before_start', field: 'end' };
+      return {
+        messageKey: 'onboarding.period_error_end_before_start',
+        field: 'end',
+        severity: 'error',
+      };
     }
 
     if (parsedEnd.isAfter(today)) {
-      return { messageKey: 'onboarding.period_error_future_date', field: 'end' };
+      return { messageKey: 'onboarding.period_error_future_date', field: 'end', severity: 'error' };
     }
   }
 
@@ -155,7 +181,11 @@ export function getPracticingPeriodValidationError({
       }
 
       if (rangesOverlap(startDate, endDate, normalized.startDate, normalized.endDate)) {
-        return { messageKey: 'onboarding.period_error_overlap', field: 'form' };
+        return {
+          messageKey: 'onboarding.period_error_overlap',
+          field: 'form',
+          severity: 'warning',
+        };
       }
     } catch {
       // Ignore malformed stored periods so they don't block the current edit.
