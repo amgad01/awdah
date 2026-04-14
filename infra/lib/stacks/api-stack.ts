@@ -18,7 +18,6 @@ import { CONTEXT } from '../shared/constants';
 import { SalahConstruct } from '../constructs/salah-construct';
 import { SawmConstruct } from '../constructs/sawm-construct';
 import { UserConstruct } from '../constructs/user-construct';
-import { LEGACY_LAMBDA_REF_EXPORT_SUFFIXES, WARM_LAMBDA_IDS } from '../shared/api-stack-compat';
 
 export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
@@ -29,16 +28,16 @@ export interface ApiStackProps extends BaseStackProps {
 const MUTATION_ROUTE_RATE_DIVISOR = 5;
 const ADMIN_ROUTE_RATE_DIVISOR = 20;
 const WARM_LAMBDA_INTERVAL_MINUTES = 15;
+const WARM_LAMBDA_IDS = [
+  'GetUserSettingsFn',
+  'GetSalahDebtFn',
+  'GetSawmDebtFn',
+  'GetPeriodsFn',
+] as const;
 
 export class ApiStack extends BaseStack {
   public readonly httpApi: apigatewayv2.HttpApi;
   public readonly defaultStage: apigatewayv2.HttpStage;
-  public readonly lambdaFunctions: lambda.IFunction[];
-  public readonly lambdaMonitoringConfigs: Array<{
-    function: lambda.IFunction;
-    durationAlarmThresholdMs: number;
-    concurrencyAlarmThreshold?: number;
-  }> = [];
   private _lifecycleJobDlq?: sqs.Queue;
 
   public get lifecycleJobDlq(): sqs.Queue {
@@ -143,13 +142,10 @@ export class ApiStack extends BaseStack {
       ...user.functions.entries(),
       ['HealthFn', healthFn],
     ]);
-    this.lambdaFunctions = Array.from(lambdaById.values());
 
     const routes = [...salah.routes, ...sawm.routes, ...user.routes, ...healthRoutes];
     this.applyRouteThrottles(config, routes);
     this.registerWarmLambdaRule(lambdaById);
-
-    this.exportLegacyLambdaRefs(lambdaById);
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
 
@@ -280,20 +276,6 @@ export class ApiStack extends BaseStack {
           }),
         });
       }),
-    });
-  }
-
-  private exportLegacyLambdaRefs(lambdas: Map<string, lambda.IFunction>): void {
-    Object.entries(LEGACY_LAMBDA_REF_EXPORT_SUFFIXES).forEach(([lambdaId, exportSuffix]) => {
-      const fn = lambdas.get(lambdaId);
-      if (!fn) {
-        throw new Error(`Missing legacy Lambda export target: ${lambdaId}`);
-      }
-
-      new cdk.CfnOutput(this, `ExportsOutputRef${exportSuffix}`, {
-        value: fn.functionName,
-        exportName: `${this.stackName}:ExportsOutputRef${exportSuffix}`,
-      });
     });
   }
 }
