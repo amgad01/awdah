@@ -95,7 +95,7 @@ CONTEXT_ARGS=(--context "env=$ENV")
 echo "▸ Deploying $STACK_NAME..."
 cd "$INFRA_DIR"
 
-if ! npx cdk deploy "$STACK_NAME" "${CONTEXT_ARGS[@]}" --require-approval never; then
+if ! npx cdk deploy "$STACK_NAME" "${CONTEXT_ARGS[@]}" --exclusively --require-approval never; then
   echo ""
   echo "✗ Failed to deploy $STACK_NAME"
   exit 1

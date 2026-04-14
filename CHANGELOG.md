@@ -57,6 +57,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 #### Infrastructure
 
+-- Alarm stack no longer imports per-Lambda function references from the API stack, which unblocks CloudFormation rollback by keeping only aggregate alarms and dashboard widgets that do not depend on Lambda exports
+
 - `FrontendStack` now deploys after `ApiStack` in CDK ordering to keep hosting paths aligned with the published API environment
 - Removed unused `appEnv` context fallback from config resolution
 - `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
