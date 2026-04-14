@@ -1,4 +1,5 @@
 import { wrapHandler } from './wrap-handler';
+import { responses } from './responses';
 import { parseBody } from '../validation/parse-body';
 import { type ZodSchema } from 'zod';
 
@@ -81,10 +82,9 @@ export function createHandler<TInput, TOutput = unknown>(
     const parsedInput = parseHandlerInput(schema, rawInput);
     const useCaseInput = transformInput(userId, parsedInput);
     const result = await useCase.execute(useCaseInput);
-    return {
-      statusCode,
-      body: buildSuccessBody(result, successMessage, present),
-    };
+    const responseBody = buildSuccessBody(result, successMessage, present);
+
+    return responses.custom(statusCode, responseBody);
   }
 
   return wrapHandler(contextName, handleAuthenticatedRequest);

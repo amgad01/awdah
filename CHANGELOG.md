@@ -18,8 +18,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `wrap-handler.ts` middleware refactored into smaller focused functions for request building, invocation metadata extraction, and error handling
 - `create-handler.ts` now constructs request-scoped loggers with path and method context for better traceability
 - `DynamoDBUserDataLifecycleService` now delegates query operations through the base repository method instead of constructing raw `QueryCommand` instances inline
-- Base DynamoDB repository methods now consistently return typed results with `lastEvaluatedKey` instead of raw AWS SDK response shapes
+- DynamoDB repository methods now consistently return typed results with `lastEvaluatedKey` instead of raw AWS SDK response shapes
 - Domain entities now use strongly-typed value objects (`UserId`, `EventId`, `PeriodId`) instead of raw string identifiers; persistence layer uses dedicated mappers for conversion
+- Added shared `responses` utility in `responses.ts` for standardized HTTP response shaping across handlers and tests
 
 ### Fixed
 
@@ -32,6 +33,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Shared practicing-period rules keep add/update use cases aligned on DOB and revert-date validation
 - Environment validation no longer falls back to computed defaults outside local mode
 - Qadaa logging now rejects over-completion server-side when no debt remains for a prayer
+- Allowed future `bulughDate` values in user settings validation to accommodate predictive obligation planning
+- Practicing periods now enforce the `revertDate` starting boundary and allow voluntary overlaps as UI warnings
 
 #### Frontend
 
@@ -39,6 +42,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Allow future bulugh dates during onboarding so users can record a future obligation date without validation errors
 - Qadaa completion UI now waits for debt data before showing “all caught up” states or disabling prayer counters
 - Account deletion now distinguishes password-verification failures from downstream lifecycle failures and signs the user out cleanly after successful deletion
+- Enhanced `auth-errors.ts` to detect network/DNS failures and provide specific connection feedback in three languages
+- Integrated debt-aware UX in `PrayerLogger` to disable qadaa logging actions when no debt remains
 
 #### Shared
 
@@ -57,6 +62,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
 - `ProcessUserLifecycleJobFn` Lambda permissions were corrected so lifecycle delete/reset jobs retain the write access they need on the managed user-data tables
 - Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now only allows computed fallbacks in local mode and fails fast elsewhere
+- Standardized infrastructure naming on CDK context (`ticket` prefix) across all project stacks (Data, Auth, API, Backup, Alarms, Frontend)
+- Consolidated resource naming logic into `naming.ts` and refactored `BaseStack` to consume it directly
+- Refactored `app.ts` entry point to use a typed deployment configuration and centralized tagging logic in `config.ts`
+- Added `docs/private/naming-architecture.md` documentation covering the infrastructure naming philosophy
 
 #### Tooling
 
