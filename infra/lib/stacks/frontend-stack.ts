@@ -51,7 +51,7 @@ export class FrontendStack extends BaseStack {
     }
 
     this.siteBucket = new s3.Bucket(this, 'FrontendBucket', {
-      bucketName: `${this.resourcePrefix}awdah-frontend-${this.projectEnv}-${this.account}`,
+      bucketName: `${this.getTicketPrefix()}awdah-frontend-${this.projectEnv}-${this.account}`,
       removalPolicy: this.removalPolicy,
       autoDeleteObjects: this.removalPolicy === cdk.RemovalPolicy.DESTROY,
       versioned: true,
