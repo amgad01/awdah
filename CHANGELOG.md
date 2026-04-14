@@ -28,11 +28,24 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Prayer log persistence now mirrors other repositories by omitting key attributes from the payload during saves
 - User lifecycle export queries only pass required expression attribute names to avoid DynamoDB validation errors
 - Missing or partial user settings now return a 404 instead of a 500 during profile fetch
+- Shared effective-start-date helper keeps Salah/Sawm debt use cases DRY without coupling contexts
+- Shared practicing-period rules keep add/update use cases aligned on DOB and revert-date validation
+- Environment validation no longer falls back to computed defaults outside local mode
+- Qadaa logging now rejects over-completion server-side when no debt remains for a prayer
 
 #### Frontend
 
 - Prevent profile fetch errors from crashing the client when the server response omits an `error` payload
 - Allow future bulugh dates during onboarding so users can record a future obligation date without validation errors
+- Qadaa completion UI now waits for debt data before showing “all caught up” states or disabling prayer counters
+
+#### Shared
+
+- `StringValueObject.equals` now guards nullish inputs to preserve base-class contract
+
+#### Persistence
+
+- Full-jitter backoff now matches the documented retry strategy
 - Check-in prompt messages updated across English, Arabic, and German for improved clarity and user experience
 - New pages artifacts generator script pre-builds public route metadata and HTML entry point for consistent static hosting
 
@@ -42,7 +55,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 - Removed unused `appEnv` context fallback from config resolution
 - `AlarmStack` dependency graph updated: now depends on `BackupStack` directly since it monitors backup resources
 - `ProcessUserLifecycleJobFn` Lambda now has read-only access to user data tables (`prayerLogsTable`, `fastLogsTable`, `practicingPeriodsTable`, `userSettingsTable`) instead of read-write, following least privilege principles
-- Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now supports local fallbacks and warns on missing vars instead of throwing
+- Lambda environment variables consolidated into `baseEnv` in constructs to reduce duplication; environment variable handling now only allows computed fallbacks in local mode and fails fast elsewhere
 
 #### Tooling
 

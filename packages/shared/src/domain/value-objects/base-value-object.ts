@@ -1,7 +1,7 @@
 export abstract class ValueObject<T> {
   protected constructor(protected readonly props: T) {}
 
-  public equals(other: ValueObject<T>): boolean {
+  public equals(other: ValueObject<T> | null | undefined): boolean {
     if (other === null || other === undefined) {
       return false;
     }
@@ -29,7 +29,13 @@ export abstract class StringValueObject extends ValueObject<string> {
     return this.props;
   }
 
-  public equals(other: StringValueObject): boolean {
-    return this.props === other.props;
+  public equals(other: ValueObject<string> | null | undefined): boolean {
+    if (!other) {
+      return false;
+    }
+    if (other instanceof StringValueObject) {
+      return this.props === other.props;
+    }
+    return super.equals(other);
   }
 }
