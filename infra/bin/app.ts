@@ -46,7 +46,7 @@ const backupStack = new BackupStack(app, stackId('backup-stack'), {
   dataStack,
 });
 
-new AlarmStack(app, stackId('alarm-stack'), {
+const alarmStack = new AlarmStack(app, stackId('alarm-stack'), {
   description: 'Awdah Alarm Stack: Observability and health monitoring.',
   projectEnv: config.environment,
   backupStack,
@@ -54,6 +54,9 @@ new AlarmStack(app, stackId('alarm-stack'), {
   dataStack,
   alertEmail: config.alertEmail,
 });
+alarmStack.addDependency(apiStack);
+alarmStack.addDependency(backupStack);
+alarmStack.addDependency(dataStack);
 
 if (config.frontend.deploy) {
   const frontendStack = new FrontendStack(app, stackId('frontend-stack'), {

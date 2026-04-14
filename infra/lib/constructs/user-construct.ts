@@ -5,6 +5,7 @@ import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integra
 import * as lambda_event_sources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { USER_LAMBDA_MONITORING_TARGETS } from '../shared/lambda-monitoring';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { ProjectResourceFactory } from '../shared/resource-factory';
@@ -20,6 +21,7 @@ export interface UserConstructProps {
   dataStack: DataStack;
   authStack: AuthStack;
   projectEnv: string;
+  resourceScope: Construct;
 }
 
 interface BusinessLambdaOptions {
@@ -31,11 +33,14 @@ interface BusinessLambdaOptions {
 }
 
 export class UserConstruct extends Construct {
-  public readonly functions = new Map<string, lambda.IFunction>();
+  public readonly functions = new Map<string, lambda.Function>();
+  public readonly routes: apigatewayv2.HttpRoute[] = [];
   public readonly lifecycleJobDlq: sqs.Queue;
+  private readonly resourceScope: Construct;
 
   constructor(scope: Construct, id: string, props: UserConstructProps) {
     super(scope, id);
+    this.resourceScope = props.resourceScope;
 
     const config = getConfig(this);
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -53,8 +58,19 @@ export class UserConstruct extends Construct {
       DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
     };
 
+    const {
+      getUserSettings,
+      updateUserSettings,
+      deleteAccount,
+      exportData,
+      getUserLifecycleJobStatus,
+      downloadExportData,
+      finalizeDeleteAccount,
+      processUserLifecycleJob,
+    } = USER_LAMBDA_MONITORING_TARGETS;
+
     // 1. GetUserSettings
-    const getUserSettingsFn = this.createBusinessLambda('GetUserSettingsFn', {
+    const getUserSettingsFn = this.createBusinessLambda(getUserSettings.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/get-user-settings.handler.ts',
@@ -72,7 +88,7 @@ export class UserConstruct extends Construct {
     );
 
     // 2. UpdateUserSettings
-    const updateUserSettingsFn = this.createBusinessLambda('UpdateUserSettingsFn', {
+    const updateUserSettingsFn = this.createBusinessLambda(updateUserSettings.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/update-user-settings.handler.ts',
@@ -90,7 +106,7 @@ export class UserConstruct extends Construct {
     );
 
     // 3. DeleteAccount
-    const deleteAccountFn = this.createBusinessLambda('DeleteAccountFn', {
+    const deleteAccountFn = this.createBusinessLambda(deleteAccount.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/delete-account.handler.ts',
@@ -110,7 +126,7 @@ export class UserConstruct extends Construct {
     );
 
     // 4. ExportData
-    const exportDataFn = this.createBusinessLambda('ExportDataFn', {
+    const exportDataFn = this.createBusinessLambda(exportData.id, {
       entry: path.join(backendSrc, 'contexts/user/infrastructure/handlers/export-data.handler.ts'),
       environment: {
         ...baseEnv,
@@ -127,7 +143,7 @@ export class UserConstruct extends Construct {
     );
 
     // 5. GetUserLifecycleJobStatus
-    const getUserLifecycleJobStatusFn = this.createBusinessLambda('GetUserLifecycleJobStatusFn', {
+    const getUserLifecycleJobStatusFn = this.createBusinessLambda(getUserLifecycleJobStatus.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/get-user-lifecycle-job-status.handler.ts',
@@ -147,7 +163,7 @@ export class UserConstruct extends Construct {
     );
 
     // 6. DownloadExportData
-    const downloadExportDataFn = this.createBusinessLambda('DownloadExportDataFn', {
+    const downloadExportDataFn = this.createBusinessLambda(downloadExportData.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/download-export-data.handler.ts',
@@ -167,7 +183,7 @@ export class UserConstruct extends Construct {
     );
 
     // 7. FinalizeDeleteAccount
-    const finalizeDeleteAccountFn = this.createBusinessLambda('FinalizeDeleteAccountFn', {
+    const finalizeDeleteAccountFn = this.createBusinessLambda(finalizeDeleteAccount.id, {
       entry: path.join(
         backendSrc,
         'contexts/user/infrastructure/handlers/finalize-delete-account.handler.ts',
@@ -195,13 +211,13 @@ export class UserConstruct extends Construct {
     );
 
     // 8. ProcessUserLifecycleJob (Event Driven)
-    this.lifecycleJobDlq = new sqs.Queue(this, 'LifecycleJobDLQ', {
-      queueName: getFullResourceName(this, 'lifecycle-job-dlq', props.projectEnv),
+    this.lifecycleJobDlq = new sqs.Queue(this.resourceScope, 'LifecycleJobDLQ', {
+      queueName: getFullResourceName(this.resourceScope, 'lifecycle-job-dlq', props.projectEnv),
       retentionPeriod: cdk.Duration.days(14),
       enforceSSL: true,
     });
 
-    const processUserLifecycleJobFn = this.createBusinessLambda('ProcessUserLifecycleJobFn', {
+    const processUserLifecycleJobFn = this.createBusinessLambda(processUserLifecycleJob.id, {
       entry: path.join(
         backendSrc,
         'shared/infrastructure/handlers/process-user-lifecycle-job.handler.ts',
@@ -224,8 +240,8 @@ export class UserConstruct extends Construct {
     );
   }
 
-  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.IFunction {
-    const fn = ProjectResourceFactory.createNodejsFunction(this, id, {
+  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.Function {
+    const fn = ProjectResourceFactory.createNodejsFunction(this.resourceScope, id, {
       entry: options.entry,
       context: CONTEXT.USER,
       environment: options.environment,
@@ -245,12 +261,14 @@ export class UserConstruct extends Construct {
     fn: lambda.IFunction,
     integrationId: string,
   ): void {
-    api.addRoutes({
-      path,
-      methods: [method],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
-      authorizer,
-    });
+    this.routes.push(
+      ...api.addRoutes({
+        path,
+        methods: [method],
+        integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
+        authorizer,
+      }),
+    );
   }
 
   private grantLifecycleJobDataAccess(fn: lambda.IFunction, props: UserConstructProps): void {

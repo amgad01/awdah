@@ -4,6 +4,8 @@ import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as apigatewayv2_integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as path from 'path';
@@ -11,17 +13,22 @@ import { DataStack } from './data-stack';
 import { AuthStack } from './auth-stack';
 import { BaseStack, BaseStackProps } from '../shared/base-stack';
 import { ProjectResourceFactory } from '../shared/resource-factory';
-import { getConfig } from '../shared/config';
+import { getConfig, type ProjectConfig } from '../shared/config';
 import { CONTEXT } from '../shared/constants';
 import { SalahConstruct } from '../constructs/salah-construct';
 import { SawmConstruct } from '../constructs/sawm-construct';
 import { UserConstruct } from '../constructs/user-construct';
+import { LEGACY_LAMBDA_REF_EXPORT_SUFFIXES, WARM_LAMBDA_IDS } from '../shared/api-stack-compat';
 
 export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
   authStack: AuthStack;
   frontendOrigin?: string;
 }
+
+const MUTATION_ROUTE_RATE_DIVISOR = 5;
+const ADMIN_ROUTE_RATE_DIVISOR = 20;
+const WARM_LAMBDA_INTERVAL_MINUTES = 15;
 
 export class ApiStack extends BaseStack {
   public readonly httpApi: apigatewayv2.HttpApi;
@@ -73,6 +80,17 @@ export class ApiStack extends BaseStack {
     });
 
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
+    const sharedEnv = {
+      NODE_ENV: this.projectEnv,
+      LOG_LEVEL: this.projectEnv === 'prod' ? 'info' : 'debug',
+      PRAYER_LOGS_TABLE: props.dataStack.prayerLogsTable.tableName,
+      FAST_LOGS_TABLE: props.dataStack.fastLogsTable.tableName,
+      PRACTICING_PERIODS_TABLE: props.dataStack.practicingPeriodsTable.tableName,
+      USER_SETTINGS_TABLE: props.dataStack.userSettingsTable.tableName,
+      USER_LIFECYCLE_JOBS_TABLE: props.dataStack.userLifecycleJobsTable.tableName,
+      DELETED_USERS_TABLE: props.dataStack.deletedUsersTable.tableName,
+      COGNITO_USER_POOL_ID: props.authStack.userPool.userPoolId,
+    };
 
     // 3. Register Bounded contexts
     const salah = new SalahConstruct(this, 'Salah', {
@@ -81,6 +99,7 @@ export class ApiStack extends BaseStack {
       dataStack: props.dataStack,
       authStack: props.authStack,
       projectEnv: this.projectEnv,
+      resourceScope: this,
     });
 
     const sawm = new SawmConstruct(this, 'Sawm', {
@@ -89,6 +108,7 @@ export class ApiStack extends BaseStack {
       dataStack: props.dataStack,
       authStack: props.authStack,
       projectEnv: this.projectEnv,
+      resourceScope: this,
     });
 
     const user = new UserConstruct(this, 'User', {
@@ -97,19 +117,18 @@ export class ApiStack extends BaseStack {
       dataStack: props.dataStack,
       authStack: props.authStack,
       projectEnv: this.projectEnv,
+      resourceScope: this,
     });
+    this.lifecycleJobDlq = user.lifecycleJobDlq;
 
     // 4. Register Shared/Generic Lambdas
     const healthFn = ProjectResourceFactory.createNodejsFunction(this, 'HealthFn', {
       entry: path.join(backendSrc, 'shared/infrastructure/handlers/health.handler.ts'),
       context: CONTEXT.SHARED,
-      environment: {
-        NODE_ENV: this.projectEnv,
-        LOG_LEVEL: this.projectEnv === 'prod' ? 'info' : 'debug',
-      },
+      environment: sharedEnv,
     });
 
-    api.addRoutes({
+    const healthRoutes = api.addRoutes({
       path: '/health',
       methods: [apigatewayv2.HttpMethod.GET],
       integration: new apigatewayv2_integrations.HttpLambdaIntegration(
@@ -118,16 +137,19 @@ export class ApiStack extends BaseStack {
       ),
     });
 
-    // 5. Collect for monitoring
-    this.lambdaFunctions = [
-      ...salah.functions.values(),
-      ...sawm.functions.values(),
-      ...user.functions.values(),
-      healthFn,
-    ];
+    const lambdaById = new Map<string, lambda.Function>([
+      ...salah.functions.entries(),
+      ...sawm.functions.entries(),
+      ...user.functions.entries(),
+      ['HealthFn', healthFn],
+    ]);
+    this.lambdaFunctions = Array.from(lambdaById.values());
 
-    // TODO: Migrate Alarms/Monitoring to use this.lambdaFunctions
-    // and this.lambdaMonitoringConfigs populated within constructs.
+    const routes = [...salah.routes, ...sawm.routes, ...user.routes, ...healthRoutes];
+    this.applyRouteThrottles(config, routes);
+    this.registerWarmLambdaRule(lambdaById);
+
+    this.exportLegacyLambdaRefs(lambdaById);
 
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.apiEndpoint });
 
@@ -166,6 +188,112 @@ export class ApiStack extends BaseStack {
         allowCredentials: true,
         allowOrigins: Array.from(origins),
       },
+    });
+  }
+
+  private applyRouteThrottles(config: ProjectConfig, routes: apigatewayv2.HttpRoute[]): void {
+    const cfnStage = this.defaultStage.node.defaultChild as apigatewayv2.CfnStage;
+    const mutationRateLimit = Math.max(
+      10,
+      Math.floor(config.apiThrottle.rateLimit / MUTATION_ROUTE_RATE_DIVISOR),
+    );
+    const mutationBurstLimit = Math.max(
+      20,
+      Math.floor(config.apiThrottle.burstLimit / MUTATION_ROUTE_RATE_DIVISOR),
+    );
+    const adminRateLimit = Math.max(
+      4,
+      Math.floor(config.apiThrottle.rateLimit / ADMIN_ROUTE_RATE_DIVISOR),
+    );
+    const adminBurstLimit = Math.max(
+      8,
+      Math.floor(config.apiThrottle.burstLimit / ADMIN_ROUTE_RATE_DIVISOR),
+    );
+
+    const routeSettings: Record<
+      string,
+      {
+        ThrottlingBurstLimit: number;
+        ThrottlingRateLimit: number;
+      }
+    > = {};
+    const protectedMutationRoutes = [
+      'POST /v1/salah/log',
+      'DELETE /v1/salah/log',
+      'POST /v1/salah/practicing-period',
+      'PUT /v1/salah/practicing-period',
+      'DELETE /v1/salah/practicing-period',
+      'POST /v1/sawm/log',
+      'DELETE /v1/sawm/log',
+      'POST /v1/user/profile',
+    ];
+    const adminMutationRoutes = [
+      'DELETE /v1/salah/logs',
+      'DELETE /v1/sawm/logs',
+      'DELETE /v1/user/account',
+      'DELETE /v1/user/account/auth',
+      'POST /v1/user/export',
+    ];
+
+    protectedMutationRoutes.forEach((routeKey) => {
+      routeSettings[routeKey] = {
+        ThrottlingBurstLimit: mutationBurstLimit,
+        ThrottlingRateLimit: mutationRateLimit,
+      };
+    });
+
+    adminMutationRoutes.forEach((routeKey) => {
+      routeSettings[routeKey] = {
+        ThrottlingBurstLimit: adminBurstLimit,
+        ThrottlingRateLimit: adminRateLimit,
+      };
+    });
+
+    cfnStage.routeSettings = routeSettings;
+
+    routes.forEach((route) => {
+      cfnStage.addDependency(route.node.defaultChild as cdk.CfnResource);
+    });
+  }
+
+  private registerWarmLambdaRule(lambdas: Map<string, lambda.IFunction>): void {
+    if (this.projectEnv !== 'prod') {
+      return;
+    }
+
+    new events.Rule(this, 'CriticalReadWarmupRule', {
+      ruleName: this.fullResourceName('CriticalReadWarmup'),
+      description:
+        'Keeps the key dashboard and settings read Lambdas warm without provisioned concurrency.',
+      schedule: events.Schedule.rate(cdk.Duration.minutes(WARM_LAMBDA_INTERVAL_MINUTES)),
+      targets: WARM_LAMBDA_IDS.map((lambdaId) => {
+        const fn = lambdas.get(lambdaId);
+        if (!fn) {
+          throw new Error(`Missing warmup Lambda function: ${lambdaId}`);
+        }
+
+        return new targets.LambdaFunction(fn, {
+          event: events.RuleTargetInput.fromObject({
+            warmup: true,
+            source: 'awdah.lambda-warmer',
+            target: lambdaId,
+          }),
+        });
+      }),
+    });
+  }
+
+  private exportLegacyLambdaRefs(lambdas: Map<string, lambda.IFunction>): void {
+    Object.entries(LEGACY_LAMBDA_REF_EXPORT_SUFFIXES).forEach(([lambdaId, exportSuffix]) => {
+      const fn = lambdas.get(lambdaId);
+      if (!fn) {
+        throw new Error(`Missing legacy Lambda export target: ${lambdaId}`);
+      }
+
+      new cdk.CfnOutput(this, `ExportsOutputRef${exportSuffix}`, {
+        value: fn.functionName,
+        exportName: `${this.stackName}:ExportsOutputRef${exportSuffix}`,
+      });
     });
   }
 }

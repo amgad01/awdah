@@ -16,6 +16,7 @@ export interface SalahConstructProps {
   dataStack: DataStack;
   authStack: AuthStack;
   projectEnv: string;
+  resourceScope: Construct;
 }
 
 interface BusinessLambdaOptions {
@@ -27,10 +28,13 @@ interface BusinessLambdaOptions {
 }
 
 export class SalahConstruct extends Construct {
-  public readonly functions = new Map<string, lambda.IFunction>();
+  public readonly functions = new Map<string, lambda.Function>();
+  public readonly routes: apigatewayv2.HttpRoute[] = [];
+  private readonly resourceScope: Construct;
 
   constructor(scope: Construct, id: string, props: SalahConstructProps) {
     super(scope, id);
+    this.resourceScope = props.resourceScope;
 
     const config = getConfig(this);
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -169,7 +173,7 @@ export class SalahConstruct extends Construct {
       environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadData(addPeriodFn);
-    props.dataStack.practicingPeriodsTable.grantReadWriteData(addPeriodFn);
+    props.dataStack.practicingPeriodsTable.grantWriteData(addPeriodFn);
     this.addRoute(
       props.api,
       props.authorizer,
@@ -188,7 +192,8 @@ export class SalahConstruct extends Construct {
       environment: baseEnv,
     });
     props.dataStack.userSettingsTable.grantReadData(updatePeriodFn);
-    props.dataStack.practicingPeriodsTable.grantReadWriteData(updatePeriodFn);
+    props.dataStack.practicingPeriodsTable.grantReadData(updatePeriodFn);
+    props.dataStack.practicingPeriodsTable.grantWriteData(updatePeriodFn);
     this.addRoute(
       props.api,
       props.authorizer,
@@ -224,7 +229,7 @@ export class SalahConstruct extends Construct {
       ),
       environment: baseEnv,
     });
-    props.dataStack.practicingPeriodsTable.grantReadWriteData(deletePeriodFn);
+    props.dataStack.practicingPeriodsTable.grantWriteData(deletePeriodFn);
     this.addRoute(
       props.api,
       props.authorizer,
@@ -235,8 +240,8 @@ export class SalahConstruct extends Construct {
     );
   }
 
-  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.IFunction {
-    const fn = ProjectResourceFactory.createNodejsFunction(this, id, {
+  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.Function {
+    const fn = ProjectResourceFactory.createNodejsFunction(this.resourceScope, id, {
       entry: options.entry,
       context: CONTEXT.SALAH,
       environment: options.environment,
@@ -256,11 +261,13 @@ export class SalahConstruct extends Construct {
     fn: lambda.IFunction,
     integrationId: string,
   ): void {
-    api.addRoutes({
-      path,
-      methods: [method],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
-      authorizer,
-    });
+    this.routes.push(
+      ...api.addRoutes({
+        path,
+        methods: [method],
+        integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
+        authorizer,
+      }),
+    );
   }
 }

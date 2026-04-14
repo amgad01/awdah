@@ -16,6 +16,7 @@ export interface SawmConstructProps {
   dataStack: DataStack;
   authStack: AuthStack;
   projectEnv: string;
+  resourceScope: Construct;
 }
 
 interface BusinessLambdaOptions {
@@ -27,10 +28,13 @@ interface BusinessLambdaOptions {
 }
 
 export class SawmConstruct extends Construct {
-  public readonly functions = new Map<string, lambda.IFunction>();
+  public readonly functions = new Map<string, lambda.Function>();
+  public readonly routes: apigatewayv2.HttpRoute[] = [];
+  private readonly resourceScope: Construct;
 
   constructor(scope: Construct, id: string, props: SawmConstructProps) {
     super(scope, id);
+    this.resourceScope = props.resourceScope;
 
     const config = getConfig(this);
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -161,8 +165,8 @@ export class SawmConstruct extends Construct {
     );
   }
 
-  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.IFunction {
-    const fn = ProjectResourceFactory.createNodejsFunction(this, id, {
+  private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.Function {
+    const fn = ProjectResourceFactory.createNodejsFunction(this.resourceScope, id, {
       entry: options.entry,
       context: CONTEXT.SAWM,
       environment: options.environment,
@@ -182,11 +186,13 @@ export class SawmConstruct extends Construct {
     fn: lambda.IFunction,
     integrationId: string,
   ): void {
-    api.addRoutes({
-      path,
-      methods: [method],
-      integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
-      authorizer,
-    });
+    this.routes.push(
+      ...api.addRoutes({
+        path,
+        methods: [method],
+        integration: new apigatewayv2_integrations.HttpLambdaIntegration(integrationId, fn),
+        authorizer,
+      }),
+    );
   }
 }
