@@ -676,8 +676,8 @@ paths:
       description: |
         Creates the user profile on first call (onboarding) or updates it on
         subsequent calls. Saving a new `bulughDate` triggers a debt recalculation
-        on the next call to the debt endpoints. Profile dates must not be in the
-        future.
+        on the next call to the debt endpoints. `dateOfBirth` and `revertDate`
+        must not be in the future; `bulughDate` may be in the future.
       requestBody:
         required: true
         content:
@@ -985,7 +985,7 @@ components:
         bulughDate:
           allOf:
             - $ref: '#/components/schemas/HijriDate'
-          description: Hijri date when accountability began. Must not be in the future.
+          description: Hijri date when accountability began. May be in the future for users who have not yet reached maturity.
         revertDate:
           allOf:
             - $ref: '#/components/schemas/HijriDate'
