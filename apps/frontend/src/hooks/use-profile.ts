@@ -107,6 +107,7 @@ const EXPORT_DOWNLOAD_RETRY_ATTEMPTS = 3;
 const EXPORT_DOWNLOAD_RETRY_DELAY_MS = 1000;
 
 export const useExportData = () => {
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async () => {
       const jobId = await prepareUserDataExportWorkflow();
@@ -137,11 +138,12 @@ export const useExportData = () => {
       let objectUrl: string | null = null;
       try {
         objectUrl = URL.createObjectURL(dataBlob);
-        const exportFileDefaultName =
-          response.fileName || `awdah-data-export-${new Date().toISOString().split('T')[0]}.json`;
+        const userPrefix = user?.username || user?.email || 'user';
+        const datePart = new Date().toISOString().split('T')[0];
+        const exportFileName = `awdah-data-export-${userPrefix}-${datePart}.json`;
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', objectUrl);
-        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.setAttribute('download', exportFileName);
         linkElement.click();
       } finally {
         if (objectUrl) {
