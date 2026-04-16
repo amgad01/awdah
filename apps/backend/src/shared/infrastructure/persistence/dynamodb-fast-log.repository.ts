@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
 import { HijriDate, UserId, EventId } from '@awdah/shared';
@@ -83,6 +83,22 @@ export class DynamoDBFastLogRepository
       pk: userId.toString(),
       sk: FastLogKey.encodeSk(date.toString(), eventId.toString()),
     });
+  }
+
+  async hasAnyLogs(userId: UserId): Promise<boolean> {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: {
+        '#pk': this.pkName,
+      },
+      ExpressionAttributeValues: {
+        ':pk': userId.toString(),
+      },
+      Limit: 1,
+    });
+    const response = await this.docClient.send(command);
+    return (response.Items?.length ?? 0) > 0;
   }
 
   protected encodeKeys(log: FastLog): DomainKeys {

@@ -45,6 +45,36 @@ export class DynamoDBUserLifecycleJobRepository
     return this.retrieve({ pk: userId.toString(), sk: toMetaSk(jobId) });
   }
 
+  async findRecentJobByType(
+    userId: UserId,
+    type: UserLifecycleJob['type'],
+    since: string,
+  ): Promise<UserLifecycleJob | null> {
+    const response = await this.docClient.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: '#pk = :pk',
+        FilterExpression: '#type = :type AND #requestedAt > :since',
+        ExpressionAttributeNames: {
+          '#pk': this.pkName,
+          '#type': 'type',
+          '#requestedAt': 'requestedAt',
+        },
+        ExpressionAttributeValues: {
+          ':pk': userId.toString(),
+          ':type': type,
+          ':since': since,
+        },
+        Limit: 1,
+      }),
+    );
+
+    const items = response.Items ?? [];
+    if (items.length === 0) return null;
+
+    return this.mapToDomain(items[0] as Record<string, unknown>);
+  }
+
   async tryMarkProcessing(
     userId: UserId,
     jobId: EventId,
