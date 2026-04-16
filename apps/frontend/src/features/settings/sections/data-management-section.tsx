@@ -177,10 +177,10 @@ const ActionCard: React.FC<ActionCardProps> = ({
             <input
               type="password"
               className={styles.exportPasswordInput}
-              placeholder={t('settings.delete_confirm_password')}
+              placeholder={config.passwordLabel}
               value={password}
               onChange={(event) => onPasswordChange(event.target.value)}
-              aria-label={t('settings.delete_confirm_password')}
+              aria-label={config.passwordLabel}
             />
           </div>
 
@@ -239,6 +239,7 @@ function getActionConfig(action: DataAction, t: (key: string) => string) {
       confirmLabel: t('settings.export_confirm_btn'),
       pendingLabel: t('settings.exporting'),
       buttonLabel: t('settings.export_data'),
+      passwordLabel: t('settings.export_confirm_password'),
       icon: <Download size={14} />,
       testId: 'export-data-button',
       tone: 'default' as const,
@@ -253,6 +254,7 @@ function getActionConfig(action: DataAction, t: (key: string) => string) {
       confirmLabel: t('common.confirm'),
       pendingLabel: t('settings.resetting'),
       buttonLabel: t('settings.reset_prayers'),
+      passwordLabel: t('settings.delete_confirm_password'),
       icon: <RotateCcw size={14} />,
       testId: 'reset-prayers-button',
       tone: 'warning' as const,
@@ -266,6 +268,7 @@ function getActionConfig(action: DataAction, t: (key: string) => string) {
     confirmLabel: t('common.confirm'),
     pendingLabel: t('settings.resetting'),
     buttonLabel: t('settings.reset_fasts'),
+    passwordLabel: t('settings.delete_confirm_password'),
     icon: <RotateCcw size={14} />,
     testId: 'reset-fasts-button',
     tone: 'warning' as const,
