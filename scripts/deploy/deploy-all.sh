@@ -102,6 +102,10 @@ if ! npx cdk deploy \
 fi
 echo ""
 
+echo "▸ [5.5/6] Syncing local .env with deployment outputs..."
+"$SCRIPT_DIR/sync-env-from-outputs.sh"
+echo ""
+
 echo "▸ [6/6] Finalizing frontend integration..."
 case "$TARGET" in
   pages)
