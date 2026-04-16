@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useDeleteAccount } from '@/hooks/use-profile';
-import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
 import { getAuthErrorKey } from '@/lib/auth-errors';
 import { deleteLocalUser } from '@/lib/local-auth.service';
 import { clearOnboardingLocalState } from '@/lib/onboarding-state';
-import { Trash2, RotateCcw } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { SettingsSection } from '../components';
 import { useToast } from '@/hooks/use-toast';
 import { getErrorMessage } from '../helpers';
@@ -15,8 +14,6 @@ import styles from '../settings-page.module.css';
 export const DangerZoneSection: React.FC = () => {
   const { t } = useLanguage();
   const { user, verifyPassword, signOut } = useAuth();
-  const resetPrayerLogs = useResetPrayerLogs();
-  const resetFastLogs = useResetFastLogs();
   const { toast } = useToast();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -24,10 +21,6 @@ export const DangerZoneSection: React.FC = () => {
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteAccount = useDeleteAccount();
-
-  const [confirmReset, setConfirmReset] = useState<'prayers' | 'fasts' | null>(null);
-  const [resetPassword, setResetPassword] = useState('');
-  const [resetError, setResetError] = useState('');
   const accountIdentifier = user?.email || user?.username || '';
 
   const handleDeleteAccount = async () => {
@@ -61,160 +54,11 @@ export const DangerZoneSection: React.FC = () => {
     }
   };
 
-  const handleResetData = (type: 'prayers' | 'fasts') => {
-    setConfirmReset(type);
-    setResetPassword('');
-    setResetError('');
-  };
-
-  const executeReset = async (type: 'prayers' | 'fasts') => {
-    setResetError('');
-    try {
-      await verifyPassword(accountIdentifier, resetPassword);
-      if (type === 'prayers') {
-        await resetPrayerLogs.mutateAsync();
-      } else {
-        await resetFastLogs.mutateAsync();
-      }
-      setConfirmReset(null);
-      setResetPassword('');
-    } catch (err) {
-      setResetError(t(getAuthErrorKey(err, 'settings.verify_password_failed')));
-    }
-  };
-
   return (
     <SettingsSection icon={<Trash2 size={18} />} title={t('settings.danger_zone')} variant="danger">
       <div className={styles.dangerZoneActions}>
-        <div className={styles.resetItem}>
-          <div className={styles.resetItemInfo}>
-            <span className={styles.resetItemLabel}>{t('settings.reset_prayers')}</span>
-            <span className={styles.resetItemHint}>{t('settings.reset_prayers_hint')}</span>
-          </div>
-          {confirmReset === 'prayers' ? (
-            <div className={styles.deleteConfirm}>
-              <p className={styles.deleteConfirmText}>{t('settings.reset_confirm_prayers')}</p>
-              <input
-                type="password"
-                className={styles.deletePasswordInput}
-                placeholder={t('settings.delete_confirm_password')}
-                value={resetPassword}
-                onChange={(e) => {
-                  setResetPassword(e.target.value);
-                  setResetError('');
-                }}
-                aria-label={t('settings.delete_confirm_password')}
-              />
-              {resetError && (
-                <p
-                  className={styles.deleteErrorText}
-                  role="alert"
-                  data-testid="settings-reset-error"
-                >
-                  {resetError}
-                </p>
-              )}
-              <div className={styles.resetConfirmBtns}>
-                <button
-                  type="button"
-                  className={styles.cancelAddBtn}
-                  onClick={() => {
-                    setConfirmReset(null);
-                    setResetPassword('');
-                    setResetError('');
-                  }}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.resetConfirmBtn}
-                  onClick={() => void executeReset('prayers')}
-                  disabled={resetPrayerLogs.isPending || !resetPassword}
-                >
-                  {resetPrayerLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              className={styles.resetBtn}
-              onClick={() => handleResetData('prayers')}
-              disabled={resetPrayerLogs.isPending}
-              data-testid="reset-prayers-button"
-            >
-              <RotateCcw size={14} />
-              {resetPrayerLogs.isPending ? t('settings.resetting') : t('settings.reset_prayers')}
-            </button>
-          )}
-        </div>
-
-        <div className={styles.resetItem}>
-          <div className={styles.resetItemInfo}>
-            <span className={styles.resetItemLabel}>{t('settings.reset_fasts')}</span>
-            <span className={styles.resetItemHint}>{t('settings.reset_fasts_hint')}</span>
-          </div>
-          {confirmReset === 'fasts' ? (
-            <div className={styles.deleteConfirm}>
-              <p className={styles.deleteConfirmText}>{t('settings.reset_confirm_fasts')}</p>
-              <input
-                type="password"
-                className={styles.deletePasswordInput}
-                placeholder={t('settings.delete_confirm_password')}
-                value={resetPassword}
-                onChange={(e) => {
-                  setResetPassword(e.target.value);
-                  setResetError('');
-                }}
-                aria-label={t('settings.delete_confirm_password')}
-              />
-              {resetError && (
-                <p
-                  className={styles.deleteErrorText}
-                  role="alert"
-                  data-testid="settings-reset-error"
-                >
-                  {resetError}
-                </p>
-              )}
-              <div className={styles.resetConfirmBtns}>
-                <button
-                  type="button"
-                  className={styles.cancelAddBtn}
-                  onClick={() => {
-                    setConfirmReset(null);
-                    setResetPassword('');
-                    setResetError('');
-                  }}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className={styles.resetConfirmBtn}
-                  onClick={() => void executeReset('fasts')}
-                  disabled={resetFastLogs.isPending || !resetPassword}
-                >
-                  {resetFastLogs.isPending ? t('settings.resetting') : t('common.confirm')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              className={styles.resetBtn}
-              onClick={() => handleResetData('fasts')}
-              disabled={resetFastLogs.isPending}
-              data-testid="reset-fasts-button"
-            >
-              <RotateCcw size={14} />
-              {resetFastLogs.isPending ? t('settings.resetting') : t('settings.reset_fasts')}
-            </button>
-          )}
-        </div>
-
-        <div className={styles.dangerDivider} />
-
         <p className={styles.privacyText}>{t('settings.delete_account_hint')}</p>
+        <p className={styles.workflowNote}>{t('settings.delete_account_flow_hint')}</p>
 
         {!showDeleteConfirm ? (
           <button
@@ -265,6 +109,7 @@ export const DangerZoneSection: React.FC = () => {
                   setDeletePassword('');
                   setDeleteError('');
                 }}
+                disabled={isDeleting}
                 aria-label={t('settings.delete_cancel')}
               >
                 {t('settings.delete_cancel')}

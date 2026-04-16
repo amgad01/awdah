@@ -6,8 +6,6 @@ const {
   mockVerifyPassword,
   mockSignOut,
   mockDeleteAccount,
-  mockResetPrayerLogs,
-  mockResetFastLogs,
   mockToastInfo,
   mockDeleteLocalUser,
   mockClearOnboardingLocalState,
@@ -15,8 +13,6 @@ const {
   mockVerifyPassword: vi.fn(),
   mockSignOut: vi.fn(),
   mockDeleteAccount: vi.fn(),
-  mockResetPrayerLogs: vi.fn(),
-  mockResetFastLogs: vi.fn(),
   mockToastInfo: vi.fn(),
   mockDeleteLocalUser: vi.fn(),
   mockClearOnboardingLocalState: vi.fn(),
@@ -43,17 +39,6 @@ vi.mock('@/hooks/use-auth', () => ({
 vi.mock('@/hooks/use-profile', () => ({
   useDeleteAccount: () => ({
     mutateAsync: mockDeleteAccount,
-  }),
-}));
-
-vi.mock('@/hooks/use-worship', () => ({
-  useResetPrayerLogs: () => ({
-    isPending: false,
-    mutateAsync: mockResetPrayerLogs,
-  }),
-  useResetFastLogs: () => ({
-    isPending: false,
-    mutateAsync: mockResetFastLogs,
   }),
 }));
 
