@@ -6,9 +6,10 @@ import {
 } from 'amazon-cognito-identity-js';
 import {
   CognitoIdentityProviderClient,
-  GlobalSignOutCommand,
   SignUpCommand,
   ConfirmSignUpCommand,
+  ConfirmForgotPasswordCommand,
+  GlobalSignOutCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { jwtDecode } from 'jwt-decode';
 import type { AuthService, UserSession } from './auth-service';
@@ -125,13 +126,14 @@ export const cognitoAuthService: AuthService = {
   },
 
   async confirmPassword(email: string, code: string, newPassword: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const cognitoUser = new CognitoUser({ Username: email, Pool: userPool });
-      cognitoUser.confirmPassword(code, newPassword, {
-        onSuccess: () => resolve(),
-        onFailure: (err: Error) => reject(err),
-      });
+    const command = new ConfirmForgotPasswordCommand({
+      ClientId: clientId,
+      Username: email,
+      ConfirmationCode: code,
+      Password: newPassword,
     });
+
+    await sdkClient.send(command);
   },
 
   async signOut(): Promise<void> {
