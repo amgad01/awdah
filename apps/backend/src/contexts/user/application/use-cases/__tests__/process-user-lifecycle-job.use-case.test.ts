@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserId, EventId } from '@awdah/shared';
 import { ProcessUserLifecycleJobUseCase } from '../process-user-lifecycle-job.use-case';
 import type { IUserDataLifecycleService } from '../../../domain/services/user-data-lifecycle.service.interface';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 import type { IDeletedUsersRepository } from '../../../domain/repositories/deleted-users.repository';
 
 describe('ProcessUserLifecycleJobUseCase', () => {
@@ -46,8 +50,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
       userId,
       jobId,
-      type: 'export',
-      status: 'processing',
+      type: UserLifecycleJobType.Export,
+      status: UserLifecycleJobStatus.Processing,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       expiresAt: 1,
@@ -60,8 +64,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     vi.mocked(mockJobRepository.markCompleted).mockResolvedValue({
       userId,
       jobId,
-      type: 'export',
-      status: 'completed',
+      type: UserLifecycleJobType.Export,
+      status: UserLifecycleJobStatus.Completed,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       completedAt: '2026-03-23T00:00:12.000Z',
@@ -89,15 +93,15 @@ describe('ProcessUserLifecycleJobUseCase', () => {
       }),
     );
     expect(mockDeletedUsersRepo.recordDeletion).not.toHaveBeenCalled();
-    expect(result?.status).toBe('completed');
+    expect(result?.status).toBe(UserLifecycleJobStatus.Completed);
   });
 
   it('deletes user data and marks delete-account jobs completed with auth cleanup pending', async () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'processing',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Processing,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       expiresAt: 1,
@@ -107,8 +111,8 @@ describe('ProcessUserLifecycleJobUseCase', () => {
     vi.mocked(mockJobRepository.markCompleted).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'completed',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Completed,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       completedAt: '2026-03-23T00:00:12.000Z',
@@ -133,15 +137,15 @@ describe('ProcessUserLifecycleJobUseCase', () => {
         authDeleted: false,
       }),
     );
-    expect(result?.status).toBe('completed');
+    expect(result?.status).toBe(UserLifecycleJobStatus.Completed);
   });
 
   it('marks jobs failed when background processing throws', async () => {
     vi.mocked(mockJobRepository.tryMarkProcessing).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'processing',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Processing,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       expiresAt: 1,

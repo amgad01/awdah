@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserId, EventId } from '@awdah/shared';
 import { DeleteAccountUseCase, DeleteAccountCommand } from '../delete-account.use-case';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../domain/services/user-lifecycle-job-dispatcher.service.interface';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 
@@ -38,8 +42,8 @@ describe('DeleteAccountUseCase', () => {
     vi.mocked(mockJobRepository.createJob).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'pending',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Pending,
       requestedAt: '2026-03-23T00:00:00.000Z',
       expiresAt: 1,
       authCleanupRequired: true,
@@ -52,7 +56,7 @@ describe('DeleteAccountUseCase', () => {
       expect.objectContaining({
         userId: expect.any(UserId),
         jobId: expect.any(EventId),
-        type: 'delete-account',
+        type: UserLifecycleJobType.DeleteAccount,
         authCleanupRequired: true,
         authDeleted: false,
       }),

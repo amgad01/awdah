@@ -1,7 +1,9 @@
 import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
-import type {
+import {
   IUserLifecycleJobRepository,
-  UserLifecycleExportDownload,
+  UserLifecycleJobStatus,
+  isExportJob,
+  type UserLifecycleExportDownload,
 } from '../../domain/repositories/user-lifecycle-job.repository';
 
 export interface DownloadExportDataCommand {
@@ -18,15 +20,15 @@ export class DownloadExportDataUseCase {
 
     const job = await this.jobRepository.findById(userId, jobId);
 
-    if (!job || job.type !== 'export') {
+    if (!job || !isExportJob(job)) {
       throw new NotFoundError('Export job not found');
     }
 
-    if (job.status === 'failed') {
+    if (job.status === UserLifecycleJobStatus.Failed) {
       throw new ConflictError(job.errorMessage || 'Export failed');
     }
 
-    if (job.status !== 'completed') {
+    if (job.status !== UserLifecycleJobStatus.Completed) {
       throw new ConflictError('Export is still being prepared');
     }
 
