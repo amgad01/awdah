@@ -3,7 +3,7 @@ import type { FastLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useProfile } from '@/hooks/use-profile';
-import { invalidateSawmQueries } from '@/utils/query-invalidation';
+import { invalidateSawmQueries, removeSawmQueries } from '@/utils/query-invalidation';
 import { sawmRepository } from '@/domains/sawm/sawm-repository';
 import {
   useDailyHistoryQuery,
@@ -81,7 +81,12 @@ export const useResetFastLogs = () => {
   return useLifecycleResetMutation(
     sawmRepository.resetLogs,
     'reset-fasts',
-    invalidateSawmQueries,
+    removeSawmQueries,
     'settings.reset_done',
+    {
+      cooldownAction: 'fasts',
+      noLogsMessageKey: 'settings.reset_fasts_no_records',
+      rateLimitedMessageKey: 'settings.reset_fasts_rate_limited',
+    },
   );
 };

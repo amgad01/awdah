@@ -59,27 +59,70 @@ test.describe('Settings Page', () => {
     await expect(await downloadPromise).toBeNull();
   });
 
-  for (const [label, testId, passwordLabel, errorTestId] of [
-    ['reset prayers', 'reset-prayers-button', /enter your password/i, 'settings-prayers-error'],
-    ['reset fasts', 'reset-fasts-button', /enter your password/i, 'settings-fasts-error'],
-  ] as const) {
-    test(`data reset (${label}) requires password re-entry and rejects incorrect passwords`, async ({
-      page,
-    }) => {
-      const actionButton = page.getByTestId(testId);
-      await actionButton.click();
+  test('data reset (reset prayers) requires password re-entry and rejects incorrect passwords', async ({
+    page,
+  }) => {
+    // First add a prayer log so the reset button is enabled
+    await navigateFromShell(page, 'nav-salah');
+    await page
+      .getByTestId('salah-tab-daily')
+      .click()
+      .catch(() => {});
+    const fajrRow = page.getByTestId('prayer-tile-fajr').first();
+    if (await fajrRow.isVisible().catch(() => false)) {
+      const wasPressed = (await fajrRow.getAttribute('aria-pressed')) === 'true';
+      if (!wasPressed) {
+        await fajrRow.click();
+      }
+    }
+    await page.waitForTimeout(500);
 
-      const passwordInput = page.getByLabel(passwordLabel);
-      await expect(passwordInput).toBeVisible();
-      await passwordInput.fill(WRONG_PASSWORD);
+    // Navigate to settings and test reset
+    await navigateFromShell(page, 'nav-settings');
+    const actionButton = page.getByTestId('reset-prayers-button');
+    await actionButton.click();
 
-      await page.getByRole('button', { name: /^confirm$/i }).click();
+    const passwordInput = page.getByLabel(/enter your password/i);
+    await expect(passwordInput).toBeVisible();
+    await passwordInput.fill(WRONG_PASSWORD);
 
-      await expect(page.getByTestId(errorTestId)).toBeVisible();
-      await expect(passwordInput).toBeVisible();
-      await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
-    });
-  }
+    await page.getByRole('button', { name: /^confirm$/i }).click();
+
+    await expect(page.getByTestId('settings-prayers-error')).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
+  });
+
+  test('data reset (reset fasts) requires password re-entry and rejects incorrect passwords', async ({
+    page,
+  }) => {
+    // First add a fast log so the reset button is enabled
+    await navigateFromShell(page, 'nav-sawm');
+    const fastBtn = page.getByRole('button', { name: /log fast/i }).first();
+    if (await fastBtn.isVisible().catch(() => false)) {
+      await fastBtn.click();
+      const confirmBtn = page.getByRole('button', { name: /fasted/i }).first();
+      if (await confirmBtn.isVisible().catch(() => false)) {
+        await confirmBtn.click();
+      }
+    }
+    await page.waitForTimeout(500);
+
+    // Navigate to settings and test reset
+    await navigateFromShell(page, 'nav-settings');
+    const actionButton = page.getByTestId('reset-fasts-button');
+    await actionButton.click();
+
+    const passwordInput = page.getByLabel(/enter your password/i);
+    await expect(passwordInput).toBeVisible();
+    await passwordInput.fill(WRONG_PASSWORD);
+
+    await page.getByRole('button', { name: /^confirm$/i }).click();
+
+    await expect(page.getByTestId('settings-fasts-error')).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
+  });
 
   test('account deletion requires password re-entry and rejects incorrect passwords', async ({
     page,

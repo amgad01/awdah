@@ -5,6 +5,7 @@ export {
   UnauthorisedError,
   UnauthenticatedError,
   ConflictError,
+  RateLimitError,
   InternalError,
 } from './errors';
 export type { ErrorCode } from './errors';
