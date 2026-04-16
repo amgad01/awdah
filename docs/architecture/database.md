@@ -46,7 +46,15 @@ This table stores profile and settings data that does not belong in the log tabl
 - TTL attribute: `expiresAt`
 - Stream: `NEW_IMAGE`
 
-Lifecycle jobs cover export, delete-account, reset-prayers, and reset-fasts. TTL cleans up job state and export chunks after the retention window, while the stream is used to trigger background work.
+Lifecycle jobs cover export, delete-account, reset-prayers, and reset-fasts.
+
+Important implementation details:
+
+- job rows use an `sk` with a `JOB#...` pattern
+- export payload chunks are also stored in this table under `JOB#...#CHUNK#...`
+- TTL cleans up both job metadata and export chunks after the retention window
+- the DynamoDB stream is used to trigger the background worker when a new pending job row is inserted
+- the worker ignores export chunk rows and only processes real job rows
 
 ### 6. Deleted Users
 
@@ -57,6 +65,8 @@ Lifecycle jobs cover export, delete-account, reset-prayers, and reset-fasts. TTL
 - PITR enabled
 
 This is the restore-sanitization ledger. It exists so restored tables can be cleaned before they are reused.
+
+In practice, delete-account writes a tombstone here after app data has been deleted and before auth cleanup is finalized.
 
 ## Why Multi-Table Instead Of One Huge Table
 

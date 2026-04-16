@@ -1,6 +1,6 @@
 # Authenticated Request Path
 
-Use this diagram for the normal synchronous path, for example logging a prayer or fetching a debt summary.
+this diagram is for the normal synchronous path, for example logging a prayer or fetching a debt summary.
 
 ## ASCII
 
