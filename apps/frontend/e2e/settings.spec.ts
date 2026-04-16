@@ -53,7 +53,7 @@ test.describe('Settings Page', () => {
     await passwordInput.fill(WRONG_PASSWORD);
 
     const downloadPromise = page.waitForEvent('download', { timeout: 1500 }).catch(() => null);
-    await page.getByRole('button', { name: /^confirm$/i }).click();
+    await page.getByRole('button', { name: /download my data/i }).click();
 
     await expect(page.getByTestId('settings-export-error')).toBeVisible();
     await expect(await downloadPromise).toBeNull();

@@ -70,7 +70,7 @@ describe('DataManagementSection', () => {
     renderSection();
 
     fireEvent.click(screen.getByTestId('export-data-button'));
-    fireEvent.change(screen.getByLabelText('settings.delete_confirm_password'), {
+    fireEvent.change(screen.getByLabelText('settings.export_confirm_password'), {
       target: { value: 'CorrectPassword1!' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'settings.export_confirm_btn' }));
