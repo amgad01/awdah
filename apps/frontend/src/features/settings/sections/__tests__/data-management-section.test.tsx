@@ -45,12 +45,79 @@ vi.mock('@/hooks/use-worship', () => ({
   }),
 }));
 
+vi.mock('@/hooks/use-reset-cooldown', () => ({
+  useResetCooldown: () => ({
+    isCoolingDown: false,
+    secondsRemaining: 0,
+    canReset: true,
+    recordAttempt: vi.fn(),
+    checkBeforeRequest: () => true,
+  }),
+  formatCooldownTime: (seconds: number) => `${seconds}s`,
+}));
+
+vi.mock('@/hooks/use-has-logs-cache', () => ({
+  useHasLogsCache: () => true,
+}));
+
 vi.mock('../../components', () => ({
   SettingsSection: ({ children, title }: { children: React.ReactNode; title: string }) => (
     <section>
       <h2>{title}</h2>
       {children}
     </section>
+  ),
+  ActionCard: ({
+    action,
+    activeAction,
+    error,
+    isPending,
+    password,
+    onOpen,
+    onClose,
+    onPasswordChange,
+    onConfirm,
+  }: {
+    action: string;
+    activeAction: string | null;
+    error: string;
+    isPending: boolean;
+    password: string;
+    onOpen: (action: string) => void;
+    onClose: () => void;
+    onPasswordChange: (password: string) => void;
+    onConfirm: (action: string) => Promise<void>;
+  }) => (
+    <div>
+      {activeAction === action ? (
+        <div>
+          <input
+            type="password"
+            aria-label={
+              action === 'export'
+                ? 'settings.export_confirm_password'
+                : 'settings.delete_confirm_password'
+            }
+            value={password}
+            onChange={(e) => onPasswordChange(e.target.value)}
+          />
+          {error && <div data-testid={`settings-${action}-error`}>{error}</div>}
+          <button onClick={() => onConfirm(action)} disabled={isPending || !password}>
+            {action === 'export' ? 'settings.export_confirm_btn' : 'common.confirm'}
+          </button>
+          <button onClick={onClose} disabled={isPending}>
+            common.cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          data-testid={action === 'export' ? 'export-data-button' : `reset-${action}-button`}
+          onClick={() => onOpen(action)}
+        >
+          {action}
+        </button>
+      )}
+    </div>
   ),
 }));
 

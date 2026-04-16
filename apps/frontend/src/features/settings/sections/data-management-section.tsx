@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { Download, Lock, RotateCcw } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Download } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useExportData } from '@/hooks/use-profile';
 import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
+import { useResetCooldown, formatCooldownTime } from '@/hooks/use-reset-cooldown';
+import { useHasLogsCache } from '@/hooks/use-has-logs-cache';
 import { getAuthErrorKey } from '@/lib/auth-errors';
 import { SettingsSection } from '../components';
-import { getErrorMessage } from '../helpers';
+import { ActionCard } from '../components/ActionCard';
+import { getResetErrorMessage } from '../helpers/error-messages';
+import type { DataAction } from '../types/data-management.types';
 import styles from '../settings-page.module.css';
-
-type DataAction = 'export' | 'prayers' | 'fasts';
 
 export const DataManagementSection: React.FC = () => {
   const { t } = useLanguage();
@@ -17,6 +19,15 @@ export const DataManagementSection: React.FC = () => {
   const exportData = useExportData();
   const resetPrayerLogs = useResetPrayerLogs();
   const resetFastLogs = useResetFastLogs();
+
+  // Cooldown tracking
+  const prayersCooldown = useResetCooldown('prayers');
+  const fastsCooldown = useResetCooldown('fasts');
+  const exportCooldown = useResetCooldown('export');
+
+  // Cache of whether logs exist
+  const hasPrayerLogs = useHasLogsCache('prayers');
+  const hasFastLogs = useHasLogsCache('fasts');
 
   const [activeAction, setActiveAction] = useState<DataAction | null>(null);
   const [password, setPassword] = useState('');
@@ -39,14 +50,16 @@ export const DataManagementSection: React.FC = () => {
   };
 
   const closeAction = () => {
-    if (pendingAction) {
-      return;
-    }
-
+    if (pendingAction) return;
     setActiveAction(null);
     setPassword('');
     setError('');
   };
+
+  const handlePasswordChange = useCallback((nextPassword: string) => {
+    setPassword(nextPassword);
+    setError('');
+  }, []);
 
   const executeAction = async (action: DataAction) => {
     setError('');
@@ -60,7 +73,13 @@ export const DataManagementSection: React.FC = () => {
 
     try {
       if (action === 'export') {
+        if (!exportCooldown.checkBeforeRequest()) {
+          throw new Error(
+            `${t('settings.export_rate_limited')} (${formatCooldownTime(exportCooldown.secondsRemaining)})`,
+          );
+        }
         await exportData.mutateAsync();
+        exportCooldown.recordAttempt();
       } else if (action === 'prayers') {
         await resetPrayerLogs.mutateAsync();
       } else {
@@ -71,7 +90,7 @@ export const DataManagementSection: React.FC = () => {
       setPassword('');
       setError('');
     } catch (actionError) {
-      setError(t(getErrorMessage(actionError, 'common.error')));
+      setError(getResetErrorMessage(actionError, action, t));
     }
   };
 
@@ -84,193 +103,48 @@ export const DataManagementSection: React.FC = () => {
         <ActionCard
           action="export"
           activeAction={activeAction}
+          cooldownSeconds={exportCooldown.secondsRemaining}
+          cooldownActive={exportCooldown.isCoolingDown}
+          hasLogs={true}
           error={error}
           isPending={pendingAction === 'export'}
           password={password}
           onOpen={openAction}
           onClose={closeAction}
-          onPasswordChange={(nextPassword) => {
-            setPassword(nextPassword);
-            setError('');
-          }}
+          onPasswordChange={handlePasswordChange}
           onConfirm={executeAction}
         />
 
         <ActionCard
           action="prayers"
           activeAction={activeAction}
+          cooldownSeconds={prayersCooldown.secondsRemaining}
+          cooldownActive={prayersCooldown.isCoolingDown}
+          hasLogs={hasPrayerLogs}
           error={error}
           isPending={pendingAction === 'prayers'}
           password={password}
           onOpen={openAction}
           onClose={closeAction}
-          onPasswordChange={(nextPassword) => {
-            setPassword(nextPassword);
-            setError('');
-          }}
+          onPasswordChange={handlePasswordChange}
           onConfirm={executeAction}
         />
 
         <ActionCard
           action="fasts"
           activeAction={activeAction}
+          cooldownSeconds={fastsCooldown.secondsRemaining}
+          cooldownActive={fastsCooldown.isCoolingDown}
+          hasLogs={hasFastLogs}
           error={error}
           isPending={pendingAction === 'fasts'}
           password={password}
           onOpen={openAction}
           onClose={closeAction}
-          onPasswordChange={(nextPassword) => {
-            setPassword(nextPassword);
-            setError('');
-          }}
+          onPasswordChange={handlePasswordChange}
           onConfirm={executeAction}
         />
       </div>
     </SettingsSection>
   );
 };
-
-interface ActionCardProps {
-  action: DataAction;
-  activeAction: DataAction | null;
-  error: string;
-  isPending: boolean;
-  password: string;
-  onOpen: (action: DataAction) => void;
-  onClose: () => void;
-  onPasswordChange: (password: string) => void;
-  onConfirm: (action: DataAction) => Promise<void>;
-}
-
-const ActionCard: React.FC<ActionCardProps> = ({
-  action,
-  activeAction,
-  error,
-  isPending,
-  password,
-  onOpen,
-  onClose,
-  onPasswordChange,
-  onConfirm,
-}) => {
-  const { t } = useLanguage();
-
-  const config = getActionConfig(action, t);
-  const isOpen = activeAction === action;
-
-  return (
-    <div className={styles.resetItem}>
-      <div className={styles.resetItemInfo}>
-        <span className={styles.resetItemLabel}>{config.label}</span>
-        <span className={styles.resetItemHint}>{config.hint}</span>
-      </div>
-
-      {isOpen ? (
-        <div
-          className={`${styles.workflowConfirm} ${
-            config.tone === 'warning' ? styles.workflowConfirmWarning : ''
-          }`}
-        >
-          <p className={styles.deleteConfirmText}>{config.confirmText}</p>
-          <div className={styles.exportPasswordRow}>
-            <Lock size={16} className={styles.exportPasswordIcon} />
-            <input
-              type="password"
-              className={styles.exportPasswordInput}
-              placeholder={config.passwordLabel}
-              value={password}
-              onChange={(event) => onPasswordChange(event.target.value)}
-              aria-label={config.passwordLabel}
-            />
-          </div>
-
-          {error && (
-            <p
-              className={styles.deleteErrorText}
-              role="alert"
-              data-testid={`settings-${action}-error`}
-            >
-              {error}
-            </p>
-          )}
-
-          <div className={styles.exportConfirmBtns}>
-            <button
-              type="button"
-              className={styles.cancelAddBtn}
-              onClick={onClose}
-              disabled={isPending}
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              className={styles.confirmAddBtn}
-              onClick={() => void onConfirm(action)}
-              disabled={isPending || !password}
-            >
-              {isPending ? config.pendingLabel : config.confirmLabel}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          className={`${styles.dataActionBtn} ${
-            config.tone === 'warning' ? styles.dataActionBtnWarning : ''
-          }`}
-          onClick={() => onOpen(action)}
-          disabled={Boolean(activeAction)}
-          data-testid={config.testId}
-        >
-          {config.icon}
-          {config.buttonLabel}
-        </button>
-      )}
-    </div>
-  );
-};
-
-function getActionConfig(action: DataAction, t: (key: string) => string) {
-  if (action === 'export') {
-    return {
-      label: t('settings.export_data'),
-      hint: t('settings.export_data_hint'),
-      confirmText: t('settings.export_reauth_hint'),
-      confirmLabel: t('settings.export_confirm_btn'),
-      pendingLabel: t('settings.exporting'),
-      buttonLabel: t('settings.export_data'),
-      passwordLabel: t('settings.export_confirm_password'),
-      icon: <Download size={14} />,
-      testId: 'export-data-button',
-      tone: 'default' as const,
-    };
-  }
-
-  if (action === 'prayers') {
-    return {
-      label: t('settings.reset_prayers'),
-      hint: t('settings.reset_prayers_hint'),
-      confirmText: t('settings.reset_confirm_prayers'),
-      confirmLabel: t('common.confirm'),
-      pendingLabel: t('settings.resetting'),
-      buttonLabel: t('settings.reset_prayers'),
-      passwordLabel: t('settings.delete_confirm_password'),
-      icon: <RotateCcw size={14} />,
-      testId: 'reset-prayers-button',
-      tone: 'warning' as const,
-    };
-  }
-
-  return {
-    label: t('settings.reset_fasts'),
-    hint: t('settings.reset_fasts_hint'),
-    confirmText: t('settings.reset_confirm_fasts'),
-    confirmLabel: t('common.confirm'),
-    pendingLabel: t('settings.resetting'),
-    buttonLabel: t('settings.reset_fasts'),
-    passwordLabel: t('settings.delete_confirm_password'),
-    icon: <RotateCcw size={14} />,
-    testId: 'reset-fasts-button',
-    tone: 'warning' as const,
-  };
-}
