@@ -1,21 +1,38 @@
 import { UserId, EventId } from '@awdah/shared';
 import type { UserDataExport } from '../services/user-data-lifecycle.service.interface';
 
-export const USER_LIFECYCLE_JOB_TYPES = [
-  'export',
-  'delete-account',
-  'reset-prayers',
-  'reset-fasts',
-] as const;
-export type UserLifecycleJobType = (typeof USER_LIFECYCLE_JOB_TYPES)[number];
+export const UserLifecycleJobType = {
+  Export: 'export',
+  DeleteAccount: 'delete-account',
+  ResetPrayers: 'reset-prayers',
+  ResetFasts: 'reset-fasts',
+} as const;
+export type UserLifecycleJobType = (typeof UserLifecycleJobType)[keyof typeof UserLifecycleJobType];
 
-export const USER_LIFECYCLE_JOB_STATUSES = [
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-] as const;
-export type UserLifecycleJobStatus = (typeof USER_LIFECYCLE_JOB_STATUSES)[number];
+export const UserLifecycleJobStatus = {
+  Pending: 'pending',
+  Processing: 'processing',
+  Completed: 'completed',
+  Failed: 'failed',
+} as const;
+export type UserLifecycleJobStatus =
+  (typeof UserLifecycleJobStatus)[keyof typeof UserLifecycleJobStatus];
+
+export function isExportJob(job: UserLifecycleJob): boolean {
+  return job.type === UserLifecycleJobType.Export;
+}
+
+export function isDeleteAccountJob(job: UserLifecycleJob): boolean {
+  return job.type === UserLifecycleJobType.DeleteAccount;
+}
+
+export function isResetPrayersJob(job: UserLifecycleJob): boolean {
+  return job.type === UserLifecycleJobType.ResetPrayers;
+}
+
+export function isResetFastsJob(job: UserLifecycleJob): boolean {
+  return job.type === UserLifecycleJobType.ResetFasts;
+}
 
 export const USER_LIFECYCLE_JOB_TTL_SECONDS = 24 * 60 * 60;
 
