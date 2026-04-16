@@ -6,6 +6,7 @@ export type ErrorCode =
   | 'UNAUTHORISED'
   | 'UNAUTHENTICATED'
   | 'CONFLICT'
+  | 'RATE_LIMIT'
   | 'INTERNAL_ERROR';
 
 export class AppError extends Error {
@@ -56,6 +57,12 @@ export class UnauthenticatedError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string) {
     super('CONFLICT', message, StatusCodes.CONFLICT);
+  }
+}
+
+export class RateLimitError extends AppError {
+  constructor(message: string) {
+    super('RATE_LIMIT', message, StatusCodes.TOO_MANY_REQUESTS);
   }
 }
 

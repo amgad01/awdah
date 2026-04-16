@@ -52,4 +52,5 @@ export const resetPrayerLogsUseCase = new ResetPrayerLogsUseCase(
   userLifecycleJobRepo,
   userLifecycleJobDispatcher,
   idGenerator,
+  prayerLogRepo,
 );
