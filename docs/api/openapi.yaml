@@ -1305,6 +1305,7 @@ components:
                 - FORBIDDEN
                 - NOT_FOUND
                 - CONFLICT
+                - RATE_LIMIT
                 - INTERNAL_ERROR
             message:
               type: string

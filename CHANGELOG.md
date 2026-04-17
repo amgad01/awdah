@@ -53,6 +53,11 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 #### Frontend
 
 - **`DataManagementSection` modularized**: Extracted `ActionCard` component, `getActionConfig` helper with DRY configuration pattern, and `error-messages` helper with pattern-based matching
+- **Removed useless comments**: Cleaned up redundant comments in `use-has-logs-cache.ts`, `action-config.ts`, `settings.spec.ts`, `data-management-section.tsx`, and use case files
+
+#### Backend
+
+- **Rate limiting DRY**: Extracted `RATE_LIMIT_MINUTES` constant and `getRateLimitSince()` helper to `@awdah/shared` package; updated `ExportDataUseCase`, `ResetPrayerLogsUseCase`, and `ResetFastLogsUseCase` to use shared implementation instead of duplicated logic
 
 ## v1.2.0
 
