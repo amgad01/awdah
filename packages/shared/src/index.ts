@@ -24,6 +24,8 @@ export {
   CALCULATION_METHODS,
   MOON_SIGHTING_PREFERENCES,
   BREAK_REASONS,
+  RATE_LIMIT_MINUTES,
+  getRateLimitSince,
 } from './constants';
 export type {
   PrayerName,
