@@ -6,66 +6,83 @@ function checkHasLogs(
   queryClient: ReturnType<typeof useQueryClient>,
   type: 'prayers' | 'fasts',
 ): boolean | null {
-  const prefix = type === 'prayers' ? QUERY_KEYS.salahHistoryPrefix : QUERY_KEYS.sawmHistoryPrefix;
+  const historyPrefix =
+    type === 'prayers' ? QUERY_KEYS.salahHistoryPrefix : QUERY_KEYS.sawmHistoryPrefix;
+  const dailyPrefix = type === 'prayers' ? ['salah-daily'] : ['sawm-daily'];
 
-  // Get all queries matching the prefix
   const queries = queryClient.getQueryCache().findAll({
     predicate: (query) => {
       const key = query.queryKey;
-      return (
-        Array.isArray(key) &&
-        key.length >= prefix.length &&
-        key.slice(0, prefix.length).every((k, i) => k === prefix[i])
-      );
+      if (!Array.isArray(key)) return false;
+
+      const matchesHistory =
+        key.length >= historyPrefix.length &&
+        key.slice(0, historyPrefix.length).every((k, i) => k === historyPrefix[i]);
+
+      const matchesDaily =
+        key.length >= dailyPrefix.length &&
+        key.slice(0, dailyPrefix.length).every((k, i) => k === dailyPrefix[i]);
+
+      return matchesHistory || matchesDaily;
     },
   });
 
-  // Check if any query has data with items
+  let hasSuccessfulQuery = false;
+  let allSuccessfulQueriesEmpty = true;
+
   for (const query of queries) {
-    const data = query.state.data;
+    const { data, status } = query.state;
 
-    if (!data) continue;
+    if (status === 'success') {
+      hasSuccessfulQuery = true;
 
-    // Handle infinite query (paginated) data
-    if (typeof data === 'object' && 'pages' in data) {
-      const pages = (data as { pages: unknown[] }).pages;
-      for (const page of pages) {
+      if (!data) {
+        continue;
+      }
+
+      if (typeof data === 'object' && 'pages' in data) {
+        const pages = (data as { pages: unknown[] }).pages;
+        let hasItems = false;
+        for (const page of pages) {
+          if (
+            typeof page === 'object' &&
+            page !== null &&
+            'items' in page &&
+            Array.isArray((page as { items: unknown[] }).items) &&
+            (page as { items: unknown[] }).items.length > 0
+          ) {
+            hasItems = true;
+            break;
+          }
+        }
+        if (hasItems) {
+          return true;
+        }
+        continue;
+      }
+
+      if (Array.isArray(data) && data.length > 0) {
+        const firstItem = data[0];
         if (
-          typeof page === 'object' &&
-          page !== null &&
-          'items' in page &&
-          Array.isArray((page as { items: unknown[] }).items) &&
-          (page as { items: unknown[] }).items.length > 0
+          firstItem &&
+          typeof firstItem === 'object' &&
+          'eventId' in firstItem &&
+          'date' in firstItem &&
+          'loggedAt' in firstItem &&
+          ('prayerName' in firstItem || 'fastType' in firstItem || 'type' in firstItem)
         ) {
           return true;
         }
       }
-      continue;
-    }
-
-    // Handle regular array data
-    if (Array.isArray(data) && data.length > 0) {
-      // Verify it's actually logs by checking for required log properties
-      const firstItem = data[0];
-      if (
-        firstItem &&
-        typeof firstItem === 'object' &&
-        'eventId' in firstItem &&
-        'date' in firstItem &&
-        'loggedAt' in firstItem &&
-        ('prayerName' in firstItem || 'fastType' in firstItem || 'type' in firstItem)
-      ) {
-        return true;
-      }
+    } else if (status === 'error' || status === 'pending') {
+      allSuccessfulQueriesEmpty = false;
     }
   }
 
-  // If we have queries but none have data, we know there are no logs
-  if (queries.length > 0) {
+  if (hasSuccessfulQuery && allSuccessfulQueriesEmpty) {
     return false;
   }
 
-  // Unknown - no relevant queries cached
   return null;
 }
 
@@ -80,7 +97,6 @@ export function useHasLogsCache(type: 'prayers' | 'fasts'): boolean | null {
   const [hasLogs, setHasLogs] = useState<boolean | null>(() => checkHasLogs(queryClient, type));
 
   useEffect(() => {
-    // Subscribe to query cache changes
     const unsubscribe = queryClient.getQueryCache().subscribe(() => {
       setHasLogs(checkHasLogs(queryClient, type));
     });
@@ -104,22 +120,27 @@ export function useMarkLogsCleared() {
   const queryClient = useQueryClient();
 
   return (type: 'prayers' | 'fasts') => {
-    const prefix =
+    const historyPrefix =
       type === 'prayers' ? QUERY_KEYS.salahHistoryPrefix : QUERY_KEYS.sawmHistoryPrefix;
+    const dailyPrefix = type === 'prayers' ? ['salah-daily'] : ['sawm-daily'];
 
-    // Invalidate all related queries to trigger refetch
     queryClient.invalidateQueries({
       predicate: (query) => {
         const key = query.queryKey;
-        return (
-          Array.isArray(key) &&
-          key.length >= prefix.length &&
-          key.slice(0, prefix.length).every((k, i) => k === prefix[i])
-        );
+        if (!Array.isArray(key)) return false;
+
+        const matchesHistory =
+          key.length >= historyPrefix.length &&
+          key.slice(0, historyPrefix.length).every((k, i) => k === historyPrefix[i]);
+
+        const matchesDaily =
+          key.length >= dailyPrefix.length &&
+          key.slice(0, dailyPrefix.length).every((k, i) => k === dailyPrefix[i]);
+
+        return matchesHistory || matchesDaily;
       },
     });
 
-    // Also invalidate debt queries
     if (type === 'prayers') {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.salahDebt });
     } else {

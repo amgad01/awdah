@@ -64,22 +64,31 @@ test.describe('Settings Page', () => {
   }) => {
     // First add a prayer log so the reset button is enabled
     await navigateFromShell(page, 'nav-salah');
+    await expect(page).toHaveURL(/\/salah/);
+
+    const dailyTab = page.getByTestId('salah-tab-daily');
+    if (await dailyTab.isVisible().catch(() => false)) {
+      await dailyTab.click();
+    }
+
     await page
-      .getByTestId('salah-tab-daily')
-      .click()
-      .catch(() => {});
+      .waitForSelector('[data-testid="prayer-tile-fajr"]', { timeout: 10_000 })
+      .catch(() => null);
+
     const fajrRow = page.getByTestId('prayer-tile-fajr').first();
     if (await fajrRow.isVisible().catch(() => false)) {
       const wasPressed = (await fajrRow.getAttribute('aria-pressed')) === 'true';
       if (!wasPressed) {
         await fajrRow.click();
+        await expect(fajrRow).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
       }
     }
-    await page.waitForTimeout(500);
+    // Wait for query cache to be populated
+    await page.waitForTimeout(1_000);
 
-    // Navigate to settings and test reset
     await navigateFromShell(page, 'nav-settings');
     const actionButton = page.getByTestId('reset-prayers-button');
+    await expect(actionButton).not.toBeDisabled({ timeout: 5000 });
     await actionButton.click();
 
     const passwordInput = page.getByLabel(/enter your password/i);
@@ -98,19 +107,26 @@ test.describe('Settings Page', () => {
   }) => {
     // First add a fast log so the reset button is enabled
     await navigateFromShell(page, 'nav-sawm');
-    const fastBtn = page.getByRole('button', { name: /log fast/i }).first();
+    await expect(page).toHaveURL(/\/sawm/);
+
+    await page
+      .waitForSelector('[data-testid="sawm-log-button"]', { timeout: 10_000 })
+      .catch(() => null);
+
+    const fastBtn = page.getByTestId('sawm-log-button').first();
     if (await fastBtn.isVisible().catch(() => false)) {
-      await fastBtn.click();
-      const confirmBtn = page.getByRole('button', { name: /fasted/i }).first();
-      if (await confirmBtn.isVisible().catch(() => false)) {
-        await confirmBtn.click();
+      const wasPressed = (await fastBtn.getAttribute('aria-pressed')) === 'true';
+      if (!wasPressed) {
+        await fastBtn.click();
+        await expect(fastBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
       }
     }
-    await page.waitForTimeout(500);
+    // Wait for query cache to be populated
+    await page.waitForTimeout(1_000);
 
-    // Navigate to settings and test reset
     await navigateFromShell(page, 'nav-settings');
     const actionButton = page.getByTestId('reset-fasts-button');
+    await expect(actionButton).not.toBeDisabled({ timeout: 5000 });
     await actionButton.click();
 
     const passwordInput = page.getByLabel(/enter your password/i);

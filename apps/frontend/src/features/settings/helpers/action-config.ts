@@ -68,7 +68,6 @@ export function getActionConfig(
   const isOnCooldown = cooldownSeconds !== null && cooldownSeconds > 0;
   const hasNoLogs = hasLogs === false;
 
-  // Determine hint based on state (cooldown > no logs > normal)
   let hint: string;
   if (isOnCooldown) {
     hint = buildCooldownLabel(t(meta.rateLimitedKey), cooldownSeconds, formatCooldownTime);
@@ -78,17 +77,14 @@ export function getActionConfig(
     hint = t(meta.hintKey);
   }
 
-  // Determine button label based on cooldown
   const buttonLabel = isOnCooldown
     ? buildCooldownLabel(t(meta.labelKey), cooldownSeconds, formatCooldownTime)
     : t(meta.labelKey);
 
-  // Determine disabled hint (cooldown takes priority)
   const disabledHint = isOnCooldown
     ? buildCooldownLabel(t(meta.rateLimitedKey), cooldownSeconds, formatCooldownTime)
     : t(meta.noRecordsKey);
 
-  // Determine icon based on cooldown
   const icon = isOnCooldown ? meta.timerIcon : meta.icon;
 
   return {

@@ -1,20 +1,16 @@
 import { getErrorMessage } from '../helpers';
+import { ApiRequestError } from '@/lib/api';
 import type { DataAction } from '../types/data-management.types';
 
 interface ErrorPattern {
-  test: (message: string, t: (key: string) => string, action: DataAction) => boolean;
+  test: (error: unknown, action: DataAction) => boolean;
   getMessage: (t: (key: string) => string, action: DataAction) => string;
 }
 
 const ERROR_PATTERNS: ErrorPattern[] = [
-  // Rate limit errors (429) - match by comparing to translated keys
+  // Rate limit errors (429) - match by status code
   {
-    test: (msg, t, action) => {
-      if (action === 'prayers') return msg === t('settings.reset_prayers_rate_limited');
-      if (action === 'fasts') return msg === t('settings.reset_fasts_rate_limited');
-      if (action === 'export') return msg === t('settings.export_rate_limited');
-      return false;
-    },
+    test: (error) => error instanceof ApiRequestError && error.status === 429,
     getMessage: (t, action) => {
       if (action === 'prayers') return t('settings.reset_prayers_rate_limited');
       if (action === 'fasts') return t('settings.reset_fasts_rate_limited');
@@ -22,13 +18,15 @@ const ERROR_PATTERNS: ErrorPattern[] = [
       return t('common.error');
     },
   },
-  // No records errors (409) - match by comparing to translated keys
+  // No records errors (409 Conflict) - match by status code
   {
-    test: (msg, t) => msg === t('settings.reset_prayers_no_records'),
+    test: (error, action) =>
+      error instanceof ApiRequestError && error.status === 409 && action === 'prayers',
     getMessage: (t) => t('settings.reset_prayers_no_records'),
   },
   {
-    test: (msg, t) => msg === t('settings.reset_fasts_no_records'),
+    test: (error, action) =>
+      error instanceof ApiRequestError && error.status === 409 && action === 'fasts',
     getMessage: (t) => t('settings.reset_fasts_no_records'),
   },
 ];
@@ -38,10 +36,8 @@ export function getResetErrorMessage(
   action: DataAction,
   t: (key: string) => string,
 ): string {
-  const message = error instanceof Error ? error.message : '';
-
   for (const pattern of ERROR_PATTERNS) {
-    if (pattern.test(message, t, action)) {
+    if (pattern.test(error, action)) {
       return pattern.getMessage(t, action);
     }
   }

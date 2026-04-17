@@ -39,8 +39,9 @@ const ActionCardComponent: React.FC<ActionCardProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  // Disable button if cooling down, no logs, or unknown (prevents backend spam)
-  const isDisabled = cooldownActive || (hasLogs !== true && action !== 'export');
+  // Disable button if cooling down or there are known to be no logs.
+  // Leave reset actions enabled when log availability is still unknown.
+  const isDisabled = cooldownActive || (hasLogs === false && action !== 'export');
 
   return (
     <div className={`${styles.resetItem} ${isOpen ? styles.resetItemWithConfirm : ''}`}>

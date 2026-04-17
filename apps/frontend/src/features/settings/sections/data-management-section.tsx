@@ -4,7 +4,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useExportData } from '@/hooks/use-profile';
 import { useResetPrayerLogs, useResetFastLogs } from '@/hooks/use-worship';
-import { useResetCooldown, formatCooldownTime } from '@/hooks/use-reset-cooldown';
+import { useResetCooldown } from '@/hooks/use-reset-cooldown';
 import { useHasLogsCache } from '@/hooks/use-has-logs-cache';
 import { getAuthErrorKey } from '@/lib/auth-errors';
 import { SettingsSection } from '../components';
@@ -16,16 +16,21 @@ import styles from '../settings-page.module.css';
 export const DataManagementSection: React.FC = () => {
   const { t } = useLanguage();
   const { user, verifyPassword } = useAuth();
-  const exportData = useExportData();
-  const resetPrayerLogs = useResetPrayerLogs();
-  const resetFastLogs = useResetFastLogs();
 
-  // Cooldown tracking
   const prayersCooldown = useResetCooldown('prayers');
   const fastsCooldown = useResetCooldown('fasts');
   const exportCooldown = useResetCooldown('export');
 
-  // Cache of whether logs exist
+  const exportData = useExportData({
+    cooldown: {
+      checkBeforeRequest: exportCooldown.checkBeforeRequest,
+      secondsRemaining: exportCooldown.secondsRemaining,
+      recordAttempt: exportCooldown.recordAttempt,
+    },
+  });
+  const resetPrayerLogs = useResetPrayerLogs();
+  const resetFastLogs = useResetFastLogs();
+
   const hasPrayerLogs = useHasLogsCache('prayers');
   const hasFastLogs = useHasLogsCache('fasts');
 
@@ -73,13 +78,7 @@ export const DataManagementSection: React.FC = () => {
 
     try {
       if (action === 'export') {
-        if (!exportCooldown.checkBeforeRequest()) {
-          throw new Error(
-            `${t('settings.export_rate_limited')} (${formatCooldownTime(exportCooldown.secondsRemaining)})`,
-          );
-        }
         await exportData.mutateAsync();
-        exportCooldown.recordAttempt();
       } else if (action === 'prayers') {
         await resetPrayerLogs.mutateAsync();
       } else {

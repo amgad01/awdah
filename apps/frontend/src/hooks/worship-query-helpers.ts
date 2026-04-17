@@ -9,7 +9,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { waitForLifecycleJob } from '@/domains/user/user-lifecycle-service';
-import { useResetCooldown, formatCooldownTime } from './use-reset-cooldown';
+import {
+  createRateLimitError,
+  createNoLogsError,
+  shouldSuppressToast,
+} from '@/utils/lifecycle-errors';
+import { useResetCooldown } from './use-reset-cooldown';
 import { useHasLogsCache } from './use-has-logs-cache';
 
 export function useDailyHistoryQuery<TItem>(
@@ -109,14 +114,12 @@ export function useLifecycleResetMutation(
     mutationFn: async () => {
       // Check cooldown before sending request
       if (!cooldown.checkBeforeRequest()) {
-        throw new Error(
-          `${t(options.rateLimitedMessageKey)} (${formatCooldownTime(cooldown.secondsRemaining)})`,
-        );
+        throw createRateLimitError(options.rateLimitedMessageKey, cooldown.secondsRemaining);
       }
 
       // Check logs cache - if we know there are no logs, fail fast
       if (hasLogs === false) {
-        throw new Error(options.noLogsMessageKey);
+        throw createNoLogsError(options.noLogsMessageKey);
       }
 
       const started = await startReset();
@@ -140,14 +143,9 @@ export function useLifecycleResetMutation(
       toast.success(t(successMessageKey));
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : 'common.error';
       // Skip toast for rate limiting and no records - handled by UI (disabled button + countdown)
-      // Check using translation keys since message is already translated
-      const isRateLimitError =
-        message === t(options.rateLimitedMessageKey) ||
-        (cooldown.secondsRemaining > 0 && message.includes(String(cooldown.secondsRemaining)));
-      const isNoRecordsError = message === t(options.noLogsMessageKey);
-      if (!isRateLimitError && !isNoRecordsError) {
+      if (!shouldSuppressToast(err)) {
+        const message = err instanceof Error ? err.message : 'common.error';
         toast.error(t(message));
       }
     },

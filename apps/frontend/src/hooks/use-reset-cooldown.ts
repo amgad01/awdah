@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { secureStorage } from '@/lib/secure-storage';
+import type { CooldownController, ResetAction } from '@/types/cooldown.types';
 
 const COOLDOWN_MINUTES = 10;
 const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
@@ -9,14 +10,6 @@ const STORAGE_KEYS = {
   fasts: 'reset_fasts_last_attempt',
   export: 'export_data_last_attempt',
 } as const;
-
-type ResetAction = 'prayers' | 'fasts' | 'export';
-
-interface CooldownState {
-  isCoolingDown: boolean;
-  secondsRemaining: number;
-  canReset: boolean;
-}
 
 function getLastAttempt(action: ResetAction): number | null {
   return secureStorage.getWithAge<number>(STORAGE_KEYS[action], COOLDOWN_MS);
@@ -32,10 +25,7 @@ function calculateRemainingSeconds(lastAttempt: number): number {
   return Math.ceil(remaining / 1000);
 }
 
-export function useResetCooldown(action: ResetAction): CooldownState & {
-  recordAttempt: () => void;
-  checkBeforeRequest: () => boolean;
-} {
+export function useResetCooldown(action: ResetAction): CooldownController {
   const [lastAttempt, setLastAttemptState] = useState<number | null>(() => getLastAttempt(action));
   const [secondsRemaining, setSecondsRemaining] = useState(0);
 
