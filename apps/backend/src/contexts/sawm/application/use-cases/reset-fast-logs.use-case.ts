@@ -1,4 +1,11 @@
-import { UserId, EventId } from '@awdah/shared';
+import {
+  UserId,
+  EventId,
+  RateLimitError,
+  ConflictError,
+  RATE_LIMIT_MINUTES,
+  getRateLimitSince,
+} from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   USER_LIFECYCLE_JOB_TTL_SECONDS,
@@ -7,14 +14,11 @@ import {
 } from '../../../user/domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
 import { IIdGenerator } from '../../../../shared/domain/services/id-generator.interface';
-import { RateLimitError, ConflictError } from '@awdah/shared';
 import type { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 
 export interface ResetFastLogsCommand {
   userId: string;
 }
-
-const RATE_LIMIT_MINUTES = 10;
 
 export class ResetFastLogsUseCase {
   constructor(
@@ -27,15 +31,12 @@ export class ResetFastLogsUseCase {
   async execute(command: ResetFastLogsCommand): Promise<UserLifecycleJob> {
     const userId = new UserId(command.userId);
 
-    // Check if user has any fast logs to reset
     const hasLogs = await this.fastLogRepository.hasAnyLogs(userId);
     if (!hasLogs) {
       throw new ConflictError('No fast logs to reset');
     }
 
-    // Rate limiting: Check for recent reset-fasts job
-    const cooldownMs = RATE_LIMIT_MINUTES * 60 * 1000;
-    const since = new Date(Date.now() - cooldownMs).toISOString();
+    const since = getRateLimitSince();
     const recentJob = await this.jobRepository.findRecentJobByType(
       userId,
       UserLifecycleJobType.ResetFasts,
