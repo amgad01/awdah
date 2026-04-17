@@ -59,7 +59,6 @@ vi.mock('@/hooks/use-reset-cooldown', () => ({
 vi.mock('@/hooks/use-has-logs-cache', () => ({
   useHasLogsCache: () => true,
 }));
-
 vi.mock('../../components', () => ({
   SettingsSection: ({ children, title }: { children: React.ReactNode; title: string }) => (
     <section>
