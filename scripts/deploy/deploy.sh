@@ -222,6 +222,10 @@ echo ""
 "$SCRIPT_DIR/generate-frontend-config.sh"
 echo ""
 
+# --- 5. Sync Root .env ---
+"$SCRIPT_DIR/sync-env-from-outputs.sh"
+echo ""
+
 # --- 6. Deploy Frontend ---
 echo "=> [6/6] Deploying frontend..."
 "$SCRIPT_DIR/deploy-frontend.sh" "$ENV" || exit 1

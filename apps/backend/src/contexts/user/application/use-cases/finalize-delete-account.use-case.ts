@@ -1,7 +1,9 @@
 import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
-import type {
+import {
   IUserLifecycleJobRepository,
-  UserLifecycleJob,
+  UserLifecycleJobStatus,
+  isDeleteAccountJob,
+  type UserLifecycleJob,
 } from '../../domain/repositories/user-lifecycle-job.repository';
 import type { ICognitoAdminService } from '../../domain/services/cognito-admin.service.interface';
 import { createLogger } from '../../../../shared/middleware/logger';
@@ -29,7 +31,7 @@ export class FinalizeDeleteAccountUseCase {
 
     const job = await this.jobRepository.findById(userId, jobId);
 
-    if (!job || job.type !== 'delete-account') {
+    if (!job || !isDeleteAccountJob(job)) {
       throw new NotFoundError('Account deletion job not found');
     }
 
@@ -59,11 +61,11 @@ export class FinalizeDeleteAccountUseCase {
 }
 
 function ensureDeleteJobReady(job: UserLifecycleJob): void {
-  if (job.status === 'failed') {
+  if (job.status === UserLifecycleJobStatus.Failed) {
     throw new ConflictError(job.errorMessage || 'Account deletion failed');
   }
 
-  if (job.status !== 'completed') {
+  if (job.status !== UserLifecycleJobStatus.Completed) {
     throw new ConflictError('Account deletion is still in progress');
   }
 }

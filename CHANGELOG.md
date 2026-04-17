@@ -7,6 +7,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.2.0
+
+### Changed
+
+#### Frontend
+
+- Settings now separates privacy information from action handling and introduces a dedicated Data Management section for the shared lifecycle actions: download data, clear prayer logs, and clear fast logs
+- The delete-account flow stays isolated in the Danger Zone, with clearer wording that it uses the same background lifecycle workflow and signs the user out only after cleanup finishes
+- Export and reset actions now use one consistent confirmation pattern with re-auth, in-progress labels, and inline workflow errors instead of three slightly different settings experiences
+
+#### Backend
+
+- User lifecycle job types and statuses now use typed constant objects (`UserLifecycleJobType`, `UserLifecycleJobStatus`) with type guards (`isExportJob`, `isDeleteAccountJob`, etc.) instead of raw string comparisons
+- `ProcessUserLifecycleJobUseCase` refactored to use a handler registry pattern with `Record<>` lookup, replacing the previous switch statement with type-safe dispatch
+- Hardcoded strings extracted to constants: `EXPORT_CONTENT_TYPE` and `DEFAULT_ERROR_MESSAGE`
+- Related use cases (`delete-account`, `download-export-data`, `finalize-delete-account`) updated to use new enum constants and type guards
+
+### Fixed
+
+#### Frontend
+
+- Reset-workflow start failures now resolve to translated message keys instead of falling back to hard-coded English strings
+- Settings now surfaces background-job expectations more clearly for the four lifecycle actions described in the shared workflow documentation
+
 ## v1.1.3
 
 ### Changed

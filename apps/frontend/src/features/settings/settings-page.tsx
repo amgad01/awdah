@@ -1,40 +1,27 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import { getAuthErrorKey } from '@/lib/auth-errors';
-import {
-  useExportData,
-  useProfile,
-  usePracticingPeriods,
-  useUpdateProfile,
-} from '@/hooks/use-profile';
+import { useProfile, usePracticingPeriods, useUpdateProfile } from '@/hooks/use-profile';
 import { LanguageSwitcher } from '@/components/ui/language-switcher/language-switcher';
 import { getUserDisplayInitial, getUserDisplayName } from '@/lib/user-display';
-import {
-  User,
-  Bell,
-  Languages,
-  Shield,
-  Download,
-  Check,
-  Edit2,
-  X,
-  Loader2,
-  Lock,
-} from 'lucide-react';
+import { User, Bell, Languages, Shield, Check, Edit2, X, Loader2 } from 'lucide-react';
 import { SettingsSection } from './components';
-import { ProfileSection, PeriodsSection, LogoutSection, DangerZoneSection } from './sections';
+import {
+  ProfileSection,
+  PeriodsSection,
+  LogoutSection,
+  DataManagementSection,
+  DangerZoneSection,
+} from './sections';
 import type { PeriodLike } from './types';
-import { getErrorMessage } from './helpers';
 import styles from './settings-page.module.css';
 
 export const SettingsPage: React.FC = () => {
   const { t } = useLanguage();
-  const { user, verifyPassword } = useAuth();
+  const { user } = useAuth();
   const { data: periods } = usePracticingPeriods();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
-  const exportData = useExportData();
   const displayName = getUserDisplayName({
     profileUsername: profile?.username,
     email: user?.email,
@@ -44,29 +31,6 @@ export const SettingsPage: React.FC = () => {
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
-  const [exportError, setExportError] = useState<string | null>(null);
-  const [showExportConfirm, setShowExportConfirm] = useState(false);
-  const [exportPassword, setExportPassword] = useState('');
-
-  const handleExportData = async () => {
-    setExportError(null);
-    const email = user?.email || user?.username || '';
-
-    try {
-      await verifyPassword(email, exportPassword);
-    } catch (error) {
-      setExportError(t(getAuthErrorKey(error, 'settings.verify_password_failed')));
-      return;
-    }
-
-    try {
-      await exportData.mutateAsync();
-      setShowExportConfirm(false);
-      setExportPassword('');
-    } catch (error) {
-      setExportError(getErrorMessage(error, t('common.error')));
-    }
-  };
 
   const handleStartEdit = () => {
     setTempName(profile?.username ?? '');
@@ -190,75 +154,15 @@ export const SettingsPage: React.FC = () => {
       {/* Privacy */}
       <SettingsSection icon={<Shield size={18} />} title={t('settings.privacy')}>
         <p className={styles.privacyText}>{t('settings.privacy_note')}</p>
-
-        {!showExportConfirm ? (
-          <button
-            className={styles.exportBtn}
-            onClick={() => {
-              setShowExportConfirm(true);
-              setExportPassword('');
-              setExportError(null);
-            }}
-            disabled={exportData.isPending}
-            data-testid="export-data-button"
-          >
-            <Download size={16} />
-            {t('settings.export_data')}
-          </button>
-        ) : (
-          <div className={styles.exportConfirm}>
-            <p className={styles.exportConfirmText}>{t('settings.export_reauth_hint')}</p>
-            <div className={styles.exportPasswordRow}>
-              <Lock size={16} className={styles.exportPasswordIcon} />
-              <input
-                type="password"
-                className={styles.exportPasswordInput}
-                placeholder={t('settings.export_confirm_password')}
-                value={exportPassword}
-                onChange={(e) => {
-                  setExportPassword(e.target.value);
-                  setExportError(null);
-                }}
-                aria-label={t('settings.export_confirm_password')}
-              />
-            </div>
-            {exportError && (
-              <p
-                className={styles.exportErrorText}
-                role="alert"
-                data-testid="settings-export-error"
-              >
-                {exportError}
-              </p>
-            )}
-            <div className={styles.exportConfirmBtns}>
-              <button
-                className={styles.cancelAddBtn}
-                onClick={() => {
-                  setShowExportConfirm(false);
-                  setExportPassword('');
-                  setExportError(null);
-                }}
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                className={styles.confirmAddBtn}
-                onClick={() => void handleExportData()}
-                disabled={exportData.isPending || !exportPassword}
-              >
-                <Check size={16} />
-                {exportData.isPending ? t('settings.exporting') : t('common.confirm')}
-              </button>
-            </div>
-          </div>
-        )}
+        <p className={styles.privacyText}>{t('settings.privacy_note_gdpr')}</p>
       </SettingsSection>
+
+      <DataManagementSection />
 
       {/* Logout */}
       <LogoutSection />
 
-      {/* Danger Zone - NOW INCLUDES RESETS */}
+      {/* Danger Zone */}
       <DangerZoneSection />
     </div>
   );

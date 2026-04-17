@@ -3,7 +3,11 @@ import {
   GetUserLifecycleJobStatusUseCase,
   GetUserLifecycleJobStatusCommand,
 } from '../get-user-lifecycle-job-status.use-case';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 import { NotFoundError, UserId, EventId } from '@awdah/shared';
 
 describe('GetUserLifecycleJobStatusUseCase', () => {
@@ -21,8 +25,8 @@ describe('GetUserLifecycleJobStatusUseCase', () => {
   const existingJob = {
     userId,
     jobId,
-    type: 'export' as const,
-    status: 'completed' as const,
+    type: UserLifecycleJobType.Export,
+    status: UserLifecycleJobStatus.Completed,
     requestedAt: '2026-03-23T00:00:00.000Z',
     expiresAt: 9999999999,
   };

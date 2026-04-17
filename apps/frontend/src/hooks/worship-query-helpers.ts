@@ -101,8 +101,8 @@ export function useLifecycleResetMutation(
       if (!job) {
         throw new Error(
           jobType === 'reset-prayers'
-            ? 'Prayer log reset could not be started.'
-            : 'Fast log reset could not be started.',
+            ? 'settings.reset_prayers_start_failed'
+            : 'settings.reset_fasts_start_failed',
         );
       }
 

@@ -5,16 +5,35 @@ Use this diagram when discussing deployment order, blast radius, and why the inf
 ## ASCII
 
 ```text
-DataStack ----+
-              +--> ApiStack -----------+
-AuthStack ----+                        |
-                                       +--> AlarmStack
-DataStack -----------------> BackupStack ---+
-DataStack ----------------------------------+
-ApiStack ------------------> FrontendStack (optional)
+┌─────────────┐     ┌─────────────┐
+│  DataStack  │     │  AuthStack  │
+└──────┬──────┘     └──────┬──────┘
+       │                   │
+       │         ┌─────────┘
+       │         │
+       ▼         ▼
+┌─────────────────────────┐
+│        ApiStack         │◄──────┐
+└────────────┬────────────┘       │
+             │                     │
+     ┌───────┴───────┐             │
+     │               │             │
+     ▼               ▼             │
+┌──────────┐   ┌──────────────┐    │
+│ Frontend │   │  AlarmStack  │◄───┤
+│(optional)│   └──────┬───────┘    │
+└──────────┘          │            │
+                      │            │
+            ┌─────────┘            │
+            │                      │
+            ▼                      │
+┌──────────────────┐               │
+│   BackupStack    │───────────────┘
+└──────────────────┘
 
-FrontendStack is optional for S3 + CloudFront hosting, but when it is deployed
-in CDK it is ordered after ApiStack.
+Deployment order: Data/Auth → Api → Frontend
+                   Data → Backup → Alarm
+                   Api  → Alarm
 ```
 
 ## Mermaid

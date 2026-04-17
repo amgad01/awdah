@@ -2,6 +2,7 @@ import { UserId, EventId } from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   USER_LIFECYCLE_JOB_TTL_SECONDS,
+  UserLifecycleJobType,
   type UserLifecycleJob,
 } from '../../domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../domain/services/user-lifecycle-job-dispatcher.service.interface';
@@ -24,7 +25,7 @@ export class DeleteAccountUseCase {
     const job = await this.jobRepository.createJob({
       userId,
       jobId: new EventId(this.idGenerator.generate()),
-      type: 'delete-account',
+      type: UserLifecycleJobType.DeleteAccount,
       requestedAt,
       expiresAt: Math.floor(Date.now() / 1000) + USER_LIFECYCLE_JOB_TTL_SECONDS,
       authCleanupRequired: true,

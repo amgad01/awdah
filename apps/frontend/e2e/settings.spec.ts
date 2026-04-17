@@ -53,15 +53,15 @@ test.describe('Settings Page', () => {
     await passwordInput.fill(WRONG_PASSWORD);
 
     const downloadPromise = page.waitForEvent('download', { timeout: 1500 }).catch(() => null);
-    await page.getByRole('button', { name: /^confirm$/i }).click();
+    await page.getByRole('button', { name: /download my data/i }).click();
 
     await expect(page.getByTestId('settings-export-error')).toBeVisible();
     await expect(await downloadPromise).toBeNull();
   });
 
-  for (const [label, testId, passwordLabel] of [
-    ['reset prayers', 'reset-prayers-button', /enter your password/i],
-    ['reset fasts', 'reset-fasts-button', /enter your password/i],
+  for (const [label, testId, passwordLabel, errorTestId] of [
+    ['reset prayers', 'reset-prayers-button', /enter your password/i, 'settings-prayers-error'],
+    ['reset fasts', 'reset-fasts-button', /enter your password/i, 'settings-fasts-error'],
   ] as const) {
     test(`data reset (${label}) requires password re-entry and rejects incorrect passwords`, async ({
       page,
@@ -75,7 +75,7 @@ test.describe('Settings Page', () => {
 
       await page.getByRole('button', { name: /^confirm$/i }).click();
 
-      await expect(page.getByTestId('settings-reset-error')).toBeVisible();
+      await expect(page.getByTestId(errorTestId)).toBeVisible();
       await expect(passwordInput).toBeVisible();
       await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
     });

@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
 import { FinalizeDeleteAccountUseCase } from '../finalize-delete-account.use-case';
 import type { ICognitoAdminService } from '../../../domain/services/cognito-admin.service.interface';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 
 describe('FinalizeDeleteAccountUseCase', () => {
   const mockJobRepository: IUserLifecycleJobRepository = {
@@ -33,8 +37,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'completed',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Completed,
       requestedAt: '2026-03-23T00:00:00.000Z',
       completedAt: '2026-03-23T00:00:30.000Z',
       expiresAt: 1,
@@ -44,8 +48,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
     vi.mocked(mockJobRepository.markAuthDeleted).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'completed',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Completed,
       requestedAt: '2026-03-23T00:00:00.000Z',
       completedAt: '2026-03-23T00:00:30.000Z',
       expiresAt: 1,
@@ -69,8 +73,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'completed',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Completed,
       requestedAt: '2026-03-23T00:00:00.000Z',
       completedAt: '2026-03-23T00:00:30.000Z',
       expiresAt: 1,
@@ -89,8 +93,8 @@ describe('FinalizeDeleteAccountUseCase', () => {
     vi.mocked(mockJobRepository.findById).mockResolvedValue({
       userId,
       jobId,
-      type: 'delete-account',
-      status: 'processing',
+      type: UserLifecycleJobType.DeleteAccount,
+      status: UserLifecycleJobStatus.Processing,
       requestedAt: '2026-03-23T00:00:00.000Z',
       startedAt: '2026-03-23T00:00:10.000Z',
       expiresAt: 1,

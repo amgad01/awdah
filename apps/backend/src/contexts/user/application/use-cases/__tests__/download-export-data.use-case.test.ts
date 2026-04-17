@@ -3,7 +3,11 @@ import {
   DownloadExportDataUseCase,
   DownloadExportDataCommand,
 } from '../download-export-data.use-case';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 import { NotFoundError, ConflictError, UserId, EventId } from '@awdah/shared';
 
 describe('DownloadExportDataUseCase', () => {
@@ -18,8 +22,8 @@ describe('DownloadExportDataUseCase', () => {
   const completedExportJob = {
     userId: new UserId('user-1'),
     jobId: new EventId('job-1'),
-    type: 'export' as const,
-    status: 'completed' as const,
+    type: UserLifecycleJobType.Export,
+    status: UserLifecycleJobStatus.Completed,
     requestedAt: '2026-03-23T00:00:00.000Z',
     expiresAt: 9999999999,
   };
@@ -61,7 +65,7 @@ describe('DownloadExportDataUseCase', () => {
   it('throws NotFoundError when job is not an export type', async () => {
     vi.mocked(jobRepo.findById).mockResolvedValue({
       ...completedExportJob,
-      type: 'delete-account' as const,
+      type: UserLifecycleJobType.DeleteAccount,
     });
 
     await expect(useCase.execute(command)).rejects.toThrow(NotFoundError);
@@ -70,7 +74,7 @@ describe('DownloadExportDataUseCase', () => {
   it('throws ConflictError when export job has failed', async () => {
     vi.mocked(jobRepo.findById).mockResolvedValue({
       ...completedExportJob,
-      status: 'failed' as const,
+      status: UserLifecycleJobStatus.Failed,
       errorMessage: 'Something went wrong',
     });
 
@@ -80,7 +84,7 @@ describe('DownloadExportDataUseCase', () => {
   it('throws ConflictError when export is still processing', async () => {
     vi.mocked(jobRepo.findById).mockResolvedValue({
       ...completedExportJob,
-      status: 'processing' as const,
+      status: UserLifecycleJobStatus.Processing,
     });
 
     await expect(useCase.execute(command)).rejects.toThrow(ConflictError);

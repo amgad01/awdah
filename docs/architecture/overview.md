@@ -66,11 +66,22 @@ The handler layer should stay thin. Validation, orchestration, and state changes
 
 ### Lifecycle-job request in AWS
 
-Example: export data or reset logs.
+Examples: export data, reset logs, or account deletion.
 
 See [diagrams/03-user-lifecycle-jobs.md](diagrams/03-user-lifecycle-jobs.md).
 
-This keeps the request path short for heavy or destructive operations.
+The important runtime split is:
+
+```text
+start route
+  -> create pending lifecycle job
+  -> return 202 + job id
+  -> DynamoDB stream triggers ProcessUserLifecycleJobFn
+  -> frontend polls job status
+  -> frontend downloads export or finalizes auth cleanup when needed
+```
+
+This keeps the request path short for heavy or destructive operations while still giving the client a durable status contract.
 
 ### Lifecycle-job request in local dev
 
@@ -83,6 +94,8 @@ frontend -> local API
   -> same job repository/state transitions
 ```
 
+The trigger changes, but the workflow model does not.
+
 ### Delete-account finalization flow
 
 Delete-account is intentionally split into two stages: app-data deletion and auth cleanup.
@@ -93,7 +106,10 @@ Delete-account is intentionally split into two stages: app-data deletion and aut
 3. frontend calls finalize-delete-account
 4. Cognito user is deleted or confirmed already absent
 5. job is marked authDeleted=true
+6. frontend signs the user out
 ```
+
+The DynamoDB stream does not trigger the finalization route. It only triggers the background job worker.
 
 ## 5. Operational Async Flows
 

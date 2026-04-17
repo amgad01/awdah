@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserId, EventId } from '@awdah/shared';
 import { ExportDataUseCase, ExportDataCommand } from '../export-data.use-case';
-import type { IUserLifecycleJobRepository } from '../../../domain/repositories/user-lifecycle-job.repository';
+import {
+  IUserLifecycleJobRepository,
+  UserLifecycleJobType,
+  UserLifecycleJobStatus,
+} from '../../../domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../domain/services/user-lifecycle-job-dispatcher.service.interface';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 
@@ -36,8 +40,8 @@ describe('ExportDataUseCase', () => {
     vi.mocked(mockJobRepository.createJob).mockResolvedValue({
       userId,
       jobId,
-      type: 'export',
-      status: 'pending',
+      type: UserLifecycleJobType.Export,
+      status: UserLifecycleJobStatus.Pending,
       requestedAt: '2026-03-23T00:00:00.000Z',
       expiresAt: 1,
     });
@@ -49,7 +53,7 @@ describe('ExportDataUseCase', () => {
       expect.objectContaining({
         userId: expect.any(UserId),
         jobId: expect.any(EventId),
-        type: 'export',
+        type: UserLifecycleJobType.Export,
       }),
     );
     expect(mockDispatcher.dispatch).toHaveBeenCalledWith({

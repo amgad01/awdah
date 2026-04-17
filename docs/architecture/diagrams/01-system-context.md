@@ -1,7 +1,5 @@
 # System Context
 
-Use this diagram when you need the fastest accurate explanation of the live system.
-
 ## ASCII
 
 ```text
@@ -54,8 +52,6 @@ flowchart TD
     API --> L
     L --> D
 ```
-
-## Read This As
 
 - the browser only talks to a static frontend, Cognito, and the public API
 - the frontend owns navigation and interaction flow, not business truth
