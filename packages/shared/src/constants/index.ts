@@ -38,3 +38,10 @@ export const BREAK_REASONS = [
   'forgetfulness',
   'intentional',
 ] as const;
+
+export const RATE_LIMIT_MINUTES = 10;
+
+export function getRateLimitSince(): string {
+  const cooldownMs = RATE_LIMIT_MINUTES * 60 * 1000;
+  return new Date(Date.now() - cooldownMs).toISOString();
+}

@@ -89,6 +89,11 @@ export interface UserLifecycleExportDownload {
 export interface IUserLifecycleJobRepository {
   createJob(input: CreateUserLifecycleJobInput): Promise<UserLifecycleJob>;
   findById(userId: UserId, jobId: EventId): Promise<UserLifecycleJob | null>;
+  findRecentJobByType(
+    userId: UserId,
+    type: UserLifecycleJobType,
+    since: string,
+  ): Promise<UserLifecycleJob | null>;
   tryMarkProcessing(
     userId: UserId,
     jobId: EventId,

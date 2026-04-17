@@ -1,6 +1,6 @@
 # Scheduled Backup Export
 
-this diagram is for disaster-recovery plumbing and scheduled asynchronous work.
+This diagram is for disaster-recovery plumbing and scheduled asynchronous work.
 
 ## ASCII
 

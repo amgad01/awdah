@@ -59,27 +59,86 @@ test.describe('Settings Page', () => {
     await expect(await downloadPromise).toBeNull();
   });
 
-  for (const [label, testId, passwordLabel, errorTestId] of [
-    ['reset prayers', 'reset-prayers-button', /enter your password/i, 'settings-prayers-error'],
-    ['reset fasts', 'reset-fasts-button', /enter your password/i, 'settings-fasts-error'],
-  ] as const) {
-    test(`data reset (${label}) requires password re-entry and rejects incorrect passwords`, async ({
-      page,
-    }) => {
-      const actionButton = page.getByTestId(testId);
-      await actionButton.click();
+  test('data reset (reset prayers) requires password re-entry and rejects incorrect passwords', async ({
+    page,
+  }) => {
+    // First add a prayer log so the reset button is enabled
+    await navigateFromShell(page, 'nav-salah');
+    await expect(page).toHaveURL(/\/salah/);
 
-      const passwordInput = page.getByLabel(passwordLabel);
-      await expect(passwordInput).toBeVisible();
-      await passwordInput.fill(WRONG_PASSWORD);
+    const dailyTab = page.getByTestId('salah-tab-daily');
+    if (await dailyTab.isVisible().catch(() => false)) {
+      await dailyTab.click();
+    }
 
-      await page.getByRole('button', { name: /^confirm$/i }).click();
+    await page
+      .waitForSelector('[data-testid="prayer-tile-fajr"]', { timeout: 10_000 })
+      .catch(() => null);
 
-      await expect(page.getByTestId(errorTestId)).toBeVisible();
-      await expect(passwordInput).toBeVisible();
-      await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
-    });
-  }
+    const fajrRow = page.getByTestId('prayer-tile-fajr').first();
+    if (await fajrRow.isVisible().catch(() => false)) {
+      const wasPressed = (await fajrRow.getAttribute('aria-pressed')) === 'true';
+      if (!wasPressed) {
+        await fajrRow.click();
+        await expect(fajrRow).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
+      }
+    }
+    // Wait for query cache to be populated
+    await page.waitForTimeout(1_000);
+
+    await navigateFromShell(page, 'nav-settings');
+    const actionButton = page.getByTestId('reset-prayers-button');
+    await expect(actionButton).not.toBeDisabled({ timeout: 5000 });
+    await actionButton.click();
+
+    const passwordInput = page.getByLabel(/enter your password/i);
+    await expect(passwordInput).toBeVisible();
+    await passwordInput.fill(WRONG_PASSWORD);
+
+    await page.getByRole('button', { name: /^confirm$/i }).click();
+
+    await expect(page.getByTestId('settings-prayers-error')).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
+  });
+
+  test('data reset (reset fasts) requires password re-entry and rejects incorrect passwords', async ({
+    page,
+  }) => {
+    // First add a fast log so the reset button is enabled
+    await navigateFromShell(page, 'nav-sawm');
+    await expect(page).toHaveURL(/\/sawm/);
+
+    await page
+      .waitForSelector('[data-testid="sawm-log-button"]', { timeout: 10_000 })
+      .catch(() => null);
+
+    const fastBtn = page.getByTestId('sawm-log-button').first();
+    if (await fastBtn.isVisible().catch(() => false)) {
+      const wasPressed = (await fastBtn.getAttribute('aria-pressed')) === 'true';
+      if (!wasPressed) {
+        await fastBtn.click();
+        await expect(fastBtn).toHaveAttribute('aria-pressed', 'true', { timeout: 5_000 });
+      }
+    }
+    // Wait for query cache to be populated
+    await page.waitForTimeout(1_000);
+
+    await navigateFromShell(page, 'nav-settings');
+    const actionButton = page.getByTestId('reset-fasts-button');
+    await expect(actionButton).not.toBeDisabled({ timeout: 5000 });
+    await actionButton.click();
+
+    const passwordInput = page.getByLabel(/enter your password/i);
+    await expect(passwordInput).toBeVisible();
+    await passwordInput.fill(WRONG_PASSWORD);
+
+    await page.getByRole('button', { name: /^confirm$/i }).click();
+
+    await expect(page.getByTestId('settings-fasts-error')).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(page.getByRole('button', { name: /^confirm$/i })).toBeVisible();
+  });
 
   test('account deletion requires password re-entry and rejects incorrect passwords', async ({
     page,

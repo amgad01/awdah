@@ -22,13 +22,19 @@ fi
 
 echo "=> Syncing root .env from deployment outputs..."
 
-node <<EOF
+# Pass bash variables to Node via environment
+export OUTPUTS_PATH="$OUTPUT_JSON"
+export ENV_PATH="$ENV_FILE"
+export DEPLOY_ENV="$ENV"
+export AWS_REGION="$AWS_REGION"
+
+node <<'EOF'
 const fs = require('fs');
 
-const outputsPath = '$OUTPUT_JSON';
-const envPath = '$ENV_FILE';
-const env = '$ENV';
-const region = '$AWS_REGION';
+const outputsPath = process.env.OUTPUTS_PATH;
+const envPath = process.env.ENV_PATH;
+const env = process.env.DEPLOY_ENV;
+const region = process.env.AWS_REGION;
 
 /** Reads .env file and returns lines array preserving comments. */
 function readEnvLines(filePath) {
@@ -55,8 +61,8 @@ function updateEnvLine(lines, key, value) {
 
 try {
   const outputs = JSON.parse(fs.readFileSync(outputsPath, 'utf8'));
-  const authStack = outputs[\`Awdah-auth-stack-\${env}\`];
-  const apiStack = outputs[\`Awdah-api-stack-\${env}\`];
+  const authStack = outputs[`Awdah-auth-stack-${env}`];
+  const apiStack = outputs[`Awdah-api-stack-${env}`];
   
   let lines = readEnvLines(envPath);
   const updates = [];

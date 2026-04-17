@@ -22,4 +22,5 @@ export interface IPrayerLogRepository {
   ): Promise<PrayerLogPage>;
   countQadaaCompleted(userId: UserId): Promise<number>;
   countQadaaCompletedByPrayer(userId: UserId): Promise<Record<string, number>>;
+  hasAnyLogs(userId: UserId): Promise<boolean>;
 }

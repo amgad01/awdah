@@ -3,7 +3,7 @@ import type { PrayerLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useProfile } from '@/hooks/use-profile';
-import { invalidateSalahQueries } from '@/utils/query-invalidation';
+import { invalidateSalahQueries, removeSalahQueries } from '@/utils/query-invalidation';
 import { salahRepository } from '@/domains/salah/salah-repository';
 import {
   useDailyHistoryQuery,
@@ -81,7 +81,12 @@ export const useResetPrayerLogs = () => {
   return useLifecycleResetMutation(
     salahRepository.resetLogs,
     'reset-prayers',
-    invalidateSalahQueries,
+    removeSalahQueries,
     'settings.reset_done',
+    {
+      cooldownAction: 'prayers',
+      noLogsMessageKey: 'settings.reset_prayers_no_records',
+      rateLimitedMessageKey: 'settings.reset_prayers_rate_limited',
+    },
   );
 };

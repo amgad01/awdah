@@ -811,6 +811,15 @@
   border-radius: var(--border-radius-md);
 }
 
+/* When confirmation dialog is open, stack vertically */
+.resetItemWithConfirm {
+  flex-wrap: wrap;
+}
+
+.resetItemWithConfirm .resetItemInfo {
+  flex: 1 1 100%;
+}
+
 @media (max-width: 480px) {
   .resetItem {
     flex-direction: column;
@@ -1101,6 +1110,14 @@
 .dataActionBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.dataActionBtnDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--color-text-secondary) 10%, var(--color-surface));
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 .deleteConfirm {

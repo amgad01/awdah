@@ -38,6 +38,7 @@ describe('DownloadExportDataUseCase', () => {
     jobRepo = {
       createJob: vi.fn(),
       findById: vi.fn().mockResolvedValue(completedExportJob),
+      findRecentJobByType: vi.fn(),
       tryMarkProcessing: vi.fn(),
       markCompleted: vi.fn(),
       markFailed: vi.fn(),

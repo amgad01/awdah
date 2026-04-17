@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiRequestError } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { PROFILE_STALE_TIME_MS } from '@/lib/constants';
 import type {
@@ -8,6 +10,7 @@ import type {
   UpdatePracticingPeriodInput,
 } from '@/domains/salah/salah-repository';
 import type { UpdateUserProfileInput } from '@/domains/user/user-repository';
+import type { CooldownController } from '@/types/cooldown.types';
 import {
   deleteUserAccountWorkflow,
   prepareUserDataExportWorkflow,
@@ -19,6 +22,7 @@ import {
 } from '@/utils/query-invalidation';
 import { salahRepository } from '@/domains/salah/salah-repository';
 import { userRepository } from '@/domains/user/user-repository';
+import { createRateLimitError, shouldSuppressToast } from '@/utils/lifecycle-errors';
 
 function invalidatePeriodRelatedQueries(queryClient: ReturnType<typeof useQueryClient>) {
   invalidatePracticingPeriods(queryClient);
@@ -106,9 +110,23 @@ export const useDeleteAccount = () => {
 const EXPORT_DOWNLOAD_RETRY_ATTEMPTS = 3;
 const EXPORT_DOWNLOAD_RETRY_DELAY_MS = 1000;
 
-export const useExportData = () => {
+interface ExportDataOptions {
+  cooldown: Pick<CooldownController, 'checkBeforeRequest' | 'secondsRemaining' | 'recordAttempt'>;
+}
+
+export const useExportData = (options: ExportDataOptions) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+  const { cooldown } = options;
+
   return useMutation({
     mutationFn: async () => {
+      // Check cooldown before sending request
+      if (!cooldown.checkBeforeRequest()) {
+        throw createRateLimitError('export', cooldown.secondsRemaining);
+      }
+
       const jobId = await prepareUserDataExportWorkflow();
 
       // Retry download while artifact is still propagating (404s)
@@ -130,6 +148,9 @@ export const useExportData = () => {
       throw lastError ?? new Error('common.export_download_failed');
     },
     onSuccess: (response) => {
+      // Record cooldown only after successful completion
+      cooldown.recordAttempt();
+
       if (!response?.data) return;
       const dataBlob = new Blob([JSON.stringify(response.data, null, 2)], {
         type: 'application/json;charset=utf-8',
@@ -137,16 +158,28 @@ export const useExportData = () => {
       let objectUrl: string | null = null;
       try {
         objectUrl = URL.createObjectURL(dataBlob);
-        const exportFileDefaultName =
-          response.fileName || `awdah-data-export-${new Date().toISOString().split('T')[0]}.json`;
+        const rawPrefix = user?.username || user?.email || 'user';
+        // Sanitize filename: replace non-alphanumeric chars (except ._-) with _, limit length
+        const sanitizedPrefix = rawPrefix.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 50);
+        const datePart = new Date().toISOString().split('T')[0];
+        const exportFileName = `awdah-data-export-${sanitizedPrefix}-${datePart}.json`;
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', objectUrl);
-        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.setAttribute('download', exportFileName);
         linkElement.click();
       } finally {
         if (objectUrl) {
           URL.revokeObjectURL(objectUrl);
         }
+      }
+
+      toast.success(t('settings.export_success'));
+    },
+    onError: (err) => {
+      // Skip toast for rate limiting - handled by UI (disabled button + countdown)
+      if (!shouldSuppressToast(err)) {
+        const message = err instanceof Error ? err.message : 'common.error';
+        toast.error(t(message));
       }
     },
   });

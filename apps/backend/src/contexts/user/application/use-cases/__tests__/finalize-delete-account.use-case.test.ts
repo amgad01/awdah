@@ -12,6 +12,7 @@ describe('FinalizeDeleteAccountUseCase', () => {
   const mockJobRepository: IUserLifecycleJobRepository = {
     createJob: vi.fn(),
     findById: vi.fn(),
+    findRecentJobByType: vi.fn(),
     tryMarkProcessing: vi.fn(),
     markCompleted: vi.fn(),
     markFailed: vi.fn(),

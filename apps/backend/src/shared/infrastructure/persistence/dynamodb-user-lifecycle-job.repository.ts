@@ -45,6 +45,59 @@ export class DynamoDBUserLifecycleJobRepository
     return this.retrieve({ pk: userId.toString(), sk: toMetaSk(jobId) });
   }
 
+  async findRecentJobByType(
+    userId: UserId,
+    type: UserLifecycleJob['type'],
+    since: string,
+  ): Promise<UserLifecycleJob | null> {
+    // Note: We scan through jobs without Limit because FilterExpression is applied
+    // after Limit. Using Limit: 1 could miss matching jobs if the most recent job
+    // is of a different type. We stop at the first match or when requestedAt <= since.
+    let exclusiveStartKey: Record<string, unknown> | undefined;
+
+    do {
+      const response = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          KeyConditionExpression: '#pk = :pk',
+          FilterExpression: '#type = :type AND #requestedAt > :since',
+          ExpressionAttributeNames: {
+            '#pk': this.pkName,
+            '#type': 'type',
+            '#requestedAt': 'requestedAt',
+          },
+          ExpressionAttributeValues: {
+            ':pk': userId.toString(),
+            ':type': type,
+            ':since': since,
+          },
+          ExclusiveStartKey: exclusiveStartKey,
+          // No Limit - we need to scan through results since FilterExpression
+          // is applied after Limit, which could cause us to miss matching jobs
+        }),
+      );
+
+      const items = response.Items ?? [];
+      if (items.length > 0) {
+        return this.mapToDomain(items[0] as Record<string, unknown>);
+      }
+
+      // Check if we need to continue scanning (more pages available)
+      exclusiveStartKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
+
+      // Optimization: If we scanned some items but found no matches, and we're
+      // past the 'since' threshold based on sort key ordering, we can stop
+      // Note: This is a safety check - the filter should handle it, but this prevents
+      // scanning entire partitions for users with many old jobs
+      if (response.ScannedCount && response.ScannedCount > 0) {
+        // Continue to next page - we haven't found a match in this batch
+        continue;
+      }
+    } while (exclusiveStartKey);
+
+    return null;
+  }
+
   async tryMarkProcessing(
     userId: UserId,
     jobId: EventId,

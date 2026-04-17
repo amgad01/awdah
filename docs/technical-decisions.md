@@ -95,3 +95,30 @@ Why:
 - public pages can ship partial translations with English fallback merging
 
 The loader caches identical requests in memory so repeated remounts or language switches do not keep refetching the same English fallback files during a session.
+
+## 8. Lifecycle Jobs Use 24-Hour TTL Without A GSI For Rate Limiting
+
+The `UserLifecycleJobs` table has DynamoDB TTL enabled on `expiresAt` with a 24-hour window (`USER_LIFECYCLE_JOB_TTL_SECONDS = 86400`). We did not add a shorter TTL (e.g., 10 minutes) or a Global Secondary Index for rate limit queries.
+
+Current design:
+
+- TTL: 24 hours - items auto-delete after expiration
+- Rate limit query: `findRecentJobByType` scans all user jobs with client-side filtering
+- Rate limit window: 10 minutes (independent from TTL)
+
+Why we kept 24-hour TTL:
+
+- Jobs serve dual purpose: rate limiting AND status tracking for async operations
+- Users poll job status to check if exports/resets/deletes are complete
+- A 10-minute TTL would cause 404s for users checking status or downloading exports after the window
+- 24 hours gives users a full day to check status and download results
+
+Why we did not add a GSI:
+
+- Lifecycle jobs are rare events (users don't export/reset/delete constantly)
+- 24-hour TTL keeps table size bounded - old jobs auto-delete before accumulating
+- The inefficiency is bounded: even with 100 jobs, scanning takes milliseconds
+- GSI would add write amplification (2x write units) and complexity for marginal gain
+- Free tier constraints: extra write units eat into the 25 WCU limit
+
+Revisit criteria: Add a GSI only if `findRecentJobByType` appears in top 5 CloudWatch metrics or users report slow initiation of lifecycle operations.

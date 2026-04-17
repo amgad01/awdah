@@ -1,11 +1,20 @@
 import {
   IUserLifecycleJobRepository,
   USER_LIFECYCLE_JOB_TTL_SECONDS,
+  UserLifecycleJobType,
   type UserLifecycleJob,
 } from '../../../user/domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
-import { UserId, EventId } from '@awdah/shared';
+import {
+  UserId,
+  EventId,
+  RateLimitError,
+  ConflictError,
+  RATE_LIMIT_MINUTES,
+  getRateLimitSince,
+} from '@awdah/shared';
 import { IIdGenerator } from '../../../../shared/domain/services/id-generator.interface';
+import type { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 
 export interface ResetPrayerLogsCommand {
   userId: string;
@@ -16,17 +25,37 @@ export class ResetPrayerLogsUseCase {
     private readonly jobRepository: IUserLifecycleJobRepository,
     private readonly jobDispatcher: IUserLifecycleJobDispatcher,
     private readonly idGenerator: IIdGenerator,
+    private readonly prayerLogRepository: IPrayerLogRepository,
   ) {}
 
   async execute(command: ResetPrayerLogsCommand): Promise<UserLifecycleJob> {
-    const requestedAt = new Date().toISOString();
     const userId = new UserId(command.userId);
+
+    const hasLogs = await this.prayerLogRepository.hasAnyLogs(userId);
+    if (!hasLogs) {
+      throw new ConflictError('No prayer logs to reset');
+    }
+
+    const since = getRateLimitSince();
+    const recentJob = await this.jobRepository.findRecentJobByType(
+      userId,
+      UserLifecycleJobType.ResetPrayers,
+      since,
+    );
+
+    if (recentJob) {
+      throw new RateLimitError(
+        `Please wait ${RATE_LIMIT_MINUTES} minutes between prayer log resets`,
+      );
+    }
+
+    const requestedAt = new Date().toISOString();
     const jobId = new EventId(this.idGenerator.generate());
 
     const job = await this.jobRepository.createJob({
       userId,
       jobId,
-      type: 'reset-prayers',
+      type: UserLifecycleJobType.ResetPrayers,
       requestedAt,
       expiresAt: Math.floor(Date.now() / 1000) + USER_LIFECYCLE_JOB_TTL_SECONDS,
     });

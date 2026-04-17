@@ -7,6 +7,58 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.3.0
+
+### Changed
+
+#### Frontend
+
+- **New hooks for rate limiting UX**: `useResetCooldown` tracks 10-minute cooldown with live countdown; `useHasLogsCache` inspects React Query cache; both update reactively without page refresh
+- **Rate limiting applied to export**: Download My Data button now shows countdown timer and enforces 10-minute cooldown
+- Reset buttons now show countdown timer (e.g., "Clear All Prayer Logs (9m 32s)") and are disabled when cooling down or when no logs exist
+- **Export filename improved**: Now includes username/email prefix: `awdah-data-export-{username}-{date}.json`
+
+#### Backend
+
+- **Rate limiting**: `ResetPrayerLogsUseCase` and `ResetFastLogsUseCase` now enforce 10-minute cooldown between same-type resets; throws `RateLimitError` (429) if violated
+- **Records existence check**: Use cases throw `ConflictError` (409) if user attempts reset with no logs
+
+### Added
+
+#### Frontend
+
+- **`useResetCooldown` hook**: Secure localStorage cache with base64 obfuscation; tracks last reset timestamp per action type with live countdown
+- **`useHasLogsCache` hook**: Inspects React Query cache for history queries to detect log existence without backend roundtrip
+- **`secureStorage` utility**: Obfuscated localStorage wrapper with timestamp validation and auto-expiration
+- **Same-tab sync**: Custom `cooldown-recorded` event broadcasts cooldown updates within same tab for immediate UI refresh
+
+#### Backend
+
+- **`RateLimitError`**: New error class in shared package; returns HTTP 429 status code
+- **`findRecentJobByType()`**: Repository method queries lifecycle jobs table by user + type + timestamp for rate limiting enforcement
+- **`hasAnyLogs()`**: Repository method on prayer/fast logs; efficient `Limit: 1` query to check log existence
+
+### Fixed
+
+#### Frontend
+
+- **Layout fixed**: Confirmation dialog now takes full width with proper vertical stacking (`resetItemWithConfirm` CSS class)
+- **Click-outside handler**: Confirmation dialogs now close when clicking outside the action area
+- **New i18n keys added**: `settings.export_rate_limited` (EN/DE/AR)
+- **i18n wording improved**: Better descriptions for reset hints explaining debt recalculation (EN/DE)
+- **Toast suppression fixed**: Rate limiting and no-records toasts now suppressed in all languages using translation key matching instead of hardcoded strings
+
+### Refactored
+
+#### Frontend
+
+- **`DataManagementSection` modularized**: Extracted `ActionCard` component, `getActionConfig` helper with DRY configuration pattern, and `error-messages` helper with pattern-based matching
+- **Removed useless comments**: Cleaned up redundant comments in `use-has-logs-cache.ts`, `action-config.ts`, `settings.spec.ts`, `data-management-section.tsx`, and use case files
+
+#### Backend
+
+- **Rate limiting DRY**: Extracted `RATE_LIMIT_MINUTES` constant and `getRateLimitSince()` helper to `@awdah/shared` package; updated `ExportDataUseCase`, `ResetPrayerLogsUseCase`, and `ResetFastLogsUseCase` to use shared implementation instead of duplicated logic
+
 ## v1.2.0
 
 ### Changed

@@ -30,4 +30,5 @@ export const resetFastLogsUseCase = new ResetFastLogsUseCase(
   userLifecycleJobRepo,
   userLifecycleJobDispatcher,
   idGenerator,
+  fastLogRepo,
 );

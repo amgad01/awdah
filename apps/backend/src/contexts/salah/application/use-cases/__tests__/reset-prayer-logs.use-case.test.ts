@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserId, EventId } from '@awdah/shared';
 import { ResetPrayerLogsUseCase } from '../reset-prayer-logs.use-case';
-import type { IUserLifecycleJobRepository } from '../../../../user/domain/repositories/user-lifecycle-job.repository';
+import type {
+  IUserLifecycleJobRepository,
+  UserLifecycleJob,
+} from '../../../../user/domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
+import { IPrayerLogRepository } from '../../../domain/repositories/prayer-log.repository';
+import { ConflictError, RateLimitError } from '@awdah/shared';
 
 describe('ResetPrayerLogsUseCase', () => {
   const mockJobRepo = {
     createJob: vi.fn(),
+    findRecentJobByType: vi.fn().mockResolvedValue(null),
   } as unknown as IUserLifecycleJobRepository;
 
   const mockDispatcher: IUserLifecycleJobDispatcher = {
@@ -18,10 +24,22 @@ describe('ResetPrayerLogsUseCase', () => {
     generate: vi.fn().mockReturnValue('job-1'),
   };
 
-  const useCase = new ResetPrayerLogsUseCase(mockJobRepo, mockDispatcher, mockIdGenerator);
+  const mockPrayerLogRepo: IPrayerLogRepository = {
+    hasAnyLogs: vi.fn().mockResolvedValue(true),
+  } as unknown as IPrayerLogRepository;
+
+  const useCase = new ResetPrayerLogsUseCase(
+    mockJobRepo,
+    mockDispatcher,
+    mockIdGenerator,
+    mockPrayerLogRepo,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mock implementations to default state
+    vi.mocked(mockPrayerLogRepo.hasAnyLogs).mockResolvedValue(true);
+    vi.mocked(mockJobRepo.findRecentJobByType).mockResolvedValue(null);
   });
 
   it('creates a reset-prayers lifecycle job and dispatches it', async () => {
@@ -51,5 +69,41 @@ describe('ResetPrayerLogsUseCase', () => {
     });
     expect(result.type).toBe('reset-prayers');
     expect(result.userId.toString()).toBe('user-1');
+  });
+
+  it('throws ConflictError when user has no prayer logs', async () => {
+    vi.mocked(mockPrayerLogRepo.hasAnyLogs).mockResolvedValue(false);
+
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(ConflictError);
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('No prayer logs to reset');
+
+    expect(mockJobRepo.createJob).not.toHaveBeenCalled();
+    expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('throws RateLimitError when a recent reset job exists', async () => {
+    const recentJob: UserLifecycleJob = {
+      userId: new UserId('user-1'),
+      jobId: new EventId('job-1'),
+      type: 'reset-prayers',
+      status: 'pending',
+      requestedAt: new Date().toISOString(),
+      expiresAt: Math.floor(Date.now() / 1000) + 3600,
+    };
+
+    vi.mocked(mockJobRepo.findRecentJobByType).mockResolvedValue(recentJob);
+
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(RateLimitError);
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('Please wait 10 minutes');
+
+    expect(mockJobRepo.createJob).not.toHaveBeenCalled();
+    expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('propagates errors from createJob', async () => {
+    vi.mocked(mockJobRepo.createJob).mockRejectedValue(new Error('Database error'));
+
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('Database error');
+    expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
 import { HijriDate, UserId, EventId } from '@awdah/shared';
@@ -127,6 +127,22 @@ export class DynamoDBPrayerLogRepository
       pk: userId.toString(),
       sk: PrayerLogKey.encodeSk(date.toString(), prayerName, eventId.toString()),
     });
+  }
+
+  async hasAnyLogs(userId: UserId): Promise<boolean> {
+    const command = new QueryCommand({
+      TableName: this.tableName,
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: {
+        '#pk': this.pkName,
+      },
+      ExpressionAttributeValues: {
+        ':pk': userId.toString(),
+      },
+      Limit: 1,
+    });
+    const response = await this.docClient.send(command);
+    return (response.Items?.length ?? 0) > 0;
   }
 
   protected encodeKeys(log: PrayerLog): DomainKeys {

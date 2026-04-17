@@ -32,7 +32,7 @@ info:
 
     Error codes: `VALIDATION_ERROR` (400), `UNAUTHENTICATED` (401),
     `FORBIDDEN` (403), `NOT_FOUND` (404), `CONFLICT` (409),
-    `INTERNAL_ERROR` (500).
+    `RATE_LIMIT` (429), `INTERNAL_ERROR` (500).
 
 servers:
   - url: http://localhost:3000
@@ -181,6 +181,8 @@ paths:
         Permanently deletes all prayer log entries (daily tracker and qadaa) for the
         authenticated user. The user's profile, bulugh date, and practicing periods are
         not affected. Debt is recalculated on the next call to `GET /v1/salah/debt`.
+
+        Rate limit: 1 request per 10 minutes per user.
       responses:
         '202':
           description: Prayer log reset started
@@ -190,6 +192,10 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimit'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -514,6 +520,8 @@ paths:
         Permanently deletes all fast log entries for the authenticated user. The user's
         profile, bulugh date, and practicing periods are not affected. Debt is
         recalculated on the next call to `GET /v1/sawm/debt`.
+
+        Rate limit: 1 request per 10 minutes per user.
       responses:
         '202':
           description: Fast log reset started
@@ -523,6 +531,10 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimit'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -1293,6 +1305,7 @@ components:
                 - FORBIDDEN
                 - NOT_FOUND
                 - CONFLICT
+                - RATE_LIMIT
                 - INTERNAL_ERROR
             message:
               type: string
@@ -1342,6 +1355,17 @@ components:
             error:
               code: CONFLICT
               message: 'Job has not completed yet'
+
+    RateLimit:
+      description: Rate limit exceeded - too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            error:
+              code: RATE_LIMIT
+              message: 'Please wait 10 minutes between prayer log resets'
 
     InternalError:
       description: Unexpected server error
