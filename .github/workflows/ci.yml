@@ -35,6 +35,12 @@ jobs:
       - name: Build shared
         run: npm run build --workspace=packages/shared
 
+      - name: Build backend layer
+        run: npm run build:layer --workspace=apps/backend
+
+      - name: Verify backend layer
+        run: ./scripts/ci/verify-backend-layer.sh
+
       - name: ESLint
         run: npm run lint
 
@@ -55,6 +61,9 @@ jobs:
 
       - name: TypeScript (frontend)
         run: npm run typecheck --workspace=apps/frontend
+
+      - name: TypeScript (infra)
+        run: npm run typecheck --workspace=infra
 
       - name: Build backend
         run: npm run build --workspace=apps/backend
@@ -201,6 +210,7 @@ jobs:
         uses: ./.github/actions/setup-and-build
         with:
           skip-checkout: 'true'
+          build-backend-layer: 'true'
 
       - name: Build infra
         run: cd infra && npm run build

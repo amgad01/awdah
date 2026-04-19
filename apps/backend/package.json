@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:api": "vitest run src/__tests__/api.test.ts"
+    "test:api": "vitest run src/__tests__/api.test.ts",
+    "build:layer": "cd layer/nodejs && npm ci --omit=dev && cd ../.."
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1019.0",

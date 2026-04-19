@@ -18,6 +18,10 @@ inputs:
     description: 'Build shared package'
     required: false
     default: 'true'
+  build-backend-layer:
+    description: 'Build and verify the backend Lambda layer'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -43,3 +47,13 @@ runs:
       if: inputs.build-shared == 'true'
       shell: bash
       run: npm run build --workspace=packages/shared
+
+    - name: Build backend layer
+      if: inputs.build-backend-layer == 'true'
+      shell: bash
+      run: npm run build:layer --workspace=apps/backend
+
+    - name: Verify backend layer
+      if: inputs.build-backend-layer == 'true'
+      shell: bash
+      run: ./scripts/ci/verify-backend-layer.sh

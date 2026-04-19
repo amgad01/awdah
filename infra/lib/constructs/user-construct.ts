@@ -22,6 +22,7 @@ export interface UserConstructProps {
   authStack: AuthStack;
   projectEnv: string;
   resourceScope: Construct;
+  depsLayer: lambda.ILayerVersion;
 }
 
 interface BusinessLambdaOptions {
@@ -30,6 +31,7 @@ interface BusinessLambdaOptions {
   memorySize?: number;
   timeout?: cdk.Duration;
   reservedConcurrentExecutions?: number;
+  enableRecursiveLoopDetection?: boolean;
 }
 
 export class UserConstruct extends Construct {
@@ -37,10 +39,14 @@ export class UserConstruct extends Construct {
   public readonly routes: apigatewayv2.HttpRoute[] = [];
   public readonly lifecycleJobDlq: sqs.Queue;
   private readonly resourceScope: Construct;
+  private readonly projectEnv: string;
+  private readonly depsLayer: lambda.ILayerVersion;
 
   constructor(scope: Construct, id: string, props: UserConstructProps) {
     super(scope, id);
     this.resourceScope = props.resourceScope;
+    this.projectEnv = props.projectEnv;
+    this.depsLayer = props.depsLayer;
 
     const config = getConfig(this);
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -226,29 +232,45 @@ export class UserConstruct extends Construct {
       timeout: config.heavyOperationTimeout,
       reservedConcurrentExecutions: config.adminOperationConcurrency,
       environment: baseEnv,
+      enableRecursiveLoopDetection: true,
     });
     this.grantLifecycleJobDataAccess(processUserLifecycleJobFn, props);
 
     processUserLifecycleJobFn.addEventSource(
       new lambda_event_sources.DynamoEventSource(props.dataStack.userLifecycleJobsTable, {
         startingPosition: lambda.StartingPosition.LATEST,
-        batchSize: 5,
+        batchSize: 10,
+        maxBatchingWindow: cdk.Duration.seconds(5),
+        parallelizationFactor: 2,
         bisectBatchOnError: true,
+        maxRecordAge: cdk.Duration.hours(1),
         retryAttempts: 2,
         onFailure: new lambda_event_sources.SqsDlq(this.lifecycleJobDlq),
+        filters: [
+          lambda.FilterCriteria.filter({
+            eventName: lambda.FilterRule.isEqual('INSERT'),
+          }),
+        ],
       }),
     );
   }
 
   private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.Function {
-    const fn = ProjectResourceFactory.createNodejsFunction(this.resourceScope, id, {
-      entry: options.entry,
-      context: CONTEXT.USER,
-      environment: options.environment,
-      memorySize: options.memorySize,
-      timeout: options.timeout,
-      reservedConcurrentExecutions: options.reservedConcurrentExecutions,
-    });
+    const fn = ProjectResourceFactory.createNodejsFunction(
+      this.resourceScope,
+      id,
+      {
+        entry: options.entry,
+        context: CONTEXT.USER,
+        environment: options.environment,
+        memorySize: options.memorySize,
+        timeout: options.timeout,
+        reservedConcurrentExecutions: options.reservedConcurrentExecutions,
+        layers: [this.depsLayer],
+        enableRecursiveLoopDetection: options.enableRecursiveLoopDetection,
+      },
+      this.projectEnv,
+    );
     this.functions.set(id, fn);
     return fn;
   }

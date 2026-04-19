@@ -4,7 +4,9 @@ import * as lambda_nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { readFileSync } from 'node:fs';
 import { Construct } from 'constructs';
+import * as path from 'path';
 import { getConfig } from './config';
 
 export interface LambdaOptions {
@@ -17,6 +19,9 @@ export interface LambdaOptions {
   retryAttempts?: number;
   context?: string;
   reservedConcurrentExecutions?: number;
+  layers?: lambda.ILayerVersion[];
+  enableRecursiveLoopDetection?: boolean;
+  logRetention?: logs.RetentionDays;
 }
 
 export interface DynamoDBTableOptions {
@@ -29,6 +34,29 @@ export interface DynamoDBTableOptions {
  * Factory for creating standardized AWS resources with project defaults.
  */
 export class ProjectResourceFactory {
+  private static getLayerDependencies(): string[] {
+    const layerPackagePath = path.join(
+      __dirname,
+      '../../../apps/backend/layer/nodejs/package.json',
+    );
+    const layerPackage = JSON.parse(readFileSync(layerPackagePath, 'utf8')) as {
+      dependencies?: Record<string, string>;
+    };
+    return Object.keys(layerPackage.dependencies ?? {});
+  }
+
+  private static getDefaultLogRetention(projectEnv: string): logs.RetentionDays {
+    switch (projectEnv) {
+      case 'dev':
+        return logs.RetentionDays.ONE_DAY;
+      case 'staging':
+        return logs.RetentionDays.ONE_WEEK;
+      case 'prod':
+      default:
+        return logs.RetentionDays.ONE_MONTH;
+    }
+  }
+
   /**
    * Creates a Node.js Lambda function with project-standard props.
    */
@@ -36,13 +64,22 @@ export class ProjectResourceFactory {
     scope: Construct,
     id: string,
     options: LambdaOptions,
-    logRetention: logs.RetentionDays = logs.RetentionDays.ONE_MONTH,
+    projectEnv?: string,
     architecture: lambda.Architecture = lambda.Architecture.ARM_64,
   ): lambda_nodejs.NodejsFunction {
     const config = getConfig(scope);
+    const effectiveLogRetention =
+      options.logRetention ??
+      (projectEnv ? this.getDefaultLogRetention(projectEnv) : logs.RetentionDays.ONE_MONTH);
+
     const logGroup = new logs.LogGroup(scope, `${id}LogGroup`, {
-      retention: logRetention,
+      retention: effectiveLogRetention,
     });
+
+    const externalModules = ['@aws-sdk/*'];
+    if (options.layers && options.layers.length > 0) {
+      externalModules.push(...this.getLayerDependencies());
+    }
 
     // ARM_64: ~34% cheaper than x86 for the same Lambda workload.
     const fn = new lambda_nodejs.NodejsFunction(scope, id, {
@@ -54,17 +91,21 @@ export class ProjectResourceFactory {
       timeout: options.timeout ?? config.lambdaTimeout,
       // Active tracing enables X-Ray service-map visualisation.
       tracing: lambda.Tracing.ACTIVE,
+      recursiveLoop: options.enableRecursiveLoopDetection
+        ? lambda.RecursiveLoop.TERMINATE
+        : undefined,
       logGroup,
       environment: options.environment,
       deadLetterQueue: options.deadLetterQueue,
       retryAttempts: options.retryAttempts,
       reservedConcurrentExecutions: options.reservedConcurrentExecutions,
+      layers: options.layers,
       bundling: {
         minify: true,
         sourceMap: true,
         // Exclude the AWS SDK v3 — Lambda runtime already includes it.
         // This shrinks bundles and avoids mismatched SDK versions.
-        externalModules: ['@aws-sdk/*'],
+        externalModules: Array.from(new Set(externalModules)),
       },
     });
 

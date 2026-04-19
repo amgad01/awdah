@@ -25,6 +25,7 @@ jobs:
         uses: ./.github/actions/setup-and-build
         with:
           skip-checkout: 'true'
+          build-backend-layer: 'true'
 
       - name: Build infra
         run: cd infra && npm run build

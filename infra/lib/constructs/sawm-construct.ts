@@ -17,6 +17,7 @@ export interface SawmConstructProps {
   authStack: AuthStack;
   projectEnv: string;
   resourceScope: Construct;
+  depsLayer: lambda.ILayerVersion;
 }
 
 interface BusinessLambdaOptions {
@@ -31,10 +32,14 @@ export class SawmConstruct extends Construct {
   public readonly functions = new Map<string, lambda.Function>();
   public readonly routes: apigatewayv2.HttpRoute[] = [];
   private readonly resourceScope: Construct;
+  private readonly projectEnv: string;
+  private readonly depsLayer: lambda.ILayerVersion;
 
   constructor(scope: Construct, id: string, props: SawmConstructProps) {
     super(scope, id);
     this.resourceScope = props.resourceScope;
+    this.projectEnv = props.projectEnv;
+    this.depsLayer = props.depsLayer;
 
     const config = getConfig(this);
     const backendSrc = path.join(__dirname, '../../../apps/backend/src');
@@ -154,6 +159,7 @@ export class SawmConstruct extends Construct {
       reservedConcurrentExecutions: config.protectedMutationConcurrency,
       environment: baseEnv,
     });
+    props.dataStack.fastLogsTable.grantReadData(resetFastLogsFn);
     props.dataStack.userLifecycleJobsTable.grantReadWriteData(resetFastLogsFn);
     this.addRoute(
       props.api,
@@ -166,14 +172,20 @@ export class SawmConstruct extends Construct {
   }
 
   private createBusinessLambda(id: string, options: BusinessLambdaOptions): lambda.Function {
-    const fn = ProjectResourceFactory.createNodejsFunction(this.resourceScope, id, {
-      entry: options.entry,
-      context: CONTEXT.SAWM,
-      environment: options.environment,
-      memorySize: options.memorySize,
-      timeout: options.timeout,
-      reservedConcurrentExecutions: options.reservedConcurrentExecutions,
-    });
+    const fn = ProjectResourceFactory.createNodejsFunction(
+      this.resourceScope,
+      id,
+      {
+        entry: options.entry,
+        context: CONTEXT.SAWM,
+        environment: options.environment,
+        memorySize: options.memorySize,
+        timeout: options.timeout,
+        reservedConcurrentExecutions: options.reservedConcurrentExecutions,
+        layers: [this.depsLayer],
+      },
+      this.projectEnv,
+    );
     this.functions.set(id, fn);
     return fn;
   }
