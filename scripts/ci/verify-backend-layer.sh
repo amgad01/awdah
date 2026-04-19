@@ -18,9 +18,10 @@ if [ ! -d "$layer_dir/node_modules" ]; then
   exit 1
 fi
 
-mapfile -t layer_dependencies < <(
-  node -e "const layer=require('./$layer_dir/package.json'); for (const name of Object.keys(layer.dependencies || {})) console.log(name);"
-)
+layer_dependencies=()
+while IFS= read -r name; do
+  layer_dependencies+=("$name")
+done < <(node -e "const layer=require('./$layer_dir/package.json'); for (const name of Object.keys(layer.dependencies || {})) console.log(name);")
 
 for dependency in "${layer_dependencies[@]}"; do
   if [ ! -d "$layer_dir/node_modules/$dependency" ]; then

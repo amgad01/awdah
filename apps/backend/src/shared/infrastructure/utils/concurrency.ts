@@ -12,6 +12,10 @@ export async function processInBatches<T, R>(
   concurrency: number,
   processor: (item: T, index: number) => Promise<R>,
 ): Promise<(R | undefined)[]> {
+  if (concurrency < 1) {
+    throw new Error(`concurrency must be at least 1, got ${concurrency}`);
+  }
+
   const results: (R | undefined)[] = new Array(items.length);
 
   async function processBatch(startIndex: number): Promise<void> {

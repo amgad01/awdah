@@ -23,9 +23,8 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Use system Chrome instead of downloading 200MB Chromium bundle
-        // Requires Chrome/Chromium installed locally (google-chrome, chromium, or chromium-browser)
-        channel: 'chrome',
+        // Use system Chrome locally to avoid 200MB download; CI uses bundled Chromium
+        ...(process.env.E2E_USE_SYSTEM_CHROME ? { channel: 'chrome' as const } : {}),
       },
     },
     {
