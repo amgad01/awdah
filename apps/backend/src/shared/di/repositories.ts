@@ -14,24 +14,97 @@ import { DynamoDBDeletedUsersRepository } from '../infrastructure/persistence/dy
 import { createAwsClientConfig } from '../infrastructure/aws/client-config';
 import { UlidGenerator } from '../domain/services/ulid-generator';
 
-// Shared Clients
 const rawClient = new DynamoDBClient(createAwsClientConfig({ region: settings.region }));
-
-export const dbClient = DynamoDBDocumentClient.from(rawClient, {
+const dbClient = DynamoDBDocumentClient.from(rawClient, {
   marshallOptions: { removeUndefinedValues: true },
 });
 
-// services
-export const idGenerator = new UlidGenerator();
-export const calendarService = new UmAlQuraCalendarService();
-export const salahCalculator = new SalahDebtCalculator(calendarService);
-export const sawmCalculator = new SawmDebtCalculator(calendarService);
+let idGeneratorInstance: UlidGenerator | undefined;
+export const getIdGenerator = (): UlidGenerator => {
+  if (!idGeneratorInstance) {
+    idGeneratorInstance = new UlidGenerator();
+  }
+  return idGeneratorInstance;
+};
 
-// Repositories
-export const prayerLogRepo = new DynamoDBPrayerLogRepository(dbClient);
-export const fastLogRepo = new DynamoDBFastLogRepository(dbClient);
-export const periodRepo = new DynamoDBPracticingPeriodRepository(dbClient);
-export const userRepo = new DynamoDBUserRepository(dbClient);
-export const userDataLifecycleService = new DynamoDBUserDataLifecycleService(dbClient);
-export const userLifecycleJobRepo = new DynamoDBUserLifecycleJobRepository(dbClient);
-export const deletedUsersRepo = new DynamoDBDeletedUsersRepository(dbClient);
+let calendarServiceInstance: UmAlQuraCalendarService | undefined;
+export const getCalendarService = (): UmAlQuraCalendarService => {
+  if (!calendarServiceInstance) {
+    calendarServiceInstance = new UmAlQuraCalendarService();
+  }
+  return calendarServiceInstance;
+};
+
+let salahCalculatorInstance: SalahDebtCalculator | undefined;
+export const getSalahCalculator = (): SalahDebtCalculator => {
+  if (!salahCalculatorInstance) {
+    salahCalculatorInstance = new SalahDebtCalculator(getCalendarService());
+  }
+  return salahCalculatorInstance;
+};
+
+let sawmCalculatorInstance: SawmDebtCalculator | undefined;
+export const getSawmCalculator = (): SawmDebtCalculator => {
+  if (!sawmCalculatorInstance) {
+    sawmCalculatorInstance = new SawmDebtCalculator(getCalendarService());
+  }
+  return sawmCalculatorInstance;
+};
+
+let prayerLogRepoInstance: DynamoDBPrayerLogRepository | undefined;
+export const getPrayerLogRepo = (): DynamoDBPrayerLogRepository => {
+  if (!prayerLogRepoInstance) {
+    prayerLogRepoInstance = new DynamoDBPrayerLogRepository(dbClient);
+  }
+  return prayerLogRepoInstance;
+};
+
+let fastLogRepoInstance: DynamoDBFastLogRepository | undefined;
+export const getFastLogRepo = (): DynamoDBFastLogRepository => {
+  if (!fastLogRepoInstance) {
+    fastLogRepoInstance = new DynamoDBFastLogRepository(dbClient);
+  }
+  return fastLogRepoInstance;
+};
+
+let periodRepoInstance: DynamoDBPracticingPeriodRepository | undefined;
+export const getPeriodRepo = (): DynamoDBPracticingPeriodRepository => {
+  if (!periodRepoInstance) {
+    periodRepoInstance = new DynamoDBPracticingPeriodRepository(dbClient);
+  }
+  return periodRepoInstance;
+};
+
+let userRepoInstance: DynamoDBUserRepository | undefined;
+export const getUserRepo = (): DynamoDBUserRepository => {
+  if (!userRepoInstance) {
+    userRepoInstance = new DynamoDBUserRepository(dbClient);
+  }
+  return userRepoInstance;
+};
+
+let userDataLifecycleServiceInstance: DynamoDBUserDataLifecycleService | undefined;
+export const getUserDataLifecycleService = (): DynamoDBUserDataLifecycleService => {
+  if (!userDataLifecycleServiceInstance) {
+    userDataLifecycleServiceInstance = new DynamoDBUserDataLifecycleService(dbClient);
+  }
+  return userDataLifecycleServiceInstance;
+};
+
+let userLifecycleJobRepoInstance: DynamoDBUserLifecycleJobRepository | undefined;
+export const getUserLifecycleJobRepo = (): DynamoDBUserLifecycleJobRepository => {
+  if (!userLifecycleJobRepoInstance) {
+    userLifecycleJobRepoInstance = new DynamoDBUserLifecycleJobRepository(dbClient);
+  }
+  return userLifecycleJobRepoInstance;
+};
+
+let deletedUsersRepoInstance: DynamoDBDeletedUsersRepository | undefined;
+export const getDeletedUsersRepo = (): DynamoDBDeletedUsersRepository => {
+  if (!deletedUsersRepoInstance) {
+    deletedUsersRepoInstance = new DynamoDBDeletedUsersRepository(dbClient);
+  }
+  return deletedUsersRepoInstance;
+};
+
+export { dbClient };

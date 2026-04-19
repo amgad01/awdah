@@ -3,7 +3,7 @@ import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 import { userLifecycleJobQuerySchema } from '../../../../shared/validation/schemas';
 
-export const handler = createHandler(CONTEXTS.USER, getUserLifecycleJobStatusUseCase, {
+export const handler = createHandler(CONTEXTS.USER, getUserLifecycleJobStatusUseCase(), {
   useQuery: true,
   schema: userLifecycleJobQuerySchema,
   transformInput: (userId, input) => ({

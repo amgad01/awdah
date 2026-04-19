@@ -2,6 +2,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function escapeHtml(value) {
   return value
@@ -133,33 +134,41 @@ Sitemap: ${siteUrl}sitemap.xml
 `;
 }
 
-const [distDirArg, siteUrlArg, manifestPathArg] = process.argv.slice(2);
+export function generatePagesArtifacts(distDirArg, siteUrlArg, manifestPathArg) {
+  if (!distDirArg || !siteUrlArg || !manifestPathArg) {
+    throw new Error(
+      'Usage: node apps/frontend/scripts/generate-pages-artifacts.mjs <dist-dir> <site-url> <manifest-path>',
+    );
+  }
 
-if (!distDirArg || !siteUrlArg || !manifestPathArg) {
-  console.error(
-    'Usage: node apps/frontend/scripts/generate-pages-artifacts.mjs <dist-dir> <site-url> <manifest-path>',
-  );
-  process.exit(1);
+  const distDir = path.resolve(distDirArg);
+  const manifestPath = path.resolve(manifestPathArg);
+  const siteUrl = normalizeSiteUrl(siteUrlArg);
+  const routes = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const indexPath = path.join(distDir, 'index.html');
+  const indexTemplate = readFileSync(indexPath, 'utf8');
+
+  for (const route of routes) {
+    const routeUrl = resolveRouteUrl(siteUrl, route.path);
+    const routeHtml = renderRouteHtml(indexTemplate, route, routeUrl);
+    const outputPath =
+      route.path === '/'
+        ? indexPath
+        : path.join(distDir, route.path.replace(/^\//, ''), 'index.html');
+
+    mkdirSync(path.dirname(outputPath), { recursive: true });
+    writeFileSync(outputPath, routeHtml, 'utf8');
+  }
+
+  writeFileSync(path.join(distDir, 'robots.txt'), renderRobots(siteUrl), 'utf8');
+  writeFileSync(path.join(distDir, 'sitemap.xml'), renderSitemap(siteUrl, routes), 'utf8');
 }
 
-const distDir = path.resolve(distDirArg);
-const manifestPath = path.resolve(manifestPathArg);
-const siteUrl = normalizeSiteUrl(siteUrlArg);
-const routes = JSON.parse(readFileSync(manifestPath, 'utf8'));
-const indexPath = path.join(distDir, 'index.html');
-const indexTemplate = readFileSync(indexPath, 'utf8');
-
-for (const route of routes) {
-  const routeUrl = resolveRouteUrl(siteUrl, route.path);
-  const routeHtml = renderRouteHtml(indexTemplate, route, routeUrl);
-  const outputPath =
-    route.path === '/'
-      ? indexPath
-      : path.join(distDir, route.path.replace(/^\//, ''), 'index.html');
-
-  mkdirSync(path.dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, routeHtml, 'utf8');
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  try {
+    generatePagesArtifacts(...process.argv.slice(2));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 }
-
-writeFileSync(path.join(distDir, 'robots.txt'), renderRobots(siteUrl), 'utf8');
-writeFileSync(path.join(distDir, 'sitemap.xml'), renderSitemap(siteUrl, routes), 'utf8');

@@ -13,36 +13,45 @@ type ExpressHandlerApp = Express & {
   handle: (req: IncomingMessage, res: ServerResponse, callback: (error?: unknown) => void) => void;
 };
 
+const logPrayerUseCaseMock = { execute: vi.fn() };
+const getSalahDebtUseCaseMock = { execute: vi.fn() };
+const getPrayerHistoryPageUseCaseMock = { execute: vi.fn() };
+
 const mockSalahUseCases = {
-  logPrayerUseCase: { execute: vi.fn() },
-  getSalahDebtUseCase: { execute: vi.fn() },
-  addPracticingPeriodUseCase: { execute: vi.fn() },
-  updatePracticingPeriodUseCase: { execute: vi.fn() },
-  getPracticingPeriodsUseCase: { execute: vi.fn() },
-  deletePracticingPeriodUseCase: { execute: vi.fn() },
-  getPrayerHistoryUseCase: { execute: vi.fn() },
-  getPrayerHistoryPageUseCase: { execute: vi.fn() },
-  deletePrayerLogUseCase: { execute: vi.fn() },
-  resetPrayerLogsUseCase: { execute: vi.fn() },
+  getLogPrayerUseCase: () => logPrayerUseCaseMock,
+  getSalahDebtUseCase: () => getSalahDebtUseCaseMock,
+  getAddPracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+  getUpdatePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+  getPracticingPeriodsUseCase: () => ({ execute: vi.fn() }),
+  getDeletePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+  getPrayerHistoryUseCase: () => ({ execute: vi.fn() }),
+  getPrayerHistoryPageUseCase: () => getPrayerHistoryPageUseCaseMock,
+  getDeletePrayerLogUseCase: () => ({ execute: vi.fn() }),
+  getResetPrayerLogsUseCase: () => ({ execute: vi.fn() }),
 };
+
+const getFastHistoryPageUseCaseMock = { execute: vi.fn() };
 
 const mockSawmUseCases = {
-  logFastUseCase: { execute: vi.fn() },
-  getSawmDebtUseCase: { execute: vi.fn() },
-  getFastHistoryUseCase: { execute: vi.fn() },
-  getFastHistoryPageUseCase: { execute: vi.fn() },
-  deleteFastLogUseCase: { execute: vi.fn() },
-  resetFastLogsUseCase: { execute: vi.fn() },
+  getLogFastUseCase: () => ({ execute: vi.fn() }),
+  getSawmDebtUseCase: () => ({ execute: vi.fn() }),
+  getFastHistoryUseCase: () => ({ execute: vi.fn() }),
+  getFastHistoryPageUseCase: () => getFastHistoryPageUseCaseMock,
+  getDeleteFastLogUseCase: () => ({ execute: vi.fn() }),
+  getResetFastLogsUseCase: () => ({ execute: vi.fn() }),
 };
 
+const getUserSettingsUseCaseMock = { execute: vi.fn() };
+const getUpdateUserSettingsUseCaseMock = { execute: vi.fn() };
+
 const mockUserUseCases = {
-  getUserSettingsUseCase: { execute: vi.fn() },
-  updateUserSettingsUseCase: { execute: vi.fn() },
-  deleteAccountUseCase: { execute: vi.fn() },
-  finalizeDeleteAccountUseCase: { execute: vi.fn() },
-  exportDataUseCase: { execute: vi.fn() },
-  downloadExportDataUseCase: { execute: vi.fn() },
-  getUserLifecycleJobStatusUseCase: { execute: vi.fn() },
+  getUserSettingsUseCase: () => getUserSettingsUseCaseMock,
+  getUpdateUserSettingsUseCase: () => getUpdateUserSettingsUseCaseMock,
+  getDeleteAccountUseCase: () => ({ execute: vi.fn() }),
+  getFinalizeDeleteAccountUseCase: () => ({ execute: vi.fn() }),
+  getExportDataUseCase: () => ({ execute: vi.fn() }),
+  getDownloadExportDataUseCase: () => ({ execute: vi.fn() }),
+  getUserLifecycleJobStatusUseCase: () => ({ execute: vi.fn() }),
 };
 
 vi.mock('../shared/di/salah-use-cases', () => mockSalahUseCases);
@@ -63,18 +72,18 @@ beforeAll(async () => {
 beforeEach(() => {
   vi.clearAllMocks();
 
-  vi.mocked(mockSalahUseCases.logPrayerUseCase.execute).mockResolvedValue(undefined);
-  vi.mocked(mockSalahUseCases.getSalahDebtUseCase.execute).mockResolvedValue({
+  vi.mocked(logPrayerUseCaseMock.execute).mockResolvedValue(undefined);
+  vi.mocked(getSalahDebtUseCaseMock.execute).mockResolvedValue({
     totalPrayersOwed: 120,
     completedPrayers: 20,
     remainingPrayers: 100,
   });
-  vi.mocked(mockUserUseCases.getUserSettingsUseCase.execute).mockResolvedValue({
+  vi.mocked(getUserSettingsUseCaseMock.execute).mockResolvedValue({
     userId: 'test-user',
     bulughDate: '1431-09-15',
     gender: 'female',
   });
-  vi.mocked(mockUserUseCases.updateUserSettingsUseCase.execute).mockResolvedValue(undefined);
+  vi.mocked(getUpdateUserSettingsUseCaseMock.execute).mockResolvedValue(undefined);
 });
 
 async function invokeApp(
@@ -186,7 +195,7 @@ describe('API Route Tests', () => {
     });
 
     expect(response.statusCode).toBe(201);
-    expect(mockSalahUseCases.logPrayerUseCase.execute).toHaveBeenCalledWith({
+    expect(logPrayerUseCaseMock.execute).toHaveBeenCalledWith({
       userId: 'test-user',
       date: '1446-08-15',
       prayerName: 'fajr',
@@ -205,7 +214,7 @@ describe('API Route Tests', () => {
       completedPrayers: 20,
       remainingPrayers: 100,
     });
-    expect(mockSalahUseCases.getSalahDebtUseCase.execute).toHaveBeenCalledWith('test-user');
+    expect(getSalahDebtUseCaseMock.execute).toHaveBeenCalledWith('test-user');
   });
 
   it('GET /v1/user/profile with x-user-id should return the profile data', async () => {
@@ -219,11 +228,11 @@ describe('API Route Tests', () => {
       bulughDate: '1431-09-15',
       gender: 'female',
     });
-    expect(mockUserUseCases.getUserSettingsUseCase.execute).toHaveBeenCalledWith('test-user');
+    expect(getUserSettingsUseCaseMock.execute).toHaveBeenCalledWith('test-user');
   });
 
   it('GET /v1/user/profile should return 404 when the profile is missing', async () => {
-    vi.mocked(mockUserUseCases.getUserSettingsUseCase.execute).mockRejectedValueOnce(
+    vi.mocked(getUserSettingsUseCaseMock.execute).mockRejectedValueOnce(
       new SharedNotFoundError('User profile not found'),
     );
 
@@ -247,7 +256,7 @@ describe('API Route Tests', () => {
   });
 
   it('GET /v1/salah/history/page with x-user-id should call the paged history use case', async () => {
-    vi.mocked(mockSalahUseCases.getPrayerHistoryPageUseCase.execute).mockResolvedValueOnce({
+    vi.mocked(getPrayerHistoryPageUseCaseMock.execute).mockResolvedValueOnce({
       items: [],
       hasMore: false,
     });
@@ -261,7 +270,7 @@ describe('API Route Tests', () => {
     );
 
     expect(response.statusCode).toBe(200);
-    expect(mockSalahUseCases.getPrayerHistoryPageUseCase.execute).toHaveBeenCalledWith({
+    expect(getPrayerHistoryPageUseCaseMock.execute).toHaveBeenCalledWith({
       userId: 'test-user',
       startDate: '1446-07-01',
       endDate: '1446-07-30',
@@ -270,7 +279,7 @@ describe('API Route Tests', () => {
   });
 
   it('GET /v1/sawm/history/page with x-user-id should call the paged history use case', async () => {
-    vi.mocked(mockSawmUseCases.getFastHistoryPageUseCase.execute).mockResolvedValueOnce({
+    vi.mocked(getFastHistoryPageUseCaseMock.execute).mockResolvedValueOnce({
       items: [],
       hasMore: false,
     });
@@ -284,7 +293,7 @@ describe('API Route Tests', () => {
     );
 
     expect(response.statusCode).toBe(200);
-    expect(mockSawmUseCases.getFastHistoryPageUseCase.execute).toHaveBeenCalledWith({
+    expect(getFastHistoryPageUseCaseMock.execute).toHaveBeenCalledWith({
       userId: 'test-user',
       startDate: '1446-07-01',
       endDate: '1446-07-30',

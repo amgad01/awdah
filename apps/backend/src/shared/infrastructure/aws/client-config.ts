@@ -1,13 +1,23 @@
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+import * as https from 'https';
+
 interface AwsClientConfigOptions {
   region?: string;
   endpoint?: string;
   maxAttempts?: number;
 }
 
-/**
- * Shared AWS SDK client config tuned for burst resilience without adding new paid services.
- * Adaptive retry mode helps spread retries when AWS starts throttling.
- */
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 3000,
+  maxSockets: 50,
+});
+
+const requestHandler = new NodeHttpHandler({
+  httpsAgent,
+  requestTimeout: 3000,
+});
+
 export function createAwsClientConfig({
   region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1',
   endpoint = process.env.LOCALSTACK_ENDPOINT,
@@ -26,5 +36,6 @@ export function createAwsClientConfig({
       : {}),
     maxAttempts,
     retryMode: 'adaptive' as const,
+    requestHandler,
   };
 }

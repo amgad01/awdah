@@ -21,7 +21,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Use system Chrome instead of downloading 200MB Chromium bundle
+        // Requires Chrome/Chromium installed locally (google-chrome, chromium, or chromium-browser)
+        channel: 'chrome',
+      },
     },
     {
       name: 'mobile',
