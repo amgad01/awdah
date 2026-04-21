@@ -1,13 +1,8 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const scriptPath = path.resolve(__dirname, '../../scripts/generate-pages-artifacts.mjs');
+import { generatePagesArtifacts } from '../../scripts/generate-pages-artifacts.mjs';
 
 function createTemplateHtml() {
   return `<!doctype html>
@@ -70,9 +65,7 @@ describe('generate-pages-artifacts', () => {
       mkdirSync(distDir, { recursive: true });
       writeFileSync(indexPath, createTemplateHtml(), 'utf8');
 
-      execFileSync('node', [scriptPath, distDir, 'https://example.com/awdah', manifestPath], {
-        stdio: 'pipe',
-      });
+      generatePagesArtifacts(distDir, 'https://example.com/awdah', manifestPath);
 
       const rootHtml = readFileSync(indexPath, 'utf8');
       const aboutHtmlPath = path.join(distDir, 'about', 'index.html');

@@ -1,11 +1,11 @@
-import { addPracticingPeriodUseCase } from '../../../../shared/di/salah-use-cases';
+import { getAddPracticingPeriodUseCase } from '../../../../shared/di/salah-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { addPracticingPeriodSchema } from '../../../../shared/validation/schemas';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 import { MESSAGES } from '../../../../shared/constants/messages';
 import { StatusCodes } from '@awdah/shared';
 
-export const handler = createHandler(CONTEXTS.SALAH, addPracticingPeriodUseCase, {
+export const handler = createHandler(CONTEXTS.SALAH, getAddPracticingPeriodUseCase(), {
   schema: addPracticingPeriodSchema,
   statusCode: StatusCodes.CREATED,
   successMessage: MESSAGES.SALAH.PERIOD_ADDED,

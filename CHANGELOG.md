@@ -7,6 +7,49 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.4.0
+
+### Added
+
+#### Infrastructure
+
+- **Lambda Dependencies Layer**: New shared Lambda layer containing backend runtime dependencies (`zod`, `pino`, `ulid`, `cors`, `express`, `@umalqura/core`, `http-status-codes`, `path-to-regexp`)
+- **Backend layer verification**: Added a dedicated CI check that validates the layer manifest, lockfile, and installed dependencies before synth or deploy
+- **Environment-based log retention**: Default Lambda log retention now varies by environment (dev=1 day, staging=7 days, prod=30 days)
+- **Recursive loop termination**: Optional recursive loop detection support is now available through the shared Lambda factory
+
+#### Backend
+
+- **Concurrency utilities**: Added shared helpers for bounded async batch processing in the lifecycle stream handler
+- **Retry backoff coverage**: Added focused tests for persistence retry backoff behavior
+
+### Changed
+
+#### Infrastructure
+
+- CI, deploy, and deploy-validation workflows now build and verify the backend layer before synth or deploy
+- `ProjectResourceFactory.createNodejsFunction` now accepts `projectEnv`, supports Lambda layers, and externalizes layer-managed dependencies only when a layer is attached
+- Salah, Sawm, and User business Lambdas now attach the shared dependency layer
+- Reset lifecycle jobs now keep the read permissions they need on prayer and fast log tables
+- User lifecycle stream processing now uses larger batches, a short batching window, record-age limits, and INSERT-only filtering
+
+#### Backend
+
+- **Lazy DI reuse**: Repository and use-case containers now lazily initialize shared instances and reuse them across warm invocations instead of constructing everything eagerly
+- **Handler wiring**: Lambda handlers now resolve use cases through getter-based DI functions
+- **AWS client reuse**: AWS SDK clients now share one keep-alive HTTPS agent and `NodeHttpHandler` per runtime instance
+- **Lifecycle stream execution**: The lifecycle job handler now processes eligible records concurrently within a batch while keeping failures visible for retry
+
+### Fixed
+
+#### Tooling
+
+- Frontend pages-artifacts tests now call the generator directly instead of spawning `node`, which removes sandbox-related test failures
+- Backend E2E seed route tests now verify route registration without binding network sockets
+- Root ESLint now ignores `docs/private/**`, preventing internal notes from breaking repo lint runs
+
+---
+
 ## v1.3.0
 
 ### Changed

@@ -18,6 +18,7 @@ import { CONTEXT } from '../shared/constants';
 import { SalahConstruct } from '../constructs/salah-construct';
 import { SawmConstruct } from '../constructs/sawm-construct';
 import { UserConstruct } from '../constructs/user-construct';
+import { DependenciesLayer } from '../shared/dependencies-layer';
 
 export interface ApiStackProps extends BaseStackProps {
   dataStack: DataStack;
@@ -62,6 +63,8 @@ export class ApiStack extends BaseStack {
     this.addContextTag('api');
     const config = getConfig(this);
 
+    const dependenciesLayer = new DependenciesLayer(this, 'SharedDependencies', this.projectEnv);
+
     // 1. Setup API Gateway & Stage
     const api = this.createHttpApi(props);
     this.httpApi = api;
@@ -99,6 +102,7 @@ export class ApiStack extends BaseStack {
       authStack: props.authStack,
       projectEnv: this.projectEnv,
       resourceScope: this,
+      depsLayer: dependenciesLayer.layerVersion,
     });
 
     const sawm = new SawmConstruct(this, 'Sawm', {
@@ -108,6 +112,7 @@ export class ApiStack extends BaseStack {
       authStack: props.authStack,
       projectEnv: this.projectEnv,
       resourceScope: this,
+      depsLayer: dependenciesLayer.layerVersion,
     });
 
     const user = new UserConstruct(this, 'User', {
@@ -117,15 +122,21 @@ export class ApiStack extends BaseStack {
       authStack: props.authStack,
       projectEnv: this.projectEnv,
       resourceScope: this,
+      depsLayer: dependenciesLayer.layerVersion,
     });
     this.lifecycleJobDlq = user.lifecycleJobDlq;
 
     // 4. Register Shared/Generic Lambdas
-    const healthFn = ProjectResourceFactory.createNodejsFunction(this, 'HealthFn', {
-      entry: path.join(backendSrc, 'shared/infrastructure/handlers/health.handler.ts'),
-      context: CONTEXT.SHARED,
-      environment: sharedEnv,
-    });
+    const healthFn = ProjectResourceFactory.createNodejsFunction(
+      this,
+      'HealthFn',
+      {
+        entry: path.join(backendSrc, 'shared/infrastructure/handlers/health.handler.ts'),
+        context: CONTEXT.SHARED,
+        environment: sharedEnv,
+      },
+      this.projectEnv,
+    );
 
     const healthRoutes = api.addRoutes({
       path: '/health',

@@ -83,6 +83,11 @@ step "Phase 1/4: Build shared package"
 npm run build --workspace=packages/shared
 success "Shared package built"
 
+step "Build backend layer"
+npm run build:layer --workspace=apps/backend
+./scripts/ci/verify-backend-layer.sh
+success "Backend layer built and verified"
+
 step "Generate frontend language manifest"
 npm run prelint --workspace=apps/frontend
 success "Frontend language manifest generated"
@@ -104,7 +109,9 @@ run_parallel \
   "TypeScript: shared" \
     "npm run typecheck --workspace=packages/shared" \
   "TypeScript: frontend" \
-    "npm run typecheck --workspace=apps/frontend"
+    "npm run typecheck --workspace=apps/frontend" \
+  "TypeScript: infra" \
+    "npm run typecheck --workspace=infra"
 
 # ── Phase 3: Tests ────────────────────────────────────────────────────────────
 if [ "${SKIP_TESTS:-0}" = "1" ]; then

@@ -7,7 +7,6 @@ import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
 import { PrayerLogKey } from './keys/prayer-log-key';
 import { createPrayerSlotKey } from '../../utils/prayer-slot-key';
 import { decodeCursor, encodeCursor } from './cursor';
-
 import { PrayerLogMapper } from './mappers/prayer-log.mapper';
 
 export class DynamoDBPrayerLogRepository

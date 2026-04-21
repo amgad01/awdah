@@ -14,6 +14,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/cdk.out/**',
       '**/coverage/**',
+      'docs/private/**',
       'apps/frontend/**', // Frontend has its own config
     ],
   },

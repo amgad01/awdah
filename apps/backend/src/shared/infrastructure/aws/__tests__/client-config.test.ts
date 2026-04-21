@@ -14,17 +14,21 @@ describe('createAwsClientConfig', () => {
     delete process.env.AWS_REGION;
     delete process.env.AWS_DEFAULT_REGION;
 
-    expect(createAwsClientConfig()).toEqual({
+    const config = createAwsClientConfig();
+    expect(config).toMatchObject({
       region: 'us-east-1',
       maxAttempts: 5,
       retryMode: 'adaptive',
     });
+    // Should have requestHandler with keep-alive
+    expect(config.requestHandler).toBeDefined();
   });
 
   it('uses explicit region and LocalStack endpoint when provided', () => {
     process.env.LOCALSTACK_ENDPOINT = 'http://localhost:4566';
 
-    expect(createAwsClientConfig({ region: 'eu-west-1', maxAttempts: 7 })).toEqual({
+    const config = createAwsClientConfig({ region: 'eu-west-1', maxAttempts: 7 });
+    expect(config).toMatchObject({
       region: 'eu-west-1',
       endpoint: 'http://localhost:4566',
       credentials: {
@@ -34,6 +38,8 @@ describe('createAwsClientConfig', () => {
       maxAttempts: 7,
       retryMode: 'adaptive',
     });
+    // Should have requestHandler with keep-alive
+    expect(config.requestHandler).toBeDefined();
   });
 
   it('prefers explicit LocalStack credentials from the environment', () => {
@@ -41,7 +47,8 @@ describe('createAwsClientConfig', () => {
     process.env.AWS_ACCESS_KEY_ID = 'local-access-key';
     process.env.AWS_SECRET_ACCESS_KEY = 'local-secret-key';
 
-    expect(createAwsClientConfig({ endpoint: 'http://localhost:4566' })).toEqual({
+    const config = createAwsClientConfig({ endpoint: 'http://localhost:4566' });
+    expect(config).toMatchObject({
       region: 'us-east-1',
       endpoint: 'http://localhost:4566',
       credentials: {
@@ -51,5 +58,7 @@ describe('createAwsClientConfig', () => {
       maxAttempts: 5,
       retryMode: 'adaptive',
     });
+    // Should have requestHandler with keep-alive
+    expect(config.requestHandler).toBeDefined();
   });
 });

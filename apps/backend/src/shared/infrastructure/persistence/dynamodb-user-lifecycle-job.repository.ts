@@ -85,12 +85,7 @@ export class DynamoDBUserLifecycleJobRepository
       // Check if we need to continue scanning (more pages available)
       exclusiveStartKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
 
-      // Optimization: If we scanned some items but found no matches, and we're
-      // past the 'since' threshold based on sort key ordering, we can stop
-      // Note: This is a safety check - the filter should handle it, but this prevents
-      // scanning entire partitions for users with many old jobs
       if (response.ScannedCount && response.ScannedCount > 0) {
-        // Continue to next page - we haven't found a match in this batch
         continue;
       }
     } while (exclusiveStartKey);

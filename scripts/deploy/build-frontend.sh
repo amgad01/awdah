@@ -79,6 +79,17 @@ resolve_env_or_stack_output() {
   local description="$4"
   local current_value="${!env_var_name:-}"
 
+  # When PREFER_STACK_OUTPUTS is set (e.g., during deploy), read fresh values from stack
+  # instead of using potentially stale env vars. This prevents issues when Cognito
+  # or other resources are recreated and get new IDs.
+  if [ "${PREFER_STACK_OUTPUTS:-0}" = "1" ] && [ "$HAS_AWS_SESSION" = true ]; then
+    local fresh_value="$(read_stack_output "$stack_name" "$output_key" "$AWS_REGION")"
+    if [ -n "$fresh_value" ]; then
+      printf '%s\n' "$fresh_value"
+      return 0
+    fi
+  fi
+
   if [ -n "$current_value" ]; then
     printf '%s\n' "$current_value"
     return 0

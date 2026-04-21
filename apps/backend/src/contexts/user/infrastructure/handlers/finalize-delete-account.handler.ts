@@ -1,10 +1,10 @@
-import { finalizeDeleteAccountUseCase } from '../../../../shared/di/user-use-cases';
+import { getFinalizeDeleteAccountUseCase } from '../../../../shared/di/user-use-cases';
 import { CONTEXTS } from '../../../../shared/constants/contexts';
 import { MESSAGES } from '../../../../shared/constants/messages';
 import { createHandler } from '../../../../shared/middleware/create-handler';
 import { userLifecycleJobQuerySchema } from '../../../../shared/validation/schemas';
 
-export const handler = createHandler(CONTEXTS.USER, finalizeDeleteAccountUseCase, {
+export const handler = createHandler(CONTEXTS.USER, getFinalizeDeleteAccountUseCase(), {
   useQuery: true,
   schema: userLifecycleJobQuerySchema,
   transformInput: (userId, input) => ({

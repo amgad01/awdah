@@ -21,7 +21,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Use system Chrome locally to avoid 200MB download; CI uses bundled Chromium
+        ...(process.env.E2E_USE_SYSTEM_CHROME ? { channel: 'chrome' as const } : {}),
+      },
     },
     {
       name: 'mobile',

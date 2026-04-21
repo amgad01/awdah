@@ -28,7 +28,8 @@ trap 'status=$?; if [ "$FAILED" = true ] || [ "$status" -ne 0 ]; then echo ""; e
 
 echo "▸ [1/3] Building frontend for $TARGET..."
 cd "$ROOT_DIR"
-if ! SKIP_SHARED_BUILD="${SKIP_SHARED_BUILD:-0}" "$SCRIPT_DIR/build-frontend.sh" "$ENV"; then
+# Prefer fresh stack outputs over potentially stale env vars during deployment
+if ! SKIP_SHARED_BUILD="${SKIP_SHARED_BUILD:-0}" PREFER_STACK_OUTPUTS=1 "$SCRIPT_DIR/build-frontend.sh" "$ENV"; then
   FAILED=true
   exit 1
 fi
