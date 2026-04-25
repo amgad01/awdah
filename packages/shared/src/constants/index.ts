@@ -40,6 +40,7 @@ export const BREAK_REASONS = [
 ] as const;
 
 export const RATE_LIMIT_MINUTES = 10;
+export const RESET_COOLDOWN_MINUTES = 10;
 
 export function getRateLimitSince(): string {
   const cooldownMs = RATE_LIMIT_MINUTES * 60 * 1000;

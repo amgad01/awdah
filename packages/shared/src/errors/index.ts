@@ -1,4 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
+export { ERROR_CODES } from './error-codes';
+export type { ErrorCodeKey, ErrorCodeValue } from './error-codes';
 
 export type ErrorCode =
   | 'VALIDATION_ERROR'
