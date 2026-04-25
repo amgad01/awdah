@@ -340,6 +340,69 @@ export abstract class BaseDynamoDBRepository<T> {
   }
 
   /**
+   * Returns true if any items exist for the given partition key.
+   * Uses Limit: 1 for efficiency without calling mapToDomain.
+   */
+  protected async existsAny({ pk }: { pk: string }): Promise<boolean> {
+    const response = await this.docClient.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: `#pk = :pk`,
+        ExpressionAttributeNames: { '#pk': this.pkName },
+        ExpressionAttributeValues: { ':pk': pk },
+        Limit: 1,
+      }),
+    );
+    return (response.Items?.length ?? 0) > 0;
+  }
+
+  /**
+   * Queries a GSI with an explicit projection and returns raw DynamoDB items without
+   * calling mapToDomain. Use this when the projection omits attributes that mapToDomain
+   * requires (e.g. the primary SK is not needed and would cause a decode error).
+   */
+  protected async queryRawPages({
+    pk,
+    indexName,
+    skName,
+    skPrefix,
+    projectionExpression,
+    expressionAttributeNames,
+  }: {
+    pk: string;
+    indexName: string;
+    skName: string;
+    skPrefix: string;
+    projectionExpression?: string;
+    expressionAttributeNames?: Record<string, string>;
+  }): Promise<Record<string, unknown>[]> {
+    const items: Record<string, unknown>[] = [];
+    let exclusiveStartKey: Record<string, unknown> | undefined;
+
+    do {
+      const response = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          IndexName: indexName,
+          KeyConditionExpression: `${this.pkName} = :pk AND begins_with(${skName}, :prefix)`,
+          ExpressionAttributeValues: { ':pk': pk, ':prefix': skPrefix },
+          ExpressionAttributeNames:
+            expressionAttributeNames && Object.keys(expressionAttributeNames).length > 0
+              ? expressionAttributeNames
+              : undefined,
+          ProjectionExpression: projectionExpression,
+          ExclusiveStartKey: exclusiveStartKey,
+        }),
+      );
+
+      items.push(...((response.Items ?? []) as Record<string, unknown>[]));
+      exclusiveStartKey = response.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (exclusiveStartKey);
+
+    return items;
+  }
+
+  /**
    * Centralized query executor for paged operations.
    * Constructs DynamoDB QueryCommands with support for prefix filters, range filters,
    * limits, and starting keys.

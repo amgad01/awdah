@@ -1,4 +1,4 @@
-import { ValidationError } from '@awdah/shared';
+import { ValidationError, ERROR_CODES } from '@awdah/shared';
 
 export function encodeCursor(key?: Record<string, unknown>): string | undefined {
   if (!key) {
@@ -23,6 +23,6 @@ export function decodeCursor(cursor?: string): Record<string, unknown> | undefin
 
     return parsed as Record<string, unknown>;
   } catch {
-    throw new ValidationError('Invalid pagination cursor');
+    throw new ValidationError(ERROR_CODES.INVALID_PAGINATION_CURSOR);
   }
 }
