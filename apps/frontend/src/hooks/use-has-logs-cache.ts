@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/lib/query-keys';
 
@@ -149,27 +149,48 @@ export function useMarkLogsCleared() {
   };
 }
 
+function checkDailyLog(
+  queryClient: ReturnType<typeof useQueryClient>,
+  date: string,
+  type: 'prayers' | 'fasts',
+): boolean | null {
+  const queryKey =
+    type === 'prayers' ? QUERY_KEYS.salahDailyLogs(date) : QUERY_KEYS.sawmDailyLog(date);
+
+  const query = queryClient.getQueryCache().find({ queryKey });
+  if (!query) return null;
+
+  const data = query.state.data;
+  if (!data) return null;
+
+  if (Array.isArray(data) && data.length > 0) {
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Check cache for specific date log existence.
- * Used for daily log buttons.
+ * Used for daily log buttons. Reactively updates when cache changes.
  */
 export function useHasDailyLog(date: string, type: 'prayers' | 'fasts'): boolean | null {
   const queryClient = useQueryClient();
+  const [hasLog, setHasLog] = useState<boolean | null>(() =>
+    checkDailyLog(queryClient, date, type),
+  );
 
-  return useMemo(() => {
-    const queryKey =
-      type === 'prayers' ? QUERY_KEYS.salahDailyLogs(date) : QUERY_KEYS.sawmDailyLog(date);
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      setHasLog(checkDailyLog(queryClient, date, type));
+    });
 
-    const query = queryClient.getQueryCache().find({ queryKey });
-    if (!query) return null;
+    queueMicrotask(() => {
+      setHasLog(checkDailyLog(queryClient, date, type));
+    });
 
-    const data = query.state.data;
-    if (!data) return null;
-
-    if (Array.isArray(data) && data.length > 0) {
-      return true;
-    }
-
-    return false;
+    return unsubscribe;
   }, [queryClient, date, type]);
+
+  return hasLog;
 }

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { RESET_COOLDOWN_MINUTES } from '@awdah/shared';
 import { secureStorage } from '@/lib/secure-storage';
 import type { CooldownController, ResetAction } from '@/types/cooldown.types';
 
-const COOLDOWN_MINUTES = 10;
-const COOLDOWN_MS = COOLDOWN_MINUTES * 60 * 1000;
+const COOLDOWN_MS = RESET_COOLDOWN_MINUTES * 60 * 1000;
 
 const STORAGE_KEYS = {
   prayers: 'reset_prayers_last_attempt',
@@ -83,7 +83,7 @@ export function useResetCooldown(action: ResetAction): CooldownController {
     const now = Date.now();
     setLastAttempt(action, now);
     setLastAttemptState(now);
-    setSecondsRemaining(COOLDOWN_MINUTES * 60);
+    setSecondsRemaining(RESET_COOLDOWN_MINUTES * 60);
     // Dispatch event for same-tab updates (storage event only fires across tabs)
     window.dispatchEvent(new CustomEvent('cooldown-recorded', { detail: { action } }));
   }, [action]);
