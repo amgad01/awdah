@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
+import { ConflictError, NotFoundError, UserId, EventId, ERROR_CODES } from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   UserLifecycleJobStatus,
@@ -32,7 +32,7 @@ export class FinalizeDeleteAccountUseCase {
     const job = await this.jobRepository.findById(userId, jobId);
 
     if (!job || !isDeleteAccountJob(job)) {
-      throw new NotFoundError('Account deletion job not found');
+      throw new NotFoundError(ERROR_CODES.TASK_NOT_FOUND);
     }
 
     ensureDeleteJobReady(job);
@@ -62,11 +62,11 @@ export class FinalizeDeleteAccountUseCase {
 
 function ensureDeleteJobReady(job: UserLifecycleJob): void {
   if (job.status === UserLifecycleJobStatus.Failed) {
-    throw new ConflictError(job.errorMessage || 'Account deletion failed');
+    throw new ConflictError(job.errorMessage || ERROR_CODES.TASK_FAILED);
   }
 
   if (job.status !== UserLifecycleJobStatus.Completed) {
-    throw new ConflictError('Account deletion is still in progress');
+    throw new ConflictError(ERROR_CODES.TASK_TIMEOUT);
   }
 }
 

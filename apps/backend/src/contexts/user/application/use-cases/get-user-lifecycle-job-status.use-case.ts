@@ -1,4 +1,4 @@
-import { NotFoundError, UserId, EventId } from '@awdah/shared';
+import { NotFoundError, UserId, EventId, ERROR_CODES } from '@awdah/shared';
 import type {
   IUserLifecycleJobRepository,
   UserLifecycleJob,
@@ -19,7 +19,7 @@ export class GetUserLifecycleJobStatusUseCase {
     );
 
     if (!job) {
-      throw new NotFoundError('Lifecycle job not found');
+      throw new NotFoundError(ERROR_CODES.TASK_NOT_FOUND);
     }
 
     return job;

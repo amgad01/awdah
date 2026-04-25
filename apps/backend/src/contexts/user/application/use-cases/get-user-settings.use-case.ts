@@ -1,6 +1,5 @@
-import { NotFoundError, UserId } from '@awdah/shared';
+import { NotFoundError, UserId, ERROR_CODES } from '@awdah/shared';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
-import { userSettingsNotFound } from '../../../../shared/errors/messages';
 
 export class GetUserSettingsUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
@@ -8,7 +7,7 @@ export class GetUserSettingsUseCase {
   async execute(userId: string) {
     const settings = await this.userRepository.findById(new UserId(userId));
     if (!settings) {
-      throw new NotFoundError(userSettingsNotFound);
+      throw new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND);
     }
     return settings;
   }
