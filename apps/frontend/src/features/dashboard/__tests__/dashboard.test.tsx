@@ -26,6 +26,7 @@ vi.mock('@/hooks/use-worship', () => ({
   useWorship: vi.fn(),
   useStreak: vi.fn(),
   useStreakDetails: vi.fn(),
+  useSalahHistory: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
 vi.mock('@/hooks/use-dual-date', () => ({
@@ -101,6 +102,7 @@ describe('Dashboard', () => {
       monThuStreak: 2,
       obligatoryStreak: 3,
       fastStreak: 1,
+      qadaaFastStreak: 0,
     } as any);
   });
 
