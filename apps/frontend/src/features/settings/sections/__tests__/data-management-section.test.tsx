@@ -131,7 +131,7 @@ describe('DataManagementSection', () => {
 
   it('shows workflow errors for export instead of only auth errors', async () => {
     mockVerifyPassword.mockResolvedValue(undefined);
-    mockExportData.mockRejectedValue(new Error('common.task_failed'));
+    mockExportData.mockRejectedValue(new Error('TASK_FAILED'));
 
     renderSection();
 

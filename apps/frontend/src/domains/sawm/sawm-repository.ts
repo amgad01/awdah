@@ -14,6 +14,7 @@ export interface LogFastInput {
 export interface DeleteFastInput {
   date: string;
   eventId: string;
+  type: string;
 }
 
 export const sawmRepository = {
