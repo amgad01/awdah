@@ -1,16 +1,9 @@
 import type { DeleteAccountResponse, UserLifecycleJobResponse } from '@/lib/api';
 import { userRepository } from './user-repository';
+import { ERROR_CODES } from '@awdah/shared';
 
 const USER_JOB_POLL_INTERVAL_MS = 1_500;
 const USER_JOB_POLL_TIMEOUT_MS = 90_000;
-const LIFECYCLE_JOB_ERROR_KEYS = {
-  notFound: 'common.task_not_found',
-  unexpectedResult: 'common.task_unexpected_result',
-  failed: 'common.task_failed',
-  timeout: 'common.task_timeout',
-  deleteStartFailed: 'common.account_deletion_failed',
-  exportStartFailed: 'common.data_export_failed',
-} as const;
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -18,12 +11,12 @@ async function sleep(ms: number): Promise<void> {
 
 function requireLifecycleJob(
   response: { job: UserLifecycleJobResponse } | null,
-  missingJobErrorKey: string,
+  missingJobErrorCode: string,
 ): UserLifecycleJobResponse {
   const job = response?.job;
 
   if (!job) {
-    throw new Error(missingJobErrorKey);
+    throw new Error(missingJobErrorCode);
   }
 
   return job;
@@ -34,7 +27,7 @@ function assertExpectedLifecycleJobType(
   expectedType: UserLifecycleJobResponse['type'],
 ): void {
   if (job.type !== expectedType) {
-    throw new Error(LIFECYCLE_JOB_ERROR_KEYS.unexpectedResult);
+    throw new Error(ERROR_CODES.TASK_NOT_FOUND);
   }
 }
 
@@ -44,7 +37,7 @@ function getCompletedLifecycleJob(job: UserLifecycleJobResponse): UserLifecycleJ
   }
 
   if (job.status === 'failed') {
-    throw new Error(LIFECYCLE_JOB_ERROR_KEYS.failed);
+    throw new Error(ERROR_CODES.TASK_FAILED);
   }
 
   return null;
@@ -59,7 +52,7 @@ export async function waitForLifecycleJob(
   while (Date.now() - startedAt < USER_JOB_POLL_TIMEOUT_MS) {
     const job = requireLifecycleJob(
       await userRepository.getJobStatus(jobId),
-      LIFECYCLE_JOB_ERROR_KEYS.notFound,
+      ERROR_CODES.TASK_NOT_FOUND,
     );
     assertExpectedLifecycleJobType(job, expectedType);
 
@@ -71,13 +64,13 @@ export async function waitForLifecycleJob(
     await sleep(USER_JOB_POLL_INTERVAL_MS);
   }
 
-  throw new Error(LIFECYCLE_JOB_ERROR_KEYS.timeout);
+  throw new Error(ERROR_CODES.TASK_TIMEOUT);
 }
 
 export async function prepareUserDataExportWorkflow(): Promise<string> {
   const job = requireLifecycleJob(
     await userRepository.startExportData(),
-    LIFECYCLE_JOB_ERROR_KEYS.exportStartFailed,
+    ERROR_CODES.EXPORT_DOWNLOAD_FAILED,
   );
 
   await waitForLifecycleJob(job.jobId, 'export');
@@ -87,7 +80,7 @@ export async function prepareUserDataExportWorkflow(): Promise<string> {
 export async function deleteUserAccountWorkflow(): Promise<DeleteAccountResponse | null> {
   const job = requireLifecycleJob(
     await userRepository.startDeleteAccount(),
-    LIFECYCLE_JOB_ERROR_KEYS.deleteStartFailed,
+    ERROR_CODES.TASK_NOT_FOUND,
   );
 
   await waitForLifecycleJob(job.jobId, 'delete-account');
