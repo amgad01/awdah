@@ -192,8 +192,6 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimit'
         '500':
@@ -351,132 +349,6 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          description: Overlapping period already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    put:
-      operationId: updatePracticingPeriod
-      tags: [salah]
-      summary: Update a practicing period
-      description: |
-        Updates an existing practicing period in place. The period keeps the same
-        `periodId`, and the updated range must still remain non-overlapping with
-        the user's other recorded periods.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdatePracticingPeriodRequest'
-      responses:
-        '200':
-          description: Period updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Updated period overlaps with an existing period
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-    delete:
-      operationId: deletePracticingPeriod
-      tags: [salah]
-      summary: Delete a practicing period
-      description: Removes a specific practicing period. Debt is recalculated the next time `GET /v1/salah/debt` or `GET /v1/sawm/debt` is called.
-      parameters:
-        - name: periodId
-          in: query
-          required: true
-          schema:
-            type: string
-            minLength: 1
-            example: '01HTBZ1234ABCDEFGHIJKLMNOP'
-      responses:
-        '200':
-          description: Period deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /v1/salah/practicing-periods:
-    get:
-      operationId: getPracticingPeriods
-      tags: [salah]
-      summary: List all practicing periods
-      description: Returns all practicing periods recorded by the authenticated user, in no guaranteed order.
-      responses:
-        '200':
-          description: List of practicing periods
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PracticingPeriod'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  # ---------------------------------------------------------------------------
-  # Sawm — fast logs
-  # ---------------------------------------------------------------------------
-  /v1/sawm/log:
-    post:
-      operationId: logFast
-      tags: [sawm]
-      summary: Log a fast
-      description: |
-        Records a single fasting day as either a current obligatory fast (`obligatory`)
-        or a make-up qadaa fast (`qadaa`).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogFastRequest'
-            examples:
-              qadaaFast:
-                summary: Qadaa fast
-                value:
-                  date: '1446-09-01'
-                  type: qadaa
-      responses:
-        '201':
-          description: Fast logged
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthenticated'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -531,8 +403,6 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimit'
         '500':
@@ -757,8 +627,6 @@ paths:
           $ref: '#/components/responses/Unauthenticated'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -820,8 +688,6 @@ paths:
           $ref: '#/components/responses/Unauthenticated'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
 
