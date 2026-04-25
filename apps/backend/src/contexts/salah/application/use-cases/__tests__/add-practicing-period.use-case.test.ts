@@ -93,7 +93,7 @@ describe('AddPracticingPeriodUseCase', () => {
 
     const promise = useCase.execute(earlyCommand);
     await expect(promise).rejects.toThrow(ValidationError);
-    await expect(promise).rejects.toThrow('onboarding.period_error_before_dob');
+    await expect(promise).rejects.toThrow('PERIOD_BEFORE_DOB');
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 
@@ -111,7 +111,7 @@ describe('AddPracticingPeriodUseCase', () => {
 
     const promise = useCase.execute(earlyCommand);
     await expect(promise).rejects.toThrow(ValidationError);
-    await expect(promise).rejects.toThrow('onboarding.period_error_before_revert');
+    await expect(promise).rejects.toThrow('PERIOD_BEFORE_REVERT');
     expect(mockRepo.save).not.toHaveBeenCalled();
   });
 

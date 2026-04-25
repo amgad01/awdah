@@ -1,8 +1,14 @@
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import { IUserRepository } from '../../../shared/domain/repositories/user.repository';
 import { PracticingPeriod } from '../../../shared/domain/entities/practicing-period.entity';
-import { HijriDate, UserId, PeriodId, NotFoundError, PracticingPeriodType } from '@awdah/shared';
-import { userSettingsNotFound } from '../../../../shared/errors/messages';
+import {
+  HijriDate,
+  UserId,
+  PeriodId,
+  NotFoundError,
+  PracticingPeriodType,
+  ERROR_CODES,
+} from '@awdah/shared';
 import { assertPracticingPeriodStartDateAllowed } from '../../../shared/domain/services/practicing-period-rules';
 
 export interface UpdatePracticingPeriodCommand {
@@ -25,12 +31,12 @@ export class UpdatePracticingPeriodUseCase {
 
     const existing = await this.repository.findById(userId, periodId);
     if (!existing) {
-      throw new NotFoundError('onboarding.period_error_not_found');
+      throw new NotFoundError(ERROR_CODES.PERIOD_NOT_FOUND);
     }
 
     const userSettings = await this.userRepository.findById(userId);
     if (!userSettings) {
-      throw new NotFoundError(userSettingsNotFound);
+      throw new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND);
     }
 
     const startDate = HijriDate.fromString(command.startDate);
