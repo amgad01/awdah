@@ -20,15 +20,15 @@ export interface LambdaOptions {
   context?: string;
   reservedConcurrentExecutions?: number;
   layers?: lambda.ILayerVersion[];
-  /** Ephemeral storage size in MB (default: 512, min: 512, max: 10240) */
+  /** Ephemeral storage size in MB (default: 512) */
   ephemeralStorageSize?: number;
-  /** Create a live alias for this function (enables weighted deployments) */
+  /** Create a live alias for this function */
   createAlias?: boolean;
-  /** Alias name when createAlias is true (default: 'live') */
+  /** Alias name (default: 'live') */
   aliasName?: string;
-  /** Enable Lambda Insights for enhanced monitoring (CPU, memory, cold starts) */
+  /** Enable Lambda Insights (CPU/Memory metrics) */
   enableInsights?: boolean;
-  /** Enable recursive loop detection (prevents runaway invocations) */
+  /** Enable recursive loop detection */
   enableRecursiveLoopDetection?: boolean;
   logRetention?: logs.RetentionDays;
 }
@@ -41,14 +41,165 @@ export interface DynamoDBTableOptions {
 
 /**
  * Factory for creating standardized AWS resources with project defaults.
+ * Optimized for cost-efficiency (free tier) and high performance (ARM64).
  */
 export class ProjectResourceFactory {
   private static cachedLayerDeps: string[] | null = null;
 
   /**
-   * Reads shared dependencies from the Lambda layer's package.json.
-   * These should be excluded from individual Lambda bundles.
+   * Creates a Node.js Lambda function with project-standard configuration.
+   *
+   * Features:
+   * - ARM64 Architecture (~34% cheaper than x86)
+   * - Automatic log retention based on environment
+   * - Conditional tracing/insights (disabled in dev for cost)
+   * - Dynamic layer dependency exclusion
    */
+  public static createNodejsFunction(
+    scope: Construct,
+    id: string,
+    options: LambdaOptions,
+    projectEnv?: string,
+  ): lambda_nodejs.NodejsFunction {
+    const config = getConfig(scope);
+    const isDev = projectEnv === 'dev';
+
+    // 1. Log Retention: Strict defaults to avoid storage costs
+    const retention = options.logRetention ?? this.getLogRetention(projectEnv);
+    const logGroup = new logs.LogGroup(scope, `${id}LogGroup`, { retention });
+
+    // 2. Bundling & Layers: Dynamic dependency exclusion
+    const externalModules = ['@aws-sdk/*'];
+    if (options.layers && options.layers.length > 0) {
+      externalModules.push(...this.getLayerDependencies());
+    }
+
+    // 3. Performance & Cost Optimization
+    // ARM_64 is the project standard for cost-efficiency.
+    const architecture = lambda.Architecture.ARM_64;
+    const ephemeralStorageSize = options.ephemeralStorageSize ?? 512;
+    const ephemeralStorage = cdk.Size.mebibytes(ephemeralStorageSize);
+
+    // 4. Observability Guardrails
+    // Active tracing and Insights have separate costs. Disabled in dev for free-tier safety.
+    const tracing = isDev ? lambda.Tracing.DISABLED : lambda.Tracing.ACTIVE;
+    const insights =
+      options.enableInsights && !isDev ? lambda.LambdaInsightsVersion.VERSION_1_0_229_0 : undefined;
+
+    const fn = new lambda_nodejs.NodejsFunction(scope, id, {
+      entry: options.entry,
+      handler: options.handler ?? 'handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      architecture,
+      memorySize: options.memorySize ?? 256,
+      timeout: options.timeout ?? config.lambdaTimeout,
+      tracing,
+      insightsVersion: insights,
+      recursiveLoop: options.enableRecursiveLoopDetection
+        ? lambda.RecursiveLoop.TERMINATE
+        : undefined,
+      logGroup,
+      environment: options.environment,
+      deadLetterQueue: options.deadLetterQueue,
+      retryAttempts: options.retryAttempts,
+      reservedConcurrentExecutions: options.reservedConcurrentExecutions,
+      layers: options.layers,
+      ephemeralStorageSize: ephemeralStorage,
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules,
+        metafile: true,
+        banner: '/* Awdah Lambda Bundle */',
+      },
+    });
+
+    if (options.context) {
+      cdk.Tags.of(fn).add('context', options.context);
+    }
+
+    if (options.createAlias) {
+      const aliasName = options.aliasName ?? 'live';
+      new lambda.Alias(scope, `${id}Alias`, {
+        aliasName,
+        version: fn.currentVersion,
+        description: `${aliasName} alias for ${id}`,
+      });
+      cdk.Tags.of(fn).add('alias', aliasName);
+    }
+
+    return fn;
+  }
+
+  // --- Storage Creation ---
+
+  /**
+   * Creates an S3 Bucket with zero-cost standard encryption (SSE-S3).
+   */
+  public static createS3Bucket(
+    scope: Construct,
+    id: string,
+    bucketName: string,
+    removalPolicy: cdk.RemovalPolicy,
+    blockPublicAccess: boolean = true,
+  ): s3.Bucket {
+    return new s3.Bucket(scope, id, {
+      bucketName,
+      removalPolicy,
+      autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
+      versioned: true,
+      // SSE-S3: managed by S3 at zero cost. KMS would add $0.03 per 10k requests.
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      blockPublicAccess: blockPublicAccess ? s3.BlockPublicAccess.BLOCK_ALL : undefined,
+      enforceSSL: true,
+    });
+  }
+
+  /**
+   * Creates a DynamoDB Table with Pay-Per-Request billing.
+   */
+  public static createDynamoDBTable(
+    scope: Construct,
+    id: string,
+    tableName: string,
+    partitionKey: dynamodb.Attribute,
+    sortKey: dynamodb.Attribute | undefined,
+    removalPolicy: cdk.RemovalPolicy,
+    options: DynamoDBTableOptions = {},
+  ): dynamodb.Table {
+    const isDev = removalPolicy === cdk.RemovalPolicy.DESTROY;
+
+    return new dynamodb.Table(scope, id, {
+      tableName,
+      partitionKey,
+      sortKey,
+      // PAY_PER_REQUEST: Zero cost when idle.
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      // PITR: cost is $0.20 per GB/month. Disabled in dev by default to stay free.
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: options.pointInTimeRecoveryEnabled ?? !isDev,
+      },
+      removalPolicy,
+      stream: options.stream,
+      timeToLiveAttribute: options.timeToLiveAttribute,
+    });
+  }
+
+  // --- Internal Helpers ---
+
+  private static getLogRetention(projectEnv?: string): logs.RetentionDays {
+    switch (projectEnv) {
+      case 'dev':
+        return logs.RetentionDays.ONE_DAY;
+      case 'staging':
+        return logs.RetentionDays.ONE_WEEK;
+      case 'prod':
+        return logs.RetentionDays.ONE_MONTH;
+      default:
+        return logs.RetentionDays.ONE_MONTH;
+    }
+  }
+
   private static getLayerDependencies(): string[] {
     if (this.cachedLayerDeps) return this.cachedLayerDeps;
 
@@ -64,184 +215,5 @@ export class ProjectResourceFactory {
       console.warn(`[ProjectResourceFactory] Warning: Failed to read layer dependencies: ${e}`);
       return [];
     }
-  }
-
-  /**
-   * Get default log retention based on environment.
-   * dev: 1 day (active debugging)
-   * staging: 7 days (moderate retention for testing)
-   * prod: 30 days (standard production retention)
-   */
-  private static getDefaultLogRetention(projectEnv: string): logs.RetentionDays {
-    switch (projectEnv) {
-      case 'dev':
-        return logs.RetentionDays.ONE_DAY;
-      case 'staging':
-        return logs.RetentionDays.ONE_WEEK;
-      case 'prod':
-      default:
-        return logs.RetentionDays.ONE_MONTH;
-    }
-  }
-
-  /**
-   * Creates a Node.js Lambda function with project-standard props.
-   */
-  public static createNodejsFunction(
-    scope: Construct,
-    id: string,
-    options: LambdaOptions,
-    projectEnv?: string,
-    architecture: lambda.Architecture = lambda.Architecture.ARM_64,
-  ): lambda_nodejs.NodejsFunction {
-    const config = getConfig(scope);
-    const effectiveLogRetention =
-      options.logRetention ??
-      (projectEnv ? this.getDefaultLogRetention(projectEnv) : logs.RetentionDays.ONE_MONTH);
-
-    const logGroup = new logs.LogGroup(scope, `${id}LogGroup`, {
-      retention: effectiveLogRetention,
-    });
-
-    const externalModules = ['@aws-sdk/*'];
-    const hasSharedLayer = options.layers && options.layers.length > 0;
-
-    if (hasSharedLayer) {
-      // Exclude shared dependencies - they're in the layer
-      externalModules.push(...this.getLayerDependencies());
-    }
-
-    // Ephemeral storage: AWS requires minimum 512MB, default to 512MB
-    // Can tune to 10240MB max for heavy file operations (exports, processing)
-    const ephemeralStorageSize = options.ephemeralStorageSize ?? 512;
-    const ephemeralStorage = cdk.Size.mebibytes(ephemeralStorageSize);
-
-    // ARM_64: ~34% cheaper than x86 for the same Lambda workload.
-    const fn = new lambda_nodejs.NodejsFunction(scope, id, {
-      entry: options.entry,
-      handler: options.handler ?? 'handler',
-      runtime: lambda.Runtime.NODEJS_22_X,
-      architecture: architecture,
-      memorySize: options.memorySize ?? 256,
-      timeout: options.timeout ?? config.lambdaTimeout,
-      // Active tracing enables X-Ray service-map visualisation.
-      tracing: lambda.Tracing.ACTIVE,
-      // Lambda Insights: enhanced monitoring (CPU, memory, cold start analysis)
-      // Note: Adds ~$0.60 per million invocations
-      insightsVersion: options.enableInsights
-        ? lambda.LambdaInsightsVersion.VERSION_1_0_229_0
-        : undefined,
-      // Recursive loop detection: prevents runaway invocations
-      // Automatically stops functions that appear to be in a recursive loop
-      recursiveLoop: options.enableRecursiveLoopDetection
-        ? lambda.RecursiveLoop.TERMINATE
-        : undefined,
-      logGroup,
-      environment: options.environment,
-      deadLetterQueue: options.deadLetterQueue,
-      retryAttempts: options.retryAttempts,
-      reservedConcurrentExecutions: options.reservedConcurrentExecutions,
-      layers: options.layers,
-      ephemeralStorageSize: ephemeralStorage,
-      bundling: {
-        minify: true,
-        sourceMap: true,
-        // Exclude the AWS SDK v3 — Lambda runtime already includes it.
-        // This shrinks bundles and avoids mismatched SDK versions.
-        externalModules,
-        // Generate metafile for bundle analysis
-        metafile: true,
-        // Output metafile to analyze bundle composition
-        banner: '/* Awdah Lambda Bundle */',
-      },
-    });
-
-    if (options.context) {
-      cdk.Tags.of(fn).add('context', options.context);
-    }
-
-    // Create alias if requested (enables weighted deployments and easier rollbacks)
-    if (options.createAlias) {
-      const aliasName = options.aliasName ?? 'live';
-      new lambda.Alias(scope, `${id}Alias`, {
-        aliasName,
-        version: fn.currentVersion,
-        description: `${aliasName} alias for ${id}`,
-      });
-
-      // Tag the function to indicate it has an alias
-      cdk.Tags.of(fn).add('alias', aliasName);
-    }
-
-    return fn;
-  }
-
-  /**
-   * Analyzes the bundle metafile for a Lambda function.
-   * Call this after synthesis to see what's being bundled.
-   */
-  public static analyzeBundle(fn: lambda_nodejs.NodejsFunction): void {
-    // Access the metafile through the function's bundling configuration
-    // This is logged during build but can be analyzed programmatically if needed
-    const buildOptions = (fn as unknown as { _bundling?: { options?: { metafile?: boolean } } })
-      ._bundling?.options;
-    if (buildOptions?.metafile) {
-      // eslint-disable-next-line no-console -- Build-time logging for bundle analysis
-      console.log(`[Bundle Analysis] ${fn.node.id}: metafile enabled`);
-    }
-  }
-
-  /**
-   * Creates an S3 Bucket with project-standard encryption and removal policy.
-   */
-  public static createS3Bucket(
-    scope: Construct,
-    id: string,
-    bucketName: string,
-    removalPolicy: cdk.RemovalPolicy,
-    blockPublicAccess: boolean = true,
-  ): s3.Bucket {
-    return new s3.Bucket(scope, id, {
-      bucketName,
-      removalPolicy,
-      // Auto-delete empties the bucket before deletion (dev/staging only).
-      autoDeleteObjects: removalPolicy === cdk.RemovalPolicy.DESTROY,
-      versioned: true,
-      // SSE-S3: zero-cost default encryption. KMS would add per-request cost.
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      blockPublicAccess: blockPublicAccess ? s3.BlockPublicAccess.BLOCK_ALL : undefined,
-      // enforceSSL rejects any non-HTTPS PutObject — defense in depth.
-      enforceSSL: true,
-    });
-  }
-
-  /**
-   * Creates a DynamoDB Table with project-standard PITR and billing mode.
-   */
-  public static createDynamoDBTable(
-    scope: Construct,
-    id: string,
-    tableName: string,
-    partitionKey: dynamodb.Attribute,
-    sortKey: dynamodb.Attribute | undefined,
-    removalPolicy: cdk.RemovalPolicy,
-    options: DynamoDBTableOptions = {},
-  ): dynamodb.Table {
-    return new dynamodb.Table(scope, id, {
-      tableName,
-      partitionKey,
-      sortKey,
-      // PAY_PER_REQUEST: no capacity planning, ideal for unpredictable
-      // workloads. We accept slightly higher per-request cost in exchange
-      // for zero manual scaling and no provisioned-capacity alarms.
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      // PITR enabled by default — allows point-in-time recovery up to 35 days.
-      pointInTimeRecoverySpecification: {
-        pointInTimeRecoveryEnabled: options.pointInTimeRecoveryEnabled ?? true,
-      },
-      removalPolicy,
-      stream: options.stream,
-      timeToLiveAttribute: options.timeToLiveAttribute,
-    });
   }
 }
