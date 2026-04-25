@@ -12,11 +12,11 @@ import {
   type CalculationMethod,
   type MoonSightingPreference,
   type Location,
+  ERROR_CODES,
 } from '@awdah/shared';
 import { settings } from '../../config/settings';
-import { UserSettingsSK } from './keys/user-settings-key';
 import { BaseDynamoDBRepository, DomainKeys } from './base-dynamodb.repository';
-import { userSettingsNotFound } from '../../errors/messages';
+import { UserSettingsSK } from './keys/user-settings-key';
 
 export class DynamoDBUserRepository
   extends BaseDynamoDBRepository<UserSettings>
@@ -58,7 +58,7 @@ export class DynamoDBUserRepository
 
   protected mapToDomain(item: Record<string, unknown>): UserSettings {
     if (!item.bulughDate || !item.gender) {
-      throw new NotFoundError(userSettingsNotFound);
+      throw new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND);
     }
 
     return {

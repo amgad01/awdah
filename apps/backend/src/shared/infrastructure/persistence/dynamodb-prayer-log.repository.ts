@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IPrayerLogRepository } from '../../../contexts/salah/domain/repositories/prayer-log.repository';
 import { PrayerLog } from '../../../contexts/salah/domain/entities/prayer-log.entity';
 import { HijriDate, UserId, EventId } from '@awdah/shared';
@@ -91,15 +91,23 @@ export class DynamoDBPrayerLogRepository
   private async computeQadaaBuckets(
     userId: UserId,
   ): Promise<Map<string, { prayerName: string; prayed: number; deselected: number }>> {
-    const logs = await this.findAllWithIndexPrefix({
+    // Project sk alongside the fields needed for bucketing so mapToDomain can decode it.
+    // Without an explicit projection, GSI queries return only key attributes (userId + typeDate).
+    const items = await this.queryRawPages({
       pk: userId.toString(),
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: PrayerLogKey.typeDatePrefixForType('qadaa'),
+      projectionExpression: '#sk, #type, #action, loggedAt, prayerName, userId',
+      expressionAttributeNames: { '#sk': 'sk', '#type': 'type', '#action': 'action' },
     });
 
+    const logs = items
+      .map((item) => this.mapToDomain(item))
+      .sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime());
+
     const buckets = new Map<string, { prayerName: string; prayed: number; deselected: number }>();
-    for (const log of logs.sort((a, b) => a.loggedAt.getTime() - b.loggedAt.getTime())) {
+    for (const log of logs) {
       const key = createPrayerSlotKey(log.date.toString(), log.prayerName.getValue());
       const bucket = buckets.get(key) ?? {
         prayerName: log.prayerName.getValue().toLowerCase(),
@@ -129,19 +137,7 @@ export class DynamoDBPrayerLogRepository
   }
 
   async hasAnyLogs(userId: UserId): Promise<boolean> {
-    const command = new QueryCommand({
-      TableName: this.tableName,
-      KeyConditionExpression: '#pk = :pk',
-      ExpressionAttributeNames: {
-        '#pk': this.pkName,
-      },
-      ExpressionAttributeValues: {
-        ':pk': userId.toString(),
-      },
-      Limit: 1,
-    });
-    const response = await this.docClient.send(command);
-    return (response.Items?.length ?? 0) > 0;
+    return this.existsAny({ pk: userId.toString() });
   }
 
   protected encodeKeys(log: PrayerLog): DomainKeys {

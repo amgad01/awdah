@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { IFastLogRepository } from '../../../contexts/sawm/domain/repositories/fast-log.repository';
 import { FastLog } from '../../../contexts/sawm/domain/entities/fast-log.entity';
 import { HijriDate, UserId, EventId } from '@awdah/shared';
@@ -68,14 +68,21 @@ export class DynamoDBFastLogRepository
   }
 
   async countQadaaCompleted(userId: UserId): Promise<number> {
-    const logs = await this.findAllWithIndexPrefix({
+    // Project only typeDate (qadaa#YYYY-MM-DD) — primary SK not needed for a date count.
+    const items = await this.queryRawPages({
       pk: userId.toString(),
       indexName: 'typeDateIndex',
       skName: 'typeDate',
       skPrefix: FastLogKey.typeDatePrefixForType('qadaa'),
+      projectionExpression: 'typeDate',
     });
 
-    return new Set(logs.map((log) => log.date.toString())).size;
+    const uniqueDates = new Set(
+      items
+        .map((item) => (item['typeDate'] as string | undefined)?.split('#')[1])
+        .filter((d): d is string => d !== undefined),
+    );
+    return uniqueDates.size;
   }
 
   async deleteEntry(userId: UserId, date: HijriDate, eventId: EventId): Promise<void> {
@@ -86,19 +93,7 @@ export class DynamoDBFastLogRepository
   }
 
   async hasAnyLogs(userId: UserId): Promise<boolean> {
-    const command = new QueryCommand({
-      TableName: this.tableName,
-      KeyConditionExpression: '#pk = :pk',
-      ExpressionAttributeNames: {
-        '#pk': this.pkName,
-      },
-      ExpressionAttributeValues: {
-        ':pk': userId.toString(),
-      },
-      Limit: 1,
-    });
-    const response = await this.docClient.send(command);
-    return (response.Items?.length ?? 0) > 0;
+    return this.existsAny({ pk: userId.toString() });
   }
 
   protected encodeKeys(log: FastLog): DomainKeys {
