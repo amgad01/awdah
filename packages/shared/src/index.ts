@@ -43,7 +43,7 @@ export type {
   Environment,
   HijriDateObject,
   ApiErrorResponse,
-} from './types';
+} from './types/index';
 export * from './domain/value-objects/hijri-date';
 export * from './domain/value-objects/user-id';
 export * from './domain/value-objects/event-id';
