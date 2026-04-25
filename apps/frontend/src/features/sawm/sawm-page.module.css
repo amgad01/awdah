@@ -273,6 +273,21 @@
   }
 }
 
+/* ── Chart Card ── */
+.chartCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+}
+
+.chartLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* ── Logger & Guidance ── */
 /* loggerCard — no extra styles needed, Card handles its own padding */
 

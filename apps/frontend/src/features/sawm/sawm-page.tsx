@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSawmDebt } from '@/hooks/use-worship';
 import { useLanguage } from '@/hooks/use-language';
@@ -6,11 +6,18 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import { SawmLogger } from '@/features/sawm/sawm-logger';
 import { invalidateSawmQueries } from '@/utils/query-invalidation';
 import { todayHijriDate } from '@/utils/date-utils';
 import { Sun, CheckCircle2, Circle, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import styles from './sawm-page.module.css';
+
+const SawmWeeklyChart = lazy(() =>
+  import('@/components/ui/weekly-chart/sawm-weekly-chart').then((module) => ({
+    default: module.SawmWeeklyChart,
+  })),
+);
 
 export const SawmPage: React.FC = () => {
   const { t, fmtNumber } = useLanguage();
@@ -125,8 +132,21 @@ export const SawmPage: React.FC = () => {
         ) : null}
       </Card>
 
+      {/* ── Weekly Overview Chart ── */}
+      <Card
+        title={t('sawm.weekly_overview')}
+        subtitle={t('sawm.weekly_overview_subtitle')}
+        className={styles.chartCard}
+      >
+        <Suspense fallback={<div className={styles.chartLoading}>{t('common.loading')}</div>}>
+          <SawmWeeklyChart />
+        </Suspense>
+      </Card>
+
       {/* ── Encouragement ── */}
-      <div className={styles.encouragement}>{t('sawm.encouragement')}</div>
+      <div className={styles.encouragement}>
+        <GlossaryText>{t('sawm.encouragement')}</GlossaryText>
+      </div>
 
       <div className={styles.grid}>
         {/* ── Daily Sawm Logger ── */}

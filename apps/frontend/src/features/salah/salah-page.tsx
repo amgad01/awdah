@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSalahDebt } from '@/hooks/use-worship';
 import { useLanguage } from '@/hooks/use-language';
@@ -6,12 +6,19 @@ import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { Card } from '@/components/ui/card/card';
 import { ProgressBar } from '@/components/ui/progress/progress-bar';
+import { GlossaryText } from '@/components/ui/term-tooltip';
 import { PrayerLogger } from '@/features/salah/prayer-logger';
 import { PRAYERS } from '@/lib/constants';
 import { invalidateSalahQueries } from '@/utils/query-invalidation';
 import { todayHijriDate } from '@/utils/date-utils';
 import { Moon, CheckCircle2, Circle, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import styles from './salah-page.module.css';
+
+const SalahWeeklyChart = lazy(() =>
+  import('@/components/ui/weekly-chart/salah-weekly-chart').then((module) => ({
+    default: module.SalahWeeklyChart,
+  })),
+);
 
 export const SalahPage: React.FC = () => {
   const { t, fmtNumber } = useLanguage();
@@ -155,8 +162,21 @@ export const SalahPage: React.FC = () => {
         ) : null}
       </Card>
 
+      {/* ── Weekly Overview Chart ── */}
+      <Card
+        title={t('salah.weekly_overview')}
+        subtitle={t('salah.weekly_overview_subtitle')}
+        className={styles.chartCard}
+      >
+        <Suspense fallback={<div className={styles.chartLoading}>{t('common.loading')}</div>}>
+          <SalahWeeklyChart />
+        </Suspense>
+      </Card>
+
       {/* ── Encouragement ── */}
-      <div className={styles.encouragement}>{t('salah.encouragement')}</div>
+      <div className={styles.encouragement}>
+        <GlossaryText>{t('salah.encouragement')}</GlossaryText>
+      </div>
 
       <div className={styles.grid}>
         {/* ── Daily Prayer Logger ── */}

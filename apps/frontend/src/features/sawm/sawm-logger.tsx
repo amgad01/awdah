@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
-import { useLogFast, useDailySawmLog, useDeleteFast } from '@/hooks/use-worship';
+import { useLogFast, useDailySawmLog, useDeleteFast, useSawmDebt } from '@/hooks/use-worship';
 import { useProfile } from '@/hooks/use-profile';
 import { useDualDate } from '@/hooks/use-dual-date';
 import { ErrorState } from '@/components/ui/error-state/error-state';
@@ -59,6 +59,7 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
   const fastType = isSelectedRamadan ? 'obligatory' : 'qadaa';
 
   const { data: logs, isLoading, error, isError } = useDailySawmLog(selectedDate);
+  const { data: debt } = useSawmDebt();
   const logMutation = useLogFast();
   const deleteMutation = useDeleteFast();
 
@@ -67,6 +68,7 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
   }, [logs, fastType]);
 
   const isLogged = !!fastLog;
+  const isQadaaComplete = fastType === 'qadaa' && (debt?.remainingDays ?? 0) <= 0;
   const isPending = logMutation.isPending || deleteMutation.isPending;
   const isFuture = selectedDate > today;
 
@@ -77,10 +79,10 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
     : t(isSelectedRamadan ? 'sawm.fast_today_ramadan' : 'sawm.log_fast_today');
 
   const handleToggle = useCallback(() => {
-    if (isPending || isFuture) return;
+    if (isPending || isFuture || isQadaaComplete) return;
     if (isLogged && fastLog) {
       if (isSuppressed()) {
-        deleteMutation.mutate({ date: selectedDate, eventId: fastLog.eventId });
+        deleteMutation.mutate({ date: selectedDate, eventId: fastLog.eventId, type: fastLog.type });
       } else {
         setPendingUncheck(fastLog);
         setSuppressChecked(false);
@@ -88,12 +90,26 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
     } else {
       logMutation.mutate({ date: selectedDate, type: fastType });
     }
-  }, [isPending, isFuture, isLogged, fastLog, selectedDate, fastType, deleteMutation, logMutation]);
+  }, [
+    isPending,
+    isFuture,
+    isQadaaComplete,
+    isLogged,
+    fastLog,
+    selectedDate,
+    fastType,
+    deleteMutation,
+    logMutation,
+  ]);
 
   const confirmUncheck = () => {
     if (!pendingUncheck) return;
     if (suppressChecked) setSuppressed();
-    deleteMutation.mutate({ date: selectedDate, eventId: pendingUncheck.eventId });
+    deleteMutation.mutate({
+      date: selectedDate,
+      eventId: pendingUncheck.eventId,
+      type: pendingUncheck.type,
+    });
     setPendingUncheck(null);
   };
 
@@ -143,9 +159,9 @@ export const SawmLogger: React.FC<SawmLoggerProps> = ({ initialDate }) => {
       ) : (
         <>
           <button
-            className={`${styles.logBtn} ${isLogged ? styles.logged : ''} ${isFuture || isBeforeBirth ? styles.disabled : ''}`}
+            className={`${styles.logBtn} ${isLogged ? styles.logged : ''} ${isFuture || isBeforeBirth || isQadaaComplete ? styles.disabled : ''}`}
             onClick={handleToggle}
-            disabled={isPending || isFuture || isBeforeBirth}
+            disabled={isPending || isFuture || isBeforeBirth || isQadaaComplete}
             aria-pressed={isLogged}
             data-testid="sawm-log-button"
           >
