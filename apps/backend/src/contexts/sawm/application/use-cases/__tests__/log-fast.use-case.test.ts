@@ -27,31 +27,21 @@ describe('LogFastUseCase', () => {
   });
 
   it('successfully logs a fast with a unique eventId', async () => {
-    const command = {
-      userId: 'user-1',
-      date: '1445-09-01',
-      type: 'obligatory',
-    };
     vi.mocked(mockRepo.findByUserAndDate).mockResolvedValue([]);
 
-    await useCase.execute(command);
+    await useCase.execute({ userId: 'user-1', date: '1445-09-01', type: 'obligatory' });
 
     expect(mockRepo.save).toHaveBeenCalledOnce();
-    const savedLog = vi.mocked(mockRepo.save).mock.calls[0]![0];
-    expect(savedLog.userId.toString()).toBe('user-1');
-    expect(savedLog.date.toString()).toBe('1445-09-01');
-    expect(savedLog.type.getValue()).toBe('obligatory');
-    expect(savedLog.eventId).toBeInstanceOf(EventId);
-    expect(savedLog.eventId.toString()).toBe('event-1');
+    const saved = vi.mocked(mockRepo.save).mock.calls[0]![0];
+    expect(saved.userId.toString()).toBe('user-1');
+    expect(saved.date.toString()).toBe('1445-09-01');
+    expect(saved.type.getValue()).toBe('obligatory');
+    expect(saved.eventId).toBeInstanceOf(EventId);
+    expect(saved.eventId.toString()).toBe('event-1');
   });
 
   it('treats duplicate submissions for the same date and type as idempotent', async () => {
-    const command = {
-      userId: 'user-1',
-      date: '1445-09-01',
-      type: 'qadaa',
-    };
-    const existingLog = new FastLog({
+    const existing = new FastLog({
       userId: new UserId('user-1'),
       eventId: new EventId('existing-event'),
       date: HijriDate.fromString('1445-09-01'),
@@ -60,11 +50,19 @@ describe('LogFastUseCase', () => {
     });
     vi.mocked(mockRepo.findByUserAndDate)
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([existingLog]);
+      .mockResolvedValueOnce([existing]);
 
-    await useCase.execute(command);
-    await useCase.execute(command);
+    await useCase.execute({ userId: 'user-1', date: '1445-09-01', type: 'qadaa' });
+    await useCase.execute({ userId: 'user-1', date: '1445-09-01', type: 'qadaa' });
 
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs a qadaa fast without debt validation', async () => {
+    vi.mocked(mockRepo.findByUserAndDate).mockResolvedValue([]);
+
+    await useCase.execute({ userId: 'user-1', date: '1445-09-01', type: 'qadaa' });
+
+    expect(mockRepo.save).toHaveBeenCalledOnce();
   });
 });
