@@ -21,7 +21,7 @@ export function validateCanLogFast(debt: number, existingLogs: number): void {
   if (!Number.isFinite(debt) || !Number.isFinite(existingLogs)) {
     throw new ConflictError(ERROR_CODES.SAWM_NO_QADAA_DEBT);
   }
-  if (debt === 0) {
+  if (debt <= 0 || existingLogs < 0) {
     throw new ConflictError(ERROR_CODES.SAWM_NO_QADAA_DEBT);
   }
   if (existingLogs >= debt) {

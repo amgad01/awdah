@@ -133,7 +133,7 @@ To view the documentation interactively on localhost:
 cd docs/api && python3 -m http.server 8080
 ```
 
-Then open http://localhost:8088 in your browser. `Ctrl+C` to stop.
+Then open http://localhost:8080 in your browser. `Ctrl+C` to stop.
 
 This serves `docs/api/index.html`, which loads the spec via Redoc from CDN.
 No install required — only an internet connection.

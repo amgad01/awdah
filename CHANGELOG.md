@@ -14,10 +14,8 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 #### Backend
 
 - **Semantic error code contract**: All backend use cases now throw `AppError` subclasses with semantic error codes (e.g. `SAWM_NO_QADAA_DEBT`) instead of i18n keys. Previously, use cases embedded frontend translation keys in the `error.message` field, tightly coupling the backend to the frontend i18n namespace.
-- **Consistent error status for qadaa debt**: `LogPrayerUseCase` now throws `ConflictError` (409) instead of `ValidationError` (400) when no per-prayer qadaa debt remains, matching the sawm context and correct HTTP semantics (valid input, conflicting state).
-- **Qadaa validation consistency**: `LogFastUseCase` now enforces the same debt validation rules as `LogPrayerUseCase`. Users cannot log qadaa fasts when no debt exists or when exceeding the calculated debt.
-- **Shared validation utility**: `validateCanLogFast()` in `@awdah/shared` replaces the old `validateCanLog(debt, logs, messages)`. The `messages` parameter is removed — the function throws with `ERROR_CODES.SAWM_NO_QADAA_DEBT` / `SAWM_EXCEED_QADAA_DEBT` directly.
-- **Qadaa validation bug fix**: `LogFastUseCase` now correctly passes `totalDaysOwed` (not `remainingDays`) to `validateCanLogFast`, preventing false "Cannot exceed" errors when a user has partially completed their debt.
+- **Qadaa writes remain idempotent**: `LogPrayerUseCase` and `LogFastUseCase` keep the backend write path lean. They perform duplicate-check idempotency only, while qadaa debt-limit enforcement stays in the UI per ADR-005.
+- **Shared validation utility kept for reuse**: `validateCanLogFast()` in `@awdah/shared` remains available for the qadaa debt rule, but it is not wired into the current backend write path. The UI continues to block invalid qadaa submissions before the request is sent.
 
 #### Shared
 

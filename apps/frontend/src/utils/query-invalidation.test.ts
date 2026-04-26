@@ -252,6 +252,14 @@ describe('updateSalahDebtCache', () => {
     expect(result.remainingPrayers).toBe(0);
   });
 
+  it('does not go below 0 for completedPrayers', () => {
+    const qc = makeClient();
+    qc.setQueryData(QUERY_KEYS.salahDebt, { ...SALAH_DEBT, completedPrayers: 0 });
+    updateSalahDebtCache(qc, 'fajr', -1);
+    const result = qc.getQueryData<SalahDebtResponse>(QUERY_KEYS.salahDebt)!;
+    expect(result.completedPrayers).toBe(0);
+  });
+
   it('is a no-op when cache is empty', () => {
     const qc = makeClient();
     updateSalahDebtCache(qc, 'fajr', 1);
@@ -285,6 +293,13 @@ describe('updateSawmDebtCache', () => {
     qc.setQueryData(QUERY_KEYS.sawmDebt, { ...SAWM_DEBT, remainingDays: 0 });
     updateSawmDebtCache(qc, 1);
     expect(qc.getQueryData<SawmDebtResponse>(QUERY_KEYS.sawmDebt)!.remainingDays).toBe(0);
+  });
+
+  it('does not go below 0 for completedDays', () => {
+    const qc = makeClient();
+    qc.setQueryData(QUERY_KEYS.sawmDebt, { ...SAWM_DEBT, completedDays: 0 });
+    updateSawmDebtCache(qc, -1);
+    expect(qc.getQueryData<SawmDebtResponse>(QUERY_KEYS.sawmDebt)!.completedDays).toBe(0);
   });
 });
 
@@ -452,6 +467,7 @@ describe('updatePeriodsCache', () => {
   it('appends an optimistic entry on add', () => {
     const qc = makeClient();
     qc.setQueryData(QUERY_KEYS.practicingPeriods, [period]);
+    const spy = vi.spyOn(qc, 'invalidateQueries').mockResolvedValue(undefined);
     updatePeriodsCache(qc, {
       action: 'add',
       period: { startDate: '1444-01-01', type: 'sawm' },
@@ -460,6 +476,12 @@ describe('updatePeriodsCache', () => {
     expect(result).toHaveLength(2);
     expect(result[1]!.startDate).toBe('1444-01-01');
     expect(result[1]!.periodId).toMatch(/^optimistic-/);
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: ['practicing-periods'], exact: true }),
+    );
+    expect(
+      spy.mock.calls.some((call) => (call[0] as { refetchType?: string }).refetchType === 'none'),
+    ).toBe(false);
   });
 });
 

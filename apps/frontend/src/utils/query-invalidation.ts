@@ -14,6 +14,10 @@ import type {
 } from '@/domains/salah/salah-repository';
 import type { UpdateUserProfileInput } from '@/domains/user/user-repository';
 
+function clampNonNegative(value: number): number {
+  return Math.max(0, value);
+}
+
 export function updateSalahDebtCache(
   queryClient: QueryClient,
   prayerName: string,
@@ -22,11 +26,11 @@ export function updateSalahDebtCache(
   queryClient.setQueryData<SalahDebtResponse>(QUERY_KEYS.salahDebt, (prev) => {
     if (!prev) return prev;
     const perPrayer = { ...prev.perPrayerRemaining };
-    perPrayer[prayerName] = Math.max(0, (perPrayer[prayerName] ?? 0) - delta);
+    perPrayer[prayerName] = clampNonNegative((perPrayer[prayerName] ?? 0) - delta);
     return {
       ...prev,
-      completedPrayers: prev.completedPrayers + delta,
-      remainingPrayers: Math.max(0, prev.remainingPrayers - delta),
+      completedPrayers: clampNonNegative(prev.completedPrayers + delta),
+      remainingPrayers: clampNonNegative(prev.remainingPrayers - delta),
       perPrayerRemaining: perPrayer,
     };
   });
@@ -37,8 +41,8 @@ export function updateSawmDebtCache(queryClient: QueryClient, delta: 1 | -1): vo
     if (!prev) return prev;
     return {
       ...prev,
-      completedDays: prev.completedDays + delta,
-      remainingDays: Math.max(0, prev.remainingDays - delta),
+      completedDays: clampNonNegative(prev.completedDays + delta),
+      remainingDays: clampNonNegative(prev.remainingDays - delta),
     };
   });
 }
@@ -147,7 +151,6 @@ export function updatePeriodsCache(queryClient: QueryClient, update: PeriodsUpda
     void queryClient.invalidateQueries({
       queryKey: QUERY_KEYS.practicingPeriods,
       exact: true,
-      refetchType: 'none',
     });
   }
 }
