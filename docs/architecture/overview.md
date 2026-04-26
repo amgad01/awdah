@@ -12,6 +12,8 @@ The clearest visual starting point is [diagrams/01-system-context.md](diagrams/0
 
 The frontend is responsible for presentation, navigation, localized content, and client-side interaction flow. Core business rules live in backend use cases and domain services, not in the browser.
 
+Frontend chart surfaces follow the same boundary. Data-bound wrappers fetch query data and pass it into presentational chart components. Shared chart transforms live in pure domain services under the frontend domain layer, so chart rendering does not own repository or query behavior.
+
 ## 2. Deployment Surfaces
 
 ### Frontend
