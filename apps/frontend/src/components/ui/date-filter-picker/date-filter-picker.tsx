@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { HijriDate } from '@awdah/shared';
+import type { HijriDateValue } from '@/lib/hijri-date';
 import { useLanguage } from '@/hooks/use-language';
 import { gregorianIsoToHijri, hijriToGregorianDate } from '@/utils/date-utils';
 import { HIJRI_MONTH_KEYS } from '@/lib/constants';
@@ -193,7 +194,7 @@ export const DateFilterPicker: React.FC<DateFilterPickerProps> = ({
   // Is a specific day disabled (outside min/max)?
   const isDayDisabled = (day: number): boolean => {
     try {
-      let dayHijri: HijriDate;
+      let dayHijri: HijriDateValue;
       if (isArabic) {
         dayHijri = new HijriDate(navYear, navMonth, day);
       } else {

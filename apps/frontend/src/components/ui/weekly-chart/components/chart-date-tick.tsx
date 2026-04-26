@@ -41,7 +41,7 @@ export const ChartDateTick: React.FC<ChartDateTickProps> = ({
 
     hijriFormatted =
       language === 'ar'
-        ? baseFormat.replace(/\d+/g, (match) => fmtNumber(parseInt(match, 10)))
+        ? baseFormat.replace(/\d+/g, (match: string) => fmtNumber(parseInt(match, 10)))
         : baseFormat;
   } catch {
     return null;

@@ -41,10 +41,10 @@ describe('transformWorshipData', () => {
     expect(today.qadaa).toBe(1);
   });
 
-  it('salah-only: empty array leaves obligatory/qadaa keys unset', () => {
+  it('salah-only: empty array initializes obligatory/qadaa keys to zero', () => {
     const result = transformWorshipData([], null, 'en-GB');
-    expect(result[0].obligatory).toBeUndefined();
-    expect(result[0].qadaa).toBeUndefined();
+    expect(result[0].obligatory).toBe(0);
+    expect(result[0].qadaa).toBe(0);
   });
 
   it('sawm-only: uses unprefixed keys', () => {
@@ -84,7 +84,7 @@ describe('transformWorshipData', () => {
     const sawm = [{ date: TODAY, type: 'ramadan' }];
     const today = transformWorshipData([], sawm, 'en-GB')[6];
     expect(today.fastObligatory).toBe(1);
-    expect(today.obligatory).toBeUndefined();
+    expect(today.obligatory).toBe(0);
   });
 
   it('logs from other days do not bleed into today', () => {

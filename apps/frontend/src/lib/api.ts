@@ -5,7 +5,6 @@ import {
   readPersistedSession,
 } from '@/lib/auth-service';
 import { getApiClient } from '@/lib/api-client';
-import type { ApiErrorResponse } from '@awdah/shared';
 
 const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
 
@@ -111,6 +110,13 @@ interface QueryOptions {
   signal?: AbortSignal;
 }
 
+interface ApiErrorBody {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+}
+
 export class ApiRequestError extends Error {
   readonly status: number;
   readonly code?: string;
@@ -195,7 +201,7 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const errorBody = await parseJson<ApiErrorResponse>(response);
+    const errorBody = await parseJson<ApiErrorBody>(response);
     throw new ApiRequestError(
       errorBody?.error?.message || `HTTP ${response.status}`,
       response.status,

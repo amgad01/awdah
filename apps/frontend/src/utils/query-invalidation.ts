@@ -80,6 +80,13 @@ export function appendSawmDailyLog(
   );
 }
 
+export function refetchSawmDailyLog(queryClient: QueryClient, date: string): void {
+  void queryClient.invalidateQueries({
+    queryKey: QUERY_KEYS.sawmDailyLog(date),
+    exact: true,
+  });
+}
+
 export function removeSawmDailyLog(queryClient: QueryClient, date: string, eventId: string): void {
   queryClient.setQueryData<FastLogResponse[]>(QUERY_KEYS.sawmDailyLog(date), (prev) =>
     prev ? prev.filter((l) => l.eventId !== eventId) : prev,

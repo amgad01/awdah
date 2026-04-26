@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { ChartLegendSwatch } from './chart-legend-swatch';
-import type { SeriesDef } from '../base-weekly-chart';
+import type { SeriesDef } from '@/domains/charts';
 import styles from '../weekly-chart.module.css';
 
 interface ChartLegendProps {

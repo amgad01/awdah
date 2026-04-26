@@ -1,8 +1,9 @@
 import { HijriDate } from '@awdah/shared';
 import { BULUGH_DEFAULT_HIJRI_YEARS, HIJRI_MONTH_KEYS } from '@/lib/constants';
+import type { HijriDateValue } from '@/lib/hijri-date';
 import { todayHijriDate } from '@/utils/date-utils';
 
-function isFutureHijriDate(hijriDate: HijriDate): boolean {
+function isFutureHijriDate(hijriDate: HijriDateValue): boolean {
   return hijriDate.isAfter(HijriDate.fromString(todayHijriDate()));
 }
 

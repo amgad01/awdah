@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/use-profile';
 import {
   updateSawmDebtCache,
   markSawmHistoryStale,
-  appendSawmDailyLog,
+  refetchSawmDailyLog,
   removeSawmDailyLog,
   removeSawmQueries,
 } from '@/utils/query-invalidation';
@@ -19,7 +19,6 @@ import {
   useRangeHistoryQuery,
   useWorshipLogMutation,
   isQadaaLogType,
-  createOptimisticEventId,
 } from './worship-query-helpers';
 
 export { invalidateSawmQueries } from '@/utils/query-invalidation';
@@ -58,12 +57,7 @@ export const useLogFast = () => {
     if (isQadaaLogType(variables.type)) {
       updateSawmDebtCache(queryClient, 1);
     }
-    appendSawmDailyLog(queryClient, variables.date, {
-      eventId: createOptimisticEventId(),
-      date: variables.date,
-      type: variables.type,
-      loggedAt: new Date().toISOString(),
-    });
+    refetchSawmDailyLog(queryClient, variables.date);
     markSawmHistoryStale(queryClient);
   });
 };

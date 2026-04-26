@@ -13,6 +13,7 @@ import {
 } from '@/lib/profile-date-utils';
 import styles from '../onboarding.module.css';
 import { todayHijriDate } from '@/utils/date-utils';
+import type { HijriDateValue } from '@/lib/hijri-date';
 
 type BulughInputMode = 'date' | 'age' | 'default' | 'revert';
 type BulughDraftState = {
@@ -99,7 +100,7 @@ export const BulughStep: React.FC<BulughStepProps> = ({
     }
   }, [inputMode, ageBasedBulugh, ageError, bulughDateHijri, revertDateHijri, onChange]);
 
-  const validateBulugh = (date: HijriDate): string | null => {
+  const validateBulugh = (date: HijriDateValue): string | null => {
     if (dateOfBirthHijri) {
       try {
         const dob = HijriDate.fromString(dateOfBirthHijri);

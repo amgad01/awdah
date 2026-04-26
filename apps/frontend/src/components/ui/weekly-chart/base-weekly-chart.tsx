@@ -9,7 +9,6 @@ import {
   ResponsiveContainer,
   ReferenceArea,
 } from 'recharts';
-import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLanguage } from '@/hooks/use-language';
 import {
   CHART_CURSOR_STYLE,
@@ -19,6 +18,7 @@ import {
   CHART_TICK_SMALL,
   CHART_TOOLTIP_STYLE,
 } from '@/lib/chart-theme';
+import { usePracticingPeriods } from '@/hooks/use-profile';
 import { transformWorshipData, computePracticingPeriodsRanges } from '@/domains/charts';
 import { Loader2 } from 'lucide-react';
 import { ChartDateTick } from './components/chart-date-tick';
@@ -51,7 +51,7 @@ export const BaseWeeklyChart: React.FC<BaseWeeklyChartProps> = ({
   practicingType,
 }) => {
   const { t, language, fmtNumber } = useLanguage();
-  const { data: periods } = usePracticingPeriods();
+  const { data: practicingPeriods } = usePracticingPeriods();
 
   // Memoize locale separately so language switches don't cause unnecessary
   // re-renders in components that only depend on locale.
@@ -63,8 +63,8 @@ export const BaseWeeklyChart: React.FC<BaseWeeklyChartProps> = ({
   );
 
   const coveredRanges = useMemo(
-    () => computePracticingPeriodsRanges(periods, practicingType, chartData),
-    [periods, practicingType, chartData],
+    () => computePracticingPeriodsRanges(practicingPeriods, practicingType, chartData),
+    [practicingPeriods, practicingType, chartData],
   );
 
   if (isLoading) {

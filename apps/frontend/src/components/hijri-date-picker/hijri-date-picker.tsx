@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { HijriDate } from '@awdah/shared';
+import type { HijriDateValue } from '@/lib/hijri-date';
 import {
   HIJRI_YEAR_MIN,
   HIJRI_YEAR_MAX,
@@ -19,7 +20,7 @@ interface HijriDatePickerProps {
   onChange: (hijriDateStr: string) => void;
   onError: (error: string) => void;
   label: string;
-  validate?: (date: HijriDate) => string | null;
+  validate?: (date: HijriDateValue) => string | null;
   initialHijriParts?: { year: string; month: string; day: string };
   minDate?: string;
   maxDate?: string;

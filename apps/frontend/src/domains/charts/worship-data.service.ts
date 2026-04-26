@@ -33,14 +33,14 @@ export const transformWorshipData = (
 
     const dataPoint: ChartDataPoint = { date: dateStr, day };
 
-    if (salahLogs?.length) {
+    if (hasSalahContext) {
       dataPoint.obligatory = salahLogs.filter(
         (l) => l.date === dateStr && l.type === 'obligatory',
       ).length;
       dataPoint.qadaa = salahLogs.filter((l) => l.date === dateStr && l.type === 'qadaa').length;
     }
 
-    if (sawmLogs?.length) {
+    if (sawmLogs != null) {
       const obligatoryKey = hasSalahContext ? 'fastObligatory' : 'obligatory';
       const qadaaKey = hasSalahContext ? 'fastQadaa' : 'qadaa';
 
