@@ -13,69 +13,63 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 #### Backend
 
-- **Server-side qadaa debt validation restored**: `LogPrayerUseCase` and `LogFastUseCase` now keep duplicate submissions idempotent, then enforce qadaa debt limits before saving new qadaa logs. Salah validates the per-prayer remaining bucket; sawm validates total qadaa debt against completed qadaa fasts.
-- **Semantic error code contract**: All backend use cases now throw `AppError` subclasses with semantic error codes (e.g. `SAWM_NO_QADAA_DEBT`) instead of i18n keys or raw strings. The `messages.ts` indirection file is removed; all six consumers import `ERROR_CODES` directly.
-- **`download-export-data` raw error string**: Failed export jobs now always throw `ERROR_CODES.EXPORT_DOWNLOAD_FAILED` instead of passing `job.errorMessage` directly, which could bypass the frontend i18n map.
-- **GSI projection bug (500 on qadaa log)**: `countQadaaCompleted` (fast logs) and `computeQadaaBuckets` (prayer logs) queried the `typeDateIndex` GSI via `findAllWithIndexPrefix`, which called `mapToDomain` on items that only carry GSI key attributes — causing `InternalError` on `decodeSk` and a 500 response. Fixed by adding `queryRawPages` to `BaseDynamoDBRepository` (projects `typeDate` only for fast logs; projects `sk` + bucketing fields for prayer logs).
-- **`USER_SETTINGS_NOT_FOUND` i18n mapping**: Was incorrectly mapped to `common.task_not_found`. Now maps to `common.user_settings_not_found` with a dedicated message in all three locales.
-- **Hardcoded strings in chart components**: `base-weekly-chart.tsx` error fallback and chart aria labels were hardcoded English strings. All now use `t()` with keys in EN, AR, and DE.
+- **Semantic error code contract**: All backend use cases now throw `AppError` subclasses with semantic error codes (e.g. `SAWM_NO_QADAA_DEBT`) instead of i18n keys. Previously, use cases embedded frontend translation keys in the `error.message` field, tightly coupling the backend to the frontend i18n namespace.
+- **Consistent error status for qadaa debt**: `LogPrayerUseCase` now throws `ConflictError` (409) instead of `ValidationError` (400) when no per-prayer qadaa debt remains, matching the sawm context and correct HTTP semantics (valid input, conflicting state).
+- **Qadaa validation consistency**: `LogFastUseCase` now enforces the same debt validation rules as `LogPrayerUseCase`. Users cannot log qadaa fasts when no debt exists or when exceeding the calculated debt.
+- **Shared validation utility**: `validateCanLogFast()` in `@awdah/shared` replaces the old `validateCanLog(debt, logs, messages)`. The `messages` parameter is removed — the function throws with `ERROR_CODES.SAWM_NO_QADAA_DEBT` / `SAWM_EXCEED_QADAA_DEBT` directly.
+- **Qadaa validation bug fix**: `LogFastUseCase` now correctly passes `totalDaysOwed` (not `remainingDays`) to `validateCanLogFast`, preventing false "Cannot exceed" errors when a user has partially completed their debt.
+
+#### Shared
+
+- **`ERROR_CODES` registry**: New `packages/shared/src/errors/error-codes.ts` defines all semantic error codes as typed constants. This is the single source of truth for the backend-to-frontend error contract.
+- **NaN guards in debt validation**: `validateCanLogSalahQadaa` and `validateCanLogFast` now reject `NaN` and non-finite values explicitly instead of allowing invalid state to pass through silently.
 
 #### Frontend
 
-- **Shared type annotations in frontend builds**: Frontend code now uses a local `HijriDateValue` helper for annotations instead of using `HijriDate` runtime exports directly as types, fixing `Cannot use namespace 'HijriDate' as a type` in local and Docker builds.
-- **Sawm daily cache event id**: Logging a fast now refetches the active daily sawm log so the UI receives the server event id before delete. This avoids caching a temporary event id that the backend cannot delete.
-- **Chart component decoupling**: `BaseWeeklyChart` now receives practicing periods via props. Data-bound wrappers own query hooks; the base chart stays presentational.
-- **Qadaa fast UI guard**: `SawmLogger` now disables the log button and guards the handler when `sawmDebt.remainingDays === 0`, matching the existing behaviour in the prayer logger.
-- **`DeleteFastInput` missing `type` field**: The sawm delete mutation had no `type` field, preventing the debt cache from being updated client-side on delete. `type` is now included and the debt cache is updated directly.
+- **`api-error-codes.ts`**: New file owns the complete `ERROR_CODE -> i18n key` mapping. `resolveApiErrorKey(error, fallback)` handles both `ApiRequestError` (matched on `error.code`) and locally-thrown `Error` instances (matched on `error.message` being a known semantic code). All error-handling sites now go through this single resolver.
+- **Sign-out error logging**: 401 sign-out failures are now logged via `console.error` instead of silently swallowed.
+- **Plain Error suppression contract**: `shouldSuppressToast` now documents and narrows the plain `Error` branch to exclude `ApiRequestError` instances, making the suppression contract explicit.
+- **Frontend i18n**: Added `sawm.error_no_qadaa_debt` and `sawm.error_exceed_qadaa_debt` keys to EN, AR, and DE locale files.
+- **API type safety**: All write endpoints in `api.ts` now carry explicit `{ message: string }` response types, consistent with all read endpoints.
 
 ### Changed
 
-#### Frontend — Network request reduction
+#### Frontend
 
-- **Reduced requests on prayer/fast log and delete**: Log and delete mutations update the TanStack Query cache where the backend response has enough identity. Salah daily logs update directly by date, prayer, and type. Sawm log keeps debt immediate but refetches the active daily log to preserve the server event id required for delete. History is marked stale-only (`refetchType: 'none'`) so it refetches on next focus rather than immediately.
-- **Zero extra requests on profile and period saves**: `useUpdateProfile`, `useAddPracticingPeriod`, `useUpdatePracticingPeriod`, and `useDeletePracticingPeriod` now write directly into the profile and periods caches via `updateProfileCache` and `updatePeriodsCache`. Only debt queries are invalidated (server must recompute). History is marked stale-only.
-- **Deferred secondary queries on dashboard**: Streak, chart, and observed-rate history queries now wait until debt data has loaded (`debtLoaded` gate), reducing parallel requests on page open from 6 to 2 critical requests.
-- **Domain-specific chart data hooks**: `SalahWeeklyChart` now uses `useSalahWeeklyChartData` (salah history only); `SawmWeeklyChart` uses `useSawmWeeklyChartData` (sawm history only). Previously both charts fetched both domains via `useWeeklyChartData`, causing a cross-domain history request on every page load.
-- **Reset invalidation**: After a log reset completes, only the debt query is removed (forces immediate refetch to show 0); history is marked stale-only instead of being removed, eliminating the history refetch that followed every reset.
-- **`invalidateAllWorshipQueries` history behaviour**: History is now always marked stale-only in this function, so profile/period saves no longer trigger immediate history refetches.
-
-#### Frontend — UI & UX
-
-- **Chart visual distinguishability**: Weekly worship charts use distinct colors, stroke widths, and dash patterns for obligatory and qadaa series.
-- **Chart legend**: Legends are rendered from shared series configs (`SALAH_CHART_SERIES`, `SAWM_CHART_SERIES`, `COMBINED_CHART_SERIES`) with inline SVG swatches matching each line style.
-- **Dashboard rate display**: The observed qadaa rate reflects actual logged activity over the last 7 days instead of the stepper counter.
-- **Streak presentation**: Active obligatory, qadaa, and fasting streaks are surfaced separately with clearer title and empty-state behaviour.
-- **Page charts**: Salah and Sawm pages include dedicated weekly charts and glossary-enhanced guidance text.
-- **`useStreak` query reuse**: `useStreak` now delegates to `useStreakDetails`, eliminating duplicate 365-day history fetches.
+- **Chart visual distinguishability**: Weekly worship chart now renders four visually distinct series — obligatory prayers (solid 2.5 px, primary), qadaa prayers (dash `5 3`, 2 px, info), obligatory fasts (dash `8 3`, 2.5 px, warning), qadaa fasts (dot `2 3`, 2 px, warning).
+- **Chart legend**: Legend is a 2-column grid with inline SVG swatches matching each line style. Driven by a `WEEKLY_CHART_SERIES` config array — no repeated JSX blocks.
+- **Chart CSS tokens**: Hardcoded hex values replaced with `var(--color-info)` and `var(--color-warning)`. Raw `gap: 6px` replaced with `var(--spacing-xs)`. Series styles extracted to typed `ChartSeriesStyle` constants in `chart-theme.ts`.
+- **Chart date formatting**: Hijri dates now display with month names ("6 Ramadan 1447" vs "06-09-1447") and Arabic numerals for Arabic users. Tooltip date labels removed for cleaner hover display.
+- **Dashboard observed daily rate**: "You are completing about N prayers per day" now reflects actual qadaa log history instead of the stepper counter. Rate is computed as `totalQadaaPrayers / distinctLoggedDays` over the last 7 days.
+- **Enhanced projection display**: Projection now shows years and months separately and includes an explanation of the observed rate calculation.
+- **Separate obligatory and qadaa streaks**: Streak card now displays both obligatory and qadaa activities as distinct streaks with contextual title logic.
+- **Focused page charts**: Added dedicated weekly charts to Salah and Sawm pages showing only relevant data series, lazy-loaded.
+- **Enhanced tooltips**: Added `GlossaryText` component to encouragement sections on Salah and Sawm pages.
 
 #### Tooling
 
-- **Deploy script alignment**: Release deploy scripts use a consistent `DEPLOY_ENV`-driven entrypoint.
-- **Infra deploy script fix**: Infra deploy aliases point to the updated stack and all-stack script names.
+- **Deploy script alignment**: Root `package.json` deploy scripts now consistently require `DEPLOY_ENV` prefix. Added `deploy:quick:dev`, `deploy:hotswap:dev`, and `deploy:parallel:dev` shortcuts.
+- **Infra deploy script fix**: `infra/package.json` `deploy:all` now points to `deploy-all.sh` and `deploy:frontend` renamed to `deploy:frontend-stack`.
 - **CDK lock file ambiguity fixed**: `NodejsFunction` now sets `depsLockFilePath` to `package-lock.json` explicitly, resolving `MultipleLockFilesFound` CDK synthesis errors.
-- **AI chat exports gitignored**: Added `q-dev-chat-*.md` to `.gitignore`.
 
 ### Refactored
 
-#### Backend
-
-- **`BaseDynamoDBRepository` DRY**: Added `queryRawPages` (paginated GSI query returning raw items without `mapToDomain`) and `existsAny` (efficient `Limit: 1` existence check). Both log repositories now use these instead of duplicating raw `QueryCommand` loops. `hasAnyLogs` in both repositories is a one-liner.
-- **`LogFastUseCase` and `LogPrayerUseCase` validation order**: Both use cases check duplicate submissions first, preserving idempotency. New qadaa logs then validate debt server-side before save so direct API calls cannot exceed the domain debt state.
-
 #### Frontend — Clean Architecture & DDD
 
-- **`query-invalidation.ts` as the single cache authority**: All cache write operations (`updateSalahDebtCache`, `updateSawmDebtCache`, `appendSalahDailyLog`, `removeSalahDailyLog`, `appendSawmDailyLog`, `removeSawmDailyLog`, `updateProfileCache`, `updatePeriodsCache`, `markSalahHistoryStale`, `markSawmHistoryStale`, `invalidatePeriodRelatedQueries`) live in one file. No component or hook constructs cache keys or calls `setQueryData` directly.
-- **`SeriesDef` consolidated**: `ChartSeriesConfig` in `domains/charts/types.ts` and `SeriesDef` in `base-weekly-chart.tsx` were structurally identical. `SeriesDef` is now the single canonical type in the charts domain.
-- **`WorshipLog` consolidated**: `WorshipLogEntry` in the dashboard domain was identical to `WorshipLog` in the charts domain. `WorshipLogEntry` is removed; `computeObservedQadaaRate` uses `WorshipLog`.
-- **`ObservedRateData` type used consistently**: `SalahDebtCard.observedRateData` now uses the exported `ObservedRateData` type instead of an inline structural type.
-- **`t`/`fmtNumber` prop-drilling eliminated**: `BaseDebtCard`, `SalahDebtCard`, `SawmSummaryCard`, `StreakCard`, and `ToggleDetails` all call `useLanguage()` directly.
-- **`invalidatePeriodRelatedQueries` promoted**: Moved from a private helper in `use-profile.ts` to a named export in `query-invalidation.ts`.
-- **Domain-driven frontend**: Dashboard and chart logic live in `domains/dashboard/` and `domains/charts/` as pure TypeScript services.
-- **Reusable card composition**: `BaseDebtCard` shared by `SalahDebtCard` and `SawmSummaryCard`; `ToggleDetails` and `RateStepper` extracted as focused primitives.
+- **Domain-Driven Design**: Implemented proper domain boundaries with `domains/dashboard/` and `domains/charts/` containing pure business logic separated from UI concerns.
+- **Chart Architecture**: Modularized `BaseWeeklyChart` into focused components (`ChartDateTick`, `ChartLegend`, `ChartLegendSwatch`) and domain services (`worship-data.service.ts`, `practicing-periods.service.ts`).
+- **Centralized Business Logic**: Consolidated debt calculations, time projections, and observed rate computations into `debt-calculation.service.ts` with proper type definitions.
+- **Component Composition**: Created reusable UI components (`ToggleDetails`, `RateStepper`, `BaseDebtCard`) eliminating 500+ lines of duplicated code across dashboard cards.
+- **Shared Chart Infrastructure**: `useWeeklyChartData` hook and `chart-series.ts` constants provide consistent data fetching and series configuration across all chart types.
+- **DRY streak calculations**: Extracted `groupPrayersByDay`, `computeObligatoryPrayerStreak`, and `computeFastStreak` domain helpers in `use-streak.ts`.
+- **DRY celebration logic**: Extracted `checkStreakCelebration` and `buildCelebrationMessage` helpers in `use-celebration.ts`.
 
 ### Documentation
 
-- **Error i18n contract**: Established the semantic-code-to-i18n-key flow.
+- **Error i18n contract**: Added `docs/architecture/error-i18n.md` documenting the full backend-to-frontend error translation contract, HTTP status semantics, and the step-by-step guide for adding new errors.
+- **OpenAPI spec accuracy**: Updated `docs/api/openapi.yaml` to match actual implementation — corrected reset endpoints to show 200 no-op behavior when no logs exist, added missing 429 to export endpoint, expanded 409 responses with actual error codes, added missing 404 to `POST /v1/salah/practicing-period`, documented idempotency on `DELETE /v1/salah/practicing-period`.
+- **OpenAPI local serving**: Updated `CONTRIBUTING.md` with working command (`cd docs/api && python3 -m http.server 8080`) and created `docs/api/index.html` for zero-install local viewing.
+- **ADR-005**: Documented the decision to keep qadaa debt validation in the UI only, with rationale about the 4-5 DynamoDB reads that would be added per qadaa log call and the conditions under which it should be revisited.
 
 ---
 
