@@ -13,6 +13,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 #### Backend
 
+- **Server-side qadaa debt validation restored**: `LogPrayerUseCase` and `LogFastUseCase` now keep duplicate submissions idempotent, then enforce qadaa debt limits before saving new qadaa logs. Salah validates the per-prayer remaining bucket; sawm validates total qadaa debt against completed qadaa fasts.
 - **Semantic error code contract**: All backend use cases now throw `AppError` subclasses with semantic error codes (e.g. `SAWM_NO_QADAA_DEBT`) instead of i18n keys or raw strings. The `messages.ts` indirection file is removed; all six consumers import `ERROR_CODES` directly.
 - **`download-export-data` raw error string**: Failed export jobs now always throw `ERROR_CODES.EXPORT_DOWNLOAD_FAILED` instead of passing `job.errorMessage` directly, which could bypass the frontend i18n map.
 - **GSI projection bug (500 on qadaa log)**: `countQadaaCompleted` (fast logs) and `computeQadaaBuckets` (prayer logs) queried the `typeDateIndex` GSI via `findAllWithIndexPrefix`, which called `mapToDomain` on items that only carry GSI key attributes — causing `InternalError` on `decodeSk` and a 500 response. Fixed by adding `queryRawPages` to `BaseDynamoDBRepository` (projects `typeDate` only for fast logs; projects `sk` + bucketing fields for prayer logs).
@@ -21,6 +22,9 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 #### Frontend
 
+- **Shared type annotations in frontend builds**: Frontend code now uses a local `HijriDateValue` helper for annotations instead of using `HijriDate` runtime exports directly as types, fixing `Cannot use namespace 'HijriDate' as a type` in local and Docker builds.
+- **Sawm daily cache event id**: Logging a fast now refetches the active daily sawm log so the UI receives the server event id before delete. This avoids caching a temporary event id that the backend cannot delete.
+- **Chart component decoupling**: `BaseWeeklyChart` now receives practicing periods via props. Data-bound wrappers own query hooks; the base chart stays presentational.
 - **Qadaa fast UI guard**: `SawmLogger` now disables the log button and guards the handler when `sawmDebt.remainingDays === 0`, matching the existing behaviour in the prayer logger.
 - **`DeleteFastInput` missing `type` field**: The sawm delete mutation had no `type` field, preventing the debt cache from being updated client-side on delete. `type` is now included and the debt cache is updated directly.
 
@@ -28,7 +32,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 #### Frontend — Network request reduction
 
-- **Zero extra requests on prayer/fast log and delete**: Log and delete mutations now update the TanStack Query cache directly instead of invalidating and refetching. Debt is updated via `updateSalahDebtCache`/`updateSawmDebtCache`; daily logs are updated via `appendSalahDailyLog`/`removeSalahDailyLog`/`appendSawmDailyLog`/`removeSawmDailyLog`; history is marked stale-only (`refetchType: 'none'`) so it refetches on next focus rather than immediately.
+- **Reduced requests on prayer/fast log and delete**: Log and delete mutations update the TanStack Query cache where the backend response has enough identity. Salah daily logs update directly by date, prayer, and type. Sawm log keeps debt immediate but refetches the active daily log to preserve the server event id required for delete. History is marked stale-only (`refetchType: 'none'`) so it refetches on next focus rather than immediately.
 - **Zero extra requests on profile and period saves**: `useUpdateProfile`, `useAddPracticingPeriod`, `useUpdatePracticingPeriod`, and `useDeletePracticingPeriod` now write directly into the profile and periods caches via `updateProfileCache` and `updatePeriodsCache`. Only debt queries are invalidated (server must recompute). History is marked stale-only.
 - **Deferred secondary queries on dashboard**: Streak, chart, and observed-rate history queries now wait until debt data has loaded (`debtLoaded` gate), reducing parallel requests on page open from 6 to 2 critical requests.
 - **Domain-specific chart data hooks**: `SalahWeeklyChart` now uses `useSalahWeeklyChartData` (salah history only); `SawmWeeklyChart` uses `useSawmWeeklyChartData` (sawm history only). Previously both charts fetched both domains via `useWeeklyChartData`, causing a cross-domain history request on every page load.
@@ -56,7 +60,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 #### Backend
 
 - **`BaseDynamoDBRepository` DRY**: Added `queryRawPages` (paginated GSI query returning raw items without `mapToDomain`) and `existsAny` (efficient `Limit: 1` existence check). Both log repositories now use these instead of duplicating raw `QueryCommand` loops. `hasAnyLogs` in both repositories is a one-liner.
-- **`LogFastUseCase` and `LogPrayerUseCase` simplified**: Reverted to their minimal form — idempotency check + save. Qadaa debt validation is enforced client-side where the debt data is already available, avoiding 2 extra DynamoDB reads per log call.
+- **`LogFastUseCase` and `LogPrayerUseCase` validation order**: Both use cases check duplicate submissions first, preserving idempotency. New qadaa logs then validate debt server-side before save so direct API calls cannot exceed the domain debt state.
 
 #### Frontend — Clean Architecture & DDD
 
