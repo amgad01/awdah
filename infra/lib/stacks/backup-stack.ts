@@ -74,7 +74,12 @@ export class BackupStack extends BaseStack {
 
     backupBucket.grantWrite(backupFn);
     tables.forEach((table) => {
-      table.grant(backupFn, 'dynamodb:ExportTableToPointInTime', 'dynamodb:DescribeTable');
+      backupFn.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['dynamodb:ExportTableToPointInTime', 'dynamodb:DescribeTable'],
+          resources: [table.tableArn],
+        }),
+      );
     });
 
     backupFn.addToRolePolicy(
