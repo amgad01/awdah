@@ -1,11 +1,4 @@
-import {
-  UserId,
-  EventId,
-  RateLimitError,
-  ConflictError,
-  RATE_LIMIT_MINUTES,
-  getRateLimitSince,
-} from '@awdah/shared';
+import { UserId, EventId, RateLimitError, getRateLimitSince, ERROR_CODES } from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   USER_LIFECYCLE_JOB_TTL_SECONDS,
@@ -28,12 +21,12 @@ export class ResetFastLogsUseCase {
     private readonly fastLogRepository: IFastLogRepository,
   ) {}
 
-  async execute(command: ResetFastLogsCommand): Promise<UserLifecycleJob> {
+  async execute(command: ResetFastLogsCommand): Promise<UserLifecycleJob | null> {
     const userId = new UserId(command.userId);
 
     const hasLogs = await this.fastLogRepository.hasAnyLogs(userId);
     if (!hasLogs) {
-      throw new ConflictError('No fast logs to reset');
+      return null;
     }
 
     const since = getRateLimitSince();
@@ -44,7 +37,7 @@ export class ResetFastLogsUseCase {
     );
 
     if (recentJob) {
-      throw new RateLimitError(`Please wait ${RATE_LIMIT_MINUTES} minutes between fast log resets`);
+      throw new RateLimitError(ERROR_CODES.RESET_FASTS_RATE_LIMITED);
     }
 
     const requestedAt = new Date().toISOString();

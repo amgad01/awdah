@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
-import { useWorship, useStreak, useStreakDetails } from '@/hooks/use-worship';
+import { useWorship, useStreak, useStreakDetails, useSalahHistory } from '@/hooks/use-worship';
 import { useDualDate } from '@/hooks/use-dual-date';
 import { useProfile } from '@/hooks/use-profile';
 import { ErrorState } from '@/components/ui/error-state/error-state';
@@ -11,7 +11,8 @@ import { CelebrationToast } from '@/components/ui/celebration-toast/celebration-
 import { PrayerLogger } from '@/features/salah/prayer-logger';
 import { invalidateAllWorshipQueries } from '@/utils/query-invalidation';
 import { getUserDisplayName } from '@/lib/user-display';
-import { todayHijriDate } from '@/utils/date-utils';
+import { todayHijriDate, addHijriDays } from '@/utils/date-utils';
+import { computeObservedQadaaRate } from '@/domains/dashboard';
 import { useCelebration } from './use-celebration';
 import { DashboardHero } from './dashboard-hero';
 import { SnapshotGrid } from './snapshot-grid';
@@ -28,8 +29,21 @@ export const Dashboard: React.FC = () => {
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
   const { salahDebt, sawmDebt, loading, error } = useWorship();
-  const { streak, milestone } = useStreak();
-  const { activePrayerStreaks, monThuStreak, obligatoryStreak, fastStreak } = useStreakDetails();
+  const debtLoaded = !loading;
+
+  const today = todayHijriDate();
+  const sevenDaysAgo = addHijriDays(today, -6);
+  const { data: recentPrayerLogs } = useSalahHistory(
+    debtLoaded ? sevenDaysAgo : '',
+    debtLoaded ? today : '',
+  );
+  const observedRateData = useMemo(() => {
+    if (!recentPrayerLogs?.length) return null;
+    return computeObservedQadaaRate(recentPrayerLogs, { start: sevenDaysAgo, end: today });
+  }, [recentPrayerLogs, sevenDaysAgo, today]);
+  const { streak, milestone } = useStreak(debtLoaded);
+  const { activePrayerStreaks, monThuStreak, obligatoryStreak, fastStreak, qadaaFastStreak } =
+    useStreakDetails(debtLoaded);
 
   const salahRemaining = salahDebt?.remainingPrayers ?? 0;
   const salahCompleted = salahDebt?.completedPrayers ?? 0;
@@ -47,6 +61,7 @@ export const Dashboard: React.FC = () => {
     monThuStreak,
     obligatoryStreak,
     fastStreak,
+    qadaaFastStreak,
     allDebtCleared,
     t,
     fmtNumber,
@@ -124,8 +139,7 @@ export const Dashboard: React.FC = () => {
           salahTotal={salahTotal}
           salahCompletionRate={salahCompletionRate}
           perPrayerRemaining={salahDebt?.perPrayerRemaining}
-          t={t}
-          fmtNumber={fmtNumber}
+          observedRateData={observedRateData}
         />
 
         <Card
@@ -141,8 +155,6 @@ export const Dashboard: React.FC = () => {
           sawmRemaining={sawmRemaining}
           sawmTotal={sawmTotal}
           sawmCompletionRate={sawmCompletionRate}
-          t={t}
-          fmtNumber={fmtNumber}
         />
 
         <StreakCard
@@ -152,8 +164,7 @@ export const Dashboard: React.FC = () => {
           monThuStreak={monThuStreak}
           obligatoryStreak={obligatoryStreak}
           fastStreak={fastStreak}
-          t={t}
-          fmtNumber={fmtNumber}
+          qadaaFastStreak={qadaaFastStreak}
         />
       </section>
     </div>

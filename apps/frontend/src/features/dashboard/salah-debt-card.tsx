@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
-import { Card } from '@/components/ui/card/card';
-import { ProgressBar } from '@/components/ui/progress/progress-bar';
 import { GlossaryText } from '@/components/ui/term-tooltip';
+import { useLanguage } from '@/hooks/use-language';
 import {
   DEFAULT_DAILY_INTENTION,
   DAYS_PER_YEAR,
+  HIJRI_MONTHS_COUNT,
   MAX_DAILY_INTENTION,
   MIN_DAILY_INTENTION,
   PRAYERS,
 } from '@/lib/constants';
+import { computeDebtTimeProjection, type ObservedRateData } from '@/domains/dashboard';
+import { BaseDebtCard } from './base-debt-card';
+import { ToggleDetails } from './components/toggle-details';
+import { RateStepper } from './components/rate-stepper';
 import styles from './dashboard.module.css';
 
 interface SalahDebtCardProps {
@@ -18,8 +21,7 @@ interface SalahDebtCardProps {
   salahTotal: number;
   salahCompletionRate: number;
   perPrayerRemaining?: Record<string, number>;
-  t: (key: string, opts?: Record<string, unknown>) => string;
-  fmtNumber: (n: number) => string;
+  observedRateData: ObservedRateData | null;
 }
 
 export const SalahDebtCard: React.FC<SalahDebtCardProps> = ({
@@ -28,120 +30,92 @@ export const SalahDebtCard: React.FC<SalahDebtCardProps> = ({
   salahTotal,
   salahCompletionRate,
   perPrayerRemaining,
-  t,
-  fmtNumber,
+  observedRateData,
 }) => {
-  const [showRemaining, setShowRemaining] = useState(false);
+  const { t, fmtNumber } = useLanguage();
   const [dailyRate, setDailyRate] = useState(DEFAULT_DAILY_INTENTION);
 
-  const salahYears =
-    salahTotal > 0 && salahRemaining > 0
-      ? Math.ceil(salahRemaining / dailyRate / DAYS_PER_YEAR)
-      : 0;
+  const timeProjection = computeDebtTimeProjection(
+    salahRemaining,
+    dailyRate,
+    DAYS_PER_YEAR,
+    HIJRI_MONTHS_COUNT,
+  );
 
   return (
-    <Card
+    <BaseDebtCard
       title={t('dashboard.salah_debt')}
       subtitle={t('dashboard.salah_debt_subtitle')}
-      className={`${styles.surfaceCard} ${styles.debtCard}`}
+      completed={salahCompleted}
+      remaining={salahRemaining}
+      total={salahTotal}
+      completionRate={salahCompletionRate}
+      completedLabel={t('dashboard.completed_label')}
+      remainingLabel={t('dashboard.prayers_remaining')}
+      progressLabel={t('dashboard.overall_progress')}
+      className={styles.debtCard}
     >
-      <div className={styles.cardSummary}>
-        <div className={styles.statLead}>
-          <span className={styles.statLeadValue}>{fmtNumber(salahCompleted)}</span>
-          <span className={styles.statLeadLabel}>{t('dashboard.completed_label')}</span>
-        </div>
-        <div className={styles.quickStats}>
-          <div className={styles.quickStat}>
-            <strong>{fmtNumber(salahRemaining)}</strong>
-            <span>{t('dashboard.prayers_remaining')}</span>
-          </div>
-          <div className={styles.quickStat}>
-            <strong>{fmtNumber(salahCompletionRate)}%</strong>
-            <span>{t('dashboard.progress_complete')}</span>
-          </div>
-        </div>
-      </div>
-
-      <ProgressBar
-        value={salahCompleted}
-        max={salahTotal || 1}
-        label={t('dashboard.overall_progress')}
-      />
-
       <p className={styles.encouragement}>
         <GlossaryText>{t('dashboard.encouragement_message')}</GlossaryText>
       </p>
       {salahTotal > 0 && salahRemaining > 0 && (
         <>
-          <div className={styles.rateCalc}>
-            <span className={styles.rateLabel}>{t('dashboard.rate_label')}</span>
-            <div className={styles.rateStepper}>
-              <button
-                type="button"
-                className={styles.rateBtn}
-                onClick={() => setDailyRate((r) => Math.max(MIN_DAILY_INTENTION, r - 1))}
-                aria-label={t('common.decrease_rate')}
-                disabled={dailyRate <= MIN_DAILY_INTENTION}
-              >
-                <Minus size={12} />
-              </button>
-              <span className={styles.rateVal}>{fmtNumber(dailyRate)}</span>
-              <button
-                type="button"
-                className={styles.rateBtn}
-                onClick={() => setDailyRate((r) => Math.min(MAX_DAILY_INTENTION, r + 1))}
-                aria-label={t('common.increase_rate')}
-                disabled={dailyRate >= MAX_DAILY_INTENTION}
-              >
-                <Plus size={12} />
-              </button>
-            </div>
-            <span className={styles.rateUnit}>{t('dashboard.rate_unit')}</span>
-          </div>
+          <RateStepper
+            value={dailyRate}
+            onChange={setDailyRate}
+            min={MIN_DAILY_INTENTION}
+            max={MAX_DAILY_INTENTION}
+            label={t('dashboard.rate_label')}
+            unit={t('dashboard.rate_unit')}
+            decreaseLabel={t('common.decrease_rate')}
+            increaseLabel={t('common.increase_rate')}
+            fmtNumber={fmtNumber}
+          />
           <p className={styles.projection}>
-            {salahYears <= 1
+            {observedRateData
+              ? t('dashboard.projection_rate_detailed', {
+                  rate: fmtNumber(observedRateData.rate),
+                  qadaaCount: fmtNumber(observedRateData.qadaaCount),
+                  activeDays: fmtNumber(observedRateData.activeDays),
+                })
+              : null}{' '}
+            {timeProjection.totalDays <= DAYS_PER_YEAR
               ? t('dashboard.projection_almost_done')
-              : t('dashboard.projection_rate_positive', { n: fmtNumber(dailyRate) })}
+              : t('dashboard.projection_at_rate_detailed', {
+                  rate: fmtNumber(dailyRate),
+                  years: fmtNumber(timeProjection.years),
+                  months: fmtNumber(timeProjection.months),
+                })}
           </p>
         </>
       )}
-      <button
-        className={styles.toggleRemaining}
-        onClick={() => setShowRemaining((value) => !value)}
-        aria-expanded={showRemaining}
-        type="button"
-      >
-        {showRemaining ? t('dashboard.hide_details') : t('dashboard.view_details')}
-      </button>
-      {showRemaining && (
-        <div className={styles.remainingDetail}>
-          <p>
-            <strong>{fmtNumber(salahRemaining)}</strong> {t('dashboard.salah_remaining_details')}
+      <ToggleDetails>
+        <p>
+          <strong>{fmtNumber(salahRemaining)}</strong> {t('dashboard.salah_remaining_details')}
+        </p>
+        {salahRemaining > 0 && (
+          <p className={styles.remainingProjection}>
+            {timeProjection.years <= 1
+              ? t('dashboard.projection_almost_done')
+              : t('dashboard.projection_detail', {
+                  n: fmtNumber(dailyRate),
+                  years: fmtNumber(timeProjection.years),
+                })}
           </p>
-          {salahRemaining > 0 && (
-            <p className={styles.remainingProjection}>
-              {salahYears <= 1
-                ? t('dashboard.projection_almost_done')
-                : t('dashboard.projection_detail', {
-                    n: fmtNumber(dailyRate),
-                    years: fmtNumber(salahYears),
-                  })}
-            </p>
-          )}
-          {perPrayerRemaining && salahRemaining > 0 && (
-            <div className={styles.perPrayerRow}>
-              {PRAYERS.map((name) => (
-                <div key={name} className={styles.perPrayerChip}>
-                  <span className={styles.perPrayerChipName}>{t(`prayers.${name}`)}</span>
-                  <span className={styles.perPrayerChipCount}>
-                    {fmtNumber(perPrayerRemaining[name] ?? 0)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </Card>
+        )}
+        {perPrayerRemaining && salahRemaining > 0 && (
+          <div className={styles.perPrayerRow}>
+            {PRAYERS.map((name) => (
+              <div key={name} className={styles.perPrayerChip}>
+                <span className={styles.perPrayerChipName}>{t(`prayers.${name}`)}</span>
+                <span className={styles.perPrayerChipCount}>
+                  {fmtNumber(perPrayerRemaining[name] ?? 0)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </ToggleDetails>
+    </BaseDebtCard>
   );
 };

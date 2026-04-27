@@ -1,5 +1,5 @@
 import { IUserRepository, UserSettings } from '../../../shared/domain/repositories/user.repository';
-import { HijriDate, ValidationError, UserId, type Gender } from '@awdah/shared';
+import { HijriDate, ValidationError, UserId, ERROR_CODES, type Gender } from '@awdah/shared';
 
 export interface UpdateUserSettingsCommand {
   userId: string;
@@ -20,11 +20,11 @@ export class UpdateUserSettingsUseCase {
     const username = command.username?.trim() || undefined;
 
     if (dateOfBirth && bulughDate.isBefore(dateOfBirth)) {
-      throw new ValidationError('onboarding.bulugh_error_before_dob');
+      throw new ValidationError(ERROR_CODES.BULUGH_BEFORE_DOB);
     }
 
     if (revertDate && dateOfBirth && revertDate.isBefore(dateOfBirth)) {
-      throw new ValidationError('onboarding.revert_error_before_dob');
+      throw new ValidationError(ERROR_CODES.REVERT_BEFORE_DOB);
     }
 
     const settings: UserSettings = {

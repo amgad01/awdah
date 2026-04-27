@@ -5,10 +5,12 @@ import {
   readPersistedSession,
 } from '@/lib/auth-service';
 import { getApiClient } from '@/lib/api-client';
-import type { ApiErrorResponse } from '@awdah/shared';
 
 const AUTH_MODE = import.meta.env.VITE_AUTH_MODE || 'cognito';
-let signingOut = false;
+
+// Atomic sign-out guard: prevents concurrent 401s from triggering multiple sign-outs
+let signOutPromise: Promise<void> | null = null;
+
 const SALAH_BASE = '/v1/salah';
 const SAWM_BASE = '/v1/sawm';
 const USER_BASE = '/v1/user';
@@ -108,6 +110,13 @@ interface QueryOptions {
   signal?: AbortSignal;
 }
 
+interface ApiErrorBody {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+}
+
 export class ApiRequestError extends Error {
   readonly status: number;
   readonly code?: string;
@@ -164,20 +173,26 @@ async function request<T>(
 
   if (response.status === 401) {
     // Token expired or invalid — clear the session and return to the auth screen.
-    // Guard against concurrent 401s triggering multiple sign-out calls.
-    if (!signingOut) {
-      signingOut = true;
-      try {
-        if (authService) {
-          await authService.signOut();
-          publishAuthNotice('session-expired');
-        } else {
-          clearPersistedSession('session-expired');
+    // Atomic guard: if sign-out is already in progress, wait for it; otherwise start one.
+    if (!signOutPromise) {
+      signOutPromise = (async () => {
+        try {
+          if (authService) {
+            await authService.signOut();
+            publishAuthNotice('session-expired');
+          } else {
+            clearPersistedSession('session-expired');
+          }
+        } catch (err) {
+          // Sign-out failures are non-fatal: the session is already invalid.
+          // Log the error so it is visible in monitoring without blocking the auth redirect.
+          console.error('[api] sign-out failed during 401 handling:', err);
+        } finally {
+          signOutPromise = null;
         }
-      } finally {
-        signingOut = false;
-      }
+      })();
     }
+    await signOutPromise;
     throw new ApiRequestError(SESSION_EXPIRED_MESSAGE, 401, 'UNAUTHENTICATED');
   }
 
@@ -186,7 +201,7 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const errorBody = await parseJson<ApiErrorResponse>(response);
+    const errorBody = await parseJson<ApiErrorBody>(response);
     throw new ApiRequestError(
       errorBody?.error?.message || `HTTP ${response.status}`,
       response.status,
@@ -217,15 +232,24 @@ export const api = {
   salah: {
     getDebt: (options?: QueryOptions) => request<SalahDebtResponse>(`${SALAH_BASE}/debt`, options),
     logPrayer: (data: { date: string; prayerName: string; type: string }) =>
-      request(`${SALAH_BASE}/log`, { method: 'POST', body: JSON.stringify(data) }),
+      request<{ message: string }>(`${SALAH_BASE}/log`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     addPeriod: (data: { startDate: string; endDate?: string; type: string }) =>
-      request(`${SALAH_BASE}/practicing-period`, { method: 'POST', body: JSON.stringify(data) }),
+      request<{ message: string }>(`${SALAH_BASE}/practicing-period`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     updatePeriod: (data: { periodId: string; startDate: string; endDate?: string; type: string }) =>
-      request(`${SALAH_BASE}/practicing-period`, { method: 'PUT', body: JSON.stringify(data) }),
+      request<{ message: string }>(`${SALAH_BASE}/practicing-period`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
     getPeriods: (options?: QueryOptions) =>
       request<PracticingPeriodResponse[]>(`${SALAH_BASE}/practicing-periods`, options),
     deletePeriod: (periodId: string) =>
-      request(buildPath(`${SALAH_BASE}/practicing-period`, { periodId }), {
+      request<{ message: string }>(buildPath(`${SALAH_BASE}/practicing-period`, { periodId }), {
         method: 'DELETE',
       }),
     getHistory: (params: { startDate: string; endDate: string }, options?: QueryOptions) =>
@@ -244,13 +268,16 @@ export const api = {
         options,
       ),
     deleteLog: (params: { date: string; prayerName: string; type: string }) =>
-      request(buildPath(`${SALAH_BASE}/log`, params), { method: 'DELETE' }),
+      request<{ message: string }>(buildPath(`${SALAH_BASE}/log`, params), { method: 'DELETE' }),
     resetLogs: () => request<UserLifecycleJobEnvelope>(`${SALAH_BASE}/logs`, { method: 'DELETE' }),
   },
   sawm: {
     getDebt: (options?: QueryOptions) => request<SawmDebtResponse>(`${SAWM_BASE}/debt`, options),
     logFast: (data: { date: string; type: string }) =>
-      request(`${SAWM_BASE}/log`, { method: 'POST', body: JSON.stringify(data) }),
+      request<{ message: string }>(`${SAWM_BASE}/log`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     getHistory: (params: { startDate: string; endDate: string }, options?: QueryOptions) =>
       request<FastLogResponse[]>(buildPath(`${SAWM_BASE}/history`, params), options),
     getHistoryPage: (
@@ -267,7 +294,7 @@ export const api = {
         options,
       ),
     deleteLog: (params: { date: string; eventId: string }) =>
-      request(buildPath(`${SAWM_BASE}/log`, params), { method: 'DELETE' }),
+      request<{ message: string }>(buildPath(`${SAWM_BASE}/log`, params), { method: 'DELETE' }),
     resetLogs: () => request<UserLifecycleJobEnvelope>(`${SAWM_BASE}/logs`, { method: 'DELETE' }),
   },
   user: {

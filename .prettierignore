@@ -11,3 +11,6 @@ coverage/
 
 # Local dev data
 docker/data/
+
+# Chat/session logs
+q-dev-chat*.md

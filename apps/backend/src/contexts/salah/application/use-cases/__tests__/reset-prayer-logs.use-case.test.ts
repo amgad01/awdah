@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UserId, EventId } from '@awdah/shared';
+import { UserId, EventId, RateLimitError } from '@awdah/shared';
 import { ResetPrayerLogsUseCase } from '../reset-prayer-logs.use-case';
 import type {
   IUserLifecycleJobRepository,
@@ -8,7 +8,6 @@ import type {
 import type { IUserLifecycleJobDispatcher } from '../../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 import { IPrayerLogRepository } from '../../../domain/repositories/prayer-log.repository';
-import { ConflictError, RateLimitError } from '@awdah/shared';
 
 describe('ResetPrayerLogsUseCase', () => {
   const mockJobRepo = {
@@ -67,16 +66,16 @@ describe('ResetPrayerLogsUseCase', () => {
       userId: expect.any(UserId),
       jobId: expect.any(EventId),
     });
-    expect(result.type).toBe('reset-prayers');
-    expect(result.userId.toString()).toBe('user-1');
+    expect(result!.type).toBe('reset-prayers');
+    expect(result!.userId.toString()).toBe('user-1');
   });
 
-  it('throws ConflictError when user has no prayer logs', async () => {
+  it('returns null when user has no prayer logs (idempotent no-op)', async () => {
     vi.mocked(mockPrayerLogRepo.hasAnyLogs).mockResolvedValue(false);
 
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(ConflictError);
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('No prayer logs to reset');
+    const result = await useCase.execute({ userId: 'user-1' });
 
+    expect(result).toBeNull();
     expect(mockJobRepo.createJob).not.toHaveBeenCalled();
     expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
   });
@@ -94,7 +93,9 @@ describe('ResetPrayerLogsUseCase', () => {
     vi.mocked(mockJobRepo.findRecentJobByType).mockResolvedValue(recentJob);
 
     await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(RateLimitError);
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('Please wait 10 minutes');
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(
+      'RESET_PRAYERS_RATE_LIMITED',
+    );
 
     expect(mockJobRepo.createJob).not.toHaveBeenCalled();
     expect(mockDispatcher.dispatch).not.toHaveBeenCalled();

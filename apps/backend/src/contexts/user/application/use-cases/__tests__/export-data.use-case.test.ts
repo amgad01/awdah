@@ -80,9 +80,7 @@ describe('ExportDataUseCase', () => {
     const command: ExportDataCommand = { userId: 'user-1' };
 
     await expect(useCase.execute(command)).rejects.toThrow(RateLimitError);
-    await expect(useCase.execute(command)).rejects.toThrow(
-      'Please wait 10 minutes between data exports',
-    );
+    await expect(useCase.execute(command)).rejects.toThrow('EXPORT_RATE_LIMITED');
     expect(mockJobRepository.createJob).not.toHaveBeenCalled();
     expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
   });

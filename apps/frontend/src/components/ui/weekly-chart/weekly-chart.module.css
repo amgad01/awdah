@@ -26,16 +26,17 @@
 }
 
 .legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs) var(--spacing-md);
+  justify-items: start;
+  padding: 0 var(--spacing-sm);
 }
 
 .legendItem {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-xs);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
@@ -45,18 +46,6 @@
   height: 10px;
   border-radius: var(--border-radius-circle);
   flex-shrink: 0;
-}
-
-.legendDotPrimary {
-  background: var(--color-primary);
-}
-
-.legendDotAccent {
-  background: var(--color-accent);
-}
-
-.legendDotSecondary {
-  background: var(--chart-series-secondary);
 }
 
 .legendDotCovered {

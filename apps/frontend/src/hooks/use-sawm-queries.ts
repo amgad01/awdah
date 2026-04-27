@@ -3,14 +3,22 @@ import type { FastLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useProfile } from '@/hooks/use-profile';
-import { invalidateSawmQueries, removeSawmQueries } from '@/utils/query-invalidation';
+import {
+  updateSawmDebtCache,
+  markSawmHistoryStale,
+  refetchSawmDailyLog,
+  removeSawmDailyLog,
+  removeSawmQueries,
+} from '@/utils/query-invalidation';
 import { sawmRepository } from '@/domains/sawm/sawm-repository';
+import { ERROR_CODES } from '@awdah/shared';
 import {
   useDailyHistoryQuery,
   useInfiniteHistoryQuery,
   useLifecycleResetMutation,
   useRangeHistoryQuery,
   useWorshipLogMutation,
+  isQadaaLogType,
 } from './worship-query-helpers';
 
 export { invalidateSawmQueries } from '@/utils/query-invalidation';
@@ -46,13 +54,21 @@ export const useSawmDebt = () => {
 
 export const useLogFast = () => {
   return useWorshipLogMutation(sawmRepository.logFast, (queryClient, variables) => {
-    invalidateSawmQueries(queryClient, variables.date);
+    if (isQadaaLogType(variables.type)) {
+      updateSawmDebtCache(queryClient, 1);
+    }
+    refetchSawmDailyLog(queryClient, variables.date);
+    markSawmHistoryStale(queryClient);
   });
 };
 
 export const useDeleteFast = () => {
   return useWorshipLogMutation(sawmRepository.deleteFastLog, (queryClient, variables) => {
-    invalidateSawmQueries(queryClient, variables.date);
+    if (isQadaaLogType(variables.type)) {
+      updateSawmDebtCache(queryClient, -1);
+    }
+    removeSawmDailyLog(queryClient, variables.date, variables.eventId);
+    markSawmHistoryStale(queryClient);
   });
 };
 
@@ -85,8 +101,8 @@ export const useResetFastLogs = () => {
     'settings.reset_done',
     {
       cooldownAction: 'fasts',
-      noLogsMessageKey: 'settings.reset_fasts_no_records',
-      rateLimitedMessageKey: 'settings.reset_fasts_rate_limited',
+      noLogsMessageKey: ERROR_CODES.RESET_FASTS_NO_RECORDS,
+      rateLimitedMessageKey: ERROR_CODES.RESET_FASTS_RATE_LIMITED,
     },
   );
 };

@@ -3,6 +3,7 @@ import { FastLog } from '../../domain/entities/fast-log.entity';
 import { LogType } from '../../../shared/domain/value-objects/log-type';
 import { HijriDate, UserId, EventId } from '@awdah/shared';
 import { IIdGenerator } from '../../../../shared/domain/services/id-generator.interface';
+import { isDuplicateLog } from '../../../../shared/utils/idempotency';
 
 export interface LogFastCommand {
   userId: string;
@@ -22,9 +23,7 @@ export class LogFastUseCase {
     const type = new LogType(command.type);
     const existingLogs = await this.repository.findByUserAndDate(userId, date);
 
-    // A fast slot is effectively unique per (date, type). Treat duplicate submissions
-    // as idempotent so retries do not inflate qadaa completion counts.
-    if (existingLogs.some((log) => log.type.getValue() === type.getValue())) {
+    if (isDuplicateLog(existingLogs, type.getValue())) {
       return;
     }
 

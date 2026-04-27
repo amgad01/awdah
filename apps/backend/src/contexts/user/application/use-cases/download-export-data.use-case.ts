@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError, UserId, EventId } from '@awdah/shared';
+import { ConflictError, NotFoundError, UserId, EventId, ERROR_CODES } from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   UserLifecycleJobStatus,
@@ -21,20 +21,20 @@ export class DownloadExportDataUseCase {
     const job = await this.jobRepository.findById(userId, jobId);
 
     if (!job || !isExportJob(job)) {
-      throw new NotFoundError('Export job not found');
+      throw new NotFoundError(ERROR_CODES.TASK_NOT_FOUND);
     }
 
     if (job.status === UserLifecycleJobStatus.Failed) {
-      throw new ConflictError(job.errorMessage || 'Export failed');
+      throw new ConflictError(ERROR_CODES.EXPORT_DOWNLOAD_FAILED);
     }
 
     if (job.status !== UserLifecycleJobStatus.Completed) {
-      throw new ConflictError('Export is still being prepared');
+      throw new ConflictError(ERROR_CODES.EXPORT_RETRY_ERROR);
     }
 
     const download = await this.jobRepository.readExportResult(userId, jobId);
     if (!download) {
-      throw new NotFoundError('Export data is not available');
+      throw new NotFoundError(ERROR_CODES.EXPORT_DOWNLOAD_FAILED);
     }
 
     return download;

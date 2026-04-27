@@ -1,7 +1,9 @@
-import { HijriDate, PRAYERS_PER_DAY, type PracticingPeriodType } from '@awdah/shared';
+import { HijriDate, PRAYERS_PER_DAY } from '@awdah/shared';
+import type { HijriDateValue } from '@/lib/hijri-date';
 import { todayHijriDate } from '@/utils/date-utils';
 
 export type PracticingCoverageContext = 'salah' | 'sawm' | 'all';
+type PracticingPeriodType = 'salah' | 'sawm' | 'both';
 
 export interface PeriodRangeLike {
   id?: string;
@@ -32,7 +34,7 @@ export interface PracticingPeriodValidationError {
   severity: 'error' | 'warning';
 }
 
-function daysBetween(start: HijriDate, end: HijriDate): number {
+function daysBetween(start: HijriDateValue, end: HijriDateValue): number {
   return Math.round((end.toGregorian().getTime() - start.toGregorian().getTime()) / 86_400_000);
 }
 
@@ -50,15 +52,15 @@ function normalizePeriod(period: PeriodRangeLike, fallbackId: string): Normalize
   };
 }
 
-function maxDate(a: HijriDate, b: HijriDate): HijriDate {
+function maxDate(a: HijriDateValue, b: HijriDateValue): HijriDateValue {
   return a.isAfter(b) ? a : b;
 }
 
-function minDate(a: HijriDate, b: HijriDate): HijriDate {
+function minDate(a: HijriDateValue, b: HijriDateValue): HijriDateValue {
   return a.isBefore(b) ? a : b;
 }
 
-function sameOrBefore(a: HijriDate, b: HijriDate): boolean {
+function sameOrBefore(a: HijriDateValue, b: HijriDateValue): boolean {
   return a.isBefore(b) || a.equals(b);
 }
 
@@ -110,7 +112,7 @@ export function getPracticingPeriodValidationError({
     return { messageKey: 'onboarding.error_invalid_date', field: 'start', severity: 'error' };
   }
 
-  let parsedStart: HijriDate;
+  let parsedStart: HijriDateValue;
   try {
     parsedStart = HijriDate.fromString(startDate);
   } catch {
@@ -153,7 +155,7 @@ export function getPracticingPeriodValidationError({
   }
 
   if (endDate) {
-    let parsedEnd: HijriDate;
+    let parsedEnd: HijriDateValue;
     try {
       parsedEnd = HijriDate.fromString(endDate);
     } catch {

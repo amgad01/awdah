@@ -4,6 +4,7 @@ import {
   formatGregorianDisplay,
   formatHijriDisplay,
 } from '@/lib/profile-date-utils';
+import { resolveApiErrorKey } from '@/lib/api-error-codes';
 import type { ProfileFormState, DebtPreview, PeriodLike } from './types';
 
 export { computeHijriAge, formatGregorianDisplay, formatHijriDisplay };
@@ -62,5 +63,5 @@ export function buildDebtPreview(
 }
 
 export function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+  return resolveApiErrorKey(error, error instanceof Error ? error.message : fallback);
 }

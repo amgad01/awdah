@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UserId, EventId } from '@awdah/shared';
+import { UserId, EventId, RateLimitError } from '@awdah/shared';
 import { ResetFastLogsUseCase } from '../reset-fast-logs.use-case';
 import type {
   IUserLifecycleJobRepository,
@@ -8,7 +8,6 @@ import type {
 import type { IUserLifecycleJobDispatcher } from '../../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
 import type { IIdGenerator } from '../../../../../shared/domain/services/id-generator.interface';
 import { IFastLogRepository } from '../../../domain/repositories/fast-log.repository';
-import { ConflictError, RateLimitError } from '@awdah/shared';
 
 describe('ResetFastLogsUseCase', () => {
   const mockJobRepo = {
@@ -67,16 +66,16 @@ describe('ResetFastLogsUseCase', () => {
       userId: expect.any(UserId),
       jobId: expect.any(EventId),
     });
-    expect(result.type).toBe('reset-fasts');
-    expect(result.userId.toString()).toBe('user-1');
+    expect(result!.type).toBe('reset-fasts');
+    expect(result!.userId.toString()).toBe('user-1');
   });
 
-  it('throws ConflictError when user has no fast logs', async () => {
+  it('returns null when user has no fast logs (idempotent no-op)', async () => {
     vi.mocked(mockFastLogRepo.hasAnyLogs).mockResolvedValue(false);
 
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(ConflictError);
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('No fast logs to reset');
+    const result = await useCase.execute({ userId: 'user-1' });
 
+    expect(result).toBeNull();
     expect(mockJobRepo.createJob).not.toHaveBeenCalled();
     expect(mockDispatcher.dispatch).not.toHaveBeenCalled();
   });
@@ -94,7 +93,7 @@ describe('ResetFastLogsUseCase', () => {
     vi.mocked(mockJobRepo.findRecentJobByType).mockResolvedValue(recentJob);
 
     await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(RateLimitError);
-    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('Please wait 10 minutes');
+    await expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow('RESET_FASTS_RATE_LIMITED');
 
     expect(mockJobRepo.createJob).not.toHaveBeenCalled();
     expect(mockDispatcher.dispatch).not.toHaveBeenCalled();

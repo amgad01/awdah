@@ -3,14 +3,23 @@ import type { PrayerLogResponse, HistoryPageResponse } from '@/lib/api';
 import { QUERY_KEYS } from '@/lib/query-keys';
 import { HISTORY_PAGE_SIZE } from '@/lib/constants';
 import { useProfile } from '@/hooks/use-profile';
-import { invalidateSalahQueries, removeSalahQueries } from '@/utils/query-invalidation';
+import {
+  updateSalahDebtCache,
+  markSalahHistoryStale,
+  appendSalahDailyLog,
+  removeSalahDailyLog,
+  removeSalahQueries,
+} from '@/utils/query-invalidation';
 import { salahRepository } from '@/domains/salah/salah-repository';
+import { ERROR_CODES } from '@awdah/shared';
 import {
   useDailyHistoryQuery,
   useInfiniteHistoryQuery,
   useLifecycleResetMutation,
   useRangeHistoryQuery,
   useWorshipLogMutation,
+  isQadaaLogType,
+  createOptimisticEventId,
 } from './worship-query-helpers';
 
 export { invalidateSalahQueries } from '@/utils/query-invalidation';
@@ -46,13 +55,28 @@ export const useSalahDebt = () => {
 
 export const useLogPrayer = () => {
   return useWorshipLogMutation(salahRepository.logPrayer, (queryClient, variables) => {
-    invalidateSalahQueries(queryClient, variables.date);
+    if (isQadaaLogType(variables.type)) {
+      updateSalahDebtCache(queryClient, variables.prayerName, 1);
+    }
+    appendSalahDailyLog(queryClient, variables.date, {
+      eventId: createOptimisticEventId(),
+      date: variables.date,
+      prayerName: variables.prayerName,
+      type: variables.type,
+      action: 'prayed',
+      loggedAt: new Date().toISOString(),
+    });
+    markSalahHistoryStale(queryClient);
   });
 };
 
 export const useDeletePrayer = () => {
   return useWorshipLogMutation(salahRepository.deletePrayerLog, (queryClient, variables) => {
-    invalidateSalahQueries(queryClient, variables.date);
+    if (isQadaaLogType(variables.type)) {
+      updateSalahDebtCache(queryClient, variables.prayerName, -1);
+    }
+    removeSalahDailyLog(queryClient, variables.date, variables.prayerName, variables.type);
+    markSalahHistoryStale(queryClient);
   });
 };
 
@@ -85,8 +109,8 @@ export const useResetPrayerLogs = () => {
     'settings.reset_done',
     {
       cooldownAction: 'prayers',
-      noLogsMessageKey: 'settings.reset_prayers_no_records',
-      rateLimitedMessageKey: 'settings.reset_prayers_rate_limited',
+      noLogsMessageKey: ERROR_CODES.RESET_PRAYERS_NO_RECORDS,
+      rateLimitedMessageKey: ERROR_CODES.RESET_PRAYERS_RATE_LIMITED,
     },
   );
 };

@@ -17,7 +17,7 @@ describe('Streak Hooks (Hybrid Logic: Strict Momentum, Inclusive Individual)', (
   const today = todayHijriDate();
   const yesterday = addHijriDays(today, -1);
 
-  it('useStreak (Momentum) should be STRICT (5/5 obligatory req)', () => {
+  it('useStreak (Momentum) should be STRICT (5/5 obligatory required)', () => {
     vi.mocked(useSalahHistory).mockReturnValue({
       data: [
         { date: yesterday, type: 'obligatory', prayerName: 'fajr' },
@@ -25,19 +25,31 @@ describe('Streak Hooks (Hybrid Logic: Strict Momentum, Inclusive Individual)', (
         { date: yesterday, type: 'obligatory', prayerName: 'asr' },
         { date: yesterday, type: 'obligatory', prayerName: 'maghrib' },
         { date: yesterday, type: 'obligatory', prayerName: 'isha' },
+        // today only has 4 obligatory + 1 qadaa — not a complete day
         { date: today, type: 'obligatory', prayerName: 'fajr' },
-        { date: today, type: 'qadaa', prayerName: 'dhuhr' }, // Qadaa doesnt satisfy Momentum
+        { date: today, type: 'qadaa', prayerName: 'dhuhr' },
       ],
       isLoading: false,
     } as any);
     vi.mocked(useSawmHistory).mockReturnValue({ data: [], isLoading: false } as any);
 
     const { result } = renderHook(() => useStreak());
-    // Should be 1 day (yesterday)
+    // yesterday is the last complete day → streak = 1
     expect(result.current.streak).toBe(1);
   });
 
-  it('useStreakDetails individual prayer streaks should be INCLUSIVE', () => {
+  it('useStreak returns 0 when no complete days exist', () => {
+    vi.mocked(useSalahHistory).mockReturnValue({
+      data: [{ date: today, type: 'obligatory', prayerName: 'fajr' }],
+      isLoading: false,
+    } as any);
+    vi.mocked(useSawmHistory).mockReturnValue({ data: [], isLoading: false } as any);
+
+    const { result } = renderHook(() => useStreak());
+    expect(result.current.streak).toBe(0);
+  });
+
+  it('useStreakDetails individual prayer streaks track obligatory and qadaa separately', () => {
     vi.mocked(useSalahHistory).mockReturnValue({
       data: [
         { date: today, type: 'obligatory', prayerName: 'fajr' },
@@ -45,23 +57,60 @@ describe('Streak Hooks (Hybrid Logic: Strict Momentum, Inclusive Individual)', (
       ],
       isLoading: false,
     } as any);
+    vi.mocked(useSawmHistory).mockReturnValue({ data: [], isLoading: false } as any);
 
     const { result } = renderHook(() => useStreakDetails());
-    // Should be 2 days (inclusive of both types)
-    expect(result.current.prayerStreaks['fajr']).toBe(2);
+    // obligatory streak: only today → 1
+    expect(result.current.prayerStreaks['fajr'].obligatory).toBe(1);
+    // qadaa streak: only yesterday → 1
+    expect(result.current.prayerStreaks['fajr'].qadaa).toBe(1);
   });
 
-  it('useStreakDetails fasting streak should be INCLUSIVE', () => {
+  it('useStreakDetails fasting streak counts consecutive ramadan days', () => {
+    vi.mocked(useSalahHistory).mockReturnValue({ data: [], isLoading: false } as any);
     vi.mocked(useSawmHistory).mockReturnValue({
       data: [
         { date: today, type: 'ramadan' },
+        { date: yesterday, type: 'ramadan' },
+      ],
+      isLoading: false,
+    } as any);
+
+    const { result } = renderHook(() => useStreakDetails());
+    expect(result.current.fastStreak).toBe(2);
+  });
+
+  it('useStreakDetails qadaa fast streak counts consecutive qadaa days', () => {
+    vi.mocked(useSalahHistory).mockReturnValue({ data: [], isLoading: false } as any);
+    vi.mocked(useSawmHistory).mockReturnValue({
+      data: [
+        { date: today, type: 'qadaa' },
         { date: yesterday, type: 'qadaa' },
       ],
       isLoading: false,
     } as any);
 
     const { result } = renderHook(() => useStreakDetails());
-    // Should be 2 days (inclusive of both types)
-    expect(result.current.fastStreak).toBe(2);
+    expect(result.current.qadaaFastStreak).toBe(2);
+  });
+
+  it('useStreakDetails activePrayerStreaks returns sorted list of active streaks', () => {
+    vi.mocked(useSalahHistory).mockReturnValue({
+      data: [
+        { date: today, type: 'obligatory', prayerName: 'fajr' },
+        { date: yesterday, type: 'obligatory', prayerName: 'fajr' },
+        { date: today, type: 'qadaa', prayerName: 'maghrib' },
+      ],
+      isLoading: false,
+    } as any);
+    vi.mocked(useSawmHistory).mockReturnValue({ data: [], isLoading: false } as any);
+
+    const { result } = renderHook(() => useStreakDetails());
+    const streaks = result.current.activePrayerStreaks;
+    expect(streaks.length).toBeGreaterThan(0);
+    // sorted descending by count
+    for (let i = 1; i < streaks.length; i++) {
+      expect(streaks[i - 1].count).toBeGreaterThanOrEqual(streaks[i].count);
+    }
   });
 });

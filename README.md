@@ -43,6 +43,7 @@ The production frontend is currently published on GitHub Pages under `/awdah/`. 
 - Salah debt calculation based on practicing periods
 - Sawm debt calculation across missed Ramadans
 - Daily logging for current worship and qadaa recovery
+- Weekly worship charts for Salah and Sawm tracking
 - Practicing-period CRUD with dual-date display
 - History views, paged history APIs, and privacy-sensitive settings flows
 - Public `/about`, `/learn`, `/contribute`, and `/demo` routes that work without live backend data

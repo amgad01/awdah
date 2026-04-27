@@ -1,4 +1,4 @@
-import { ValidationError, UserId, PeriodId } from '@awdah/shared';
+import { ValidationError, UserId, PeriodId, ERROR_CODES } from '@awdah/shared';
 import { HijriDate } from '@awdah/shared';
 import { PracticingPeriodType } from '@awdah/shared';
 
@@ -17,7 +17,7 @@ export class PracticingPeriod {
 
   private validate(): void {
     if (this.props.endDate && this.props.endDate.isBefore(this.props.startDate)) {
-      throw new ValidationError('onboarding.period_error_end_before_start');
+      throw new ValidationError(ERROR_CODES.PERIOD_END_BEFORE_START);
     }
   }
 

@@ -1,0 +1,43 @@
+/**
+ * Semantic error codes for backend-to-frontend communication.
+ * These codes are machine-readable discriminators that the frontend maps to i18n keys.
+ * The error message field contains a plain English developer string.
+ */
+export const ERROR_CODES = {
+  // Salah domain
+  SALAH_NO_QADAA_OWED: 'SALAH_NO_QADAA_OWED',
+
+  // Sawm domain
+  SAWM_NO_QADAA_DEBT: 'SAWM_NO_QADAA_DEBT',
+  SAWM_EXCEED_QADAA_DEBT: 'SAWM_EXCEED_QADAA_DEBT',
+
+  // Settings / lifecycle
+  RESET_PRAYERS_NO_RECORDS: 'RESET_PRAYERS_NO_RECORDS',
+  RESET_PRAYERS_RATE_LIMITED: 'RESET_PRAYERS_RATE_LIMITED',
+  RESET_FASTS_NO_RECORDS: 'RESET_FASTS_NO_RECORDS',
+  RESET_FASTS_RATE_LIMITED: 'RESET_FASTS_RATE_LIMITED',
+  EXPORT_RATE_LIMITED: 'EXPORT_RATE_LIMITED',
+  EXPORT_RETRY_ERROR: 'EXPORT_RETRY_ERROR',
+  EXPORT_DOWNLOAD_FAILED: 'EXPORT_DOWNLOAD_FAILED',
+
+  // User lifecycle
+  TASK_NOT_FOUND: 'TASK_NOT_FOUND',
+  TASK_FAILED: 'TASK_FAILED',
+  TASK_TIMEOUT: 'TASK_TIMEOUT',
+
+  // Onboarding / profile
+  PERIOD_NOT_FOUND: 'PERIOD_NOT_FOUND',
+  PERIOD_END_BEFORE_START: 'PERIOD_END_BEFORE_START',
+  PERIOD_BEFORE_DOB: 'PERIOD_BEFORE_DOB',
+  PERIOD_BEFORE_REVERT: 'PERIOD_BEFORE_REVERT',
+  BULUGH_BEFORE_DOB: 'BULUGH_BEFORE_DOB',
+  REVERT_BEFORE_DOB: 'REVERT_BEFORE_DOB',
+  USER_SETTINGS_NOT_FOUND: 'USER_SETTINGS_NOT_FOUND',
+
+  // Generic validation
+  INVALID_PAGINATION_CURSOR: 'INVALID_PAGINATION_CURSOR',
+  INVALID_JSON_BODY: 'INVALID_JSON_BODY',
+} as const;
+
+export type ErrorCodeKey = keyof typeof ERROR_CODES;
+export type ErrorCodeValue = (typeof ERROR_CODES)[ErrorCodeKey];

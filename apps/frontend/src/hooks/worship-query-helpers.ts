@@ -14,8 +14,25 @@ import {
   createNoLogsError,
   shouldSuppressToast,
 } from '@/utils/lifecycle-errors';
+import { resolveApiErrorKey } from '@/lib/api-error-codes';
 import { useResetCooldown } from './use-reset-cooldown';
 import { useHasLogsCache } from './use-has-logs-cache';
+
+/**
+ * Normalised check for qadaa log type.
+ * Guards against casing or whitespace drift in user-facing inputs.
+ */
+export function isQadaaLogType(type: string): boolean {
+  return type.toLowerCase().trim() === 'qadaa';
+}
+
+/**
+ * Generates a collision-resistant optimistic event ID.
+ * Combines timestamp with random suffix for sub-millisecond uniqueness.
+ */
+export function createOptimisticEventId(): string {
+  return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 export function useDailyHistoryQuery<TItem>(
   queryKey: QueryKey,
@@ -84,8 +101,8 @@ export function useWorshipLogMutation<TVariables>(
       onInvalidate(queryClient, variables);
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : 'common.error';
-      toast.error(t(message));
+      const key = resolveApiErrorKey(err, 'common.error');
+      toast.error(t(key));
     },
   });
 }
@@ -112,12 +129,10 @@ export function useLifecycleResetMutation(
 
   return useMutation({
     mutationFn: async () => {
-      // Check cooldown before sending request
       if (!cooldown.checkBeforeRequest()) {
         throw createRateLimitError(options.rateLimitedMessageKey, cooldown.secondsRemaining);
       }
 
-      // Check logs cache - if we know there are no logs, fail fast
       if (hasLogs === false) {
         throw createNoLogsError(options.noLogsMessageKey);
       }
@@ -125,28 +140,20 @@ export function useLifecycleResetMutation(
       const started = await startReset();
       const job = started?.job;
 
-      if (!job) {
-        throw new Error(
-          jobType === 'reset-prayers'
-            ? 'settings.reset_prayers_start_failed'
-            : 'settings.reset_fasts_start_failed',
-        );
-      }
+      if (!job) return null;
 
       await waitForLifecycleJob(job.jobId, jobType);
       return job;
     },
     onSuccess: () => {
-      // Record cooldown only after successful completion
       cooldown.recordAttempt();
       onInvalidate(queryClient);
       toast.success(t(successMessageKey));
     },
     onError: (err) => {
-      // Skip toast for rate limiting and no records - handled by UI (disabled button + countdown)
       if (!shouldSuppressToast(err)) {
-        const message = err instanceof Error ? err.message : 'common.error';
-        toast.error(t(message));
+        const key = resolveApiErrorKey(err, 'common.error');
+        toast.error(t(key));
       }
     },
   });

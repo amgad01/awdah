@@ -1,5 +1,4 @@
-import { NotFoundError, UserId } from '@awdah/shared';
-import { userSettingsNotFound } from '../../../../shared/errors/messages';
+import { NotFoundError, UserId, ERROR_CODES } from '@awdah/shared';
 import { IFastLogRepository } from '../../domain/repositories/fast-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import {
@@ -23,7 +22,7 @@ export class GetSawmDebtUseCase {
     const userIdValue = new UserId(userId);
     const settings = await this.userRepository.findById(userIdValue);
     if (!settings) {
-      throw new NotFoundError(userSettingsNotFound);
+      throw new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND);
     }
 
     const effectiveStartDate = resolveEffectiveStartDate(settings);

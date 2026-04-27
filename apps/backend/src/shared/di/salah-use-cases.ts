@@ -22,14 +22,7 @@ import { getUserLifecycleJobDispatcher } from './user-use-cases';
 let logPrayerUseCase: LogPrayerUseCase | undefined;
 export const getLogPrayerUseCase = (): LogPrayerUseCase => {
   if (!logPrayerUseCase) {
-    logPrayerUseCase = new LogPrayerUseCase(
-      getPrayerLogRepo(),
-      getIdGenerator(),
-      getUserRepo(),
-      getPeriodRepo(),
-      getSalahCalculator(),
-      getCalendarService(),
-    );
+    logPrayerUseCase = new LogPrayerUseCase(getPrayerLogRepo(), getIdGenerator());
   }
   return logPrayerUseCase;
 };

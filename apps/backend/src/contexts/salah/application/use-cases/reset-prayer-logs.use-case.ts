@@ -5,14 +5,7 @@ import {
   type UserLifecycleJob,
 } from '../../../user/domain/repositories/user-lifecycle-job.repository';
 import type { IUserLifecycleJobDispatcher } from '../../../user/domain/services/user-lifecycle-job-dispatcher.service.interface';
-import {
-  UserId,
-  EventId,
-  RateLimitError,
-  ConflictError,
-  RATE_LIMIT_MINUTES,
-  getRateLimitSince,
-} from '@awdah/shared';
+import { UserId, EventId, RateLimitError, getRateLimitSince, ERROR_CODES } from '@awdah/shared';
 import { IIdGenerator } from '../../../../shared/domain/services/id-generator.interface';
 import type { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 
@@ -28,12 +21,12 @@ export class ResetPrayerLogsUseCase {
     private readonly prayerLogRepository: IPrayerLogRepository,
   ) {}
 
-  async execute(command: ResetPrayerLogsCommand): Promise<UserLifecycleJob> {
+  async execute(command: ResetPrayerLogsCommand): Promise<UserLifecycleJob | null> {
     const userId = new UserId(command.userId);
 
     const hasLogs = await this.prayerLogRepository.hasAnyLogs(userId);
     if (!hasLogs) {
-      throw new ConflictError('No prayer logs to reset');
+      return null;
     }
 
     const since = getRateLimitSince();
@@ -44,9 +37,7 @@ export class ResetPrayerLogsUseCase {
     );
 
     if (recentJob) {
-      throw new RateLimitError(
-        `Please wait ${RATE_LIMIT_MINUTES} minutes between prayer log resets`,
-      );
+      throw new RateLimitError(ERROR_CODES.RESET_PRAYERS_RATE_LIMITED);
     }
 
     const requestedAt = new Date().toISOString();

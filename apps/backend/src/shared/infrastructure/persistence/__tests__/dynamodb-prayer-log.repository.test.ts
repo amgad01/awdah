@@ -102,10 +102,10 @@ describe('DynamoDBPrayerLogRepository', () => {
     const calls = ddbMock.commandCalls(QueryCommand);
     expect(calls[0]!.args[0].input).toMatchObject({
       IndexName: 'typeDateIndex',
-      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :sk)',
+      KeyConditionExpression: 'userId = :pk AND begins_with(typeDate, :prefix)',
     });
     expect(calls[0]!.args[0].input.ExpressionAttributeValues).toMatchObject({
-      ':sk': PrayerLogKey.typeDatePrefixForType('qadaa'),
+      ':prefix': PrayerLogKey.typeDatePrefixForType('qadaa'),
     });
   });
 

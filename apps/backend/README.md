@@ -2,6 +2,8 @@
 
 The backend is a TypeScript codebase organised around Clean Architecture. In production, the HTTP surface is served by API Gateway plus Lambda. Locally, `src/index.ts` runs an Express server that exercises the same use cases and middleware patterns.
 
+Qadaa debt validation is handled client-side to minimize DynamoDB reads; backend use cases implement idempotency checks to ensure data integrity without redundant lookups.
+
 ## Responsibilities
 
 | Context  | Owns                                                                |

@@ -7,6 +7,70 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.5.0
+
+### Fixed
+
+#### Backend
+
+- **Semantic error code contract**: All backend use cases now throw `AppError` subclasses with semantic error codes (e.g. `SAWM_NO_QADAA_DEBT`) instead of i18n keys. Previously, use cases embedded frontend translation keys in the `error.message` field, tightly coupling the backend to the frontend i18n namespace.
+- **Qadaa writes remain idempotent**: `LogPrayerUseCase` and `LogFastUseCase` keep the backend write path lean. They perform duplicate-check idempotency only, while qadaa debt-limit enforcement stays in the UI per ADR-005.
+- **Shared validation utility kept for reuse**: `validateCanLogFast()` in `@awdah/shared` remains available for the qadaa debt rule, but it is not wired into the current backend write path. The UI continues to block invalid qadaa submissions before the request is sent.
+
+#### Shared
+
+- **`ERROR_CODES` registry**: New `packages/shared/src/errors/error-codes.ts` defines all semantic error codes as typed constants. This is the single source of truth for the backend-to-frontend error contract.
+- **NaN guards in debt validation**: `validateCanLogSalahQadaa` and `validateCanLogFast` now reject `NaN` and non-finite values explicitly instead of allowing invalid state to pass through silently.
+
+#### Frontend
+
+- **`api-error-codes.ts`**: New file owns the complete `ERROR_CODE -> i18n key` mapping. `resolveApiErrorKey(error, fallback)` handles both `ApiRequestError` (matched on `error.code`) and locally-thrown `Error` instances (matched on `error.message` being a known semantic code). All error-handling sites now go through this single resolver.
+- **Sign-out error logging**: 401 sign-out failures are now logged via `console.error` instead of silently swallowed.
+- **Plain Error suppression contract**: `shouldSuppressToast` now documents and narrows the plain `Error` branch to exclude `ApiRequestError` instances, making the suppression contract explicit.
+- **Frontend i18n**: Added `sawm.error_no_qadaa_debt` and `sawm.error_exceed_qadaa_debt` keys to EN, AR, and DE locale files.
+- **API type safety**: All write endpoints in `api.ts` now carry explicit `{ message: string }` response types, consistent with all read endpoints.
+
+### Changed
+
+#### Frontend
+
+- **Chart visual distinguishability**: Weekly worship chart now renders four visually distinct series — obligatory prayers (solid 2.5 px, primary), qadaa prayers (dash `5 3`, 2 px, info), obligatory fasts (dash `8 3`, 2.5 px, warning), qadaa fasts (dot `2 3`, 2 px, warning).
+- **Chart legend**: Legend is a 2-column grid with inline SVG swatches matching each line style. Driven by a `WEEKLY_CHART_SERIES` config array — no repeated JSX blocks.
+- **Chart CSS tokens**: Hardcoded hex values replaced with `var(--color-info)` and `var(--color-warning)`. Raw `gap: 6px` replaced with `var(--spacing-xs)`. Series styles extracted to typed `ChartSeriesStyle` constants in `chart-theme.ts`.
+- **Chart date formatting**: Hijri dates now display with month names ("6 Ramadan 1447" vs "06-09-1447") and Arabic numerals for Arabic users. Tooltip date labels removed for cleaner hover display.
+- **Dashboard observed daily rate**: "You are completing about N prayers per day" now reflects actual qadaa log history instead of the stepper counter. Rate is computed as `totalQadaaPrayers / distinctLoggedDays` over the last 7 days.
+- **Enhanced projection display**: Projection now shows years and months separately and includes an explanation of the observed rate calculation.
+- **Separate obligatory and qadaa streaks**: Streak card now displays both obligatory and qadaa activities as distinct streaks with contextual title logic.
+- **Focused page charts**: Added dedicated weekly charts to Salah and Sawm pages showing only relevant data series, lazy-loaded.
+- **Enhanced tooltips**: Added `GlossaryText` component to encouragement sections on Salah and Sawm pages.
+
+#### Tooling
+
+- **Deploy script alignment**: Root `package.json` deploy scripts now consistently require `DEPLOY_ENV` prefix. Added `deploy:quick:dev`, `deploy:hotswap:dev`, and `deploy:parallel:dev` shortcuts.
+- **Infra deploy script fix**: `infra/package.json` `deploy:all` now points to `deploy-all.sh` and `deploy:frontend` renamed to `deploy:frontend-stack`.
+- **CDK lock file ambiguity fixed**: `NodejsFunction` now sets `depsLockFilePath` to `package-lock.json` explicitly, resolving `MultipleLockFilesFound` CDK synthesis errors.
+
+### Refactored
+
+#### Frontend — Clean Architecture & DDD
+
+- **Domain-Driven Design**: Implemented proper domain boundaries with `domains/dashboard/` and `domains/charts/` containing pure business logic separated from UI concerns.
+- **Chart Architecture**: Modularized `BaseWeeklyChart` into focused components (`ChartDateTick`, `ChartLegend`, `ChartLegendSwatch`) and domain services (`worship-data.service.ts`, `practicing-periods.service.ts`).
+- **Centralized Business Logic**: Consolidated debt calculations, time projections, and observed rate computations into `debt-calculation.service.ts` with proper type definitions.
+- **Component Composition**: Created reusable UI components (`ToggleDetails`, `RateStepper`, `BaseDebtCard`) eliminating 500+ lines of duplicated code across dashboard cards.
+- **Shared Chart Infrastructure**: `useWeeklyChartData` hook and `chart-series.ts` constants provide consistent data fetching and series configuration across all chart types.
+- **DRY streak calculations**: Extracted `groupPrayersByDay`, `computeObligatoryPrayerStreak`, and `computeFastStreak` domain helpers in `use-streak.ts`.
+- **DRY celebration logic**: Extracted `checkStreakCelebration` and `buildCelebrationMessage` helpers in `use-celebration.ts`.
+
+### Documentation
+
+- **Error i18n contract**: Added `docs/architecture/error-i18n.md` documenting the full backend-to-frontend error translation contract, HTTP status semantics, and the step-by-step guide for adding new errors.
+- **OpenAPI spec accuracy**: Updated `docs/api/openapi.yaml` to match actual implementation — corrected reset endpoints to show 200 no-op behavior when no logs exist, added missing 429 to export endpoint, expanded 409 responses with actual error codes, added missing 404 to `POST /v1/salah/practicing-period`, documented idempotency on `DELETE /v1/salah/practicing-period`.
+- **OpenAPI local serving**: Updated `CONTRIBUTING.md` with working command (`cd docs/api && python3 -m http.server 8080`) and created `docs/api/index.html` for zero-install local viewing.
+- **ADR-005**: Documented the decision to keep qadaa debt validation in the UI only, with rationale about the 4-5 DynamoDB reads that would be added per qadaa log call and the conditions under which it should be revisited.
+
+---
+
 ## v1.4.0
 
 ### Added

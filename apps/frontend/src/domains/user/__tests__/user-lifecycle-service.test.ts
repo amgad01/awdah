@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ERROR_CODES } from '@awdah/shared';
 import { deleteUserAccountWorkflow, waitForLifecycleJob } from '../user-lifecycle-service';
 
 const { mockUserRepository } = vi.hoisted(() => ({
@@ -59,7 +60,7 @@ describe('user-lifecycle-service', () => {
     });
   });
 
-  it('hides backend failure details behind a generic task failure key', async () => {
+  it('hides backend failure details behind a generic task failure code', async () => {
     mockUserRepository.getJobStatus.mockResolvedValue({
       job: createJob({
         status: 'failed',
@@ -68,23 +69,23 @@ describe('user-lifecycle-service', () => {
     });
 
     await expect(waitForLifecycleJob('job-1', 'delete-account')).rejects.toThrow(
-      'common.task_failed',
+      ERROR_CODES.TASK_FAILED,
     );
   });
 
-  it('throws a translated delete-start error when no delete job is returned', async () => {
+  it('throws a task-not-found code when no delete job is returned', async () => {
     mockUserRepository.startDeleteAccount.mockResolvedValue(null);
 
-    await expect(deleteUserAccountWorkflow()).rejects.toThrow('common.account_deletion_failed');
+    await expect(deleteUserAccountWorkflow()).rejects.toThrow(ERROR_CODES.TASK_NOT_FOUND);
   });
 
-  it('throws a translated unexpected-result error when the wrong job type is returned', async () => {
+  it('throws a task-not-found code when the wrong job type is returned', async () => {
     mockUserRepository.getJobStatus.mockResolvedValue({
       job: createJob({ type: 'export' }),
     });
 
     await expect(waitForLifecycleJob('job-1', 'delete-account')).rejects.toThrow(
-      'common.task_unexpected_result',
+      ERROR_CODES.TASK_NOT_FOUND,
     );
   });
 });

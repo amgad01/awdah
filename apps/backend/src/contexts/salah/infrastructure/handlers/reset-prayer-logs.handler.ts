@@ -7,6 +7,7 @@ import { StatusCodes } from '@awdah/shared';
 export const handler = createHandler(CONTEXTS.SALAH, getResetPrayerLogsUseCase(), {
   transformInput: (userId) => ({ userId }),
   statusCode: StatusCodes.ACCEPTED,
+  successMessage: MESSAGES.SALAH.PRAYERS_RESET_STARTED,
   present: (job) => ({
     message: MESSAGES.SALAH.PRAYERS_RESET_STARTED,
     job,

@@ -1,5 +1,4 @@
-import { NotFoundError, UserId } from '@awdah/shared';
-import { userSettingsNotFound } from '../../../../shared/errors/messages';
+import { NotFoundError, UserId, ERROR_CODES } from '@awdah/shared';
 import { IPrayerLogRepository } from '../../domain/repositories/prayer-log.repository';
 import { IPracticingPeriodRepository } from '../../../shared/domain/repositories/practicing-period.repository';
 import {
@@ -25,7 +24,7 @@ export class GetSalahDebtUseCase {
     // 1. Get user settings (for bulugh date)
     const settings = await this.userRepository.findById(user);
     if (!settings) {
-      throw new NotFoundError(userSettingsNotFound);
+      throw new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND);
     }
 
     const effectiveStartDate = resolveEffectiveStartDate(settings);

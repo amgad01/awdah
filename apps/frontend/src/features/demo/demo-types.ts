@@ -43,6 +43,7 @@ export interface DemoData {
   bestPrayerStreak: {
     name: PrayerName;
     count: number;
+    type: 'obligatory' | 'qadaa';
   } | null;
   monThuStreak: number;
   practicingPeriods: Array<{

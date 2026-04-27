@@ -146,7 +146,8 @@
   --chart-range-fill: var(--color-primary-alpha-10);
   --chart-series-primary: var(--color-primary);
   --chart-series-accent: var(--color-accent);
-  --chart-series-secondary: var(--color-secondary);
+  --chart-series-secondary: var(--color-info);
+  --chart-series-tertiary: var(--color-warning);
 
   /* Nav / sidebar background — teal-based, always dark */
   --nav-bg: #00251a;

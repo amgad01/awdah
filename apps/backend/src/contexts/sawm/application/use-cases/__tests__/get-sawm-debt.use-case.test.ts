@@ -82,7 +82,7 @@ describe('GetSawmDebtUseCase', () => {
 
   it('throws NotFoundError if user settings missing', async () => {
     vi.mocked(mockUserRepo.findById).mockResolvedValue(null);
-    await expect(useCase.execute('u')).rejects.toThrow('User settings not found');
+    await expect(useCase.execute('u')).rejects.toThrow('USER_SETTINGS_NOT_FOUND');
   });
 
   it('returns zero debt when bulugh date is in the future', async () => {

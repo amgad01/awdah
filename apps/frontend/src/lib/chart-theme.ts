@@ -12,6 +12,7 @@ export const CHART_RANGE_FILL = 'var(--chart-range-fill)';
 export const CHART_SERIES_PRIMARY = 'var(--chart-series-primary)';
 export const CHART_SERIES_ACCENT = 'var(--chart-series-accent)';
 export const CHART_SERIES_SECONDARY = 'var(--chart-series-secondary)';
+export const CHART_SERIES_TERTIARY = 'var(--chart-series-tertiary)';
 
 export const CHART_TICK_MEDIUM = { fontSize: 11, fill: CHART_TICK_FILL } as const;
 export const CHART_TICK_SMALL = { fontSize: 10, fill: CHART_TICK_FILL } as const;
@@ -27,3 +28,32 @@ export const CHART_CURSOR_STYLE = {
   stroke: CHART_CURSOR_STROKE,
   strokeDasharray: '3 3',
 } as const;
+
+export interface ChartSeriesStyle {
+  stroke: string;
+  strokeWidth: number;
+  strokeDasharray?: string;
+}
+
+export const CHART_LINE_SALAH_OBLIGATORY: ChartSeriesStyle = {
+  stroke: CHART_SERIES_PRIMARY,
+  strokeWidth: 2.5,
+};
+
+export const CHART_LINE_SALAH_QADAA: ChartSeriesStyle = {
+  stroke: CHART_SERIES_ACCENT,
+  strokeWidth: 2,
+  strokeDasharray: '5 3',
+};
+
+export const CHART_LINE_SAWM_OBLIGATORY: ChartSeriesStyle = {
+  stroke: CHART_SERIES_SECONDARY,
+  strokeWidth: 2.5,
+  strokeDasharray: '8 3',
+};
+
+export const CHART_LINE_SAWM_QADAA: ChartSeriesStyle = {
+  stroke: CHART_SERIES_TERTIARY,
+  strokeWidth: 2,
+  strokeDasharray: '2 3',
+};

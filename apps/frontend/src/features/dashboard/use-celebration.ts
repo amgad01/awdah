@@ -10,9 +10,25 @@ interface UseCelebrationArgs {
   monThuStreak: number;
   obligatoryStreak: number;
   fastStreak: number;
+  qadaaFastStreak: number;
   allDebtCleared: boolean;
   t: (key: string, opts?: Record<string, unknown>) => string;
   fmtNumber: (n: number) => string;
+}
+
+// Domain helper for celebration logic
+function checkStreakCelebration(current: number, previous: number, milestones: number[]): boolean {
+  return current > previous && milestones.includes(current);
+}
+
+function buildCelebrationMessage(
+  key: string,
+  opts: Record<string, unknown> | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  const msg = t(key, opts);
+  const suffix = t('dashboard.celebration_suffix');
+  return `${msg}${suffix}`;
 }
 
 export function useCelebration({
@@ -22,6 +38,7 @@ export function useCelebration({
   monThuStreak,
   obligatoryStreak,
   fastStreak,
+  qadaaFastStreak,
   allDebtCleared,
   t,
   fmtNumber,
@@ -33,6 +50,7 @@ export function useCelebration({
   const prevMonThu = useRef(monThuStreak);
   const prevObligatory = useRef(obligatoryStreak);
   const prevFast = useRef(fastStreak);
+  const prevQadaaFast = useRef(qadaaFastStreak);
 
   useEffect(() => {
     let nextCelebration: string | null = null;
@@ -44,49 +62,83 @@ export function useCelebration({
       prevMonThu.current = monThuStreak;
       prevObligatory.current = obligatoryStreak;
       prevFast.current = fastStreak;
+      prevQadaaFast.current = qadaaFastStreak;
 
       if (allDebtCleared) {
         nextCelebration = t('dashboard.debt_cleared_title');
       }
     } else {
-      const buildCelebration = (key: string, opts?: Record<string, unknown>) => {
-        const msg = t(key, opts);
-        const suffix = t('dashboard.celebration_suffix');
-        return `${msg}${suffix}`;
-      };
-
       if (streak > prevStreak.current && milestone !== null) {
-        nextCelebration = buildCelebration('dashboard.celebration_streak', {
-          n: fmtNumber(streak),
-        });
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_streak',
+          {
+            n: fmtNumber(streak),
+          },
+          t,
+        );
       } else if (
-        obligatoryStreak > prevObligatory.current &&
-        PRAYER_CELEBRATION_MILESTONES.includes(obligatoryStreak)
+        checkStreakCelebration(
+          obligatoryStreak,
+          prevObligatory.current,
+          PRAYER_CELEBRATION_MILESTONES,
+        )
       ) {
-        nextCelebration = buildCelebration('dashboard.celebration_obligatory_streak', {
-          n: fmtNumber(obligatoryStreak),
-        });
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_obligatory_streak',
+          {
+            n: fmtNumber(obligatoryStreak),
+          },
+          t,
+        );
       } else if (
         bestPrayerStreak &&
-        bestPrayerStreak.count > prevBestPrayerCount.current &&
-        PRAYER_CELEBRATION_MILESTONES.includes(bestPrayerStreak.count)
+        checkStreakCelebration(
+          bestPrayerStreak.count,
+          prevBestPrayerCount.current,
+          PRAYER_CELEBRATION_MILESTONES,
+        )
       ) {
-        nextCelebration = buildCelebration('dashboard.celebration_prayer_streak', {
-          prayer: t(`prayers.${bestPrayerStreak.name}`),
-          n: fmtNumber(bestPrayerStreak.count),
-        });
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_prayer_streak',
+          {
+            prayer: t(`prayers.${bestPrayerStreak.name}`),
+            n: fmtNumber(bestPrayerStreak.count),
+          },
+          t,
+        );
       } else if (
-        fastStreak > prevFast.current &&
-        PRAYER_CELEBRATION_MILESTONES.includes(fastStreak)
+        checkStreakCelebration(fastStreak, prevFast.current, PRAYER_CELEBRATION_MILESTONES)
       ) {
-        nextCelebration = buildCelebration('dashboard.celebration_fast_streak', {
-          n: fmtNumber(fastStreak),
-        });
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_fast_streak',
+          {
+            n: fmtNumber(fastStreak),
+          },
+          t,
+        );
+      } else if (
+        checkStreakCelebration(
+          qadaaFastStreak,
+          prevQadaaFast.current,
+          PRAYER_CELEBRATION_MILESTONES,
+        )
+      ) {
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_qadaa_fast_streak',
+          {
+            n: fmtNumber(qadaaFastStreak),
+          },
+          t,
+        );
       } else if (monThuStreak > prevMonThu.current && monThuStreak > 0) {
-        nextCelebration = buildCelebration('dashboard.celebration_mon_thu', {
-          count: monThuStreak,
-          n: fmtNumber(monThuStreak),
-        });
+        nextCelebration = buildCelebrationMessage(
+          'dashboard.celebration_mon_thu',
+          {
+            count: monThuStreak,
+            n: fmtNumber(monThuStreak),
+          },
+          t,
+        );
       } else if (allDebtCleared) {
         nextCelebration = t('dashboard.debt_cleared_title');
       }
@@ -97,6 +149,7 @@ export function useCelebration({
     prevMonThu.current = monThuStreak;
     prevObligatory.current = obligatoryStreak;
     prevFast.current = fastStreak;
+    prevQadaaFast.current = qadaaFastStreak;
 
     if (nextCelebration === null) {
       return;
@@ -116,6 +169,7 @@ export function useCelebration({
     monThuStreak,
     obligatoryStreak,
     fastStreak,
+    qadaaFastStreak,
     allDebtCleared,
     t,
     fmtNumber,

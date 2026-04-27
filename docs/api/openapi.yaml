@@ -76,10 +76,11 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [status, timestamp]
+                required: [status, timestamp, environment]
                 properties:
                   status:
                     type: string
+                    enum: [UP]
                     example: UP
                   timestamp:
                     type: string
@@ -87,8 +88,8 @@ paths:
                     example: '2026-04-01T09:30:00.000Z'
                   environment:
                     type: string
-                    nullable: true
-                    example: production
+                    enum: [dev, staging, prod]
+                    example: dev
 
   # ---------------------------------------------------------------------------
   # Salah — prayer logs
@@ -182,8 +183,17 @@ paths:
         authenticated user. The user's profile, bulugh date, and practicing periods are
         not affected. Debt is recalculated on the next call to `GET /v1/salah/debt`.
 
+        Returns `200` with a plain message (no job) when the user has no logs — the
+        operation is a no-op and no background job is created.
+
         Rate limit: 1 request per 10 minutes per user.
       responses:
+        '200':
+          description: No logs exist — reset is a no-op
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
         '202':
           description: Prayer log reset started
           content:
@@ -192,8 +202,6 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimit'
         '500':
@@ -351,8 +359,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          description: Overlapping period already exists
+        '404':
+          description: User profile not found — onboarding not yet complete
           content:
             application/json:
               schema:
@@ -387,12 +395,6 @@ paths:
           $ref: '#/components/responses/Unauthenticated'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          description: Updated period overlaps with an existing period
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -400,7 +402,11 @@ paths:
       operationId: deletePracticingPeriod
       tags: [salah]
       summary: Delete a practicing period
-      description: Removes a specific practicing period. Debt is recalculated the next time `GET /v1/salah/debt` or `GET /v1/sawm/debt` is called.
+      description: |
+        Removes a specific practicing period. Debt is recalculated the next time
+        `GET /v1/salah/debt` or `GET /v1/sawm/debt` is called.
+
+        This operation is idempotent — deleting a non-existent period returns `200`.
       parameters:
         - name: periodId
           in: query
@@ -453,7 +459,9 @@ paths:
       summary: Log a fast
       description: |
         Records a single fasting day as either a current obligatory fast (`obligatory`)
-        or a make-up qadaa fast (`qadaa`).
+        or a make-up qadaa fast (`qadaa`). This endpoint is idempotent — logging
+        the same fast on the same Hijri date multiple times will result in a
+        single log entry.
       requestBody:
         required: true
         content:
@@ -521,8 +529,17 @@ paths:
         profile, bulugh date, and practicing periods are not affected. Debt is
         recalculated on the next call to `GET /v1/sawm/debt`.
 
+        Returns `200` with a plain message (no job) when the user has no logs — the
+        operation is a no-op and no background job is created.
+
         Rate limit: 1 request per 10 minutes per user.
       responses:
+        '200':
+          description: No logs exist — reset is a no-op
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
         '202':
           description: Fast log reset started
           content:
@@ -531,8 +548,6 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimit'
         '500':
@@ -744,6 +759,9 @@ paths:
       description: |
         Deletes the authenticated user's Cognito sign-in access after the async
         account-data deletion job has completed.
+
+        Returns `409` with `TASK_FAILED` if the deletion job failed, or
+        `TASK_TIMEOUT` if the job has not yet completed.
       parameters:
         - $ref: '#/components/parameters/jobId'
       responses:
@@ -758,7 +776,24 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: Deletion job failed or has not completed yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                failed:
+                  summary: Job failed
+                  value:
+                    error:
+                      code: TASK_FAILED
+                      message: 'Account deletion job failed'
+                notReady:
+                  summary: Job not yet complete
+                  value:
+                    error:
+                      code: TASK_TIMEOUT
+                      message: 'Account deletion job has not completed yet'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -790,6 +825,8 @@ paths:
       summary: Start user data export
       description: |
         Starts an asynchronous user-data export job for the authenticated user.
+
+        Rate limit: 1 request per 10 minutes per user.
       responses:
         '202':
           description: User data export job started
@@ -799,6 +836,8 @@ paths:
                 $ref: '#/components/schemas/UserLifecycleJobStartResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '429':
+          $ref: '#/components/responses/RateLimit'
         '500':
           $ref: '#/components/responses/InternalError'
     get:
@@ -807,6 +846,10 @@ paths:
       summary: Download completed user data export
       description: |
         Returns the completed export payload for a previously started export job.
+
+        Returns `409` with `EXPORT_RETRY_ERROR` if the job is still pending or
+        processing, or `EXPORT_DOWNLOAD_FAILED` if the job failed or the export
+        artifact could not be read.
       parameters:
         - $ref: '#/components/parameters/jobId'
       responses:
@@ -821,7 +864,24 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: Job not yet complete or export artifact unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                notReady:
+                  summary: Job still in progress
+                  value:
+                    error:
+                      code: EXPORT_RETRY_ERROR
+                      message: 'Export job has not completed yet'
+                failed:
+                  summary: Job failed
+                  value:
+                    error:
+                      code: EXPORT_DOWNLOAD_FAILED
+                      message: 'Export job failed'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -1005,6 +1065,14 @@ components:
           description: Optional date of reversion to Islam — when present and later than bulughDate, debt calculation starts from this date. Must not be earlier than bulughDate or in the future (validated server-side).
         gender:
           $ref: '#/components/schemas/Gender'
+        madhab:
+          $ref: '#/components/schemas/Madhab'
+        calculationMethod:
+          $ref: '#/components/schemas/CalculationMethod'
+        moonSightingPreference:
+          $ref: '#/components/schemas/MoonSightingPreference'
+        location:
+          $ref: '#/components/schemas/Location'
 
     # -------------------------------------------------------------------------
     # Responses
@@ -1055,6 +1123,9 @@ components:
         authCleanupCompletedAt:
           type: string
           format: date-time
+        expiresAt:
+          type: integer
+          description: TTL timestamp for job cleanup
 
     UserLifecycleJobStartResponse:
       type: object
@@ -1090,6 +1161,9 @@ components:
         fileName:
           type: string
           example: 'awdah-data-export-2026-03-23.json'
+        contentType:
+          type: string
+          example: 'application/json;charset=utf-8'
         data:
           type: object
 
@@ -1307,6 +1381,28 @@ components:
                 - CONFLICT
                 - RATE_LIMIT
                 - INTERNAL_ERROR
+                - SALAH_NO_QADAA_OWED
+                - SAWM_NO_QADAA_DEBT
+                - SAWM_EXCEED_QADAA_DEBT
+                - RESET_PRAYERS_NO_RECORDS
+                - RESET_PRAYERS_RATE_LIMITED
+                - RESET_FASTS_NO_RECORDS
+                - RESET_FASTS_RATE_LIMITED
+                - EXPORT_RATE_LIMITED
+                - EXPORT_RETRY_ERROR
+                - EXPORT_DOWNLOAD_FAILED
+                - TASK_NOT_FOUND
+                - TASK_FAILED
+                - TASK_TIMEOUT
+                - PERIOD_NOT_FOUND
+                - PERIOD_END_BEFORE_START
+                - PERIOD_BEFORE_DOB
+                - PERIOD_BEFORE_REVERT
+                - BULUGH_BEFORE_DOB
+                - REVERT_BEFORE_DOB
+                - USER_SETTINGS_NOT_FOUND
+                - INVALID_PAGINATION_CURSOR
+                - INVALID_JSON_BODY
             message:
               type: string
               example: 'Bulugh date cannot be before date of birth'

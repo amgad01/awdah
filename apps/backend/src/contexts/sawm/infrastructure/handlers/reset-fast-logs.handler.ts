@@ -7,6 +7,7 @@ import { StatusCodes } from '@awdah/shared';
 export const handler = createHandler(CONTEXTS.SAWM, getResetFastLogsUseCase(), {
   transformInput: (userId) => ({ userId }),
   statusCode: StatusCodes.ACCEPTED,
+  successMessage: MESSAGES.SAWM.FASTS_RESET_STARTED,
   present: (job) => ({
     message: MESSAGES.SAWM.FASTS_RESET_STARTED,
     job,

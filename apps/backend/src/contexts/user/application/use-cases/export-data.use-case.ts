@@ -1,10 +1,4 @@
-import {
-  UserId,
-  EventId,
-  RateLimitError,
-  RATE_LIMIT_MINUTES,
-  getRateLimitSince,
-} from '@awdah/shared';
+import { UserId, EventId, RateLimitError, getRateLimitSince, ERROR_CODES } from '@awdah/shared';
 import {
   IUserLifecycleJobRepository,
   USER_LIFECYCLE_JOB_TTL_SECONDS,
@@ -36,7 +30,7 @@ export class ExportDataUseCase {
     );
 
     if (recentJob) {
-      throw new RateLimitError(`Please wait ${RATE_LIMIT_MINUTES} minutes between data exports`);
+      throw new RateLimitError(ERROR_CODES.EXPORT_RATE_LIMITED);
     }
 
     const jobId = new EventId(this.idGenerator.generate());

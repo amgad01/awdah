@@ -4,8 +4,7 @@ import {
   IUserRepository,
   UserSettings,
 } from '../../../../shared/domain/repositories/user.repository';
-import { HijriDate, NotFoundError, UserId } from '@awdah/shared';
-import { userSettingsNotFound } from '../../../../../shared/errors/messages';
+import { HijriDate, NotFoundError, UserId, ERROR_CODES } from '@awdah/shared';
 
 describe('GetUserSettingsUseCase', () => {
   const mockRepo: IUserRepository = {
@@ -37,7 +36,7 @@ describe('GetUserSettingsUseCase', () => {
     vi.mocked(mockRepo.findById).mockResolvedValue(null);
 
     await expect(useCase.execute('unknown-user')).rejects.toThrow(
-      new NotFoundError(userSettingsNotFound),
+      new NotFoundError(ERROR_CODES.USER_SETTINGS_NOT_FOUND),
     );
     expect(mockRepo.findById).toHaveBeenCalledWith(expect.any(UserId));
   });

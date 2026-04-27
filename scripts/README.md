@@ -168,6 +168,10 @@ Deletes all prayer log entries from local DynamoDB (LocalStack).
 
 Same as `reset-prayers.sh` but for fast logs.
 
+### `free-ports.sh`
+
+Kills any processes or Docker containers holding the local dev ports (3000, 4566, 8080).
+
 ### `run-e2e-backend-dev.sh`
 
 Runs the backend dev server for E2E testing.
