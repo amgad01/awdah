@@ -1,7 +1,9 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { Duplex } from 'node:stream';
 import type { Express } from 'express';
+import { NotFoundError as SharedNotFoundError } from '@awdah/shared';
+import { app } from '../index';
 
 interface TestResponse {
   statusCode: number;
@@ -9,65 +11,66 @@ interface TestResponse {
   body: string;
 }
 
-type ExpressHandlerApp = Express & {
-  handle: (req: IncomingMessage, res: ServerResponse, callback: (error?: unknown) => void) => void;
-};
+const {
+  logPrayerUseCaseMock,
+  getSalahDebtUseCaseMock,
+  getPrayerHistoryPageUseCaseMock,
+  getFastHistoryPageUseCaseMock,
+  getUserSettingsUseCaseMock,
+  getUpdateUserSettingsUseCaseMock,
+  mockSalahUseCases,
+  mockSawmUseCases,
+  mockUserUseCases,
+} = vi.hoisted(() => {
+  const logPrayerUseCaseMock = { execute: vi.fn() };
+  const getSalahDebtUseCaseMock = { execute: vi.fn() };
+  const getPrayerHistoryPageUseCaseMock = { execute: vi.fn() };
+  const getFastHistoryPageUseCaseMock = { execute: vi.fn() };
+  const getUserSettingsUseCaseMock = { execute: vi.fn() };
+  const getUpdateUserSettingsUseCaseMock = { execute: vi.fn() };
 
-const logPrayerUseCaseMock = { execute: vi.fn() };
-const getSalahDebtUseCaseMock = { execute: vi.fn() };
-const getPrayerHistoryPageUseCaseMock = { execute: vi.fn() };
-
-const mockSalahUseCases = {
-  getLogPrayerUseCase: () => logPrayerUseCaseMock,
-  getSalahDebtUseCase: () => getSalahDebtUseCaseMock,
-  getAddPracticingPeriodUseCase: () => ({ execute: vi.fn() }),
-  getUpdatePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
-  getPracticingPeriodsUseCase: () => ({ execute: vi.fn() }),
-  getDeletePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
-  getPrayerHistoryUseCase: () => ({ execute: vi.fn() }),
-  getPrayerHistoryPageUseCase: () => getPrayerHistoryPageUseCaseMock,
-  getDeletePrayerLogUseCase: () => ({ execute: vi.fn() }),
-  getResetPrayerLogsUseCase: () => ({ execute: vi.fn() }),
-};
-
-const getFastHistoryPageUseCaseMock = { execute: vi.fn() };
-
-const mockSawmUseCases = {
-  getLogFastUseCase: () => ({ execute: vi.fn() }),
-  getSawmDebtUseCase: () => ({ execute: vi.fn() }),
-  getFastHistoryUseCase: () => ({ execute: vi.fn() }),
-  getFastHistoryPageUseCase: () => getFastHistoryPageUseCaseMock,
-  getDeleteFastLogUseCase: () => ({ execute: vi.fn() }),
-  getResetFastLogsUseCase: () => ({ execute: vi.fn() }),
-};
-
-const getUserSettingsUseCaseMock = { execute: vi.fn() };
-const getUpdateUserSettingsUseCaseMock = { execute: vi.fn() };
-
-const mockUserUseCases = {
-  getUserSettingsUseCase: () => getUserSettingsUseCaseMock,
-  getUpdateUserSettingsUseCase: () => getUpdateUserSettingsUseCaseMock,
-  getDeleteAccountUseCase: () => ({ execute: vi.fn() }),
-  getFinalizeDeleteAccountUseCase: () => ({ execute: vi.fn() }),
-  getExportDataUseCase: () => ({ execute: vi.fn() }),
-  getDownloadExportDataUseCase: () => ({ execute: vi.fn() }),
-  getUserLifecycleJobStatusUseCase: () => ({ execute: vi.fn() }),
-};
+  return {
+    logPrayerUseCaseMock,
+    getSalahDebtUseCaseMock,
+    getPrayerHistoryPageUseCaseMock,
+    getFastHistoryPageUseCaseMock,
+    getUserSettingsUseCaseMock,
+    getUpdateUserSettingsUseCaseMock,
+    mockSalahUseCases: {
+      getLogPrayerUseCase: () => logPrayerUseCaseMock,
+      getSalahDebtUseCase: () => getSalahDebtUseCaseMock,
+      getAddPracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+      getUpdatePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+      getPracticingPeriodsUseCase: () => ({ execute: vi.fn() }),
+      getDeletePracticingPeriodUseCase: () => ({ execute: vi.fn() }),
+      getPrayerHistoryUseCase: () => ({ execute: vi.fn() }),
+      getPrayerHistoryPageUseCase: () => getPrayerHistoryPageUseCaseMock,
+      getDeletePrayerLogUseCase: () => ({ execute: vi.fn() }),
+      getResetPrayerLogsUseCase: () => ({ execute: vi.fn() }),
+    },
+    mockSawmUseCases: {
+      getLogFastUseCase: () => ({ execute: vi.fn() }),
+      getSawmDebtUseCase: () => ({ execute: vi.fn() }),
+      getFastHistoryUseCase: () => ({ execute: vi.fn() }),
+      getFastHistoryPageUseCase: () => getFastHistoryPageUseCaseMock,
+      getDeleteFastLogUseCase: () => ({ execute: vi.fn() }),
+      getResetFastLogsUseCase: () => ({ execute: vi.fn() }),
+    },
+    mockUserUseCases: {
+      getUserSettingsUseCase: () => getUserSettingsUseCaseMock,
+      getUpdateUserSettingsUseCase: () => getUpdateUserSettingsUseCaseMock,
+      getDeleteAccountUseCase: () => ({ execute: vi.fn() }),
+      getFinalizeDeleteAccountUseCase: () => ({ execute: vi.fn() }),
+      getExportDataUseCase: () => ({ execute: vi.fn() }),
+      getDownloadExportDataUseCase: () => ({ execute: vi.fn() }),
+      getUserLifecycleJobStatusUseCase: () => ({ execute: vi.fn() }),
+    },
+  };
+});
 
 vi.mock('../shared/di/salah-use-cases', () => mockSalahUseCases);
 vi.mock('../shared/di/sawm-use-cases', () => mockSawmUseCases);
 vi.mock('../shared/di/user-use-cases', () => mockUserUseCases);
-
-let app: ExpressHandlerApp;
-let SharedNotFoundError: typeof import('@awdah/shared').NotFoundError;
-
-beforeAll(async () => {
-  vi.resetModules();
-  const shared = await import('@awdah/shared');
-  SharedNotFoundError = shared.NotFoundError;
-  const mod = await import('../index');
-  app = mod.app as ExpressHandlerApp;
-});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -154,7 +157,11 @@ async function invokeApp(
     res.assignSocket(socket as unknown as import('node:net').Socket);
 
     res.on('error', reject);
-    app.handle(req, res, reject);
+    (
+      app as Express & {
+        handle: (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void;
+      }
+    ).handle(req, res, reject);
   });
 }
 
