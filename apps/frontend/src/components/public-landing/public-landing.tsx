@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useLanguage } from '@/hooks/use-language';
 import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
 import { PublicTopBar, LoadingFallback } from '@/components/public-page-shell/public-page-shell';

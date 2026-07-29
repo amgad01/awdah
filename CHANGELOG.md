@@ -7,6 +7,12 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.5.0
+
+### Security
+
+- Cleared all `npm audit` findings (was 18). Direct bumps: `amazon-cognito-identity-js@6.3.20`, `react-router@8.3.0` (replaces `react-router-dom`), `react`/`react-dom@19.2.8`, `vite@7.3.6`, `sharp@0.35.3`, `aws-cdk-lib@2.262.1`, `aws-cdk@2.1133.0`, `esbuild@0.28.1`. Root overrides pin transitive fixes (`qs`, `form-data`, `postcss`, `ws`, `js-yaml`, `body-parser`, `@babel/core`, `fast-uri`, `fast-xml-builder`, `fast-xml-parser`, `brace-expansion`, `minimatch`). Postinstall patches bundled CDK `brace-expansion` to `5.0.8`.
+
 ## v1.4.0
 
 ### Added

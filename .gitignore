@@ -68,3 +68,5 @@ npm-debug.log*
 **/.env.production
 infra/outputs.json
 feature-log/*
+.amazonq/
+q-dev-*.md

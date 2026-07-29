@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useLanguage } from '@/hooks/use-language';
 import { usePracticingPeriods } from '@/hooks/use-profile';
 import { useLogPrayer, useSalahHistory } from '@/hooks/use-worship';

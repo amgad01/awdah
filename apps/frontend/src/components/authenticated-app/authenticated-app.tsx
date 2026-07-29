@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router';
 import { ErrorState } from '@/components/ui/error-state/error-state';
 import { useLanguage } from '@/hooks/use-language';
 import { PUBLIC_ROUTE_PATHS } from '@/lib/public-routes';

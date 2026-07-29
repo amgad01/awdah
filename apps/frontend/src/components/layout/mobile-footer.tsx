@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { PlayCircle, Info, Users, Shield } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import styles from './mobile-footer.module.css';

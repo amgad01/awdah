@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useLanguage } from '@/hooks/use-language';
 import { useResponsiveMenu } from '@/hooks/use-responsive-menu';
 import { BrandLockup } from '@/components/brand-lockup/brand-lockup';
