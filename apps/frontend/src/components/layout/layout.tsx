@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useLanguage } from '@/hooks/use-language';
 import { Nav } from './nav';
 import { MobileFooter } from './mobile-footer';

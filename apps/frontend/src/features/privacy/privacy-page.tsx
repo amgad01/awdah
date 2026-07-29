@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useLanguage } from '@/hooks/use-language';
 import { Shield, Lock, Eye, Trash2, Download, Mail, Pencil } from 'lucide-react';
 import { GlossaryText } from '@/components/ui/term-tooltip';

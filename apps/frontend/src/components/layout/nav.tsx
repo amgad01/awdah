@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router';
 import {
   LayoutDashboard,
   Moon,
